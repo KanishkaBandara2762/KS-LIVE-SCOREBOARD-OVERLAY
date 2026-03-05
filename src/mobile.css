@@ -1,0 +1,162 @@
+/* ============================================================
+   mobile.css  –  Mobile & Touch Responsive Overrides
+   Works ON TOP of Tailwind — no existing code modified.
+   Scoped to screens <= 768px width.
+   ============================================================ */
+
+/* ─── Prevent horizontal scroll on all pages ─────────────────── */
+html,
+body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* ─── Make tap targets bigger on all buttons everywhere ──────── */
+@media (max-width: 768px) {
+    button {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
+
+    input,
+    select {
+        min-height: 44px;
+        font-size: 16px !important;
+        /* Prevent iOS zoom on input focus */
+    }
+
+    /* ─── ADMIN PANEL HEADER ──────────────────────────────────────── */
+    /* Stack the header into two rows on mobile */
+    .admin-header-row {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        align-items: flex-start !important;
+        padding: 0.75rem !important;
+    }
+
+    /* Wrap nav buttons so they don't overflow */
+    .admin-header-nav {
+        flex-wrap: wrap !important;
+        gap: 0.4rem !important;
+    }
+
+    /* ─── ADMIN PANEL GRID: force single column on mobile ────────── */
+    /* Tailwind md:grid-cols-3 kicks in at 768px, this overrides below that */
+    .admin-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+        padding: 1rem !important;
+    }
+
+    /* Remove right borders on mobile (they're column separators) */
+    .admin-col-border {
+        border-right: none !important;
+        border-bottom: 1px solid #e2e8f0;
+        padding-right: 0 !important;
+        padding-bottom: 1rem !important;
+    }
+
+    /* ─── SCORING BUTTONS: bigger, easier to tap ─────────────────── */
+    .score-btn-grid button {
+        padding: 1rem !important;
+        font-size: 1.4rem !important;
+        border-radius: 12px !important;
+    }
+
+    /* WICKET button — make it very prominent */
+    .wkt-btn {
+        padding: 1.1rem !important;
+        font-size: 1.25rem !important;
+    }
+
+    /* ─── SCORE DISPLAY BOX: bigger score text ───────────────────── */
+    .score-display-box h3 {
+        font-size: 3rem !important;
+    }
+
+    /* ─── Swap Strike button ─────────────────────────────────────── */
+    .swap-strike-btn {
+        padding: 0.9rem !important;
+        font-size: 1rem !important;
+    }
+
+    /* ─── Extra runs buttons ─────────────────────────────────────── */
+    .extra-runs-btn {
+        padding: 0.6rem 0.8rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* ─── Leg Bye buttons ────────────────────────────────────────── */
+    .leg-bye-btn {
+        padding: 0.75rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* ─── Remove column borders on mobile ───────────────────────── */
+    .border-r {
+        border-right: none !important;
+    }
+
+    /* ─── Section headings: increase size ────────────────────────── */
+    h2.section-label {
+        font-size: 0.9rem !important;
+        padding: 0.5rem 0 !important;
+    }
+
+    /* ─── Make selects easier to tap ─────────────────────────────── */
+    select {
+        padding: 0.7rem !important;
+    }
+
+    /* ─── Auth card: already responsive, but extra safety ─────────── */
+    .auth-card {
+        padding: 1.75rem 1.25rem !important;
+        border-radius: 14px !important;
+    }
+
+    .auth-title {
+        font-size: 1.3rem !important;
+    }
+
+    /* OTP boxes: fit 6 boxes on small screens */
+    .otp-box {
+        width: 40px !important;
+        height: 48px !important;
+        font-size: 1.2rem !important;
+    }
+
+    /* ─── TeamManager on mobile ──────────────────────────────────── */
+    .team-manager-grid {
+        grid-template-columns: 1fr !important;
+        padding: 0.75rem !important;
+    }
+
+    /* ─── Sticky bottom scoring pad on mobile ────────────────────── */
+    /* Keeps run buttons always reachable at bottom of screen */
+    .mobile-sticky-score {
+        position: sticky;
+        bottom: 0;
+        background: rgba(15, 23, 42, 0.97);
+        backdrop-filter: blur(8px);
+        border-top: 2px solid #f59e0b;
+        padding: 0.75rem;
+        z-index: 50;
+    }
+}
+
+/* ─── Very small phones (< 400px) ──────────────────────────── */
+@media (max-width: 400px) {
+    .otp-boxes {
+        gap: 0.35rem !important;
+    }
+
+    .otp-box {
+        width: 36px !important;
+        height: 42px !important;
+        font-size: 1.1rem !important;
+    }
+
+    .auth-card {
+        padding: 1.25rem 1rem !important;
+    }
+}

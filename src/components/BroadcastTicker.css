@@ -1,0 +1,177 @@
+/* =============================================
+   BROADCAST TICKER — CSS Animations
+   Two modes: Breaking News Flash + Tournament Banner
+   OBS-safe, 1920×1080, no performance impact
+   ============================================= */
+
+/* ─── Base Container ──────────────────────────────────────── */
+.broadcast-ticker {
+    position: relative;
+    width: 100%;
+    height: 36px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    font-family: 'Oswald', 'Inter', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 14px;
+    z-index: 15;
+    margin-bottom: -1px;
+    /* Flush with scoreboard below */
+}
+
+/* ─── Glow Top Border ─────────────────────────────────────── */
+.ticker-glow-border {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    z-index: 2;
+}
+
+/* ─── Scroll Track ────────────────────────────────────────── */
+.ticker-scroll-track {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+/* ─── Scrolling Text (infinite loop) ──────────────────────── */
+.ticker-scroll-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: tickerScroll 25s linear infinite;
+    will-change: transform;
+    /* GPU-accelerated */
+    padding-left: 100%;
+}
+
+@keyframes tickerScroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-66.66%);
+    }
+
+    /* Scroll 2/3 (since text is tripled) */
+}
+
+/* =============================================
+   MODE 1: TOURNAMENT BANNER
+   Smooth gold/blue gradient, elegant
+   ============================================= */
+
+/* ─── Gold — FINAL / GRAND FINAL ──────────────────────────── */
+.ticker-banner-final {
+    background: linear-gradient(90deg, #1a0f00 0%, #3d2400 20%, #1a0f00 50%, #3d2400 80%, #1a0f00 100%);
+    color: #ffcc00;
+    border-bottom: 1px solid rgba(255, 204, 0, 0.35);
+    box-shadow: 0 4px 20px rgba(255, 204, 0, 0.15), inset 0 0 40px rgba(255, 204, 0, 0.05);
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+}
+
+.ticker-banner-final .ticker-glow-border {
+    background: linear-gradient(90deg, transparent, rgba(255, 204, 0, 0.7), transparent);
+}
+
+/* ─── Blue — SEMI FINAL ───────────────────────────────────── */
+.ticker-banner-semi {
+    background: linear-gradient(90deg, #000a1f 0%, #001242 20%, #000a1f 50%, #001242 80%, #000a1f 100%);
+    color: #60a5fa;
+    border-bottom: 1px solid rgba(96, 165, 250, 0.35);
+    box-shadow: 0 4px 20px rgba(96, 165, 250, 0.15), inset 0 0 40px rgba(96, 165, 250, 0.05);
+    text-shadow: 0 0 10px rgba(96, 165, 250, 0.4);
+}
+
+.ticker-banner-semi .ticker-glow-border {
+    background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.7), transparent);
+}
+
+/* ─── Custom / Teal ───────────────────────────────────────── */
+.ticker-banner-custom {
+    background: linear-gradient(90deg, #001a1a 0%, #0d3d3d 20%, #001a1a 50%, #0d3d3d 80%, #001a1a 100%);
+    color: #2dd4bf;
+    border-bottom: 1px solid rgba(45, 212, 191, 0.35);
+    box-shadow: 0 4px 20px rgba(45, 212, 191, 0.15), inset 0 0 40px rgba(45, 212, 191, 0.05);
+    text-shadow: 0 0 10px rgba(45, 212, 191, 0.4);
+}
+
+.ticker-banner-custom .ticker-glow-border {
+    background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.7), transparent);
+}
+
+/* =============================================
+   MODE 2: BREAKING NEWS FLASH
+   Red background, blinking badge, urgent
+   ============================================= */
+
+.ticker-breaking {
+    background: linear-gradient(90deg, #1a0000 0%, #4a0000 25%, #800000 50%, #4a0000 75%, #1a0000 100%);
+    color: #ff4444;
+    border-bottom: 2px solid rgba(255, 0, 0, 0.5);
+    box-shadow: 0 4px 25px rgba(255, 0, 0, 0.25), inset 0 0 50px rgba(255, 0, 0, 0.08);
+    text-shadow: 0 0 12px rgba(255, 0, 0, 0.5);
+}
+
+.ticker-breaking .ticker-glow-border {
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.8), transparent);
+    height: 3px;
+}
+
+/* Flash/blink the background */
+.ticker-flash {
+    animation: breakingFlash 2s ease-in-out infinite;
+}
+
+@keyframes breakingFlash {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.3);
+    }
+}
+
+/* ─── BREAKING badge on the left ──────────────────────────── */
+.ticker-breaking-badge {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background: #ff0000;
+    color: white;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    z-index: 5;
+    box-shadow: 4px 0 20px rgba(255, 0, 0, 0.5);
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}

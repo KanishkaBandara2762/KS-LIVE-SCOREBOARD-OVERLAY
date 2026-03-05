@@ -1,0 +1,695 @@
+/* ═══════════════════════════════════════════════════════════════
+   MINI ADMIN — Full Control Compact Console
+   Dark broadcast theme · Accordion panels · Sticky bar
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Root Container ──────────────────────────────────────────── */
+.ma-root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0f0f1a 0%, #13132a 50%, #0a0a14 100%);
+    color: #d0d0e0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 11px;
+    user-select: none;
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.ma-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+.ma-logo {
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: #ffcc00;
+    text-transform: uppercase;
+}
+
+.ma-live-pulse {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ff3333;
+    box-shadow: 0 0 8px rgba(255, 51, 51, 0.6);
+    animation: maPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes maPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.4;
+        transform: scale(0.8);
+    }
+}
+
+/* ── Score Bar ────────────────────────────────────────────────── */
+.ma-score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(255, 204, 0, 0.06), rgba(255, 204, 0, 0.015));
+    border-bottom: 1px solid rgba(255, 204, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.ma-team {
+    font-weight: 800;
+    font-size: 12px;
+    color: #ffcc00;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ma-sub-info {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ma-score-right {
+    text-align: right;
+}
+
+.ma-score-big {
+    font-weight: 900;
+    font-size: 24px;
+    color: #fff;
+    letter-spacing: -0.02em;
+}
+
+.ma-score-overs {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    margin-left: 3px;
+}
+
+/* ── Rate Strip ───────────────────────────────────────────────── */
+.ma-rate-strip {
+    display: flex;
+    justify-content: space-around;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.ma-rate-strip b {
+    color: #60a5fa;
+}
+
+/* ── Alerts ───────────────────────────────────────────────────── */
+.ma-over-alert {
+    padding: 6px 12px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+    font-weight: 800;
+    font-size: 10px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    animation: maFlash 1s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.ma-chase-alert {
+    padding: 5px 12px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    color: #60a5fa;
+    font-weight: 800;
+    font-size: 10px;
+    text-align: center;
+    text-transform: uppercase;
+    animation: maFlash 1.5s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes maFlash {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* ── Scrollable Section Area ──────────────────────────────────── */
+.ma-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* ── Accordion Section ────────────────────────────────────────── */
+.ma-section {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.ma-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 8px 12px;
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: background 0.2s;
+}
+
+.ma-section-body {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ma-chevron {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* Section color variants */
+.ma-sec-blue {
+    background: rgba(59, 130, 246, 0.08);
+    color: #60a5fa;
+}
+
+.ma-sec-green {
+    background: rgba(74, 222, 128, 0.06);
+    color: #4ade80;
+}
+
+.ma-sec-purple {
+    background: rgba(167, 139, 250, 0.06);
+    color: #a78bfa;
+}
+
+.ma-sec-amber {
+    background: rgba(251, 191, 36, 0.06);
+    color: #fbbf24;
+}
+
+.ma-sec-blue:hover {
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.ma-sec-green:hover {
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.ma-sec-purple:hover {
+    background: rgba(167, 139, 250, 0.1);
+}
+
+.ma-sec-amber:hover {
+    background: rgba(251, 191, 36, 0.1);
+}
+
+/* ── Generic Row (label + input) ──────────────────────────────── */
+.ma-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ma-row label {
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    width: 80px;
+    flex-shrink: 0;
+}
+
+/* ── Inputs & Selects ─────────────────────────────────────────── */
+.ma-inp,
+.ma-sel {
+    flex: 1;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    color: #d0d0e0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.ma-inp:focus,
+.ma-sel:focus {
+    border-color: rgba(255, 204, 0, 0.3);
+}
+
+.ma-sel option {
+    background: #1a1a2e;
+    color: #d0d0e0;
+}
+
+/* ── Button Row (2 buttons side-by-side) ──────────────────────── */
+.ma-btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+/* ── Batsman Row ──────────────────────────────────────────────── */
+.ma-bat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    border-radius: 4px;
+}
+
+.ma-bat-active {
+    color: #fff;
+    font-weight: 800;
+    background: rgba(255, 204, 0, 0.06);
+}
+
+.ma-bat-stat {
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Section Label ────────────────────────────────────────────── */
+.ma-label {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.25em;
+    color: rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    padding-left: 2px;
+    margin-top: 4px;
+}
+
+/* ── Button Grids ─────────────────────────────────────────────── */
+.ma-grid {
+    display: grid;
+    gap: 3px;
+}
+
+.ma-grid-6 {
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.ma-grid-5 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.ma-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.ma-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.ma-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* ── Base Button ──────────────────────────────────────────────── */
+.ma-btn {
+    padding: 8px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 5px;
+    font-weight: 800;
+    font-size: 10px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: center;
+    outline: none;
+}
+
+.ma-btn:active {
+    transform: scale(0.93);
+}
+
+/* ── Button Variants ──────────────────────────────────────────── */
+.ma-btn-run {
+    background: linear-gradient(135deg, #0a2e1a, #0d3d23);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.12);
+}
+
+.ma-btn-run:hover {
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.18);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+.ma-btn-boundary {
+    background: linear-gradient(135deg, #1a2e0a, #2d4a0d) !important;
+    color: #a3e635 !important;
+    border-color: rgba(163, 230, 53, 0.15) !important;
+}
+
+.ma-btn-boundary:hover {
+    box-shadow: 0 0 12px rgba(163, 230, 53, 0.2) !important;
+}
+
+.ma-btn-wicket {
+    background: linear-gradient(135deg, #2e0a0a, #5a0d0d);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.18);
+    font-size: 12px;
+}
+
+.ma-btn-wicket:hover {
+    box-shadow: 0 0 14px rgba(248, 113, 113, 0.25);
+    border-color: rgba(248, 113, 113, 0.4);
+}
+
+.ma-btn-extra {
+    background: linear-gradient(135deg, #2e1a0a, #3d230d);
+    color: #fb923c;
+    border-color: rgba(251, 146, 60, 0.12);
+}
+
+.ma-btn-extra:hover {
+    box-shadow: 0 0 10px rgba(251, 146, 60, 0.18);
+}
+
+.ma-btn-lb {
+    background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
+    color: #a78bfa;
+    border-color: rgba(167, 139, 250, 0.12);
+}
+
+.ma-btn-lb:hover {
+    box-shadow: 0 0 8px rgba(167, 139, 250, 0.18);
+}
+
+.ma-btn-bye {
+    background: linear-gradient(135deg, #1a2a2e, #1a3d4e);
+    color: #67e8f9;
+    border-color: rgba(103, 232, 249, 0.12);
+}
+
+.ma-btn-bye:hover {
+    box-shadow: 0 0 8px rgba(103, 232, 249, 0.18);
+}
+
+.ma-btn-swap {
+    background: linear-gradient(135deg, #0a1a2e, #0d2a4a);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.12);
+}
+
+.ma-btn-swap:hover {
+    box-shadow: 0 0 10px rgba(96, 165, 250, 0.18);
+}
+
+.ma-btn-undo {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    color: rgba(255, 255, 255, 0.45);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.ma-btn-undo:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.ma-btn-blue {
+    background: linear-gradient(135deg, #0a1a3e, #102a5e);
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.12);
+}
+
+.ma-btn-blue:hover {
+    box-shadow: 0 0 8px rgba(96, 165, 250, 0.15);
+}
+
+.ma-btn-save {
+    background: linear-gradient(135deg, #1a1a2e, #2a2a3e);
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.12);
+}
+
+.ma-btn-show {
+    background: linear-gradient(135deg, #0a2e1a, #0d3d23);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.15);
+}
+
+.ma-btn-hide {
+    background: linear-gradient(135deg, #2e0a0a, #3d0d0d);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.15);
+}
+
+/* ── Recent Balls ─────────────────────────────────────────────── */
+.ma-recent {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    min-height: 26px;
+}
+
+.ma-ball {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 3px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.ma-ball-w {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.ma-ball-dot {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══ STICKY QUICK-SCORE BAR ═════════════════════════════════ */
+.ma-sticky-bar {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    padding: 8px 10px;
+    background: linear-gradient(180deg, rgba(15, 15, 26, 0.95), rgba(10, 10, 20, 0.98));
+    border-top: 1px solid rgba(255, 204, 0, 0.15);
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+}
+
+.ma-sq {
+    padding: 10px 2px;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: center;
+    border: 1px solid transparent;
+    outline: none;
+}
+
+.ma-sq:active {
+    transform: scale(0.9);
+}
+
+.ma-sq-dot {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.ma-sq-run {
+    background: rgba(74, 222, 128, 0.1);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.15);
+}
+
+.ma-sq-six {
+    background: rgba(163, 230, 53, 0.12);
+    color: #a3e635;
+    border-color: rgba(163, 230, 53, 0.18);
+}
+
+.ma-sq-wkt {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.2);
+}
+
+.ma-sq-wd {
+    background: rgba(251, 146, 60, 0.1);
+    color: #fb923c;
+    border-color: rgba(251, 146, 60, 0.12);
+}
+
+.ma-sq-undo {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.ma-sq-over-ready {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(234, 179, 8, 0.18));
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.3);
+    animation: maFlash 1s ease-in-out infinite;
+}
+
+/* ── Over Completed Button ────────────────────────────────────── */
+.ma-over-btn {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    border: 1px solid transparent;
+    outline: none;
+    flex-shrink: 0;
+    margin: 4px 10px;
+}
+
+.ma-over-btn-ready {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.15));
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.35);
+    animation: maFlash 1.2s ease-in-out infinite;
+}
+
+.ma-over-btn-ready:hover {
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.3);
+    border-color: rgba(251, 191, 36, 0.5);
+}
+
+.ma-over-btn-ready:active {
+    transform: scale(0.95);
+}
+
+.ma-over-btn-disabled {
+    background: rgba(255, 255, 255, 0.02);
+    color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.04);
+    cursor: not-allowed;
+}
+
+.ma-sq-run:hover {
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.2);
+}
+
+.ma-sq-six:hover {
+    box-shadow: 0 0 12px rgba(163, 230, 53, 0.2);
+}
+
+.ma-sq-wkt:hover {
+    box-shadow: 0 0 14px rgba(248, 113, 113, 0.25);
+}
+
+.ma-sq-wd:hover {
+    box-shadow: 0 0 10px rgba(251, 146, 60, 0.2);
+}
+
+/* ── Keyboard Hints ───────────────────────────────────────────── */
+.ma-hints {
+    text-align: center;
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.12);
+    letter-spacing: 0.08em;
+    padding: 4px 0;
+    font-weight: 600;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* ── Loading ──────────────────────────────────────────────────── */
+.ma-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.1em;
+}
+
+/* ── Helper ───────────────────────────────────────────────────── */
+.w-full {
+    width: 100%;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+.ma-scroll-area::-webkit-scrollbar {
+    width: 3px;
+}
+
+.ma-scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ma-scroll-area::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
