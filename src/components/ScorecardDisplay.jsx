@@ -18,6 +18,7 @@ const ScorecardDisplay = () => {
   const prevScore = useRef(null);
   const prevWickets = useRef(null);
   const prevEventTime = useRef(null);
+  const prevBannerEventTime = useRef(null);
   const prevCurrentOver = useRef(null);
 
   const themes = {
@@ -49,9 +50,11 @@ const ScorecardDisplay = () => {
         if (data.eventTrigger === "RESET_WINNER") {
           setWinnerInfo(null);
         }
-        if (["FOUR", "SIX", "WICKET"].includes(data.eventTrigger)) {
+        if (["FOUR", "SIX", "WICKET"].includes(data.eventTrigger)
+            && data.eventTime && data.eventTime !== prevBannerEventTime.current) {
+          prevBannerEventTime.current = data.eventTime;
           setShowEvent(true);
-          const t = setTimeout(() => setShowEvent(false), 4000);
+          const t = setTimeout(() => setShowEvent(false), 2500);
           return () => clearTimeout(t);
         }
       }
@@ -124,7 +127,7 @@ const ScorecardDisplay = () => {
   const remainingBalls = totalMatchBalls - match.totalBalls;
 
   return (
-    <div className="fixed inset-0 font-sans select-none pointer-events-none text-white uppercase italic">
+    <div className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic">
 
       {/* 1. NAVIGATION OVERLAY (Admin only, visible on hover) */}
       <div className="fixed top-4 left-4 z-[200] flex gap-2 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity">
@@ -273,30 +276,7 @@ const ScorecardDisplay = () => {
         );
       })()}
 
-      {/* 5. EVENT BANNER (Four, Six, Wicket) */}
-      <div className={`fixed top-1/2 right-0 transform -translate-y-1/2 transition-all duration-700 ease-out z-[110] ${showEvent ? "translate-x-0" : "translate-x-full"}`}>
-        <div className={`relative overflow-hidden ${match.eventTrigger === "FOUR" ? "event-banner-four" :
-          match.eventTrigger === "SIX" ? "event-banner-six" :
-            match.eventTrigger === "WICKET" ? "event-banner-wicket" : "bg-black"
-          } px-14 py-7 rounded-l-2xl border-l-4 ${match.eventTrigger === "FOUR" ? "border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.3)]" :
-            match.eventTrigger === "SIX" ? "border-lime-400 shadow-[0_0_40px_rgba(163,230,53,0.3)]" :
-              match.eventTrigger === "WICKET" ? "border-red-400 shadow-[0_0_40px_rgba(248,113,113,0.3)]" : "border-white"
-          }`}>
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-          <div className="relative z-10">
-            <p className={`text-[10px] font-black tracking-[0.5em] mb-1 ${match.eventTrigger === "FOUR" ? "text-cyan-300" :
-              match.eventTrigger === "SIX" ? "text-lime-300" :
-                "text-red-300"
-              }`}>{match.eventTrigger === "WICKET" ? "WICKET" : "BOUNDARY"}</p>
-            <h1 className={`text-5xl font-black italic tracking-tight uppercase ${match.eventTrigger === "SIX" ? "text-yellow-300" : "text-white"
-              } drop-shadow-lg`}>
-              {match.eventTrigger === "WICKET"
-                ? `${match.lastWicketName} ${match.lastWicketRuns}(${match.lastWicketBalls}) OUT!`
-                : match.eventTrigger === "FOUR" ? "IT'S A FOUR!" : "MASSIVE SIX!"}
-            </h1>
-          </div>
-        </div>
-      </div>
+
 
       {/* 5.5 MATCH SITUATION OVERLAY */}
       {match.showMatchSituation && match.isSecondInnings && (match.targetScore - match.score) > 0 && (
@@ -327,23 +307,55 @@ const ScorecardDisplay = () => {
         <div className={`absolute bottom-0 left-0 w-full flex flex-col pointer-events-none ${animThemeClass}`}>
           {/* BROADCAST TICKER — sits above the scoreboard bar */}
           <BroadcastTicker />
-          <div className={`flex h-24 ${active.main} items-stretch relative overflow-hidden ${active.isWC2026 ? `${active.border} wc2026-open` : `border-t-2 ${active.border} scoreboard-open`} shadow-2xl ${boardAnimClass}`}>
+          <div className={`flex h-28 ${active.main} items-stretch relative overflow-hidden ${active.isWC2026 ? `${active.border} wc2026-open` : `border-t-2 ${active.border} scoreboard-open`} shadow-2xl ${boardAnimClass}`}>
+
+            {/* INLINE EVENT BANNER — contained within scoreboard */}
+            {showEvent && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
+              <div className={`event-banner event-banner-${match.eventTrigger.toLowerCase()}`}>
+                {/* Particles — lightweight, clipped to scoreboard */}
+                <div className="event-banner-particles">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="event-banner-particle" style={{
+                      left: `${10 + Math.random() * 80}%`,
+                      animationDelay: `${Math.random() * 0.6}s`,
+                      animationDuration: `${1.2 + Math.random() * 1}s`
+                    }} />
+                  ))}
+                </div>
+                {/* Glow effect */}
+                <div className="event-banner-glow" />
+                {/* Sweep line */}
+                <div className="event-banner-sweep" />
+                {/* Content — slide-in from right */}
+                <div className="event-banner-content">
+                  <p className="event-banner-label">
+                    {match.eventTrigger === "WICKET" ? "WICKET" : "BOUNDARY"}
+                  </p>
+                  <h1 className="event-banner-title">
+                    {match.eventTrigger === "WICKET"
+                      ? <>{match.lastWicketName} <span className="event-banner-stat">{match.lastWicketRuns}({match.lastWicketBalls})</span> OUT!</>
+                      : match.eventTrigger === "FOUR" ? "IT'S A FOUR!" : "MASSIVE SIX!"}
+                  </h1>
+                  <div className="event-banner-accent" />
+                </div>
+              </div>
+            )}
 
             {/* TEAM & LOGO SECTION */}
             <div className={`flex items-center w-[35%] pl-4 gap-4 ${active.main} ${active.isWC2026 ? 'wc2026-content-reveal' : 'content-reveal'}`}>
               <img src={match.battingLogo} className="h-16 w-16 rounded-full bg-white p-1 object-cover shadow-lg" alt="Team Logo" />
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-[10px] font-bold uppercase">{match.bowlingPrefix}</span>
+                  <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">{match.bowlingPrefix}</span>
                   {match.isSuperOver && <span className="bg-red-600 px-1 font-black rounded animate-pulse">SUPER OVER</span>}
                 </div>
-                <div className={`${active.accent} -skew-x-12 px-4 py-1 shadow-lg`}>
-                  <h2 className="text-black font-black text-xl skew-x-12 truncate max-w-[150px] uppercase">{match.battingTeam}</h2>
+                <div className={`${active.accent} -skew-x-12 px-5 py-1.5 shadow-lg`}>
+                  <h2 className="text-black font-semibold text-2xl skew-x-12 truncate max-w-[180px] uppercase tracking-wide text-broadcast-shadow">{match.battingTeam}</h2>
                 </div>
               </div>
               <div className={`flex items-baseline ml-auto pr-6 text-white text-center ${scoreAnimClass}`}>
-                <span className={`${active.text} font-black text-4xl mr-3`}>{match.score}-{match.wickets}</span>
-                <span className="font-bold text-3xl italic">({getOvers(match.totalBalls)})</span>
+                <span className={`${active.text} font-black text-6xl mr-3 tracking-wide text-broadcast-shadow`}>{match.score}-{match.wickets}</span>
+                <span className="font-bold text-4xl italic text-broadcast-glow">({getOvers(match.totalBalls)})</span>
               </div>
             </div>
 
@@ -356,10 +368,10 @@ const ScorecardDisplay = () => {
                 {[match.player1, match.player2].map((p, i) => (
                   <div key={i} className={`flex justify-between items-center py-0.5 ${i === 0 ? "border-b border-black/10" : "opacity-80"}`}>
                     <div className="flex items-center gap-2">
-                      <span className="text-black font-black text-lg italic uppercase truncate max-w-[140px]">{p?.name}</span>
+                      <span className="text-black font-semibold text-xl italic uppercase truncate max-w-[150px] tracking-wide">{p?.name}</span>
                       {p?.onStrike && <PlayIcon className="h-4 w-4 text-black animate-pulse" />}
                     </div>
-                    <span className="text-black font-bold text-xl">{p?.runs}({p?.balls})</span>
+                    <span className="text-black font-bold text-2xl">{p?.runs}({p?.balls})</span>
                   </div>
                 ))}
               </div>
@@ -372,25 +384,25 @@ const ScorecardDisplay = () => {
             <div className={`flex-1 ${active.isWC2026 ? `${active.bowler} wc2026-content-reveal` : `bg-gradient-to-r ${active.bowler} content-reveal`} flex items-center px-6 gap-4 ${bowlerAnimClass} ${newOverAnim ? 'over-light-sweep' : ''}`} style={{ position: 'relative' }}>
               <div className="flex-1 flex flex-col justify-center">
                 {(match.overlayMode || 'full') === 'full' && match.bowler?.name && (
-                  <div className={`flex justify-between items-center mb-1 font-black italic text-white text-xs overlay-section-transition ${newOverAnim ? 'bowler-highlight' : ''}`}>
-                    <span className="uppercase">{match.bowler?.name}</span>
-                    <span>{match.bowler?.figures}</span>
+                  <div className={`flex justify-between items-center mb-1 font-bold italic text-white text-sm overlay-section-transition tracking-wide ${newOverAnim ? 'bowler-highlight' : ''}`}>
+                    <span className="uppercase text-broadcast-glow">{match.bowler?.name}</span>
+                    <span className="text-broadcast-glow">{match.bowler?.figures}</span>
                   </div>
                 )}
-                <div className="flex gap-1 flex-wrap">
+                <div className="flex gap-1.5 flex-wrap">
                   {Array.from({ length: Math.max(match.ballsPerOver || 5, (match.recentBalls || []).length) }).map((_, i) => {
                     const ball = (match.recentBalls || [])[i] || "";
                     const isW = ball === "W";
                     const isE = ball.includes("WD") || ball.includes("NB") || ball.includes("B");
-                    return <div key={i} className={`min-w-[28px] h-7 px-1 rounded shadow-inner flex items-center justify-center font-black text-[11px] border-b-2 transition-all duration-300 ${ball === "" ? "bg-black/40 border-white/5" : isW ? "bg-white text-black scale-110 shadow-md" : isE ? "bg-yellow-400 text-black border-yellow-600" : "bg-red-500 text-white border-red-700"} ${newOverAnim ? 'ball-dot-reset' : ''}`}>{ball}</div>;
+                    return <div key={i} className={`min-w-[30px] h-7 px-1 rounded shadow-inner flex items-center justify-center font-black text-[13px] border-b-2 transition-all duration-300 ${ball === "" ? "bg-black/40 border-white/5" : isW ? "bg-white text-black scale-110 shadow-md" : isE ? "bg-yellow-400 text-black border-yellow-600" : "bg-red-500 text-white border-red-700"} ${newOverAnim ? 'ball-dot-reset' : ''}`}>{ball}</div>;
                   })}
                 </div>
               </div>
 
               <div className="flex flex-col items-center justify-center border-l border-white/20 pl-4 py-1">
-                <p className="text-[7px] font-black text-white/50 uppercase">This Over</p>
-                <div className="bg-white/10 px-2 rounded-md border border-white/10">
-                  <p className="text-2xl font-black text-white">{match.overRuns || 0}</p>
+                <p className="text-[8px] font-bold text-white/50 uppercase tracking-widest">This Over</p>
+                <div className="bg-white/10 px-3 rounded-md border border-white/10">
+                  <p className="text-3xl font-black text-white text-broadcast-glow">{match.overRuns || 0}</p>
                 </div>
               </div>
             </div>
@@ -400,23 +412,45 @@ const ScorecardDisplay = () => {
             </div>
           </div>
 
+          {/* OVER SUMMARY BAR — Promoted Runs Section */}
+          {(match.recentBalls || []).length > 0 && (
+            <div className="over-summary-bar">
+              <span className="over-label">Over {(match.currentOver || 0) + 1}</span>
+              <div className="over-divider" />
+              <div className="over-balls-track">
+                {Array.from({ length: Math.max(match.ballsPerOver || 5, (match.recentBalls || []).length) }).map((_, i) => {
+                  const ball = (match.recentBalls || [])[i] || "";
+                  const isW = ball === "W";
+                  const isFour = ball === "4";
+                  const isSix = ball === "6";
+                  const isDot = ball === "•" || ball === "0";
+                  const isExtra = ball.includes("WD") || ball.includes("NB") || ball.includes("LB") || ball.includes("B");
+                  const capsuleClass = `over-ball-capsule${ball ? ' has-value' : ''}${isDot ? ' is-dot' : ''}${isFour ? ' is-boundary' : ''}${isSix ? ' is-six' : ''}${isW ? ' is-wicket' : ''}${isExtra ? ' is-extra' : ''}`;
+                  return <div key={i} className={capsuleClass}>{ball || '—'}</div>;
+                })}
+              </div>
+              <div className="over-divider" />
+              <div className="over-total">{match.overRuns || 0}</div>
+            </div>
+          )}
+
           {/* BOTTOM STRIP (Target / Ticker + CRR / RRR) */}
-          <div className="h-8 bg-black border-t border-gray-800 flex items-center overflow-hidden">
+          <div className="h-9 bg-black border-t border-gray-800 flex items-center overflow-hidden">
             {match.isSecondInnings ? (
               <div className={`flex w-full justify-between items-center ${active.chase} h-full border-t border-blue-400 shadow-inner px-4`}>
                 <div className="flex gap-4">
-                  <span className="text-white/70 font-black italic text-[10px] uppercase">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / (match.ballsPerOver || 6))).toFixed(2) : "0.00"}</span></span>
-                  <span className="text-white/70 font-black italic text-[10px] uppercase">RRR: <span className="text-orange-400">{remainingBalls > 0 ? ((match.targetScore - match.score) / (remainingBalls / (match.ballsPerOver || 6))).toFixed(2) : "--"}</span></span>
+                  <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / (match.ballsPerOver || 6))).toFixed(2) : "0.00"}</span></span>
+                  <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">RRR: <span className="text-orange-400">{remainingBalls > 0 ? ((match.targetScore - match.score) / (remainingBalls / (match.ballsPerOver || 6))).toFixed(2) : "--"}</span></span>
                 </div>
-                <p className="text-white font-black italic text-xs uppercase tracking-widest animate-pulse">
+                <p className="text-white font-bold italic text-sm uppercase tracking-widest animate-pulse text-broadcast-shadow">
                   {match.targetScore - match.score > 0 ? `Need ${match.targetScore - match.score} Runs from ${remainingBalls} Balls` : "TARGET REACHED!"}
                 </p>
               </div>
             ) : (
               <div className="flex w-full justify-between items-center h-full px-4">
-                <span className="text-white/70 font-black italic text-[10px] uppercase">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / (match.ballsPerOver || 6))).toFixed(2) : "0.00"}</span></span>
-                <p className="text-white font-bold italic text-[10px] uppercase tracking-[0.4em] truncate text-center flex-1 mx-4">{match.ticker}</p>
-                <span className="text-white/50 font-black italic text-[10px] uppercase">RRR: --</span>
+                <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / (match.ballsPerOver || 6))).toFixed(2) : "0.00"}</span></span>
+                <p className="text-white font-semibold italic text-[11px] uppercase tracking-[0.4em] truncate text-center flex-1 mx-4">{match.ticker}</p>
+                <span className="text-white/50 font-bold italic text-[11px] uppercase tracking-wide">RRR: --</span>
               </div>
             )}
           </div>

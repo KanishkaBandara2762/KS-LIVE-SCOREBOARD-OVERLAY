@@ -1,7 +1,145 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Roboto:wght@400;500;700&display=swap');
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+/* ═══════════════════════════════════════════════════════════════
+   BROADCAST TYPOGRAPHY SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+
+.font-broadcast {
+  font-family: 'Poppins', 'Roboto', 'Inter', sans-serif;
+}
+
+.text-broadcast-shadow {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.text-broadcast-glow {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 255, 255, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   OVER SUMMARY BAR — Promoted Runs Section
+   ═══════════════════════════════════════════════════════════════ */
+
+.over-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.92) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 48px;
+  font-family: 'Poppins', 'Roboto', sans-serif;
+}
+
+.over-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  min-width: 56px;
+  font-style: italic;
+}
+
+.over-balls-track {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.over-ball-capsule {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.over-ball-capsule.has-value {
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.over-ball-capsule.is-dot {
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.over-ball-capsule.is-boundary {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(6, 182, 212, 0.15) 100%);
+  color: #67e8f9;
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.15);
+  font-weight: 800;
+}
+
+.over-ball-capsule.is-six {
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.2) 0%, rgba(234, 179, 8, 0.15) 100%);
+  color: #fde047;
+  border-color: rgba(250, 204, 21, 0.3);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.15);
+  font-weight: 800;
+}
+
+.over-ball-capsule.is-wicket {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  font-weight: 800;
+}
+
+.over-ball-capsule.is-extra {
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+  color: #fcd34d;
+  border-color: rgba(250, 204, 21, 0.2);
+  font-size: 11px;
+}
+
+.over-total {
+  min-width: 48px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  font-style: italic;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  letter-spacing: 0.02em;
+  font-family: 'Poppins', sans-serif;
+}
+
+.over-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
 
 body {
   margin: 0;
@@ -158,7 +296,7 @@ body {
 
 .theme-ks-special {
   background: linear-gradient(90deg, #0f766e 0%, #115e59 100%);
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Poppins', 'Roboto', sans-serif;
   letter-spacing: 0.04em;
   transition: background 0.4s ease;
 }
@@ -169,7 +307,7 @@ body {
 
 .theme-ks-special-bat {
   background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Poppins', 'Roboto', sans-serif;
 }
 
 .theme-ks-special-chase {
@@ -180,7 +318,7 @@ body {
 
 .theme-sl-broadcast {
   background: linear-gradient(180deg, #1a3a8c 0%, #0e2460 60%, #0a1a45 100%);
-  font-family: 'Oswald', 'Inter', sans-serif;
+  font-family: 'Poppins', 'Roboto', sans-serif;
   letter-spacing: 0.03em;
   transition: background 0.4s ease;
   position: relative;
@@ -620,20 +758,208 @@ body {
 }
 
 /* =============================================
-   EVENT BANNER GRADIENTS
+   INLINE EVENT BANNER (Scoreboard-Contained)
+   Broadcast-quality FOUR / SIX / WICKET
+   Renders INSIDE the scoreboard — never covers video
    ============================================= */
 
+/* -- Base banner: absolute within scoreboard -- */
+.event-banner {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  animation: bannerFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes bannerFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* -- Per-event color themes -- */
 .event-banner-four {
-  background: linear-gradient(135deg, #1e3a5f 0%, #0e7490 40%, #155e75 100%);
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.88) 0%, rgba(6, 78, 99, 0.92) 50%, rgba(0, 0, 0, 0.85) 100%);
+  --eb-primary: #22d3ee;
+  --eb-secondary: #0ea5e9;
+  --eb-glow: rgba(34, 211, 238, 0.6);
+  --eb-particle: #67e8f9;
 }
 
 .event-banner-six {
-  background: linear-gradient(135deg, #064e3b 0%, #047857 40%, #065f46 100%);
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.90) 0%, rgba(120, 70, 5, 0.92) 50%, rgba(0, 0, 0, 0.85) 100%);
+  --eb-primary: #fbbf24;
+  --eb-secondary: #a3e635;
+  --eb-glow: rgba(250, 204, 21, 0.65);
+  --eb-particle: #fde68a;
 }
 
 .event-banner-wicket {
-  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 40%, #b91c1c 100%);
+  background: linear-gradient(135deg, rgba(185, 28, 28, 0.90) 0%, rgba(127, 20, 20, 0.92) 50%, rgba(0, 0, 0, 0.85) 100%);
+  --eb-primary: #f87171;
+  --eb-secondary: #ef4444;
+  --eb-glow: rgba(239, 68, 68, 0.55);
+  --eb-particle: #fca5a5;
 }
+
+/* -- Radial glow (sized for scoreboard height) -- */
+.event-banner-glow {
+  position: absolute;
+  width: 400px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--eb-glow) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: bannerGlowPulse 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@keyframes bannerGlowPulse {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.6; }
+  40%  { transform: translate(-50%, -50%) scale(1.1); opacity: 0.4; }
+  100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+}
+
+/* -- Horizontal sweep line (full scoreboard width) -- */
+.event-banner-sweep {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--eb-primary) 20%, var(--eb-primary) 80%, transparent 100%);
+  transform: translateY(-50%) scaleX(0);
+  animation: bannerSweep 0.5s 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 0 12px var(--eb-glow), 0 0 30px var(--eb-glow);
+  pointer-events: none;
+}
+
+@keyframes bannerSweep {
+  from { transform: translateY(-50%) scaleX(0); }
+  to   { transform: translateY(-50%) scaleX(1); }
+}
+
+/* -- Particle container (clipped to scoreboard) -- */
+.event-banner-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.event-banner-particle {
+  position: absolute;
+  bottom: 20%;
+  width: 3px;
+  height: 3px;
+  background: var(--eb-particle);
+  border-radius: 50%;
+  opacity: 0;
+  animation: bannerParticleRise linear forwards;
+  box-shadow: 0 0 4px var(--eb-glow);
+}
+
+@keyframes bannerParticleRise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.85; }
+  100% { transform: translateY(-80px) scale(0); opacity: 0; }
+}
+
+/* -- Content block: slide-in from right + fade -- */
+.event-banner-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: bannerContentSlideIn 0.45s 0.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bannerContentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(60px) scale(0.9);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* -- Label (BOUNDARY / WICKET) -- */
+.event-banner-label {
+  font-family: 'Poppins', 'Montserrat', sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--eb-primary);
+  margin-bottom: 2px;
+  text-shadow: 0 0 12px var(--eb-glow);
+  animation: bannerLabelPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes bannerLabelPulse {
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 1; text-shadow: 0 0 18px var(--eb-glow), 0 0 36px var(--eb-glow); }
+}
+
+/* -- Main title (sized for scoreboard strip) -- */
+.event-banner-title {
+  font-family: 'Poppins', 'Montserrat', sans-serif;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: white;
+  background: linear-gradient(180deg, #ffffff 30%, var(--eb-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 16px var(--eb-glow)) drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  animation: bannerTitlePop 0.5s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bannerTitlePop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.event-banner-stat {
+  font-size: 0.6em;
+  font-style: normal;
+  opacity: 0.85;
+}
+
+/* -- Accent line under title -- */
+.event-banner-accent {
+  width: 80px;
+  height: 3px;
+  margin: 6px auto 0;
+  background: linear-gradient(90deg, transparent, var(--eb-primary), transparent);
+  border-radius: 2px;
+  animation: bannerAccentGrow 0.4s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow: 0 0 10px var(--eb-glow);
+}
+
+@keyframes bannerAccentGrow {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
 
 /* =============================================
    T20 WORLD CUP 2026 THEME
