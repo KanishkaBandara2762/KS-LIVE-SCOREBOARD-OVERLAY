@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { db } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import { PlayIcon } from "@heroicons/react/24/solid";
@@ -19,9 +19,12 @@ const ScorecardDisplay = () => {
   const prevWickets = useRef(null);
   const prevEventTime = useRef(null);
   const prevBannerEventTime = useRef(null);
+  const eventTimerRef = useRef(null);
+  const debounceTimerRef = useRef(null);
   const prevCurrentOver = useRef(null);
 
-  const themes = {
+  // ── Memoized static theme data (never changes, avoids re-creation) ──
+  const themes = useMemo(() => ({
     IPL_GOLD: { main: "bg-slate-900", accent: "bg-yellow-400", text: "text-yellow-400", batsman: "bg-yellow-400", bowler: "from-blue-800 to-blue-950", border: "border-yellow-500", chase: "bg-blue-900", animClass: "anim-ipl-gold" },
     SKY_PRO: { main: "bg-white", accent: "bg-red-600", text: "text-red-600", batsman: "bg-slate-100", bowler: "from-red-600 to-red-800", border: "border-red-600", chase: "bg-slate-900", animClass: "anim-sky-pro" },
     NEON_VAVUNIYA: { main: "bg-black", accent: "bg-lime-500", text: "text-lime-400", batsman: "bg-zinc-900", bowler: "from-zinc-800 to-black", border: "border-lime-500", chase: "bg-zinc-800", animClass: "anim-neon-vavuniya" },
@@ -33,7 +36,7 @@ const ScorecardDisplay = () => {
     KS_SPECIAL: { main: "theme-ks-special", accent: "theme-ks-special-accent", text: "text-teal-300", batsman: "theme-ks-special-bat", bowler: "from-gray-800 to-gray-900", border: "border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.35)]", chase: "theme-ks-special-chase", animClass: "anim-ks-special" },
     WC2026: { main: "theme-wc2026", accent: "theme-wc2026-accent", text: "theme-wc2026-score", batsman: "theme-wc2026-bat", bowler: "theme-wc2026-bowler", border: "theme-wc2026-border", chase: "theme-wc2026-chase", isWC2026: true, animClass: "anim-wc2026" },
     SL_BROADCAST: { main: "theme-sl-broadcast", accent: "theme-sl-broadcast-accent", text: "theme-sl-broadcast-score", batsman: "theme-sl-broadcast-bat", bowler: "theme-sl-broadcast-bowler", border: "theme-sl-broadcast-border", chase: "theme-sl-broadcast-chase", animClass: "anim-sl-broadcast" }
-  };
+  }), []);
 
   // ── Reusable animation trigger helper ──────────────────────────
   const triggerAnim = useCallback((setter, className, duration = 1000) => {
@@ -42,10 +45,15 @@ const ScorecardDisplay = () => {
     return t;
   }, []);
 
+  // ── Debounced Firebase listener (reduces bandwidth + re-renders) ────
   useEffect(() => {
     const unsubscribe = onValue(ref(db, 'live_match'), (snapshot) => {
       const data = snapshot.val();
-      if (data) {
+      if (!data) return;
+
+      // Debounce: only process the latest snapshot after 150ms of quiet
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(() => {
         setMatch(data);
         if (data.eventTrigger === "RESET_WINNER") {
           setWinnerInfo(null);
@@ -53,13 +61,18 @@ const ScorecardDisplay = () => {
         if (["FOUR", "SIX", "WICKET"].includes(data.eventTrigger)
             && data.eventTime && data.eventTime !== prevBannerEventTime.current) {
           prevBannerEventTime.current = data.eventTime;
+          // Clear previous event timer to prevent orphaned timeouts
+          if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
           setShowEvent(true);
-          const t = setTimeout(() => setShowEvent(false), 2500);
-          return () => clearTimeout(t);
+          eventTimerRef.current = setTimeout(() => setShowEvent(false), 2500);
         }
-      }
+      }, 150);
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+    };
   }, []);
 
   // ── Animation detection: score / event / over changes ─────────
@@ -106,7 +119,7 @@ const ScorecardDisplay = () => {
   useEffect(() => {
     if (!match) return;
     if (match.isSecondInnings && !match.isSuperOver) {
-      const totalBalls = (match.maxOvers || 5) * (match.ballsPerOver || 5);
+      const totalBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
       const remainingBalls = totalBalls - match.totalBalls;
       if (match.score >= (match.targetScore || 0)) {
         setWinnerInfo({ team: match.battingTeam, logo: match.battingLogo, text: `WON BY ${10 - match.wickets} WICKETS` });
@@ -117,13 +130,14 @@ const ScorecardDisplay = () => {
     } else { setWinnerInfo(null); }
   }, [match]);
 
+  // ── Memoized helpers (MUST be above early return — Rules of Hooks) ──
+  const getOvers = useCallback((balls) => { const bpo = match?.ballsPerOver || 6; return `${Math.floor(balls / bpo)}.${balls % bpo}`; }, [match?.ballsPerOver]);
+
   if (!match) return <div className="fixed inset-0 bg-black flex items-center justify-center text-white font-black italic uppercase tracking-widest">Connecting to KS Live...</div>;
 
   const active = themes[match.themeID] || themes.IPL_GOLD;
   const animThemeClass = active.animClass || "anim-ipl-gold";
-  const eventStyles = { FOUR: { bg: "bg-blue-600", text: "IT'S A FOUR!" }, SIX: { bg: "bg-green-600", text: "HUGE SIX!" }, WICKET: { bg: "bg-red-600", text: "OUT / WICKET!" } };
-  const getOvers = (balls) => { const bpo = match.ballsPerOver || 5; return `${Math.floor(balls / bpo)}.${balls % bpo}`; };
-  const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 5);
+  const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
   const remainingBalls = totalMatchBalls - match.totalBalls;
 
   return (
@@ -248,8 +262,8 @@ const ScorecardDisplay = () => {
                   </div>
                   <div>
                     <h3 className="summary-panel-header panel-red">Current Bowler</h3>
-                    <span className="summary-bowler-name">{match.bowler.name}</span>
-                    <span className="summary-bowler-figures">{match.bowler.figures}</span>
+                    <span className="summary-bowler-name">{match.bowler?.name}</span>
+                    <span className="summary-bowler-figures">{match.bowler?.figures}</span>
                   </div>
                 </div>
 
@@ -294,7 +308,7 @@ const ScorecardDisplay = () => {
                 {match.battingTeam}
               </h1>
               <p className="text-yellow-400 font-black text-2xl italic">
-                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.maxOvers || 5) * (match.ballsPerOver || 6)) - match.totalBalls}</span> balls
+                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.maxOvers || 5) * (match.ballsPerOver || 6)) - match.totalBalls}</span> balls
               </p>
               <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">to win</p>
             </div>
@@ -346,8 +360,20 @@ const ScorecardDisplay = () => {
               <img src={match.battingLogo} className="h-16 w-16 rounded-full bg-white p-1 object-cover shadow-lg" alt="Team Logo" />
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">{match.bowlingPrefix}</span>
+                  <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+                    {match.matchType || "T20"} • {match.matchTitle || match.bowlingPrefix}
+                  </span>
                   {match.isSuperOver && <span className="bg-red-600 px-1 font-black rounded animate-pulse">SUPER OVER</span>}
+                  {match.matchStatus && match.matchStatus !== "Live" && (
+                     <span className={`px-2 py-0.5 text-[9px] font-black tracking-widest uppercase rounded shadow shadow-black/50 ${
+                       match.matchStatus === 'Break' ? 'bg-blue-600 text-white' :
+                       match.matchStatus === 'Innings Break' ? 'bg-amber-500 text-black' :
+                       match.matchStatus === 'Rain Delay' ? 'bg-blue-900 text-cyan-300 border border-blue-500' :
+                       match.matchStatus === 'Match Ended' ? 'bg-purple-700 text-white' : 'bg-gray-600 text-white'
+                     }`}>
+                       {match.matchStatus === 'Rain Delay' && "☔ "}{match.matchStatus}
+                     </span>
+                  )}
                 </div>
                 <div className={`${active.accent} -skew-x-12 px-5 py-1.5 shadow-lg`}>
                   <h2 className="text-black font-semibold text-2xl skew-x-12 truncate max-w-[180px] uppercase tracking-wide text-broadcast-shadow">{match.battingTeam}</h2>
@@ -390,7 +416,7 @@ const ScorecardDisplay = () => {
                   </div>
                 )}
                 <div className="flex gap-1.5 flex-wrap">
-                  {Array.from({ length: Math.max(match.ballsPerOver || 5, (match.recentBalls || []).length) }).map((_, i) => {
+                  {Array.from({ length: Math.max(match.ballsPerOver || 6, (match.recentBalls || []).length) }).map((_, i) => {
                     const ball = (match.recentBalls || [])[i] || "";
                     const isW = ball === "W";
                     const isE = ball.includes("WD") || ball.includes("NB") || ball.includes("B");
@@ -418,7 +444,7 @@ const ScorecardDisplay = () => {
               <span className="over-label">Over {(match.currentOver || 0) + 1}</span>
               <div className="over-divider" />
               <div className="over-balls-track">
-                {Array.from({ length: Math.max(match.ballsPerOver || 5, (match.recentBalls || []).length) }).map((_, i) => {
+                {Array.from({ length: Math.max(match.ballsPerOver || 6, (match.recentBalls || []).length) }).map((_, i) => {
                   const ball = (match.recentBalls || [])[i] || "";
                   const isW = ball === "W";
                   const isFour = ball === "4";

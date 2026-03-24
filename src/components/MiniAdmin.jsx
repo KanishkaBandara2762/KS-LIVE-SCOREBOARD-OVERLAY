@@ -77,7 +77,7 @@ const MiniAdmin = () => {
     const toggle = (key) => setOpenSections(p => ({ ...p, [key]: !p[key] }));
 
     // ── Helpers ───────────────────────────────────────────────────
-    const bpo = match?.ballsPerOver || 5;
+    const bpo = match?.ballsPerOver || 6;
     const overs = (balls) => `${Math.floor(balls / bpo)}.${balls % bpo}`;
 
     const updateOverHistory = (entry, m, runsToAdd) => {
@@ -95,7 +95,22 @@ const MiniAdmin = () => {
             score: match.score + runs, totalBalls: match.totalBalls + 1,
             [ak]: { ...match[ak], runs: match[ak].runs + runs, balls: match[ak].balls + 1 },
             recentBalls, overRuns,
-            eventTrigger: runs >= 4 ? (runs === 6 ? "SIX" : "FOUR") : null,
+            eventTrigger: null,
+            legalBallCount: (match.legalBallCount || 0) + 1,
+        });
+    };
+
+    // Dedicated boundary handler — ONLY called by FOUR/SIX buttons
+    const addBoundary = (runs) => {
+        if (!match || match.overLocked) return;
+        setHistory(h => [...h, match]);
+        const ak = match.player1.onStrike ? "player1" : "player2";
+        const { recentBalls, overRuns } = updateOverHistory(runs.toString(), match, runs);
+        push({
+            score: match.score + runs, totalBalls: match.totalBalls + 1,
+            [ak]: { ...match[ak], runs: match[ak].runs + runs, balls: match[ak].balls + 1 },
+            recentBalls, overRuns,
+            eventTrigger: runs === 6 ? "SIX" : "FOUR",
             legalBallCount: (match.legalBallCount || 0) + 1,
         });
     };
@@ -108,7 +123,7 @@ const MiniAdmin = () => {
         const { recentBalls, overRuns } = updateOverHistory(entry, match, total);
         const ak = match.player1.onStrike ? "player1" : "player2";
         const batUp = type === "NB" ? { [ak]: { ...match[ak], runs: match[ak].runs + runs, balls: match[ak].balls + 1 } } : {};
-        push({ score: match.score + total, recentBalls, overRuns, ...batUp });
+        push({ score: match.score + total, recentBalls, overRuns, ...batUp, eventTrigger: null });
     };
 
     const addLegBye = (runs) => {
@@ -120,6 +135,7 @@ const MiniAdmin = () => {
             score: match.score + runs, totalBalls: match.totalBalls + 1,
             [ak]: { ...match[ak], balls: match[ak].balls + 1 },
             recentBalls, overRuns,
+            eventTrigger: null,
             legalBallCount: (match.legalBallCount || 0) + 1,
         });
     };
@@ -133,6 +149,7 @@ const MiniAdmin = () => {
             score: match.score + runs, totalBalls: match.totalBalls + 1,
             [ak]: { ...match[ak], balls: match[ak].balls + 1 },
             recentBalls, overRuns,
+            eventTrigger: null,
             legalBallCount: (match.legalBallCount || 0) + 1,
         });
     };
@@ -193,7 +210,9 @@ const MiniAdmin = () => {
         const handler = (e) => {
             if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
             const k = e.key.toLowerCase();
-            if (["0", "1", "2", "3", "4", "6"].includes(k)) addRun(parseInt(k));
+            if (["0", "1", "2", "3"].includes(k)) addRun(parseInt(k));
+            if (k === "4") addBoundary(4);
+            if (k === "6") addBoundary(6);
             if (k === "w") handleWicket();
             if (k === "s") swapStrike();
             if (k === "u") handleUndo();
@@ -269,6 +288,20 @@ const MiniAdmin = () => {
                 {/* ── 1. MATCH CONTROL (Blue) ──────────────────────────── */}
                 <Section label="MATCH CONTROL" color="blue" icon="🎯" open={!!openSections.match} onClick={() => toggle("match")}>
                     <div className="ma-row">
+                        <label>Format</label>
+                        <select className="ma-sel" value={match.matchType || "T20"} onChange={(e) => push({ matchType: e.target.value })}>
+                            <option value="T20">T20</option>
+                            <option value="ODI">ODI</option>
+                            <option value="Test">Test</option>
+                            <option value="T10">T10</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div className="ma-row">
+                        <label>Title / Stage</label>
+                        <input type="text" className="ma-inp" placeholder="e.g. GRAND FINAL" value={match.matchTitle || match.bowlingPrefix || ""} onChange={(e) => push({ matchTitle: e.target.value, bowlingPrefix: e.target.value })} />
+                    </div>
+                    <div className="ma-row">
                         <label>Max Overs</label>
                         <input type="number" className="ma-inp" value={match.maxOvers} onChange={(e) => push({ maxOvers: parseInt(e.target.value) || 5 })} />
                     </div>
@@ -305,6 +338,25 @@ const MiniAdmin = () => {
                     <div className="ma-btn-row">
                         <button className="ma-btn ma-btn-blue" onClick={() => push({ showVersus: !match.showVersus })}>{match.showVersus ? "✓ " : ""}VS Tab</button>
                         <button className="ma-btn ma-btn-blue" onClick={() => push({ showSummary: !match.showSummary })}>{match.showSummary ? "✓ " : ""}Summary</button>
+                    </div>
+                </Section>
+
+                {/* ── 1.5. INNINGS & SUPER OVER ────────────────────────── */}
+                <Section label="INNINGS & EXTRA" color="amber" icon="🔄" open={!!openSections.innings} onClick={() => toggle("innings")}>
+                    <div className="ma-btn-row mb-2">
+                        <button className={`ma-btn ${!match.isSecondInnings ? "bg-amber-600 text-white border-amber-800" : "ma-btn-blue opacity-50"}`} onClick={() => push({ isSecondInnings: false })}>1ST INN</button>
+                        <button className={`ma-btn ${match.isSecondInnings ? "bg-amber-600 text-white border-amber-800" : "ma-btn-blue opacity-50"}`} onClick={() => push({ isSecondInnings: true })}>2ND INN</button>
+                    </div>
+                    
+                    <button className="ma-btn ma-btn-wicket w-full mb-2" style={{ backgroundColor: '#ef4444', borderColor: '#991b1b' }} onClick={() => {
+                        if (window.confirm("Start 2nd Innings? This will zero runs, wickets, and overs. Target score will NOT be set automatically.")) {
+                            push({ score: 0, wickets: 0, totalBalls: 0, currentOver: 0, overRuns: 0, recentBalls: [], legalBallCount: 0, isSecondInnings: true, player1: { name: "", runs: 0, balls: 0, onStrike: true }, player2: { name: "", runs: 0, balls: 0, onStrike: false }, eventTrigger: "RESET_WINNER" });
+                        }
+                    }}>⚠ RESET & START 2ND INNINGS</button>
+                    
+                    <div className="ma-row" style={{ marginTop: 8, padding: 8, background: 'rgba(255, 204, 0, 0.1)', borderRadius: 4, border: '1px solid rgba(255, 204, 0, 0.3)' }}>
+                        <label style={{ color: '#fbbf24', fontWeight: 'bold' }}>⚡ Super Over</label>
+                        <input type="checkbox" checked={!!match.isSuperOver} onChange={(e) => push({ isSuperOver: e.target.checked })} style={{ transform: 'scale(1.5)', marginRight: 4 }} />
                     </div>
                 </Section>
 
@@ -364,11 +416,13 @@ const MiniAdmin = () => {
                     {/* Runs */}
                     <div className="ma-label">RUNS</div>
                     <div className="ma-grid ma-grid-6">
-                        {[0, 1, 2, 3, 4, 6].map(r => (
-                            <button key={r} className={`ma-btn ma-btn-run ${r >= 4 ? "ma-btn-boundary" : ""}`} onClick={() => addRun(r)}>
+                        {[0, 1, 2, 3].map(r => (
+                            <button key={r} className="ma-btn ma-btn-run" onClick={() => addRun(r)}>
                                 {r === 0 ? "•" : `+${r}`}
                             </button>
                         ))}
+                        <button className="ma-btn ma-btn-run ma-btn-boundary" onClick={() => addBoundary(4)}>+4</button>
+                        <button className="ma-btn ma-btn-run ma-btn-boundary" onClick={() => addBoundary(6)}>+6</button>
                     </div>
 
                     {/* Wicket */}
@@ -437,7 +491,18 @@ const MiniAdmin = () => {
                     </div>
                 </Section>
 
-                {/* ── 6. TICKER ────────────────────────────────────────── */}
+                {/* ── 6. MATCH STATUS ──────────────────────────────────────── */}
+                <Section label="MATCH STATUS" color="amber" icon="📡" open={!!openSections.status} onClick={() => toggle("status")}>
+                    <div className="ma-grid ma-grid-2" style={{ gap: '6px' }}>
+                        <button className={`ma-btn ${match.matchStatus === 'Live' || !match.matchStatus ? "bg-red-600 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Live" })}>🔴 LIVE</button>
+                        <button className={`ma-btn ${match.matchStatus === 'Break' ? "bg-blue-600 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Break" })}>⏸ BREAK</button>
+                        <button className={`ma-btn ${match.matchStatus === 'Innings Break' ? "bg-amber-600 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Innings Break" })}>🔄 INN BREAK</button>
+                        <button className={`ma-btn ${match.matchStatus === 'Rain Delay' ? "bg-blue-900 text-cyan-300 border-blue-500 font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Rain Delay" })}>☔ RAIN</button>
+                    </div>
+                    <button className={`ma-btn w-full mt-2 ${match.matchStatus === 'Match Ended' ? "bg-purple-700 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Match Ended" })}>🏁 MATCH ENDED</button>
+                </Section>
+
+                {/* ── 7. TICKER ────────────────────────────────────────── */}
                 <Section label="BROADCAST TICKER" color="amber" icon="📺" open={!!openSections.ticker} onClick={() => toggle("ticker")}>
                     <input
                         className="ma-inp w-full"
@@ -471,8 +536,8 @@ const MiniAdmin = () => {
                 <button className="ma-sq ma-sq-dot" onClick={() => addRun(0)}>•</button>
                 <button className="ma-sq ma-sq-run" onClick={() => addRun(1)}>1</button>
                 <button className="ma-sq ma-sq-run" onClick={() => addRun(2)}>2</button>
-                <button className="ma-sq ma-sq-run" onClick={() => addRun(4)}>4</button>
-                <button className="ma-sq ma-sq-six" onClick={() => addRun(6)}>6</button>
+                <button className="ma-sq ma-sq-run" onClick={() => addBoundary(4)}>4</button>
+                <button className="ma-sq ma-sq-six" onClick={() => addBoundary(6)}>6</button>
                 <button className="ma-sq ma-sq-wkt" onClick={handleWicket}>W</button>
                 <button className="ma-sq ma-sq-wd" onClick={() => addExtra("WD")}>WD</button>
                 <button className={`ma-sq ${isOverReady ? 'ma-sq-over-ready' : 'ma-sq-undo'}`} onClick={isOverReady ? handleOverCompleted : handleUndo}>{isOverReady ? '⚡' : '↶'}</button>

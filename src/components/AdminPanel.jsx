@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
-import { ref, set, onValue, update } from "firebase/database";
+import { ref, onValue, update } from "firebase/database";
 
 const AdminPanel = () => {
   const initialState = {
@@ -39,7 +39,11 @@ const AdminPanel = () => {
     // ── Over completion fields ──
     legalBallCount: 0,
     currentOver: 0,
-    overLocked: false
+    overLocked: false,
+    // ── New broadcast fields ──
+    matchType: "T20",
+    matchTitle: "",
+    matchStatus: "Live"
   };
 
   const [match, setMatch] = useState(() => {
@@ -52,6 +56,7 @@ const AdminPanel = () => {
   const [customExtraRuns, setCustomExtraRuns] = useState(0);
   const [overCooldown, setOverCooldown] = useState(false);
   const isFromFirebase = useRef(false);
+  const prevMatchRef = useRef(null);
 
   // ── Broadcast Ticker State (separate from match) ──────────────────────
   const [tickerMsg, setTickerMsg] = useState("");
@@ -128,14 +133,45 @@ const AdminPanel = () => {
     return () => unsubscribe();
   }, []);
 
+  // ── Diff-based Firebase push (bandwidth optimized) ──────────────────
   useEffect(() => {
     if (isFromFirebase.current) {
       isFromFirebase.current = false;
+      prevMatchRef.current = match;
       localStorage.setItem("ks_master_record", JSON.stringify(match));
       return; // Don't write back to Firebase when the change came from Firebase
     }
-    set(ref(db, 'live_match'), match);
     localStorage.setItem("ks_master_record", JSON.stringify(match));
+
+    // Build delta: only push fields that actually changed
+    const prev = prevMatchRef.current;
+    if (!prev) {
+      // First render — full write needed
+      update(ref(db, 'live_match'), match);
+      prevMatchRef.current = match;
+      return;
+    }
+
+    const delta = {};
+    for (const key of Object.keys(match)) {
+      const curVal = match[key];
+      const prevVal = prev[key];
+      if (curVal !== prevVal) {
+        // Deep compare objects/arrays via JSON (player1, bowler, recentBalls, etc.)
+        if (typeof curVal === 'object' && curVal !== null) {
+          if (JSON.stringify(curVal) !== JSON.stringify(prevVal)) {
+            delta[key] = curVal;
+          }
+        } else {
+          delta[key] = curVal;
+        }
+      }
+    }
+
+    if (Object.keys(delta).length > 0) {
+      update(ref(db, 'live_match'), delta);
+    }
+    prevMatchRef.current = match;
   }, [match]);
 
   const handleLogoUpload = (e, team) => {
@@ -156,7 +192,9 @@ const AdminPanel = () => {
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
       const key = e.key.toLowerCase();
-      if (['0', '1', '2', '3', '4', '6'].includes(key)) addRun(parseInt(key));
+      if (['0', '1', '2', '3'].includes(key)) addRun(parseInt(key));
+      if (key === '4') addBoundary(4);
+      if (key === '6') addBoundary(6);
       if (key === 'w') handleWicket();
       if (key === 's') swapStrike();
       if (key === 'u') handleUndo();
@@ -166,7 +204,7 @@ const AdminPanel = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [match, history]);
 
-  const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 5);
+  const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
   const remainingBalls = totalMatchBalls - match.totalBalls;
 
   const swapStrike = () => {
@@ -228,7 +266,21 @@ const AdminPanel = () => {
     setMatch(prev => ({
       ...prev, score: prev.score + runs, totalBalls: prev.totalBalls + 1,
       [active]: { ...prev[active], runs: prev[active].runs + runs, balls: prev[active].balls + 1 },
-      recentBalls, overRuns, eventTrigger: runs >= 4 ? (runs === 6 ? "SIX" : "FOUR") : null, eventTime: Date.now(),
+      recentBalls, overRuns, eventTrigger: null, eventTime: Date.now(),
+      legalBallCount: (prev.legalBallCount || 0) + 1
+    }));
+  };
+
+  // Dedicated boundary handler — ONLY called by FOUR/SIX buttons
+  const addBoundary = (runs) => {
+    if (match.overLocked) return;
+    setHistory([...history, match]);
+    const active = match.player1.onStrike ? "player1" : "player2";
+    const { recentBalls, overRuns } = updateOverHistory(runs.toString(), match, runs);
+    setMatch(prev => ({
+      ...prev, score: prev.score + runs, totalBalls: prev.totalBalls + 1,
+      [active]: { ...prev[active], runs: prev[active].runs + runs, balls: prev[active].balls + 1 },
+      recentBalls, overRuns, eventTrigger: runs === 6 ? "SIX" : "FOUR", eventTime: Date.now(),
       legalBallCount: (prev.legalBallCount || 0) + 1
     }));
   };
@@ -241,7 +293,7 @@ const AdminPanel = () => {
     const { recentBalls, overRuns } = updateOverHistory(entry, match, totalExtraRuns);
     const active = match.player1.onStrike ? "player1" : "player2";
     const batsmanUpdate = type === "NB" ? { [active]: { ...match[active], runs: match[active].runs + runs, balls: match[active].balls + 1 } } : {};
-    setMatch(prev => ({ ...prev, score: prev.score + totalExtraRuns, recentBalls, overRuns, ...batsmanUpdate, eventTime: Date.now() }));
+    setMatch(prev => ({ ...prev, score: prev.score + totalExtraRuns, recentBalls, overRuns, ...batsmanUpdate, eventTrigger: null, eventTime: Date.now() }));
   };
 
   const addLegBye = (runs) => {
@@ -255,7 +307,7 @@ const AdminPanel = () => {
       score: prev.score + runs,
       totalBalls: prev.totalBalls + 1,
       [active]: { ...prev[active], balls: prev[active].balls + 1 },
-      recentBalls, overRuns, eventTime: Date.now(),
+      recentBalls, overRuns, eventTrigger: null, eventTime: Date.now(),
       legalBallCount: (prev.legalBallCount || 0) + 1
     }));
   };
@@ -329,6 +381,22 @@ const AdminPanel = () => {
           {/* COLUMN 1: CONFIG & LOGOS */}
           <div className="space-y-4 border-r pr-4 text-center">
             <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">1. Setup & Logos</h2>
+            
+            <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded border border-slate-100">
+              <div className="flex flex-col text-left">
+                <label className="text-[9px] font-black text-slate-500 tracking-wider">FORMAT</label>
+                <select className="border p-1.5 rounded text-xs font-bold" value={match.matchType || "T20"} onChange={(e) => setMatch({ ...match, matchType: e.target.value })}>
+                  <option value="T20">T20</option><option value="ODI">ODI</option>
+                  <option value="Test">Test</option><option value="T10">T10</option>
+                  <option value="Custom">Custom</option>
+                </select>
+              </div>
+              <div className="flex flex-col text-left">
+                <label className="text-[9px] font-black text-slate-500 tracking-wider">STAGE/TITLE</label>
+                <input type="text" className="border p-1.5 rounded text-xs font-bold" placeholder="FINAL" value={match.matchTitle || match.bowlingPrefix || ""} onChange={(e) => setMatch({ ...match, matchTitle: e.target.value, bowlingPrefix: e.target.value })} />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded">
               <div><label className="text-[8px] font-bold">OVERS</label><input type="number" className="w-full border p-2 rounded text-center" value={match.maxOvers} onChange={(e) => setMatch({ ...match, maxOvers: parseInt(e.target.value) })} /></div>
               <div><label className="text-[8px] font-bold">BPO</label><input type="number" className="w-full border p-2 rounded text-center" value={match.ballsPerOver} onChange={(e) => setMatch({ ...match, ballsPerOver: parseInt(e.target.value) })} /></div>
@@ -348,6 +416,18 @@ const AdminPanel = () => {
                 <input type="checkbox" checked={match.isSecondInnings} onChange={(e) => setMatch({ ...match, isSecondInnings: e.target.checked })} />
               </div>
               <input type="number" className="w-full border p-2 rounded text-sm font-black text-blue-700 text-center" value={match.targetScore} onChange={(e) => setMatch({ ...match, targetScore: parseInt(e.target.value) || 0 })} placeholder="Set Target" />
+            </div>
+
+            {/* MATCH STATUS SECTION */}
+            <div className="space-y-2 pt-3 border-t mt-2">
+              <h3 className="text-[9px] font-black text-slate-400 tracking-widest uppercase">📡 Match Status</h3>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Live' || !match.matchStatus ? "bg-red-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Live" })}>🔴 LIVE</button>
+                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Break' ? "bg-blue-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Break" })}>⏸ BREAK</button>
+                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Innings Break' ? "bg-amber-500 text-black shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Innings Break" })}>🔄 INN BREAK</button>
+                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Rain Delay' ? "bg-blue-900 border border-blue-500 text-cyan-300 shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Rain Delay" })}>☔ RAIN</button>
+              </div>
+              <button className={`w-full py-1.5 mt-1 rounded text-[10px] font-black ${match.matchStatus === 'Match Ended' ? "bg-purple-700 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Match Ended" })}>🏁 MATCH ENDED</button>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -452,7 +532,9 @@ const AdminPanel = () => {
           <div className="space-y-4">
             <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">3. Scoring</h2>
             <div className="grid grid-cols-3 gap-2">
-              {[0, 1, 2, 3, 4, 6].map((r) => <button key={r} onClick={() => addRun(r)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+{r}</button>)}
+              {[0, 1, 2, 3].map((r) => <button key={r} onClick={() => addRun(r)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+{r}</button>)}
+              <button onClick={() => addBoundary(4)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+4</button>
+              <button onClick={() => addBoundary(6)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+6</button>
             </div>
             <div className="p-3 bg-slate-50 rounded border border-slate-200 text-center">
               <p className="text-[9px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Extras Engine</p>
