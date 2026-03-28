@@ -1016,6 +1016,10 @@
     border-radius: 3px;
 }
 
+.summary-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
 /* ══ STAGE THEME OVERRIDES FOR SUMMARY ═══════════════════════ */
 
 /* Semi Final — blue energy */
@@ -1056,4 +1060,231 @@
     background: radial-gradient(ellipse at 50% 0%, rgba(255, 204, 0, 0.04) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOURNAMENT INFO STRIP (Lower Third)
+   ═══════════════════════════════════════════════════════════════ */
+.tourney-info-strip {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 60%;
+    max-width: 800px;
+    height: 48px;
+    background: linear-gradient(90deg, rgba(8, 15, 38, 0.95) 0%, rgba(20, 30, 70, 0.9) 70%, transparent 100%);
+    border-top: 2px solid #3b82f6;
+    border-right: 2px solid transparent;
+    border-top-right-radius: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    overflow: hidden;
+    z-index: 50;
+    
+    /* Entry animation: Fast slide-in from left */
+    animation: infoStripEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+               infoStripExit 0.5s 4.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform: translateX(-100%);
+}
+
+@keyframes infoStripEnter {
+    0% { transform: translateX(-100%); opacity: 0; }
+    60% { transform: translateX(20px); opacity: 1; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes infoStripExit {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(-100%); opacity: 0; }
+}
+
+.tourney-info-bg {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.03) 10px, rgba(255, 255, 255, 0.03) 20px);
+    z-index: 1;
+}
+
+.tourney-info-glow {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, #60a5fa, #3b82f6, transparent);
+    box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.5);
+    z-index: 2;
+}
+
+.tourney-info-sweep {
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transform: skewX(-20deg);
+    animation: infoStripSweep 2.5s infinite;
+    z-index: 5;
+}
+
+@keyframes infoStripSweep {
+    0% { left: -100%; }
+    100% { left: 200%; }
+}
+
+.tourney-info-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: baseline;
+    gap: 15px;
+}
+
+.tourney-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    margin: 0;
+}
+
+.tourney-venue {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WINNER CINEMATIC OVERLAY
+   ═══════════════════════════════════════════════════════════════ */
+.winner-cinematic-strip {
+    position: absolute;
+    bottom: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 900px;
+    height: 120px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 58, 138, 0.95) 100%);
+    border: 1px solid rgba(255, 204, 0, 0.3);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    overflow: hidden;
+    z-index: 100;
+    animation: winnerSlideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+               winnerSlideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards 4.4s;
+}
+
+.winner-cinematic-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    z-index: 1;
+}
+
+.winner-cinematic-glow {
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 204, 0, 0.8), transparent);
+    box-shadow: 0 -5px 15px rgba(255, 204, 0, 0.5);
+    z-index: 2;
+}
+
+.winner-cinematic-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    width: 100%;
+}
+
+.winner-cinematic-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+    animation: winnerLogoPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s both;
+}
+
+.winner-cinematic-text-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.winner-cinematic-team {
+    font-family: 'Poppins', 'Montserrat', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+    line-height: 1.1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    animation: winnerTextReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+}
+
+.winner-cinematic-text {
+    font-family: 'Poppins', 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin: 0;
+    line-height: 1.2;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    opacity: 0;
+    animation: winnerTextReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+}
+
+.winner-cinematic-sweep {
+    position: absolute;
+    top: -50%;
+    bottom: -50%;
+    left: -20%;
+    width: 50px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: rotate(25deg);
+    z-index: 5;
+    animation: winnerLightSweep 2s infinite 1s;
+    filter: blur(4px);
+}
+
+@keyframes winnerSlideUpFade {
+    0% { opacity: 0; transform: translate(-50%, 40px) scale(0.95); }
+    100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@keyframes winnerSlideDownFade {
+    0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, 20px) scale(0.95); }
+}
+
+@keyframes winnerLogoPop {
+    0% { opacity: 0; transform: scale(0.8) rotate(-10deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes winnerTextReveal {
+    0% { opacity: 0; transform: translateX(-20px); filter: blur(4px); }
+    100% { opacity: 1; transform: translateX(0); filter: blur(0); }
+}
+
+@keyframes winnerLightSweep {
+    0% { left: -20%; }
+    40% { left: 120%; }
+    100% { left: 120%; }
 }

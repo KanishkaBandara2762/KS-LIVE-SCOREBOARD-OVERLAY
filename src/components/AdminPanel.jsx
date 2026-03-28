@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
-import { ref, onValue, update } from "firebase/database";
+import { ref, onValue, set, update } from "firebase/database";
+import ComboboxPlayerInput from './ComboboxPlayerInput';
 
 const AdminPanel = () => {
   const initialState = {
@@ -40,10 +41,13 @@ const AdminPanel = () => {
     legalBallCount: 0,
     currentOver: 0,
     overLocked: false,
-    // ── New broadcast fields ──
     matchType: "T20",
     matchTitle: "",
-    matchStatus: "Live"
+    matchStatus: "Live",
+    tournamentName: "",
+    venueName: "",
+    sponsorText: "",
+    autoShowBanner: true
   };
 
   const [match, setMatch] = useState(() => {
@@ -58,11 +62,27 @@ const AdminPanel = () => {
   const isFromFirebase = useRef(false);
   const prevMatchRef = useRef(null);
 
+  // ── Local Match Info State ──────────────────────────────────────
+  const [tourneyData, setTourneyData] = useState({ name: "", venue: "", sponsor: "" });
+
   // ── Broadcast Ticker State (separate from match) ──────────────────────
   const [tickerMsg, setTickerMsg] = useState("");
   const [tickerMode, setTickerMode] = useState("banner");    // "banner" or "breaking"
   const [tickerPreset, setTickerPreset] = useState("final");  // "final", "semi", "custom"
   const [tickerVisible, setTickerVisible] = useState(false);
+
+  // Sync local tournament info from match state softly
+  useEffect(() => {
+    if (match) {
+      setTourneyData(prev => ({
+        ...prev,
+        // Only patch empty local fields to avoid overwriting user typing
+        name: prev.name || match.tournamentName || "",
+        venue: prev.venue || match.venueName || "",
+        sponsor: prev.sponsor || match.sponsorText || ""
+      }));
+    }
+  }, [match.tournamentName, match.venueName, match.sponsorText]);
 
   // Sync ticker state from Firebase on load
   useEffect(() => {
@@ -204,8 +224,25 @@ const AdminPanel = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [match, history]);
 
-  const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
+  const totalMatchBalls = (match.maxOvers || 5) * 6;
   const remainingBalls = totalMatchBalls - match.totalBalls;
+
+  const handleSaveMatchInfo = () => {
+    setMatch(prev => ({
+      ...prev,
+      tournamentName: tourneyData.name,
+      venueName: tourneyData.venue,
+      sponsorText: tourneyData.sponsor
+    }));
+  };
+
+  const handleShowBanner = () => {
+    setMatch(prev => ({
+      ...prev,
+      eventTrigger: "SHOW_BANNER",
+      eventTime: Date.now()
+    }));
+  };
 
   const swapStrike = () => {
     setMatch(prev => ({
@@ -231,17 +268,24 @@ const AdminPanel = () => {
   };
 
   const handleNewInnings = () => {
-    if (window.confirm("Switch Innings?")) {
-      setMatch(prev => ({
-        ...prev,
-        battingTeam: prev.bowlingTeam, bowlingTeam: prev.battingTeam, battingLogo: prev.leagueLogo, leagueLogo: prev.battingLogo,
-        score: 0, wickets: 0, totalBalls: 0, recentBalls: [], overRuns: 0, fallOfWickets: [], showSummary: false,
-        player1: { name: "SELECT P1", runs: 0, balls: 0, onStrike: true },
-        player2: { name: "SELECT P2", runs: 0, balls: 0, onStrike: false },
-        bowler: { name: "SELECT BOWLER", figures: "0-0 (0.0)" },
-        isSecondInnings: true, targetScore: prev.score + 1, isSuperOver: false, eventTrigger: "RESET_WINNER",
-        legalBallCount: 0, currentOver: 0, overLocked: false
-      }));
+    if (match.isSecondInnings) {
+      alert("Match is already in the 2nd innings. Action ignored to protect target score.");
+      return;
+    }
+    if (window.confirm("Start 2nd innings?")) {
+      setMatch(prev => {
+        return {
+          ...prev,
+          battingTeam: prev.bowlingTeam, bowlingTeam: prev.battingTeam, battingLogo: prev.leagueLogo, leagueLogo: prev.battingLogo,
+          firstInningsScore: prev.score, firstInningsWickets: prev.wickets, firstInningsOvers: prev.totalBalls,
+          score: 0, wickets: 0, totalBalls: 0, recentBalls: [], overRuns: 0, fallOfWickets: [], showSummary: false,
+          player1: { name: "SELECT P1", runs: 0, balls: 0, onStrike: true },
+          player2: { name: "SELECT P2", runs: 0, balls: 0, onStrike: false },
+          bowler: { name: "SELECT BOWLER", figures: "0-0 (0.0)" },
+          isSecondInnings: true, targetScore: prev.score + 1, isSuperOver: false, eventTrigger: "RESET_WINNER",
+          legalBallCount: 0, currentOver: 0, overLocked: false
+        };
+      });
       setHistory([]);
     }
   };
@@ -402,6 +446,25 @@ const AdminPanel = () => {
               <div><label className="text-[8px] font-bold">BPO</label><input type="number" className="w-full border p-2 rounded text-center" value={match.ballsPerOver} onChange={(e) => setMatch({ ...match, ballsPerOver: parseInt(e.target.value) })} /></div>
             </div>
 
+            <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded">
+              <div className="flex flex-col text-left col-span-2">
+                <label className="text-[8px] font-bold block mb-1">INNINGS TYPE</label>
+                <select className="w-full border p-1 rounded text-xs font-bold bg-white" value={match.isSecondInnings ? "2" : "1"} onChange={(e) => setMatch({ ...match, isSecondInnings: e.target.value === "2" })}>
+                  <option value="1">1st Innings</option>
+                  <option value="2">2nd Innings</option>
+                </select>
+              </div>
+              <div className="col-span-2 mt-1 pt-2 border-t text-left">
+                <label className="text-[8px] font-bold block mb-1">ALLOWED EXTRAS</label>
+                <div className="grid grid-cols-2 gap-1 text-[9px] font-bold text-slate-600">
+                  <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={match.extrasConfig?.wd !== false} onChange={(e)=>setMatch({...match, extrasConfig: {...match.extrasConfig, wd: e.target.checked}})} /> Wides</label>
+                  <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={match.extrasConfig?.nb !== false} onChange={(e)=>setMatch({...match, extrasConfig: {...match.extrasConfig, nb: e.target.checked}})} /> No Balls</label>
+                  <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={match.extrasConfig?.b !== false} onChange={(e)=>setMatch({...match, extrasConfig: {...match.extrasConfig, b: e.target.checked}})} /> Byes</label>
+                  <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={match.extrasConfig?.lb !== false} onChange={(e)=>setMatch({...match, extrasConfig: {...match.extrasConfig, lb: e.target.checked}})} /> Leg Byes</label>
+                </div>
+              </div>
+            </div>
+
             <select className="w-full border p-2 rounded text-xs font-black bg-white uppercase shadow-sm" value={match.themeID} onChange={(e) => setMatch({ ...match, themeID: e.target.value })}>
               <option value="IPL_GOLD">IPL Classic</option><option value="SKY_PRO">Sky Sports</option><option value="NEON_VAVUNIYA">Neon Green</option>
               <option value="CLASSIC_DARK">Classic Dark</option><option value="T20_NEON">T20 Neon</option><option value="WC_BLUE_PURPLE">World Cup Blue-Purple</option><option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
@@ -436,6 +499,34 @@ const AdminPanel = () => {
             </div>
             <button onClick={() => setMatch({ ...match, showMatchSituation: !match.showMatchSituation })} className={`w-full py-2 rounded font-bold text-[10px] transition ${match.showMatchSituation ? 'bg-purple-600 text-white shadow-lg' : 'bg-slate-200'}`}>Show Match Situation</button>
             <button onClick={() => setMatch({ ...match, overlayMode: match.overlayMode === 'full' ? 'simple' : 'full' })} className={`w-full py-2 rounded font-bold text-[10px] transition ${match.overlayMode === 'simple' ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-200'}`}>Switch Overlay: {match.overlayMode === 'full' ? 'FULL' : 'SIMPLE'}</button>
+
+            {/* ── MATCH INFO & BANNER ──────────────────────── */}
+            <div className="space-y-2 pt-3 border-t mt-3 bg-indigo-50 p-3 rounded border border-indigo-100">
+              <div className="flex justify-between items-center mb-1">
+                <h3 className="text-[9px] font-black text-indigo-700 tracking-widest uppercase">ℹ️ Match Info & Banner</h3>
+                <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded border shadow-sm">
+                   <label className="text-[8px] font-black text-slate-500 uppercase">Auto Show</label>
+                   <input 
+                     type="checkbox" 
+                     className="ml-1" 
+                     checked={match.autoShowBanner !== false} 
+                     onChange={(e) => setMatch({ ...match, autoShowBanner: e.target.checked })} 
+                   />
+                </div>
+              </div>
+              <input type="text" className="w-full border p-1.5 rounded text-xs font-bold" placeholder="Tournament Name" value={tourneyData.name} onChange={(e) => setTourneyData({...tourneyData, name: e.target.value})} />
+              <input type="text" className="w-full border p-1.5 rounded text-xs font-bold" placeholder="Venue / Ground Name" value={tourneyData.venue} onChange={(e) => setTourneyData({...tourneyData, venue: e.target.value})} />
+              <input type="text" className="w-full border p-1.5 rounded text-xs font-bold" placeholder="Sponsor Text (e.g. Dream11)" value={tourneyData.sponsor} onChange={(e) => setTourneyData({...tourneyData, sponsor: e.target.value})} />
+              
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <button onClick={handleSaveMatchInfo} className="bg-indigo-600 text-white py-2 rounded text-[10px] font-black shadow-md hover:bg-indigo-700 transition">
+                  💾 Save / Update
+                </button>
+                <button onClick={handleShowBanner} className="bg-cyan-500 text-white py-2 rounded text-[10px] font-black shadow-md hover:bg-cyan-600 transition">
+                  ✨ SHOW BANNER
+                </button>
+              </div>
+            </div>
 
             {/* ── BROADCAST TICKER CONTROLS ──────────────────────── */}
             <div className="space-y-2 pt-3 border-t mt-2">
@@ -506,25 +597,31 @@ const AdminPanel = () => {
             <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">2. Active Squad</h2>
             <div className="bg-slate-50 p-2 rounded border border-blue-100">
               <label className="text-[8px] font-black text-slate-400 uppercase">Striker</label>
-              <select className="w-full bg-white border p-2 rounded font-black text-sm" value={match.player1.name} onChange={(e) => setMatch({ ...match, player1: { ...match.player1, name: e.target.value } })}>
-                <option value="">-- SELECT PLAYER --</option>
-                {match.battingSquad?.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-              </select>
+              <ComboboxPlayerInput 
+                options={match.battingSquad} 
+                className="w-full bg-white border p-2 rounded font-black text-sm uppercase focus:outline-blue-500" 
+                value={match.player1.name} 
+                onChange={(e) => setMatch({ ...match, player1: { ...match.player1, name: e.target.value } })} 
+              />
             </div>
             <div className="bg-slate-50 p-2 rounded border border-blue-100">
               <label className="text-[8px] font-black text-slate-400 uppercase">Non-Striker</label>
-              <select className="w-full bg-white border p-2 rounded font-black text-sm" value={match.player2.name} onChange={(e) => setMatch({ ...match, player2: { ...match.player2, name: e.target.value } })}>
-                <option value="">-- SELECT PLAYER --</option>
-                {match.battingSquad?.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-              </select>
+              <ComboboxPlayerInput 
+                options={match.battingSquad} 
+                className="w-full bg-white border p-2 rounded font-black text-sm uppercase focus:outline-blue-500" 
+                value={match.player2.name} 
+                onChange={(e) => setMatch({ ...match, player2: { ...match.player2, name: e.target.value } })} 
+              />
             </div>
             <button onClick={swapStrike} className="w-full py-2 bg-yellow-400 font-black text-xs rounded shadow-md border-b-4 border-yellow-600 active:translate-y-1 text-black">Swap Strike (S)</button>
             <div className="pt-4 border-t">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 text-center">Active Bowler</label>
-              <select className="w-full border p-2 rounded font-black text-sm bg-slate-50 border-red-200 shadow-inner text-red-600" value={match.bowler.name} onChange={(e) => setMatch({ ...match, bowler: { ...match.bowler, name: e.target.value } })}>
-                <option value="">-- SELECT BOWLER --</option>
-                {match.bowlingSquad?.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-              </select>
+              <ComboboxPlayerInput 
+                options={match.bowlingSquad} 
+                className="w-full border p-2 rounded font-black text-sm bg-slate-50 border-red-200 shadow-inner text-red-600 uppercase focus:outline-red-500" 
+                value={match.bowler.name} 
+                onChange={(e) => setMatch({ ...match, bowler: { ...match.bowler, name: e.target.value } })} 
+              />
             </div>
           </div>
 
@@ -536,28 +633,33 @@ const AdminPanel = () => {
               <button onClick={() => addBoundary(4)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+4</button>
               <button onClick={() => addBoundary(6)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+6</button>
             </div>
-            <div className="p-3 bg-slate-50 rounded border border-slate-200 text-center">
-              <p className="text-[9px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Extras Engine</p>
-              <div className="flex gap-2 mb-3">
-                <select className="bg-white border rounded text-[10px] p-1 font-black" value={customExtraType} onChange={(e) => setCustomExtraType(e.target.value)}>
-                  <option value="WD">WIDE</option><option value="NB">NO BALL</option>
-                </select>
-                <div className="flex gap-1">
-                  {[0, 1, 2, 3, 4].map(num => (
-                    <button key={num} onClick={() => setCustomExtraRuns(num)} className={`px-2 py-1 border rounded text-[10px] font-black transition ${customExtraRuns === num ? 'bg-blue-600 text-white' : 'bg-white'}`}>{num}</button>
+            {(match.extrasConfig?.wd !== false || match.extrasConfig?.nb !== false) && (
+              <div className="p-3 bg-slate-50 rounded border border-slate-200 text-center">
+                <p className="text-[9px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Extras Engine</p>
+                <div className="flex gap-2 mb-3">
+                  <select className="bg-white border rounded text-[10px] p-1 font-black" value={customExtraType} onChange={(e) => setCustomExtraType(e.target.value)}>
+                    {match.extrasConfig?.wd !== false && <option value="WD">WIDE</option>}
+                    {match.extrasConfig?.nb !== false && <option value="NB">NO BALL</option>}
+                  </select>
+                  <div className="flex gap-1">
+                    {[0, 1, 2, 3, 4].map(num => (
+                      <button key={num} onClick={() => setCustomExtraRuns(num)} className={`px-2 py-1 border rounded text-[10px] font-black transition ${customExtraRuns === num ? 'bg-blue-600 text-white' : 'bg-white'}`}>{num}</button>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={() => addExtra(customExtraType, customExtraRuns)} className="w-full bg-orange-500 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-4 border-orange-700 active:translate-y-0.5">Add {customExtraType} + {customExtraRuns}</button>
+              </div>
+            )}
+            {match.extrasConfig?.lb !== false && (
+              <div className="p-3 bg-green-50 rounded border border-green-200 text-center">
+                <p className="text-[9px] font-bold text-green-700 uppercase mb-2 tracking-widest">Leg Byes</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((r) => (
+                    <button key={r} onClick={() => addLegBye(r)} className="bg-green-600 text-white py-2 rounded font-black text-xs shadow-md border-b-4 border-green-800 active:translate-y-0.5 hover:bg-green-700 transition">LB +{r}</button>
                   ))}
                 </div>
               </div>
-              <button onClick={() => addExtra(customExtraType, customExtraRuns)} className="w-full bg-orange-500 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-4 border-orange-700 active:translate-y-0.5">Add {customExtraType} + {customExtraRuns}</button>
-            </div>
-            <div className="p-3 bg-green-50 rounded border border-green-200 text-center">
-              <p className="text-[9px] font-bold text-green-700 uppercase mb-2 tracking-widest">Leg Byes</p>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map((r) => (
-                  <button key={r} onClick={() => addLegBye(r)} className="bg-green-600 text-white py-2 rounded font-black text-xs shadow-md border-b-4 border-green-800 active:translate-y-0.5 hover:bg-green-700 transition">LB +{r}</button>
-                ))}
-              </div>
-            </div>
+            )}
             <button onClick={handleWicket} className="w-full bg-red-600 text-white py-3 rounded font-black shadow-md border-b-4 border-red-800 active:translate-y-1 text-lg uppercase">WKT (W)</button>
 
             <div className="bg-slate-900 p-4 rounded shadow-2xl border-t-4 border-yellow-400 text-white italic">
@@ -600,7 +702,7 @@ const AdminPanel = () => {
                 <div className="text-center flex-1">
                   <p className="text-[8px] uppercase font-black tracking-widest text-slate-400">CRR</p>
                   <p className="text-xl font-black text-cyan-400">
-                    {match.totalBalls > 0 ? (match.score / (match.totalBalls / match.ballsPerOver)).toFixed(2) : "0.00"}
+                    {match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}
                   </p>
                 </div>
                 <div className="w-px h-10 bg-slate-600"></div>
@@ -608,7 +710,7 @@ const AdminPanel = () => {
                   <p className="text-[8px] uppercase font-black tracking-widest text-slate-400">RRR</p>
                   <p className="text-xl font-black text-orange-400">
                     {match.isSecondInnings && remainingBalls > 0
-                      ? ((match.targetScore - match.score) / (remainingBalls / match.ballsPerOver)).toFixed(2)
+                      ? ((match.targetScore - match.score) / (remainingBalls / 6)).toFixed(2)
                       : "--"}
                   </p>
                 </div>

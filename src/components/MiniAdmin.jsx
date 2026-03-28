@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { db } from "../firebase";
-import { ref, onValue, update } from "firebase/database";
-import "./MiniAdmin.css";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { db } from '../firebase';
+import { ref, onValue, update } from 'firebase/database';
+import './MiniAdmin.css';
+import ComboboxPlayerInput from './ComboboxPlayerInput';
 
 /* ═══════════════════════════════════════════════════════════════
    MiniAdmin — Full-Control Compact Console
@@ -228,11 +229,11 @@ const MiniAdmin = () => {
     const nonStriker = match.player1?.onStrike ? match.player2 : match.player1;
     const strikerKey = match.player1?.onStrike ? "player1" : "player2";
     const nonStrikerKey = match.player1?.onStrike ? "player2" : "player1";
-    const totalMatchBalls = (match.maxOvers || 5) * bpo;
+    const totalMatchBalls = (match.maxOvers || 5) * 6;
     const remainingBalls = totalMatchBalls - match.totalBalls;
-    const crr = match.totalBalls > 0 ? (match.score / (match.totalBalls / bpo)).toFixed(2) : "0.00";
+    const crr = match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00";
     const rrr = match.isSecondInnings && remainingBalls > 0
-        ? ((match.targetScore - match.score) / (remainingBalls / bpo)).toFixed(2)
+        ? ((match.targetScore - match.score) / (remainingBalls / 6)).toFixed(2)
         : "--";
     const legalBallCount = match.legalBallCount || 0;
     const isOverReady = legalBallCount >= bpo;
@@ -287,6 +288,19 @@ const MiniAdmin = () => {
 
                 {/* ── 1. MATCH CONTROL (Blue) ──────────────────────────── */}
                 <Section label="MATCH CONTROL" color="blue" icon="🎯" open={!!openSections.match} onClick={() => toggle("match")}>
+                    <div className="ma-row" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '4px' }}>
+                        <div style={{ flex: 1, minWidth: '40%' }}>
+                           <label>Batting Team</label>
+                           <input type="text" className="ma-inp" value={match.battingTeam || ""} onChange={(e) => push({ battingTeam: e.target.value.toUpperCase() })} />
+                        </div>
+                        <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'flex-end', paddingBottom: '2px' }}>
+                           <button className="ma-btn ma-btn-swap" style={{ padding: '6px' }} onClick={() => push({ battingTeam: match.bowlingTeam, bowlingTeam: match.battingTeam, battingLogo: match.leagueLogo, leagueLogo: match.battingLogo })}>↔</button>
+                        </div>
+                        <div style={{ flex: 1, minWidth: '40%' }}>
+                           <label>Bowling Team</label>
+                           <input type="text" className="ma-inp" value={match.bowlingTeam || ""} onChange={(e) => push({ bowlingTeam: e.target.value.toUpperCase() })} />
+                        </div>
+                    </div>
                     <div className="ma-row">
                         <label>Format</label>
                         <select className="ma-sel" value={match.matchType || "T20"} onChange={(e) => push({ matchType: e.target.value })}>
@@ -307,7 +321,23 @@ const MiniAdmin = () => {
                     </div>
                     <div className="ma-row">
                         <label>Balls/Over</label>
-                        <input type="number" className="ma-inp" value={match.ballsPerOver} onChange={(e) => push({ ballsPerOver: parseInt(e.target.value) || 5 })} />
+                        <input type="number" className="ma-inp" value={match.ballsPerOver} onChange={(e) => push({ ballsPerOver: parseInt(e.target.value) || 6 })} />
+                    </div>
+                    <div className="ma-row">
+                        <label>Innings</label>
+                        <select className="ma-sel" value={match.isSecondInnings ? "2" : "1"} onChange={(e) => push({ isSecondInnings: e.target.value === "2" })}>
+                            <option value="1">1st Innings</option>
+                            <option value="2">2nd Innings</option>
+                        </select>
+                    </div>
+                    <div className="ma-row" style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', flexWrap: 'wrap' }}>
+                        <label style={{ width: '100%', marginBottom: '6px' }}>Allowed Extras</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '10px', width: '100%', color: '#ccc' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.wd !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, wd: e.target.checked } })} /> Wides</label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.nb !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, nb: e.target.checked } })} /> No Balls</label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.b !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, b: e.target.checked } })} /> Byes</label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.lb !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, lb: e.target.checked } })} /> Leg Byes</label>
+                        </div>
                     </div>
                     <div className="ma-row">
                         <label>Target</label>
@@ -339,6 +369,7 @@ const MiniAdmin = () => {
                         <button className="ma-btn ma-btn-blue" onClick={() => push({ showVersus: !match.showVersus })}>{match.showVersus ? "✓ " : ""}VS Tab</button>
                         <button className="ma-btn ma-btn-blue" onClick={() => push({ showSummary: !match.showSummary })}>{match.showSummary ? "✓ " : ""}Summary</button>
                     </div>
+                    <button className="ma-btn w-full mt-2" style={{ backgroundColor: '#06b6d4', color: 'white', fontWeight: '900', borderBottom: '3px solid #0891b2' }} onClick={() => push({ eventTrigger: "SHOW_BANNER" })}>✨ SHOW BANNER</button>
                 </Section>
 
                 {/* ── 1.5. INNINGS & SUPER OVER ────────────────────────── */}
@@ -349,8 +380,19 @@ const MiniAdmin = () => {
                     </div>
                     
                     <button className="ma-btn ma-btn-wicket w-full mb-2" style={{ backgroundColor: '#ef4444', borderColor: '#991b1b' }} onClick={() => {
-                        if (window.confirm("Start 2nd Innings? This will zero runs, wickets, and overs. Target score will NOT be set automatically.")) {
-                            push({ score: 0, wickets: 0, totalBalls: 0, currentOver: 0, overRuns: 0, recentBalls: [], legalBallCount: 0, isSecondInnings: true, player1: { name: "", runs: 0, balls: 0, onStrike: true }, player2: { name: "", runs: 0, balls: 0, onStrike: false }, eventTrigger: "RESET_WINNER" });
+                        if (match.isSecondInnings) {
+                            alert("Match is already in the 2nd innings. Action ignored to protect target score.");
+                            return;
+                        }
+                        if (window.confirm("Start 2nd Innings? This will set the target and reset scores.")) {
+                            push({ 
+                                firstInningsScore: match.score, firstInningsWickets: match.wickets, firstInningsOvers: match.totalBalls,
+                                score: 0, wickets: 0, totalBalls: 0, currentOver: 0, overRuns: 0, recentBalls: [], 
+                                legalBallCount: 0, isSecondInnings: true, targetScore: match.score + 1,
+                                player1: { name: "", runs: 0, balls: 0, onStrike: true }, 
+                                player2: { name: "", runs: 0, balls: 0, onStrike: false }, 
+                                eventTrigger: "RESET_WINNER" 
+                            });
                         }
                     }}>⚠ RESET & START 2ND INNINGS</button>
                     
@@ -370,19 +412,25 @@ const MiniAdmin = () => {
                         <span>{nonStriker?.name}</span>
                         <span className="ma-bat-stat">{nonStriker?.runs}({nonStriker?.balls})</span>
                     </div>
-                    <div className="ma-row">
+                    <div className="ma-row" style={{ overflow: "visible" }}>
                         <label>Striker</label>
-                        <select className="ma-sel" value={striker?.name || ""} onChange={(e) => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })}>
-                            <option value="">-- SELECT --</option>
-                            {(match.battingSquad || []).map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-                        </select>
+                        <ComboboxPlayerInput 
+                            options={match.battingSquad} 
+                            className="ma-inp uppercase focus:outline-blue-500" 
+                            placeholder="Type or Select" 
+                            value={striker?.name || ""} 
+                            onChange={(e) => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })} 
+                        />
                     </div>
-                    <div className="ma-row">
+                    <div className="ma-row" style={{ overflow: "visible" }}>
                         <label>Non-Striker</label>
-                        <select className="ma-sel" value={nonStriker?.name || ""} onChange={(e) => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })}>
-                            <option value="">-- SELECT --</option>
-                            {(match.battingSquad || []).map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-                        </select>
+                        <ComboboxPlayerInput 
+                            options={match.battingSquad} 
+                            className="ma-inp uppercase focus:outline-blue-500" 
+                            placeholder="Type or Select" 
+                            value={nonStriker?.name || ""} 
+                            onChange={(e) => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })} 
+                        />
                     </div>
                     <button className="ma-btn ma-btn-swap w-full" onClick={swapStrike}>↔ SWAP STRIKE (S)</button>
                     {/* Manual runs edit */}
@@ -398,12 +446,15 @@ const MiniAdmin = () => {
                         <span>🎳 {match.bowler?.name}</span>
                         <span className="ma-bat-stat">{match.bowler?.figures}</span>
                     </div>
-                    <div className="ma-row">
+                    <div className="ma-row" style={{ overflow: "visible" }}>
                         <label>Bowler</label>
-                        <select className="ma-sel" value={match.bowler?.name || ""} onChange={(e) => push({ bowler: { ...match.bowler, name: e.target.value } })}>
-                            <option value="">-- SELECT --</option>
-                            {(match.bowlingSquad || []).map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-                        </select>
+                        <ComboboxPlayerInput 
+                            options={match.bowlingSquad} 
+                            className="ma-inp uppercase focus:outline-purple-500" 
+                            placeholder="Type or Select" 
+                            value={match.bowler?.name || ""} 
+                            onChange={(e) => push({ bowler: { ...match.bowler, name: e.target.value } })} 
+                        />
                     </div>
                     <div className="ma-row">
                         <label>Edit Figures</label>
@@ -429,40 +480,56 @@ const MiniAdmin = () => {
                     <button className="ma-btn ma-btn-wicket w-full" onClick={handleWicket}>WICKET (W)</button>
 
                     {/* Wides */}
-                    <div className="ma-label">WIDE +</div>
-                    <div className="ma-grid ma-grid-5">
-                        {[0, 1, 2, 3, 4].map(r => (
-                            <button key={r} className="ma-btn ma-btn-extra" onClick={() => addExtra("WD", r)}>
-                                WD{r > 0 ? `+${r}` : ""}
-                            </button>
-                        ))}
-                    </div>
+                    {match.extrasConfig?.wd !== false && (
+                    <>
+                        <div className="ma-label">WIDE +</div>
+                        <div className="ma-grid ma-grid-5">
+                            {[0, 1, 2, 3, 4].map(r => (
+                                <button key={r} className="ma-btn ma-btn-extra" onClick={() => addExtra("WD", r)}>
+                                    WD{r > 0 ? `+${r}` : ""}
+                                </button>
+                            ))}
+                        </div>
+                    </>
+                    )}
 
                     {/* No Balls */}
-                    <div className="ma-label">NO BALL +</div>
-                    <div className="ma-grid ma-grid-5">
-                        {[0, 1, 2, 3, 4].map(r => (
-                            <button key={r} className="ma-btn ma-btn-extra" onClick={() => addExtra("NB", r)}>
-                                NB{r > 0 ? `+${r}` : ""}
-                            </button>
-                        ))}
-                    </div>
+                    {match.extrasConfig?.nb !== false && (
+                    <>
+                        <div className="ma-label">NO BALL +</div>
+                        <div className="ma-grid ma-grid-5">
+                            {[0, 1, 2, 3, 4].map(r => (
+                                <button key={r} className="ma-btn ma-btn-extra" onClick={() => addExtra("NB", r)}>
+                                    NB{r > 0 ? `+${r}` : ""}
+                                </button>
+                            ))}
+                        </div>
+                    </>
+                    )}
 
                     {/* Leg Byes */}
-                    <div className="ma-label">LEG BYE</div>
-                    <div className="ma-grid ma-grid-4">
-                        {[1, 2, 3, 4].map(r => (
-                            <button key={r} className="ma-btn ma-btn-lb" onClick={() => addLegBye(r)}>LB {r}</button>
-                        ))}
-                    </div>
+                    {match.extrasConfig?.lb !== false && (
+                    <>
+                        <div className="ma-label">LEG BYE</div>
+                        <div className="ma-grid ma-grid-4">
+                            {[1, 2, 3, 4].map(r => (
+                                <button key={r} className="ma-btn ma-btn-lb" onClick={() => addLegBye(r)}>LB {r}</button>
+                            ))}
+                        </div>
+                    </>
+                    )}
 
                     {/* Byes */}
-                    <div className="ma-label">BYE</div>
-                    <div className="ma-grid ma-grid-4">
-                        {[1, 2, 3, 4].map(r => (
-                            <button key={r} className="ma-btn ma-btn-bye" onClick={() => addBye(r)}>B {r}</button>
-                        ))}
-                    </div>
+                    {match.extrasConfig?.b !== false && (
+                    <>
+                        <div className="ma-label">BYE</div>
+                        <div className="ma-grid ma-grid-4">
+                            {[1, 2, 3, 4].map(r => (
+                                <button key={r} className="ma-btn ma-btn-bye" onClick={() => addBye(r)}>B {r}</button>
+                            ))}
+                        </div>
+                    </>
+                    )}
                 </Section>
 
                 {/* ── 5. OVER CONTROL ──────────────────────────────────── */}

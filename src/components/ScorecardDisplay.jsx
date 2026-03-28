@@ -15,10 +15,12 @@ const ScorecardDisplay = () => {
   const [boardAnimClass, setBoardAnimClass] = useState("");
   const [bowlerAnimClass, setBowlerAnimClass] = useState("");
   const [newOverAnim, setNewOverAnim] = useState(false);
+  const [showInfoStrip, setShowInfoStrip] = useState(false);
   const prevScore = useRef(null);
   const prevWickets = useRef(null);
   const prevEventTime = useRef(null);
   const prevBannerEventTime = useRef(null);
+  const prevTourneyBannerTime = useRef(null);
   const eventTimerRef = useRef(null);
   const debounceTimerRef = useRef(null);
   const prevCurrentOver = useRef(null);
@@ -116,18 +118,75 @@ const ScorecardDisplay = () => {
     return () => timers.forEach(t => clearTimeout(t));
   }, [match, triggerAnim]);
 
+  // ── Manual & Auto-trigger for Tournament Info Strip ───────────────────────
   useEffect(() => {
     if (!match) return;
+    
+    // Manual trigger from Admin Panel
+    if (match.eventTrigger === "SHOW_BANNER" && match.eventTime !== prevTourneyBannerTime.current) {
+      prevTourneyBannerTime.current = match.eventTime;
+      setShowInfoStrip(true);
+      setTimeout(() => setShowInfoStrip(false), 5000);
+    }
+  }, [match]);
+
+  useEffect(() => {
+    // If autoShowBanner is false, early return to clear intervals
+    if (!match || match.autoShowBanner === false) return;
+
+    // Show initially after 5 seconds if enabled
+    const initialTimer = setTimeout(() => {
+      setShowInfoStrip(true);
+      setTimeout(() => setShowInfoStrip(false), 5000);
+    }, 5000);
+
+    // Then repeated every 45 seconds
+    const interval = setInterval(() => {
+      setShowInfoStrip(true);
+      setTimeout(() => setShowInfoStrip(false), 5000);
+    }, 45000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [match?.autoShowBanner]);
+
+  const prevWinnerTrigger = useRef(false);
+  const [showWinner, setShowWinner] = useState(false);
+
+  // ── Winner Logic (Auto-trigger) ──────────────────────────
+  useEffect(() => {
+    if (!match) return;
+    
+    // Reset winner logic on new innings or match reset
+    if (match.eventTrigger === "RESET_WINNER") {
+      setWinnerInfo(null);
+      setShowWinner(false);
+      prevWinnerTrigger.current = false;
+      return;
+    }
+
     if (match.isSecondInnings && !match.isSuperOver) {
-      const totalBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
+      const totalBalls = (match.maxOvers || 5) * 6;
       const remainingBalls = totalBalls - match.totalBalls;
+      
+      let winnerObj = null;
       if (match.score >= (match.targetScore || 0)) {
-        setWinnerInfo({ team: match.battingTeam, logo: match.battingLogo, text: `WON BY ${10 - match.wickets} WICKETS` });
+        winnerObj = { team: match.battingTeam, logo: match.battingLogo, text: `WON BY ${10 - match.wickets} WICKETS` };
       } else if (remainingBalls <= 0 || match.wickets >= 10) {
         const resultText = match.score === (match.targetScore - 1) ? "MATCH TIED" : `WON BY ${match.targetScore - 1 - match.score} RUNS`;
-        setWinnerInfo({ team: match.bowlingTeam, logo: match.leagueLogo, text: resultText });
+        winnerObj = { team: match.bowlingTeam, logo: match.leagueLogo, text: resultText };
       }
-    } else { setWinnerInfo(null); }
+
+      if (winnerObj && !prevWinnerTrigger.current) {
+        prevWinnerTrigger.current = true;
+        setWinnerInfo(winnerObj);
+        setShowWinner(true);
+        // Clean slide-out after 5 seconds
+        setTimeout(() => setShowWinner(false), 5000);
+      }
+    } 
   }, [match]);
 
   // ── Memoized helpers (MUST be above early return — Rules of Hooks) ──
@@ -137,7 +196,7 @@ const ScorecardDisplay = () => {
 
   const active = themes[match.themeID] || themes.IPL_GOLD;
   const animThemeClass = active.animClass || "anim-ipl-gold";
-  const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
+  const totalMatchBalls = (match.maxOvers || 5) * 6;
   const remainingBalls = totalMatchBalls - match.totalBalls;
 
   return (
@@ -204,12 +263,19 @@ const ScorecardDisplay = () => {
         );
       })()}
 
-      {/* 3. MATCH WINNER OVERLAY */}
-      {winnerInfo && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 animate-fadeIn text-center">
-          <img src={winnerInfo.logo} className="w-40 h-40 rounded-full border-4 border-yellow-500 bg-white mb-6 p-2 shadow-2xl" alt="Winner" />
-          <h1 className="text-6xl font-black italic uppercase text-yellow-400 drop-shadow-2xl">{winnerInfo.team}</h1>
-          <div className="mt-6 bg-yellow-500 text-black text-4xl font-black px-12 py-3 skew-x-[-15deg]">{winnerInfo.text}</div>
+      {/* 3. MATCH WINNER OVERLAY (Cinematic Broadcast Style) */}
+      {showWinner && winnerInfo && (
+        <div className="winner-cinematic-strip">
+          <div className="winner-cinematic-bg"></div>
+          <div className="winner-cinematic-glow"></div>
+          <div className="winner-cinematic-content">
+            <img src={winnerInfo.logo} className="winner-cinematic-logo" alt="Winner" />
+            <div className="winner-cinematic-text-wrap">
+              <h1 className="winner-cinematic-team">{winnerInfo.team}</h1>
+              <h2 className="winner-cinematic-text">{winnerInfo.text}</h2>
+            </div>
+          </div>
+          <div className="winner-cinematic-sweep"></div>
         </div>
       )}
 
@@ -308,7 +374,7 @@ const ScorecardDisplay = () => {
                 {match.battingTeam}
               </h1>
               <p className="text-yellow-400 font-black text-2xl italic">
-                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.maxOvers || 5) * (match.ballsPerOver || 6)) - match.totalBalls}</span> balls
+                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.maxOvers || 5) * 6) - match.totalBalls}</span> balls
               </p>
               <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">to win</p>
             </div>
@@ -319,6 +385,19 @@ const ScorecardDisplay = () => {
       {/* 6. MAIN BOTTOM SCOREBOARD */}
       {!winnerInfo && !match.showSummary && !match.showVersus && (
         <div className={`absolute bottom-0 left-0 w-full flex flex-col pointer-events-none ${animThemeClass}`}>
+          {/* TOURNAMENT INFO STRIP — slides in above the ticker */}
+          {showInfoStrip && (
+            <div className="tourney-info-strip">
+              <div className="tourney-info-bg"></div>
+              <div className="tourney-info-glow"></div>
+              <div className="tourney-info-content">
+                <h3 className="tourney-name">{match.tournamentName || match.matchTitle || "Inter School Cricket Tournament"}</h3>
+                <p className="tourney-venue">{match.venueName || "Live from the Stadium"}</p>
+              </div>
+              <div className="tourney-info-sweep"></div>
+            </div>
+          )}
+
           {/* BROADCAST TICKER — sits above the scoreboard bar */}
           <BroadcastTicker />
           <div className={`flex h-28 ${active.main} items-stretch relative overflow-hidden ${active.isWC2026 ? `${active.border} wc2026-open` : `border-t-2 ${active.border} scoreboard-open`} shadow-2xl ${boardAnimClass}`}>
@@ -375,8 +454,8 @@ const ScorecardDisplay = () => {
                      </span>
                   )}
                 </div>
-                <div className={`${active.accent} -skew-x-12 px-5 py-1.5 shadow-lg`}>
-                  <h2 className="text-black font-semibold text-2xl skew-x-12 truncate max-w-[180px] uppercase tracking-wide text-broadcast-shadow">{match.battingTeam}</h2>
+                <div className="pt-0.5">
+                  <h2 style={{ fontFamily: "'Poppins', sans-serif" }} className={`font-semibold text-[28px] leading-tight truncate max-w-[220px] uppercase tracking-wide ${active.main === 'bg-white' ? 'text-slate-900' : 'text-white'} drop-shadow-sm`}>{match.battingTeam}</h2>
                 </div>
               </div>
               <div className={`flex items-baseline ml-auto pr-6 text-white text-center ${scoreAnimClass}`}>
@@ -465,8 +544,8 @@ const ScorecardDisplay = () => {
             {match.isSecondInnings ? (
               <div className={`flex w-full justify-between items-center ${active.chase} h-full border-t border-blue-400 shadow-inner px-4`}>
                 <div className="flex gap-4">
-                  <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / (match.ballsPerOver || 6))).toFixed(2) : "0.00"}</span></span>
-                  <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">RRR: <span className="text-orange-400">{remainingBalls > 0 ? ((match.targetScore - match.score) / (remainingBalls / (match.ballsPerOver || 6))).toFixed(2) : "--"}</span></span>
+                  <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}</span></span>
+                  <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">RRR: <span className="text-orange-400">{remainingBalls > 0 ? ((match.targetScore - match.score) / (remainingBalls / 6)).toFixed(2) : "--"}</span></span>
                 </div>
                 <p className="text-white font-bold italic text-sm uppercase tracking-widest animate-pulse text-broadcast-shadow">
                   {match.targetScore - match.score > 0 ? `Need ${match.targetScore - match.score} Runs from ${remainingBalls} Balls` : "TARGET REACHED!"}
@@ -474,7 +553,7 @@ const ScorecardDisplay = () => {
               </div>
             ) : (
               <div className="flex w-full justify-between items-center h-full px-4">
-                <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / (match.ballsPerOver || 6))).toFixed(2) : "0.00"}</span></span>
+                <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}</span></span>
                 <p className="text-white font-semibold italic text-[11px] uppercase tracking-[0.4em] truncate text-center flex-1 mx-4">{match.ticker}</p>
                 <span className="text-white/50 font-bold italic text-[11px] uppercase tracking-wide">RRR: --</span>
               </div>
