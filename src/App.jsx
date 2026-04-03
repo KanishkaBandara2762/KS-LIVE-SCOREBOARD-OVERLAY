@@ -1,12 +1,14 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
+import { LanguageProvider } from "./i18n/LanguageContext";
 
 // ── Existing scoreboard components (DO NOT MODIFY) ──────────────────────────
 import AdminPanel from "./components/AdminPanel";
 import ScorecardDisplay from "./components/ScorecardDisplay";
 import TeamManager from "./components/TeamManager";
 import MiniAdmin from "./components/MiniAdmin";
+import OverlayPage from "./components/OverlayPage";
 
 // ── Landing / Welcome page ──────────────────────────────────────────────────
 import LandingPage from "./components/LandingPage";
@@ -21,13 +23,15 @@ import PrivateRoute from "./components/auth/PrivateRoute";
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
+      <LanguageProvider>
+        <Router>
+          <Routes>
 
           {/* ── PUBLIC ROUTES ───────────────────────────────────────────── */}
 
           {/* OBS scoreboard — stays public so OBS never needs to log in */}
           <Route path="/" element={<ScorecardDisplay />} />
+          <Route path="/overlay" element={<OverlayPage />} />
 
           {/* Landing / Welcome page */}
           <Route path="/landing" element={<LandingPage />} />
@@ -58,8 +62,9 @@ function App() {
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/landing" replace />} />
 
-        </Routes>
-      </Router>
+          </Routes>
+        </Router>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

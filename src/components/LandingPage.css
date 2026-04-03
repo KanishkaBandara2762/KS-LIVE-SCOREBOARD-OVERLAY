@@ -281,6 +281,10 @@
     padding: 0;
 }
 
+.landing-nav-language {
+    padding: 0 0.35rem;
+}
+
 .landing-nav-links a {
     color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
@@ -549,6 +553,82 @@
     margin: 0;
 }
 
+.landing-how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 2rem;
+}
+
+.landing-how-card {
+    background: var(--landing-card-bg);
+    border: 1px solid var(--landing-card-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(8px);
+}
+
+.landing-how-card h3 {
+    margin: 0 0 0.65rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.landing-how-card p {
+    margin: 0;
+    color: var(--landing-muted);
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+.landing-obs-box {
+    margin-top: 1.5rem;
+    border: 1px solid rgba(0, 210, 190, 0.18);
+    background: linear-gradient(135deg, rgba(0, 210, 190, 0.08), rgba(0, 150, 255, 0.05));
+    border-radius: 18px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.landing-obs-label {
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #00d2be;
+    margin-bottom: 0.45rem;
+}
+
+.landing-obs-text {
+    margin: 0 0 0.9rem;
+    color: var(--landing-muted);
+    line-height: 1.6;
+}
+
+.landing-obs-code {
+    display: inline-block;
+    padding: 0.65rem 0.8rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #bffaf2;
+    word-break: break-all;
+}
+
+.landing-obs-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.landing-copy-btn {
+    background: rgba(0, 0, 0, 0.18);
+}
+
 /* ─── STATS / COUNTERS ──────────────────────────────────────── */
 .landing-stats-section {
     position: relative;
@@ -801,6 +881,15 @@
 
     .landing-stats-grid {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .landing-how-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .landing-obs-box {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 

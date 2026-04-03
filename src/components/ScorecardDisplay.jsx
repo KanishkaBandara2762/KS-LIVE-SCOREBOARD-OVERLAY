@@ -22,8 +22,18 @@ const ScorecardDisplay = () => {
   const prevBannerEventTime = useRef(null);
   const prevTourneyBannerTime = useRef(null);
   const eventTimerRef = useRef(null);
-  const debounceTimerRef = useRef(null);
   const prevCurrentOver = useRef(null);
+
+  // Bug 10 fix: pre-generate stable particle positions keyed on eventId
+  // so particles don't flicker (jump to new random positions) on every re-render.
+  const particleData = useMemo(() => {
+    return Array.from({ length: 8 }).map(() => ({
+      left: `${10 + Math.random() * 80}%`,
+      animDelay: `${Math.random() * 0.6}s`,
+      animDuration: `${1.2 + Math.random() * 1}s`,
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [match?.eventId]);
 
   // ── Memoized static theme data (never changes, avoids re-creation) ──
   const themes = useMemo(() => ({
@@ -53,26 +63,20 @@ const ScorecardDisplay = () => {
       const data = snapshot.val();
       if (!data) return;
 
-      // Debounce: only process the latest snapshot after 150ms of quiet
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = setTimeout(() => {
-        setMatch(data);
-        if (data.eventTrigger === "RESET_WINNER") {
-          setWinnerInfo(null);
-        }
-        if (["FOUR", "SIX", "WICKET"].includes(data.eventTrigger)
-            && data.eventTime && data.eventTime !== prevBannerEventTime.current) {
-          prevBannerEventTime.current = data.eventTime;
-          // Clear previous event timer to prevent orphaned timeouts
-          if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
-          setShowEvent(true);
-          eventTimerRef.current = setTimeout(() => setShowEvent(false), 2500);
-        }
-      }, 150);
+      setMatch(data);
+      if (data.eventTrigger === "RESET_WINNER") {
+        setWinnerInfo(null);
+      }
+      if (["FOUR", "SIX", "WICKET"].includes(data.eventTrigger)
+          && data.eventTime && data.eventTime !== prevBannerEventTime.current) {
+        prevBannerEventTime.current = data.eventTime;
+        if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+        setShowEvent(true);
+        eventTimerRef.current = setTimeout(() => setShowEvent(false), 2500);
+      }
     });
     return () => {
       unsubscribe();
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
     };
   }, []);
@@ -198,6 +202,17 @@ const ScorecardDisplay = () => {
   const animThemeClass = active.animClass || "anim-ipl-gold";
   const totalMatchBalls = (match.maxOvers || 5) * 6;
   const remainingBalls = totalMatchBalls - match.totalBalls;
+  const isMatchFinished = ["finished", "match ended"].includes(String(match.matchStatus || "").toLowerCase());
+  const bannerInfo = {
+    title: match.matchTitle || match.bowlingPrefix || "Live Match",
+    tournament: match.tournamentName || "Cricket Scoreboard",
+    venue: match.venueName || "Venue TBA",
+    date: match.matchDate || "Date TBA",
+    battingTeam: match.battingTeam || "TEAM A",
+    bowlingTeam: match.bowlingTeam || "TEAM B",
+  };
+  const finalWinnerText = winnerInfo?.text || (match.isSecondInnings ? "Result Pending" : "Innings Complete");
+  const finalWinnerTeam = winnerInfo?.team || (match.isSecondInnings ? (match.score >= (match.targetScore || 0) ? match.battingTeam : match.bowlingTeam) : match.battingTeam);
 
   return (
     <div className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic">
@@ -264,7 +279,7 @@ const ScorecardDisplay = () => {
       })()}
 
       {/* 3. MATCH WINNER OVERLAY (Cinematic Broadcast Style) */}
-      {showWinner && winnerInfo && (
+      {!isMatchFinished && showWinner && winnerInfo && (
         <div className="winner-cinematic-strip">
           <div className="winner-cinematic-bg"></div>
           <div className="winner-cinematic-glow"></div>
@@ -280,18 +295,37 @@ const ScorecardDisplay = () => {
       )}
 
       {/* 4. SUMMARY SCREEN — Broadcast Animated */}
-      {match.showSummary && !winnerInfo && !match.showVersus && (() => {
+      {(match.showSummary || isMatchFinished) && !match.showVersus && (() => {
         const stage = match.bowlingPrefix?.toLowerCase().includes('final') ? 'final' : match.bowlingPrefix?.toLowerCase().includes('semi') ? 'semi' : 'league';
         return (
           <div className={`summary-screen summary-stage-${stage}`}>
             <div className="summary-card">
+              {isMatchFinished && (
+                <div className="summary-panel" style={{ marginBottom: '16px' }}>
+                  <h3 className="summary-panel-header panel-gold">Final Scoreboard</h3>
+                  <div className="summary-bat-row">
+                    <span className="summary-bat-name">{bannerInfo.battingTeam}</span>
+                    <span><span className="summary-bat-runs">{match.score}-{match.wickets}</span> <span className="summary-bat-balls">({getOvers(match.totalBalls)})</span></span>
+                  </div>
+                  {match.firstInningsScore !== undefined && (
+                    <div className="summary-bat-row">
+                      <span className="summary-bat-name">{bannerInfo.bowlingTeam}</span>
+                      <span><span className="summary-bat-runs">{match.firstInningsScore}-{match.firstInningsWickets ?? 0}</span> <span className="summary-bat-balls">({getOvers(match.firstInningsOvers || 0)})</span></span>
+                    </div>
+                  )}
+                  <div className="summary-bat-row" style={{ marginTop: '10px' }}>
+                    <span className="summary-bat-name">{finalWinnerTeam || "Winner"}</span>
+                    <span className="summary-bat-runs">{finalWinnerText}</span>
+                  </div>
+                </div>
+              )}
               {/* Header */}
               <div className="summary-header">
                 <div className="summary-team-info">
                   <img src={match.battingLogo} className="summary-team-logo" alt="Logo" />
                   <div>
                     <h1 className="summary-team-name">{match.battingTeam}</h1>
-                    <p className="summary-label">Match Summary</p>
+                    <p className="summary-label">{isMatchFinished ? `${bannerInfo.title} • ${bannerInfo.venue} • ${bannerInfo.date}` : "Match Summary"}</p>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -383,7 +417,7 @@ const ScorecardDisplay = () => {
       )}
 
       {/* 6. MAIN BOTTOM SCOREBOARD */}
-      {!winnerInfo && !match.showSummary && !match.showVersus && (
+      {!winnerInfo && !(match.showSummary || isMatchFinished) && !match.showVersus && (
         <div className={`absolute bottom-0 left-0 w-full flex flex-col pointer-events-none ${animThemeClass}`}>
           {/* TOURNAMENT INFO STRIP — slides in above the ticker */}
           {showInfoStrip && (
@@ -391,8 +425,8 @@ const ScorecardDisplay = () => {
               <div className="tourney-info-bg"></div>
               <div className="tourney-info-glow"></div>
               <div className="tourney-info-content">
-                <h3 className="tourney-name">{match.tournamentName || match.matchTitle || "Inter School Cricket Tournament"}</h3>
-                <p className="tourney-venue">{match.venueName || "Live from the Stadium"}</p>
+                <h3 className="tourney-name">{bannerInfo.tournament} • {bannerInfo.title}</h3>
+                <p className="tourney-venue">{bannerInfo.battingTeam} vs {bannerInfo.bowlingTeam} • {bannerInfo.venue} • {bannerInfo.date}</p>
               </div>
               <div className="tourney-info-sweep"></div>
             </div>
@@ -407,11 +441,11 @@ const ScorecardDisplay = () => {
               <div className={`event-banner event-banner-${match.eventTrigger.toLowerCase()}`}>
                 {/* Particles — lightweight, clipped to scoreboard */}
                 <div className="event-banner-particles">
-                  {Array.from({ length: 8 }).map((_, i) => (
+                  {particleData.map((p, i) => (
                     <div key={i} className="event-banner-particle" style={{
-                      left: `${10 + Math.random() * 80}%`,
-                      animationDelay: `${Math.random() * 0.6}s`,
-                      animationDuration: `${1.2 + Math.random() * 1}s`
+                      left: p.left,
+                      animationDelay: p.animDelay,
+                      animationDuration: p.animDuration
                     }} />
                   ))}
                 </div>

@@ -3,6 +3,9 @@ import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import './MiniAdmin.css';
 import ComboboxPlayerInput from './ComboboxPlayerInput';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useLanguage } from '../i18n/LanguageContext';
+import { createMatchEvent } from '../utils/matchEvent';
 
 /* ═══════════════════════════════════════════════════════════════
    MiniAdmin — Full-Control Compact Console
@@ -26,10 +29,14 @@ const Section = React.memo(({ label, color, icon, open, onClick, children }) => 
 Section.displayName = "Section";
 
 const MiniAdmin = () => {
+    const { t } = useLanguage();
     const [match, setMatch] = useState(null);
     const [history, setHistory] = useState([]);
     const [openSections, setOpenSections] = useState({ scoring: true });
     const [overCooldown, setOverCooldown] = useState(false);
+    const [matchKeyInput, setMatchKeyInput] = useState("");
+    const [matchKeyValidated, setMatchKeyValidated] = useState(false);
+    const [matchKeyError, setMatchKeyError] = useState("");
 
     // ── Ticker state ──────────────────────────────────────────────
     const [tickerMsg, setTickerMsg] = useState("");
@@ -41,10 +48,16 @@ const MiniAdmin = () => {
     useEffect(() => {
         const unsub = onValue(ref(db, "live_match"), (snap) => {
             const d = snap.val();
-            if (d) setMatch(d);
+            if (d) {
+                setMatch(d);
+                if (matchKeyValidated && d.matchKey && d.matchKey !== matchKeyInput.trim().toUpperCase()) {
+                    setMatchKeyValidated(false);
+                    setMatchKeyError("MATCH KEY CHANGED");
+                }
+            }
         });
         return () => unsub();
-    }, []);
+    }, [matchKeyInput, matchKeyValidated]);
 
     // ── Firebase: overlay_ticker ──────────────────────────────────
     useEffect(() => {
@@ -62,7 +75,12 @@ const MiniAdmin = () => {
 
     // ── Write helpers ─────────────────────────────────────────────
     const push = useCallback((changes) => {
-        update(ref(db, "live_match"), { ...changes, eventTime: Date.now() });
+        const payload = changes?.eventTrigger ? { ...changes, ...createMatchEvent(changes.eventTrigger) } : changes;
+        update(ref(db, "live_match"), payload);
+    }, []);
+
+    const pushEvent = useCallback((changes, eventTrigger) => {
+        update(ref(db, "live_match"), { ...changes, ...createMatchEvent(eventTrigger) });
     }, []);
 
     const pushTicker = (overrides = {}) => {
@@ -76,6 +94,21 @@ const MiniAdmin = () => {
 
     // ── Toggle accordion ─────────────────────────────────────────
     const toggle = (key) => setOpenSections(p => ({ ...p, [key]: !p[key] }));
+
+    const validateMatchKey = () => {
+        const normalized = matchKeyInput.trim().toUpperCase();
+        if (!normalized || !match?.matchKey) {
+            setMatchKeyError("MATCH KEY REQUIRED");
+            return;
+        }
+        if (normalized !== String(match.matchKey).toUpperCase()) {
+            setMatchKeyValidated(false);
+            setMatchKeyError("INVALID MATCH KEY");
+            return;
+        }
+        setMatchKeyValidated(true);
+        setMatchKeyError("");
+    };
 
     // ── Helpers ───────────────────────────────────────────────────
     const bpo = match?.ballsPerOver || 6;
@@ -96,7 +129,6 @@ const MiniAdmin = () => {
             score: match.score + runs, totalBalls: match.totalBalls + 1,
             [ak]: { ...match[ak], runs: match[ak].runs + runs, balls: match[ak].balls + 1 },
             recentBalls, overRuns,
-            eventTrigger: null,
             legalBallCount: (match.legalBallCount || 0) + 1,
         });
     };
@@ -107,13 +139,12 @@ const MiniAdmin = () => {
         setHistory(h => [...h, match]);
         const ak = match.player1.onStrike ? "player1" : "player2";
         const { recentBalls, overRuns } = updateOverHistory(runs.toString(), match, runs);
-        push({
+        pushEvent({
             score: match.score + runs, totalBalls: match.totalBalls + 1,
             [ak]: { ...match[ak], runs: match[ak].runs + runs, balls: match[ak].balls + 1 },
             recentBalls, overRuns,
-            eventTrigger: runs === 6 ? "SIX" : "FOUR",
             legalBallCount: (match.legalBallCount || 0) + 1,
-        });
+        }, runs === 6 ? "SIX" : "FOUR");
     };
 
     const addExtra = (type, runs = 0) => {
@@ -123,8 +154,9 @@ const MiniAdmin = () => {
         const entry = runs > 0 ? `${type}+${runs}` : type;
         const { recentBalls, overRuns } = updateOverHistory(entry, match, total);
         const ak = match.player1.onStrike ? "player1" : "player2";
-        const batUp = type === "NB" ? { [ak]: { ...match[ak], runs: match[ak].runs + runs, balls: match[ak].balls + 1 } } : {};
-        push({ score: match.score + total, recentBalls, overRuns, ...batUp, eventTrigger: null });
+        // NB: credit runs to batter but do NOT increment ball count (free delivery)
+        const batUp = type === "NB" ? { [ak]: { ...match[ak], runs: match[ak].runs + runs } } : {};
+        push({ score: match.score + total, recentBalls, overRuns, ...batUp });
     };
 
     const addLegBye = (runs) => {
@@ -136,7 +168,6 @@ const MiniAdmin = () => {
             score: match.score + runs, totalBalls: match.totalBalls + 1,
             [ak]: { ...match[ak], balls: match[ak].balls + 1 },
             recentBalls, overRuns,
-            eventTrigger: null,
             legalBallCount: (match.legalBallCount || 0) + 1,
         });
     };
@@ -150,7 +181,6 @@ const MiniAdmin = () => {
             score: match.score + runs, totalBalls: match.totalBalls + 1,
             [ak]: { ...match[ak], balls: match[ak].balls + 1 },
             recentBalls, overRuns,
-            eventTrigger: null,
             legalBallCount: (match.legalBallCount || 0) + 1,
         });
     };
@@ -161,15 +191,14 @@ const MiniAdmin = () => {
         const outKey = match.player1.onStrike ? "player1" : "player2";
         const op = match[outKey];
         const { recentBalls, overRuns } = updateOverHistory("W", match, 0);
-        push({
+        pushEvent({
             wickets: match.wickets + 1, totalBalls: match.totalBalls + 1,
             recentBalls, overRuns,
             fallOfWickets: [...(match.fallOfWickets || []), { name: op.name, runs: op.runs, balls: op.balls, bowler: match.bowler?.name, fowScore: match.score, fowWicket: match.wickets + 1 }],
-            eventTrigger: "WICKET",
             lastWicketName: op.name, lastWicketRuns: op.runs, lastWicketBalls: op.balls,
             [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, onStrike: true },
             legalBallCount: (match.legalBallCount || 0) + 1,
-        });
+        }, "WICKET");
     };
 
     const swapStrike = () => {
@@ -187,6 +216,63 @@ const MiniAdmin = () => {
         update(ref(db, "live_match"), prev);
     };
 
+    // ── New Match — resets score/balls only, keeps team/tournament info ──
+    const handleNewMatch = () => {
+        if (!match) return;
+        if (!window.confirm("Reset match data?\nTeam names and tournament info will be kept.")) return;
+        setHistory([]);
+        push({
+            score: 0, wickets: 0, totalBalls: 0, currentOver: 0,
+            overRuns: 0, recentBalls: [], legalBallCount: 0,
+            isSecondInnings: false, targetScore: 0,
+            player1: { name: "", runs: 0, balls: 0, onStrike: true },
+            player2: { name: "", runs: 0, balls: 0, onStrike: false },
+            fallOfWickets: [], firstInningsScore: 0, firstInningsWickets: 0, firstInningsOvers: 0,
+            eventTrigger: "RESET_WINNER",
+        });
+    };
+
+    // ── New Innings — auto-calculates target, resets score ───────────
+    const handleNewInnings = () => {
+        if (!match) return;
+        if (match.isSecondInnings) {
+            alert("Match is already in the 2nd innings.");
+            return;
+        }
+        if (!window.confirm(`Start 2nd Innings?\nTarget: ${match.score + 1} runs\nThis will reset scores.`)) return;
+        setHistory([]);
+        push({
+            firstInningsScore: match.score,
+            firstInningsWickets: match.wickets,
+            firstInningsOvers: match.totalBalls,
+            score: 0, wickets: 0, totalBalls: 0, currentOver: 0,
+            overRuns: 0, recentBalls: [], legalBallCount: 0,
+            isSecondInnings: true,
+            targetScore: match.score + 1,
+            player1: { name: "", runs: 0, balls: 0, onStrike: true },
+            player2: { name: "", runs: 0, balls: 0, onStrike: false },
+            eventTrigger: "RESET_WINNER",
+        });
+    };
+
+    // ── Reset Tournament — full wipe (teams + match + tournament info) ─
+    const handleResetTournament = () => {
+        if (!match) return;
+        if (!window.confirm("FULL RESET?\nThis will clear teams, match data, and all tournament info.\nThis cannot be undone.")) return;
+        setHistory([]);
+        update(ref(db, "live_match"), {
+            score: 0, wickets: 0, totalBalls: 0, currentOver: 0,
+            overRuns: 0, recentBalls: [], legalBallCount: 0,
+            isSecondInnings: false, targetScore: 0,
+            battingTeam: "", bowlingTeam: "", matchTitle: "", bowlingPrefix: "",
+            player1: { name: "", runs: 0, balls: 0, onStrike: true },
+            player2: { name: "", runs: 0, balls: 0, onStrike: false },
+            bowler: { name: "", figures: "" },
+            fallOfWickets: [], firstInningsScore: 0, firstInningsWickets: 0, firstInningsOvers: 0,
+            eventTrigger: "RESET_WINNER",
+        });
+    };
+
     // ── OVER COMPLETED ──────────────────────────────────────────
     const handleOverCompleted = () => {
         const lbc = match?.legalBallCount || 0;
@@ -194,36 +280,66 @@ const MiniAdmin = () => {
         setOverCooldown(true);
         setTimeout(() => setOverCooldown(false), 1000);
         setHistory(h => [...h, match]);
-        push({
+        pushEvent({
             recentBalls: [],
             overRuns: 0,
             legalBallCount: 0,
             currentOver: (match.currentOver || 0) + 1,
             overLocked: false,
-            eventTrigger: "NEW_OVER",
             player1: { ...match.player1, onStrike: !match.player1.onStrike },
             player2: { ...match.player2, onStrike: !match.player2.onStrike },
-        });
+        }, "NEW_OVER");
     };
 
-    // ── Keyboard shortcuts ────────────────────────────────────────
+    // ── Keyboard shortcuts ─────────────────────────────────────────────
+    // Bug 4 fix: use refs to always access the latest handler versions without
+    // re-registering the listener on every render (prevents stale closure issues).
+    const handlerRef = useRef(null);
+    handlerRef.current = { addRun, addBoundary, handleWicket, swapStrike, handleUndo };
+
     useEffect(() => {
         const handler = (e) => {
             if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
             const k = e.key.toLowerCase();
-            if (["0", "1", "2", "3"].includes(k)) addRun(parseInt(k));
-            if (k === "4") addBoundary(4);
-            if (k === "6") addBoundary(6);
-            if (k === "w") handleWicket();
-            if (k === "s") swapStrike();
-            if (k === "u") handleUndo();
+            const h = handlerRef.current;
+            if (["0", "1", "2", "3"].includes(k)) h.addRun(parseInt(k));
+            if (k === "4") h.addBoundary(4);
+            if (k === "6") h.addBoundary(6);
+            if (k === "w") h.handleWicket();
+            if (k === "s") h.swapStrike();
+            if (k === "u") h.handleUndo();
         };
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
-    });
+    }, []);
 
     // ── Loading ───────────────────────────────────────────────────
     if (!match) return <div className="ma-root"><div className="ma-loading">Connecting…</div></div>;
+
+    if (!matchKeyValidated) {
+        return (
+            <div className="ma-root">
+                <div className="ma-header">
+                    <span className="ma-logo">⚡ KS CONTROL</span>
+                    <div className="flex items-center gap-2"><LanguageSwitcher compact /><span className="ma-live-pulse" /></div>
+                </div>
+                <div className="ma-key-gate">
+                    <div className="ma-key-card">
+                        <h2 className="ma-key-title">MATCH KEY</h2>
+                        <p className="ma-key-copy">Enter the current match key to open this mini admin.</p>
+                        <input
+                            className="ma-inp"
+                            value={matchKeyInput}
+                            onChange={(e) => { setMatchKeyInput(e.target.value.toUpperCase()); setMatchKeyError(""); }}
+                            placeholder="KS-XXXX-0000"
+                        />
+                        <button className="ma-btn ma-btn-blue w-full" onClick={validateMatchKey}>Unlock Match</button>
+                        {matchKeyError && <div className="ma-key-error">{matchKeyError}</div>}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const striker = match.player1?.onStrike ? match.player1 : match.player2;
     const nonStriker = match.player1?.onStrike ? match.player2 : match.player1;
@@ -244,7 +360,7 @@ const MiniAdmin = () => {
             {/* ═══ HEADER ═══════════════════════════════════════════════ */}
             <div className="ma-header">
                 <span className="ma-logo">⚡ KS CONTROL</span>
-                <span className="ma-live-pulse" />
+                <div className="flex items-center gap-2"><LanguageSwitcher compact /><span className="ma-live-pulse" /></div>
             </div>
 
             {/* ═══ LIVE SCORE BAR ═══════════════════════════════════════ */}
@@ -256,6 +372,45 @@ const MiniAdmin = () => {
                 <div className="ma-score-right">
                     <span className="ma-score-big">{match.score}-{match.wickets}</span>
                     <span className="ma-score-overs">({overs(match.totalBalls)})</span>
+                </div>
+            </div>
+
+            <div className="ma-status-strip">
+                <span>{t("common.innings")}: <b>{match.isSecondInnings ? "2ND" : "1ST"}</b></span>
+                <span>{t("common.matchStage")}: <b>{match.matchTitle || match.bowlingPrefix || "--"}</b></span>
+                <span>{t("common.matchStatus")}: <b>{match.matchStatus || t("admin.status.live")}</b></span>
+            </div>
+
+            <div className="ma-quick-edit">
+                <div className="ma-quick-edit-title">{t("common.quickEdit")}</div>
+                <div className="ma-quick-edit-grid">
+                    <div className="ma-quick-edit-item">
+                        <label>{t("mini.quickEdit.striker")}</label>
+                        <ComboboxPlayerInput
+                            options={match.battingSquad}
+                            className="ma-inp uppercase focus:outline-blue-500"
+                            value={striker?.name || ""}
+                            onChange={(e) => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })}
+                        />
+                    </div>
+                    <div className="ma-quick-edit-item">
+                        <label>{t("mini.quickEdit.nonStriker")}</label>
+                        <ComboboxPlayerInput
+                            options={match.battingSquad}
+                            className="ma-inp uppercase focus:outline-blue-500"
+                            value={nonStriker?.name || ""}
+                            onChange={(e) => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })}
+                        />
+                    </div>
+                    <div className="ma-quick-edit-item">
+                        <label>{t("mini.quickEdit.bowler")}</label>
+                        <ComboboxPlayerInput
+                            options={match.bowlingSquad}
+                            className="ma-inp uppercase focus:outline-purple-500"
+                            value={match.bowler?.name || ""}
+                            onChange={(e) => push({ bowler: { ...match.bowler, name: e.target.value } })}
+                        />
+                    </div>
                 </div>
             </div>
 

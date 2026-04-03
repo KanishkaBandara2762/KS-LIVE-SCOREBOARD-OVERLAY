@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import { ref, onValue, set, update } from "firebase/database";
 import ComboboxPlayerInput from './ComboboxPlayerInput';
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useLanguage } from "../i18n/LanguageContext";
+import { createMatchEvent } from "../utils/matchEvent";
+import { generateMatchKey } from "../utils/matchKey";
 
 const AdminPanel = () => {
+  const { t } = useLanguage();
   const initialState = {
     battingTeam: "TEAM NAME",
     bowlingTeam: "OPPONENT NAME",
@@ -14,7 +19,7 @@ const AdminPanel = () => {
     wickets: 0,
     totalBalls: 0,
     maxOvers: 5,
-    ballsPerOver: 5,
+    ballsPerOver: 6,
     player1: { name: "SELECT P1", runs: 0, balls: 0, onStrike: true },
     player2: { name: "SELECT P2", runs: 0, balls: 0, onStrike: false },
     bowler: { name: "SELECT BOWLER", figures: "0-0 (0.0)" },
@@ -29,6 +34,7 @@ const AdminPanel = () => {
     themeID: "IPL_GOLD",
     eventTrigger: null,
     eventTime: null,
+    eventId: null,
     isSecondInnings: false,
     targetScore: 0,
     isSuperOver: false,
@@ -46,8 +52,10 @@ const AdminPanel = () => {
     matchStatus: "Live",
     tournamentName: "",
     venueName: "",
+    matchDate: "",
     sponsorText: "",
-    autoShowBanner: true
+    autoShowBanner: true,
+    matchKey: generateMatchKey()
   };
 
   const [match, setMatch] = useState(() => {
@@ -59,11 +67,13 @@ const AdminPanel = () => {
   const [customExtraType, setCustomExtraType] = useState("WD");
   const [customExtraRuns, setCustomExtraRuns] = useState(0);
   const [overCooldown, setOverCooldown] = useState(false);
+  const [overlayCopied, setOverlayCopied] = useState(false);
   const isFromFirebase = useRef(false);
   const prevMatchRef = useRef(null);
+  const overlayUrl = typeof window !== "undefined" ? `${window.location.origin}/overlay` : "/overlay";
 
   // ── Local Match Info State ──────────────────────────────────────
-  const [tourneyData, setTourneyData] = useState({ name: "", venue: "", sponsor: "" });
+  const [tourneyData, setTourneyData] = useState({ name: "", venue: "", date: "", sponsor: "" });
 
   // ── Broadcast Ticker State (separate from match) ──────────────────────
   const [tickerMsg, setTickerMsg] = useState("");
@@ -79,10 +89,17 @@ const AdminPanel = () => {
         // Only patch empty local fields to avoid overwriting user typing
         name: prev.name || match.tournamentName || "",
         venue: prev.venue || match.venueName || "",
+        date: prev.date || match.matchDate || "",
         sponsor: prev.sponsor || match.sponsorText || ""
       }));
     }
-  }, [match.tournamentName, match.venueName, match.sponsorText]);
+  }, [match.tournamentName, match.venueName, match.matchDate, match.sponsorText]);
+
+  useEffect(() => {
+    if (!match?.matchKey) {
+      setMatch((prev) => ({ ...prev, matchKey: generateMatchKey() }));
+    }
+  }, [match?.matchKey]);
 
   // Sync ticker state from Firebase on load
   useEffect(() => {
@@ -232,6 +249,7 @@ const AdminPanel = () => {
       ...prev,
       tournamentName: tourneyData.name,
       venueName: tourneyData.venue,
+      matchDate: tourneyData.date,
       sponsorText: tourneyData.sponsor
     }));
   };
@@ -239,9 +257,22 @@ const AdminPanel = () => {
   const handleShowBanner = () => {
     setMatch(prev => ({
       ...prev,
-      eventTrigger: "SHOW_BANNER",
-      eventTime: Date.now()
+      ...createMatchEvent("SHOW_BANNER")
     }));
+  };
+
+  const handleCopyOverlayUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(overlayUrl);
+      setOverlayCopied(true);
+      window.setTimeout(() => setOverlayCopied(false), 1800);
+    } catch (error) {
+      console.error("Overlay URL copy failed", error);
+    }
+  };
+
+  const handleRegenerateMatchKey = () => {
+    setMatch((prev) => ({ ...prev, matchKey: generateMatchKey() }));
   };
 
   const swapStrike = () => {
@@ -262,7 +293,7 @@ const AdminPanel = () => {
 
   const handleNewMatch = () => {
     if (window.confirm("Start New Match?")) {
-      setMatch({ ...initialState, battingTeam: match.battingTeam, bowlingTeam: match.bowlingTeam, battingLogo: match.battingLogo, leagueLogo: match.leagueLogo, legalBallCount: 0, currentOver: 0, overLocked: false });
+      setMatch({ ...initialState, battingTeam: match.battingTeam, bowlingTeam: match.bowlingTeam, battingLogo: match.battingLogo, leagueLogo: match.leagueLogo, legalBallCount: 0, currentOver: 0, overLocked: false, matchKey: generateMatchKey() });
       setHistory([]);
     }
   };
@@ -282,7 +313,7 @@ const AdminPanel = () => {
           player1: { name: "SELECT P1", runs: 0, balls: 0, onStrike: true },
           player2: { name: "SELECT P2", runs: 0, balls: 0, onStrike: false },
           bowler: { name: "SELECT BOWLER", figures: "0-0 (0.0)" },
-          isSecondInnings: true, targetScore: prev.score + 1, isSuperOver: false, eventTrigger: "RESET_WINNER",
+          isSecondInnings: true, targetScore: prev.score + 1, isSuperOver: false, ...createMatchEvent("RESET_WINNER"),
           legalBallCount: 0, currentOver: 0, overLocked: false
         };
       });
@@ -310,7 +341,7 @@ const AdminPanel = () => {
     setMatch(prev => ({
       ...prev, score: prev.score + runs, totalBalls: prev.totalBalls + 1,
       [active]: { ...prev[active], runs: prev[active].runs + runs, balls: prev[active].balls + 1 },
-      recentBalls, overRuns, eventTrigger: null, eventTime: Date.now(),
+      recentBalls, overRuns,
       legalBallCount: (prev.legalBallCount || 0) + 1
     }));
   };
@@ -324,7 +355,7 @@ const AdminPanel = () => {
     setMatch(prev => ({
       ...prev, score: prev.score + runs, totalBalls: prev.totalBalls + 1,
       [active]: { ...prev[active], runs: prev[active].runs + runs, balls: prev[active].balls + 1 },
-      recentBalls, overRuns, eventTrigger: runs === 6 ? "SIX" : "FOUR", eventTime: Date.now(),
+      recentBalls, overRuns, ...createMatchEvent(runs === 6 ? "SIX" : "FOUR"),
       legalBallCount: (prev.legalBallCount || 0) + 1
     }));
   };
@@ -335,9 +366,14 @@ const AdminPanel = () => {
     const totalExtraRuns = 1 + runs;
     const entry = runs > 0 ? `${type}+${runs}` : type;
     const { recentBalls, overRuns } = updateOverHistory(entry, match, totalExtraRuns);
-    const active = match.player1.onStrike ? "player1" : "player2";
-    const batsmanUpdate = type === "NB" ? { [active]: { ...match[active], runs: match[active].runs + runs, balls: match[active].balls + 1 } } : {};
-    setMatch(prev => ({ ...prev, score: prev.score + totalExtraRuns, recentBalls, overRuns, ...batsmanUpdate, eventTrigger: null, eventTime: Date.now() }));
+    // Bug 9 fix: read from `prev` inside setMatch to avoid stale NB race condition
+    setMatch(prev => {
+      const active = prev.player1.onStrike ? "player1" : "player2";
+      const batsmanUpdate = type === "NB"
+        ? { [active]: { ...prev[active], runs: prev[active].runs + runs, balls: prev[active].balls + 1 } }
+        : {};
+      return { ...prev, score: prev.score + totalExtraRuns, recentBalls, overRuns, ...batsmanUpdate };
+    });
   };
 
   const addLegBye = (runs) => {
@@ -351,7 +387,7 @@ const AdminPanel = () => {
       score: prev.score + runs,
       totalBalls: prev.totalBalls + 1,
       [active]: { ...prev[active], balls: prev[active].balls + 1 },
-      recentBalls, overRuns, eventTrigger: null, eventTime: Date.now(),
+      recentBalls, overRuns,
       legalBallCount: (prev.legalBallCount || 0) + 1
     }));
   };
@@ -365,9 +401,9 @@ const AdminPanel = () => {
     const fow = { name: outPlayer.name, runs: outPlayer.runs, balls: outPlayer.balls, bowler: match.bowler.name, fowScore: match.score, fowWicket: match.wickets + 1 };
     setMatch(prev => ({
       ...prev, wickets: prev.wickets + 1, totalBalls: prev.totalBalls + 1, recentBalls, overRuns,
-      fallOfWickets: [...prev.fallOfWickets, fow], eventTrigger: "WICKET",
+      fallOfWickets: [...prev.fallOfWickets, fow], ...createMatchEvent("WICKET"),
       lastWicketName: outPlayer.name, lastWicketRuns: outPlayer.runs, lastWicketBalls: outPlayer.balls,
-      [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, onStrike: true }, eventTime: Date.now(),
+      [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, onStrike: true },
       legalBallCount: (prev.legalBallCount || 0) + 1
     }));
   };
@@ -388,8 +424,7 @@ const AdminPanel = () => {
       legalBallCount: 0,
       currentOver: (prev.currentOver || 0) + 1,
       overLocked: false,
-      eventTrigger: "NEW_OVER",
-      eventTime: Date.now(),
+      ...createMatchEvent("NEW_OVER"),
       // Swap strike at end of over
       player1: { ...prev.player1, onStrike: !prev.player1.onStrike },
       player2: { ...prev.player2, onStrike: !prev.player2.onStrike }
@@ -406,14 +441,15 @@ const AdminPanel = () => {
         {/* HEADER NAVIGATION */}
         <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <h1 className="font-bold tracking-tighter text-yellow-400 text-xl italic">KS MASTER ADMIN</h1>
+            <h1 className="font-bold tracking-tighter text-yellow-400 text-xl italic">{t("admin.header")}</h1>
             <div className="flex gap-2 ml-4">
               <button onClick={() => window.open('/', '_blank')} className="text-[10px] bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Scorecard ↗</button>
               <button onClick={() => window.open('/teams', '_blank')} className="text-[10px] bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Team Manager ↗</button>
               <button onClick={() => window.open('/mini-admin', 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-[10px] bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini ⚡</button>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <LanguageSwitcher compact />
             <button onClick={handleNewMatch} className="bg-blue-600 px-3 py-1 rounded text-[10px] font-black shadow-lg">Match</button>
             <button onClick={handleNewInnings} className="bg-orange-500 px-3 py-1 rounded text-[10px] font-black shadow-lg">Innings</button>
             <button onClick={handleSuperOver} className="bg-red-500 px-3 py-1 rounded text-[10px] font-black shadow-lg">Super Over</button>
@@ -424,7 +460,36 @@ const AdminPanel = () => {
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* COLUMN 1: CONFIG & LOGOS */}
           <div className="space-y-4 border-r pr-4 text-center">
-            <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">1. Setup & Logos</h2>
+            <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">{t("admin.section.setup")}</h2>
+            {/* Added safely: overlay access helper without changing the existing overlay layout */}
+            <div className="rounded border border-cyan-200 bg-cyan-50 p-3 text-left">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-cyan-700">{t("admin.overlayAccess")}</h3>
+                <button
+                  type="button"
+                  onClick={handleCopyOverlayUrl}
+                  className="rounded bg-cyan-600 px-2.5 py-1 text-[10px] font-black uppercase text-white hover:bg-cyan-700"
+                >
+                  {overlayCopied ? t("common.copied") : t("common.copy")}
+                </button>
+              </div>
+              <p className="mt-2 text-[10px] font-bold text-slate-600">{t("admin.overlayInstruction")}</p>
+              <input
+                readOnly
+                value={overlayUrl}
+                className="mt-2 w-full rounded border border-cyan-200 bg-white p-2 text-[11px] font-bold text-slate-700"
+              />
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="text-[10px] font-black uppercase text-slate-600">Match Key: <span className="text-cyan-700">{match.matchKey || "----"}</span></div>
+                <button
+                  type="button"
+                  onClick={handleRegenerateMatchKey}
+                  className="rounded border border-cyan-300 bg-white px-2.5 py-1 text-[10px] font-black uppercase text-cyan-700 hover:bg-cyan-100"
+                >
+                  New Key
+                </button>
+              </div>
+            </div>
             
             <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded border border-slate-100">
               <div className="flex flex-col text-left">
@@ -516,6 +581,7 @@ const AdminPanel = () => {
               </div>
               <input type="text" className="w-full border p-1.5 rounded text-xs font-bold" placeholder="Tournament Name" value={tourneyData.name} onChange={(e) => setTourneyData({...tourneyData, name: e.target.value})} />
               <input type="text" className="w-full border p-1.5 rounded text-xs font-bold" placeholder="Venue / Ground Name" value={tourneyData.venue} onChange={(e) => setTourneyData({...tourneyData, venue: e.target.value})} />
+              <input type="date" className="w-full border p-1.5 rounded text-xs font-bold" value={tourneyData.date} onChange={(e) => setTourneyData({...tourneyData, date: e.target.value})} />
               <input type="text" className="w-full border p-1.5 rounded text-xs font-bold" placeholder="Sponsor Text (e.g. Dream11)" value={tourneyData.sponsor} onChange={(e) => setTourneyData({...tourneyData, sponsor: e.target.value})} />
               
               <div className="grid grid-cols-2 gap-2 mt-1">
@@ -594,7 +660,7 @@ const AdminPanel = () => {
 
           {/* COLUMN 2: ACTIVE SQUAD */}
           <div className="space-y-4 border-r pr-4">
-            <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">2. Active Squad</h2>
+            <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">{t("admin.section.activeSquad")}</h2>
             <div className="bg-slate-50 p-2 rounded border border-blue-100">
               <label className="text-[8px] font-black text-slate-400 uppercase">Striker</label>
               <ComboboxPlayerInput 
@@ -627,7 +693,7 @@ const AdminPanel = () => {
 
           {/* COLUMN 3: SCORING */}
           <div className="space-y-4">
-            <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">3. Scoring</h2>
+            <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">{t("admin.section.scoring")}</h2>
             <div className="grid grid-cols-3 gap-2">
               {[0, 1, 2, 3].map((r) => <button key={r} onClick={() => addRun(r)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+{r}</button>)}
               <button onClick={() => addBoundary(4)} className="bg-slate-800 text-white py-3 rounded font-black hover:bg-black transition text-xl shadow-md border-b-4 border-slate-950">+4</button>
