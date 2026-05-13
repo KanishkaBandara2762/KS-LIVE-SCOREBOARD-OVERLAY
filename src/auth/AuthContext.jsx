@@ -1,90 +1,96 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    sendEmailVerification,
-    sendPasswordResetEmail,
-    onAuthStateChanged,
-    updateProfile,
-} from "firebase/auth";
-import { auth } from "../firebase";
+/**
+ * KS Live — AuthContext v2.0
+ *
+ * REPLACED: Firebase Auth → JWT REST API
+ *
+ * - login/register call /api/auth/* endpoints
+ * - JWT stored in localStorage (key: ks_jwt)
+ * - User profile cached in localStorage (key: ks_user)
+ * - currentUser shape: { id, email, displayName, plan }
+ * - No email verification step — users can login immediately after register
+ */
+
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { authApi, getToken, setToken, clearToken, getStoredUser, setStoredUser, clearStoredUser } from '../api';
 
 const AuthContext = createContext(null);
 
 export function useAuth() {
-    return useContext(AuthContext);
+  return useContext(AuthContext);
 }
 
 export function AuthProvider({ children }) {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(getStoredUser);
+  const [loading, setLoading]         = useState(true);
 
-    // ── Register new user ──────────────────────────────────────────────────────
-    async function register(email, password, fullName) {
-        const credential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(credential.user, { displayName: fullName });
-        await sendEmailVerification(credential.user);
-        return credential;
+  // ── Restore session on mount ───────────────────────────────────────────────
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setLoading(false);
+      return;
     }
 
-    // ── Login ──────────────────────────────────────────────────────────────────
-    function login(email, password) {
-        return signInWithEmailAndPassword(auth, email, password);
-    }
+    // Verify token is still valid by calling /api/auth/me
+    authApi.me()
+      .then((res) => {
+        const user = res.user;
+        setCurrentUser(user);
+        setStoredUser(user);
+      })
+      .catch(() => {
+        // Token expired / invalid — clear session
+        clearToken();
+        clearStoredUser();
+        setCurrentUser(null);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
-    // ── Logout ─────────────────────────────────────────────────────────────────
-    function logout() {
-        return signOut(auth);
-    }
+  // ── Register ───────────────────────────────────────────────────────────────
+  const register = useCallback(async (email, password, displayName) => {
+    const res = await authApi.register({ email, password, displayName });
+    setToken(res.token);
+    setStoredUser(res.user);
+    setCurrentUser(res.user);
+    return res;
+  }, []);
 
-    // ── Resend verification email ──────────────────────────────────────────────
-    function sendVerification() {
-        if (auth.currentUser) {
-            return sendEmailVerification(auth.currentUser);
-        }
-        return Promise.reject(new Error("No user is signed in."));
-    }
+  // ── Login ──────────────────────────────────────────────────────────────────
+  const login = useCallback(async (email, password) => {
+    const res = await authApi.login({ email, password });
+    setToken(res.token);
+    setStoredUser(res.user);
+    setCurrentUser(res.user);
+    return res;
+  }, []);
 
-    // ── Password reset ─────────────────────────────────────────────────────────
-    function resetPassword(email) {
-        return sendPasswordResetEmail(auth, email);
-    }
+  // ── Logout ─────────────────────────────────────────────────────────────────
+  const logout = useCallback(() => {
+    clearToken();
+    clearStoredUser();
+    setCurrentUser(null);
+  }, []);
 
-    // ── Reload user to check emailVerified status ──────────────────────────────
-    // After reload(), auth.currentUser.emailVerified is updated in-place.
-    // We force a re-render by setting state to the same object reference trick.
-    async function reloadUser() {
-        if (auth.currentUser) {
-            await auth.currentUser.reload();
-            // auth.currentUser is mutated in-place by Firebase after reload().
-            // Setting state to auth.currentUser triggers a re-render with fresh data.
-            setCurrentUser(auth.currentUser);
-        }
-    }
+  // ── Stub: these were Firebase-specific, kept for compatibility ─────────────
+  const sendVerification = useCallback(() => Promise.resolve(), []);
+  const resetPassword    = useCallback(() => Promise.resolve(), []);
+  const reloadUser       = useCallback(() => Promise.resolve(), []);
 
-    // ── Auth state listener ────────────────────────────────────────────────────
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
-            setLoading(false);
-        });
-        return unsubscribe;
-    }, []);
+  const value = {
+    currentUser,
+    loading,
+    login,
+    register,
+    logout,
+    sendVerification,
+    resetPassword,
+    reloadUser,
+  };
 
-    const value = {
-        currentUser,
-        login,
-        register,
-        logout,
-        sendVerification,
-        resetPassword,
-        reloadUser,
-    };
-
-    return (
-        <AuthContext.Provider value={value}>
-            {!loading && children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 }

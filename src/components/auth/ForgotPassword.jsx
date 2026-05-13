@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../auth/AuthContext";
 import "./auth.css";
 
 const IconMail = () => (
@@ -10,36 +9,26 @@ const IconMail = () => (
     </svg>
 );
 
-function parseFirebaseError(code) {
-    const map = {
-        "auth/user-not-found": "No account found with this email address.",
-        "auth/invalid-email": "Invalid email address.",
-        "auth/network-request-failed": "Network error. Check your connection.",
-    };
-    return map[code] || "Something went wrong. Please try again.";
-}
-
 export default function ForgotPassword() {
-    const { resetPassword } = useAuth();
-
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [sent, setSent] = useState(false);
 
-    async function handleSubmit(e) {
+    function handleSubmit(e) {
         e.preventDefault();
-        if (!email) { setError("Please enter your email address."); return; }
-
-        setError(""); setLoading(true);
-        try {
-            await resetPassword(email);
-            setSent(true);
-        } catch (err) {
-            setError(parseFirebaseError(err.code));
-        } finally {
-            setLoading(false);
+        if (!email.trim()) {
+            setError("Please enter your email address.");
+            return;
         }
+        setError("");
+        setLoading(true);
+        // Password reset via email requires backend email provider (SendGrid, etc.)
+        // Show informational message for now
+        setTimeout(() => {
+            setLoading(false);
+            setSent(true);
+        }, 800);
     }
 
     return (
@@ -55,7 +44,7 @@ export default function ForgotPassword() {
                     <>
                         <h1 className="auth-title">Forgot Password?</h1>
                         <p className="auth-subtitle">
-                            Enter your registered email and we'll send you a reset link.
+                            Enter your registered email address below.
                         </p>
 
                         {error && (
@@ -82,35 +71,30 @@ export default function ForgotPassword() {
                                 </div>
                             </div>
 
-                            <button className="auth-btn" type="submit" disabled={loading}
-                                style={{ marginTop: "0.5rem" }}>
+                            <button
+                                className="auth-btn"
+                                type="submit"
+                                disabled={loading}
+                                style={{ marginTop: "0.5rem" }}
+                            >
                                 {loading && <span className="auth-spinner" />}
-                                {loading ? "Sending…" : "Send Reset Link"}
+                                {loading ? "Please wait…" : "Continue"}
                             </button>
                         </form>
                     </>
                 ) : (
-                    /* ── Success state ───────────────────────────────────────── */
                     <div style={{ textAlign: "center", padding: "1rem 0" }}>
-                        <div style={{
-                            fontSize: "3.5rem",
-                            marginBottom: "1rem",
-                            animation: "float 3s ease-in-out infinite"
-                        }}>📬</div>
-                        <h1 className="auth-title" style={{ marginTop: "0" }}>Email Sent!</h1>
-                        <p className="auth-subtitle" style={{ marginBottom: "0.5rem" }}>
-                            We've sent a password reset link to:
+                        <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>📧</div>
+                        <h1 className="auth-title" style={{ marginTop: "0" }}>Contact Admin</h1>
+                        <p className="auth-subtitle">
+                            Automated password reset is not yet configured.
                         </p>
-                        <p style={{
-                            color: "#00d2be",
-                            fontWeight: 700,
-                            marginBottom: "1.6rem",
-                            wordBreak: "break-all",
-                            fontSize: "0.95rem"
-                        }}>{email}</p>
-                        <div className="auth-alert auth-alert-success" style={{ textAlign: "left" }}>
-                            <span>✅</span>
-                            <span>Check your spam/junk folder if you don't see it in your inbox within a minute.</span>
+                        <div className="auth-alert auth-alert-warn" style={{ textAlign: "left", marginTop: "1rem" }}>
+                            <span>ℹ️</span>
+                            <span>
+                                Please ask your KS Live administrator to reset the password for{" "}
+                                <strong>{email}</strong>, or create a new account.
+                            </span>
                         </div>
                     </div>
                 )}

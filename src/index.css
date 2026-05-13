@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Rajdhani:wght@500;600;700&display=swap');
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
@@ -8,7 +8,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 .font-broadcast {
-  font-family: 'Poppins', 'Roboto', 'Inter', sans-serif;
+  font-family: 'Roboto', 'Arial', 'Helvetica', sans-serif;
+  font-style: normal;
 }
 
 .text-broadcast-shadow {
@@ -42,7 +43,7 @@
   color: rgba(255, 255, 255, 0.45);
   white-space: nowrap;
   min-width: 56px;
-  font-style: italic;
+  font-style: normal;
 }
 
 .over-balls-track {
@@ -64,7 +65,7 @@
   justify-content: center;
   font-weight: 700;
   font-size: 13px;
-  font-style: italic;
+  font-style: normal;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   background: rgba(255, 255, 255, 0.08);
@@ -125,7 +126,7 @@
   justify-content: center;
   font-weight: 800;
   font-size: 16px;
-  font-style: italic;
+  font-style: normal;
   color: white;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -479,6 +480,16 @@ body {
   --anim-six: 255, 215, 0;
   --anim-wicket: 239, 68, 68;
   --anim-border: rgba(255, 215, 0, 0.5);
+}
+
+/* APOGEE ARENA — Holographic Blue */
+.anim-apogee {
+  --anim-accent: 56, 189, 248;
+  --anim-glow: 99, 102, 241;
+  --anim-boundary: 34, 197, 94;
+  --anim-six: 251, 191, 36;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(56, 189, 248, 0.55);
 }
 
 /* =============================================
@@ -920,7 +931,7 @@ body {
   font-family: 'Poppins', 'Montserrat', sans-serif;
   font-size: clamp(24px, 3vw, 36px);
   font-weight: 900;
-  font-style: italic;
+  font-style: normal;
   line-height: 1.1;
   text-transform: uppercase;
   color: white;
@@ -1114,3 +1125,478 @@ body {
   animation-delay: 0.6s;
   /* Wait for board expansion */
 }
+
+/* =============================================
+   DC BLUE — IPL-Style Compact Horizontal Scorebar
+   ============================================= */
+
+.anim-dc-blue {
+  --anim-accent: 0, 200, 83;
+  --anim-glow: 255, 171, 0;
+  --anim-boundary: 0, 200, 83;
+  --anim-six: 255, 171, 0;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(255, 171, 0, 0.5);
+}
+
+/* ── Outer wrapper ────────────────────────────────────────────── */
+.dc-scorebar {
+  display: flex;
+  height: 65px;
+  width: 100%;
+  color: white;
+  font-family: 'Arial', sans-serif;
+  animation: dcBarSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dcBarSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+/* ── LEFT — Batting team ──────────────────────────────────────── */
+.dc-left {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(to right, #0a2a66, #123c8c);
+  padding: 0 12px;
+  gap: 10px;
+  min-width: 160px;
+}
+
+.dc-left img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: white;
+  padding: 2px;
+}
+
+.dc-team-abbr {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dc-score-main {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+.dc-overs-small {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+/* ── CENTER — Batsmen ──────────────────────────────────────────── */
+.dc-center {
+  background: #123c8c;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 16px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.dc-player-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.dc-player-name {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dc-player-stat {
+  font-weight: bold;
+  opacity: 0.85;
+}
+
+/* ── TARGET — 2nd innings chase info ─────────────────────────── */
+.dc-target {
+  background: #0d2f6f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 0 16px;
+  white-space: nowrap;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  gap: 2px;
+}
+
+.dc-target-label {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.dc-target-value {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.dc-need {
+  font-size: 10px;
+  opacity: 0.7;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── RIGHT — Bowler + ball tracker ────────────────────────────── */
+.dc-right {
+  background: linear-gradient(to right, #123c8c, #0a2a66);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  min-width: 220px;
+  gap: 10px;
+}
+
+.dc-bowler-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dc-bowler-name {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Ball tracker dots ────────────────────────────────────────── */
+.dc-balls-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.dc-ball {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.dc-ball-empty  { background: rgba(255,255,255,0.15); }
+.dc-ball-dot    { background: #555; }
+.dc-ball-one    { background: #888; }
+.dc-ball-two    { background: #6699ff; }
+.dc-ball-three  { background: #44aaff; }
+.dc-ball-four   { background: #00c853; }
+.dc-ball-six    { background: #ffab00; color: #000; }
+.dc-ball-wicket { background: #e53935; }
+.dc-ball-extra  { background: #f59e0b; color: #000; font-size: 8px; }
+
+/* ── Bowler figures ────────────────────────────────────────────── */
+.dc-bowler-figures {
+  font-size: 13px;
+  font-weight: bold;
+  text-align: right;
+  line-height: 1.3;
+}
+
+.dc-bowler-overs {
+  font-size: 10px;
+  opacity: 0.6;
+  text-align: right;
+}
+
+/* ── Right logo (bowling team) ─────────────────────────────────── */
+.dc-right-logo-wrap {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255,255,255,0.15);
+}
+
+.dc-right-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: white;
+  padding: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECOND INNINGS — BIG CHASE BAR
+   Broadcast-quality "NEED X RUNS FROM Y BALLS" display
+   GPU-accelerated, no italic, high-readability
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes chaseBarSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes chaseNeedPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes chaseNeedFourFlash {
+  0%   { box-shadow: inset 0 0 0 rgba(34,197,94,0); }
+  25%  { box-shadow: inset 0 0 60px rgba(34,197,94,0.35); }
+  100% { box-shadow: inset 0 0 0 rgba(34,197,94,0); }
+}
+
+@keyframes chaseNeedSixFlash {
+  0%   { box-shadow: inset 0 0 0 rgba(251,191,36,0); }
+  20%  { box-shadow: inset 0 0 70px rgba(251,191,36,0.45); }
+  100% { box-shadow: inset 0 0 0 rgba(251,191,36,0); }
+}
+
+@keyframes chaseNeedWicketFlash {
+  0%   { box-shadow: inset 0 0 0 rgba(239,68,68,0); }
+  20%  { box-shadow: inset 0 0 60px rgba(239,68,68,0.4); }
+  100% { box-shadow: inset 0 0 0 rgba(239,68,68,0); }
+}
+
+@keyframes chaseNeedCriticalPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.82; }
+}
+
+.chase-bar-root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 18px;
+  background: rgba(0, 20, 55, 0.96);
+  border-top: 2px solid rgba(0, 140, 255, 0.35);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Roboto', 'Arial', 'Helvetica', sans-serif;
+  font-style: normal;
+  animation: chaseBarSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.chase-bar-root::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 5%; right: 5%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 180, 255, 0.6), transparent);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.chase-bar-root.chase-need-pulse .chase-need-runs,
+.chase-bar-root.chase-need-four .chase-need-runs,
+.chase-bar-root.chase-need-six .chase-need-runs,
+.chase-bar-root.chase-need-wicket .chase-need-runs {
+  animation: chaseNeedPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.chase-bar-root.chase-need-four   { animation: chaseNeedFourFlash 0.7s ease forwards; }
+.chase-bar-root.chase-need-six    { animation: chaseNeedSixFlash 1s ease forwards; }
+.chase-bar-root.chase-need-wicket { animation: chaseNeedWicketFlash 0.7s ease forwards; }
+
+.chase-bar-root.chase-normal   { border-top-color: rgba(0, 180, 255, 0.35); }
+.chase-bar-root.chase-warning  { border-top-color: rgba(251, 146, 60, 0.6); }
+.chase-bar-root.chase-danger   { border-top-color: rgba(239, 68, 68, 0.55); }
+.chase-bar-root.chase-critical { border-top-color: rgba(239, 68, 68, 0.9); background: rgba(30, 5, 5, 0.97); }
+.chase-bar-root.chase-won      { border-top-color: rgba(34, 197, 94, 0.7); background: rgba(0, 25, 10, 0.97); }
+
+.chase-bar-rates {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.chase-rate-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-style: normal;
+}
+
+.chase-rate-pill b { color: #00ccff; font-weight: 900; }
+.chase-rate-pill.rrr-pill b { color: #ff8c00; }
+
+.chase-target-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-style: normal;
+}
+
+.chase-target-pill b { color: #fff; font-weight: 900; }
+
+.chase-bar-need {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 0 12px;
+  position: relative;
+}
+
+.chase-need-runs {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 20px rgba(255,255,255,0.35), 0 2px 8px rgba(0,0,0,0.7);
+  will-change: transform;
+  font-style: normal;
+  display: inline-block;
+}
+
+.chase-bar-root.chase-warning  .chase-need-runs { color: #fb923c; text-shadow: 0 0 20px rgba(251,146,60,0.5), 0 2px 8px rgba(0,0,0,0.7); }
+.chase-bar-root.chase-danger   .chase-need-runs { color: #f87171; text-shadow: 0 0 20px rgba(248,113,113,0.6), 0 2px 8px rgba(0,0,0,0.7); }
+.chase-bar-root.chase-critical .chase-need-runs { color: #ff3333; animation: chaseNeedCriticalPulse 1s ease-in-out infinite; text-shadow: 0 0 25px rgba(255,51,51,0.7), 0 2px 8px rgba(0,0,0,0.8); }
+.chase-bar-root.chase-won      .chase-need-runs { color: #4ade80; text-shadow: 0 0 20px rgba(74,222,128,0.5); }
+
+.chase-need-sep {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-style: normal;
+  align-self: center;
+}
+
+.chase-need-balls {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: #ffcc00;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 15px rgba(255,204,0,0.5), 0 2px 8px rgba(0,0,0,0.7);
+  font-style: normal;
+  display: inline-block;
+}
+
+.chase-last-over-badge {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ff8c00;
+  background: rgba(251, 146, 60, 0.15);
+  border: 1px solid rgba(251, 146, 60, 0.4);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-right: 8px;
+  animation: chaseNeedCriticalPulse 1.2s ease-in-out infinite;
+  align-self: center;
+  font-style: normal;
+}
+
+.chase-bar-msg {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-style: normal;
+}
+
+.chase-bar-root.chase-danger   .chase-bar-msg,
+.chase-bar-root.chase-critical .chase-bar-msg { color: rgba(251, 146, 60, 0.8); }
+.chase-bar-root.chase-won      .chase-bar-msg { color: rgba(74, 222, 128, 0.7); }
+
+/* =============================================
+   TEAM & PLAYER ROLE BADGES
+   ============================================= */
+.team-role {
+    display: inline-block;
+    font-style: normal !important;
+    animation: roleSlideFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    vertical-align: baseline;
+}
+
+.team-role.batting {
+    font-size: 0.7em;
+    opacity: 0.95;
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    margin-left: 6px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.team-role.bowling {
+    font-size: 0.65em;
+    opacity: 0.6;
+    color: #A0AEC0;
+    margin-left: 6px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+@keyframes roleSlideFade {
+    0% { opacity: 0; transform: translateX(-12px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+.player-role-badge {
+    font-style: normal !important;
+    font-size: 0.65em;
+    font-weight: 700;
+    margin-left: 5px;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+    vertical-align: baseline;
+    animation: strikeFade 0.3s ease-in-out forwards;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes strikeFade {
+    0% { opacity: 0; }
+    100% { opacity: 0.85; }
+}
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { ref, onValue, set, update } from "firebase/database";
 import ComboboxPlayerInput from './ComboboxPlayerInput';
@@ -9,6 +10,17 @@ import { generateMatchKey } from "../utils/matchKey";
 
 const AdminPanel = () => {
   const { t } = useLanguage();
+  const { matchId: urlMatchId } = useParams();
+  const navigate = useNavigate();
+
+  // ── SaaS Redirection ─────────────────────────────────────────────
+  // Full Admin panel is legacy Firebase only. Forward SaaS matches to MiniAdmin.
+  useEffect(() => {
+    if (urlMatchId && /^KS-/i.test(urlMatchId)) {
+      navigate(`/mini-admin/${urlMatchId}`, { replace: true });
+    }
+  }, [urlMatchId, navigate]);
+
   const initialState = {
     battingTeam: "TEAM NAME",
     bowlingTeam: "OPPONENT NAME",
@@ -66,11 +78,24 @@ const AdminPanel = () => {
   const [history, setHistory] = useState([]);
   const [customExtraType, setCustomExtraType] = useState("WD");
   const [customExtraRuns, setCustomExtraRuns] = useState(0);
+
+  // Run Out State
+  const [showRunOutPanel, setShowRunOutPanel] = useState(false);
+  const [runOutRuns, setRunOutRuns] = useState(0);
+  const [runOutPlayer, setRunOutPlayer] = useState('striker');
+
   const [overCooldown, setOverCooldown] = useState(false);
   const [overlayCopied, setOverlayCopied] = useState(false);
   const isFromFirebase = useRef(false);
   const prevMatchRef = useRef(null);
-  const overlayUrl = typeof window !== "undefined" ? `${window.location.origin}/overlay` : "/overlay";
+
+  // ── Multi-match: derive DB paths from URL matchId or stored match key ──
+  const matchDbId = urlMatchId || match?.matchKey;
+  const dbPath = matchDbId ? `matches/${matchDbId}/live_match` : 'live_match';
+  const tickerPath = matchDbId ? `matches/${matchDbId}/overlay_ticker` : 'overlay_ticker';
+  const overlayUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/overlay/${matchDbId || ''}`
+    : `/overlay/${matchDbId || ''}`;
 
   // ── Local Match Info State ──────────────────────────────────────
   const [tourneyData, setTourneyData] = useState({ name: "", venue: "", date: "", sponsor: "" });
@@ -103,7 +128,7 @@ const AdminPanel = () => {
 
   // Sync ticker state from Firebase on load
   useEffect(() => {
-    const tickerRef = ref(db, "overlay_ticker");
+    const tickerRef = ref(db, tickerPath);
     const unsub = onValue(tickerRef, (snap) => {
       const data = snap.val();
       if (data) {
@@ -114,7 +139,7 @@ const AdminPanel = () => {
       }
     });
     return () => unsub();
-  }, []);
+  }, [tickerPath]);
 
   // Push ticker changes to Firebase (lightweight — only overlay_ticker node)
   const pushTicker = (overrides = {}) => {
@@ -123,13 +148,14 @@ const AdminPanel = () => {
       mode: overrides.mode ?? tickerMode,
       preset: overrides.preset ?? tickerPreset,
       visible: overrides.visible ?? tickerVisible,
+      timestamp: Date.now(),
     };
-    update(ref(db, "overlay_ticker"), payload);
+    update(ref(db, tickerPath), payload);
   };
 
   // --- SYNC TEAM MANAGER SQUADS & AUTO-SELECT NEW PLAYERS ---
   useEffect(() => {
-    const squadRef = ref(db, 'live_match');
+    const squadRef = ref(db, dbPath);
     const unsubscribe = onValue(squadRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -184,7 +210,7 @@ const AdminPanel = () => {
     const prev = prevMatchRef.current;
     if (!prev) {
       // First render — full write needed
-      update(ref(db, 'live_match'), match);
+      update(ref(db, dbPath), match);
       prevMatchRef.current = match;
       return;
     }
@@ -206,7 +232,7 @@ const AdminPanel = () => {
     }
 
     if (Object.keys(delta).length > 0) {
-      update(ref(db, 'live_match'), delta);
+      update(ref(db, dbPath), delta);
     }
     prevMatchRef.current = match;
   }, [match]);
@@ -241,8 +267,10 @@ const AdminPanel = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [match, history]);
 
-  const totalMatchBalls = (match.maxOvers || 5) * 6;
-  const remainingBalls = totalMatchBalls - match.totalBalls;
+  const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
+  // Bug fix: use legalBallCount (legal deliveries only) for accurate remaining balls
+  const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
+  const remainingBalls = Math.max(0, totalMatchBalls - legalDeliveries);
 
   const handleSaveMatchInfo = () => {
     setMatch(prev => ({
@@ -408,6 +436,64 @@ const AdminPanel = () => {
     }));
   };
 
+  const handleRunOut = () => {
+    if (match.overLocked) return;
+    setHistory([...history, match]);
+    
+    const strikerKey = match.player1.onStrike ? "player1" : "player2";
+    const nonStrikerKey = match.player1.onStrike ? "player2" : "player1";
+    const outKey = runOutPlayer === 'striker' ? strikerKey : nonStrikerKey;
+    const outPlayer = match[outKey];
+    
+    const runString = runOutRuns > 0 ? `${runOutRuns}W` : "W";
+    const { recentBalls, overRuns } = updateOverHistory(runString, match, runOutRuns);
+    const fow = { name: outPlayer.name, runs: outPlayer.runs, balls: outPlayer.balls, bowler: match.bowler?.name || "", fowScore: match.score + runOutRuns, fowWicket: match.wickets + 1 };
+    
+    setMatch(prev => {
+      let p1Strike = prev.player1.onStrike;
+      let p2Strike = prev.player2.onStrike;
+      
+      let p1Balls = prev.player1.balls;
+      let p2Balls = prev.player2.balls;
+      let p1Runs = prev.player1.runs;
+      let p2Runs = prev.player2.runs;
+
+      // Add runs and balls to original striker
+      if (p1Strike) { p1Balls++; p1Runs += runOutRuns; }
+      else { p2Balls++; p2Runs += runOutRuns; }
+
+      // Rotate strike if odd runs
+      if (runOutRuns % 2 !== 0) {
+        p1Strike = !p1Strike;
+        p2Strike = !p2Strike;
+      }
+
+      // New player inherits the strike state of the slot they are filling
+      const outKeyStrikeStatus = outKey === 'player1' ? p1Strike : p2Strike;
+
+      return {
+        ...prev,
+        score: prev.score + runOutRuns,
+        wickets: prev.wickets + 1,
+        totalBalls: prev.totalBalls + 1,
+        recentBalls, overRuns,
+        fallOfWickets: [...(prev.fallOfWickets || []), fow],
+        ...createMatchEvent("WICKET"),
+        lastWicketName: outPlayer.name, lastWicketRuns: outPlayer.runs, lastWicketBalls: outPlayer.balls,
+        player1: outKey === 'player1' 
+          ? { name: "NEW PLAYER", runs: 0, balls: 0, onStrike: outKeyStrikeStatus } 
+          : { ...prev.player1, runs: p1Runs, balls: p1Balls, onStrike: p1Strike },
+        player2: outKey === 'player2' 
+          ? { name: "NEW PLAYER", runs: 0, balls: 0, onStrike: outKeyStrikeStatus } 
+          : { ...prev.player2, runs: p2Runs, balls: p2Balls, onStrike: p2Strike },
+        legalBallCount: (prev.legalBallCount || 0) + 1
+      };
+    });
+    setShowRunOutPanel(false);
+    setRunOutRuns(0);
+    setRunOutPlayer('striker');
+  };
+
   const handleUndo = () => { if (history.length > 0) { setMatch(history[history.length - 1]); setHistory(prev => prev.slice(0, -1)); } };
 
   // ── OVER COMPLETED — manual over lock + reset ────────────────
@@ -431,7 +517,7 @@ const AdminPanel = () => {
     }));
   };
 
-  const legalBallCount = match.legalBallCount || 0;
+const legalBallCount = match.legalBallCount || 0;
   const isOverReady = legalBallCount >= match.ballsPerOver;
 
   return (
@@ -443,9 +529,10 @@ const AdminPanel = () => {
           <div className="flex items-center gap-4">
             <h1 className="font-bold tracking-tighter text-yellow-400 text-xl italic">{t("admin.header")}</h1>
             <div className="flex gap-2 ml-4">
-              <button onClick={() => window.open('/', '_blank')} className="text-[10px] bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Scorecard ↗</button>
-              <button onClick={() => window.open('/teams', '_blank')} className="text-[10px] bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Team Manager ↗</button>
-              <button onClick={() => window.open('/mini-admin', 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-[10px] bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini ⚡</button>
+              <button onClick={() => window.open(`/overlay/${matchDbId}`, '_blank')} className="text-[10px] bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay ↗</button>
+              <button onClick={() => window.open(`/teams/${matchDbId}`, '_blank')} className="text-[10px] bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Teams ↗</button>
+              <button onClick={() => window.open(`/mini-admin/${matchDbId}`, 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-[10px] bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini ⚡</button>
+              <button onClick={() => navigate('/dashboard')} className="text-[10px] bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-500 font-black text-white">← Dashboard</button>
             </div>
           </div>
           <div className="flex gap-2 items-center">
@@ -536,6 +623,11 @@ const AdminPanel = () => {
               <option value="WC2026">🏆 T20 World Cup 2026</option>
               <option value="KS_SPECIAL">☆ KS SPECIAL</option>
               <option value="SL_BROADCAST">📺 SL Broadcast</option>
+              <option value="APOGEE">🔮 APOGEE ARENA</option>
+              <option value="DC_BLUE">🟦 DC Blue Bar</option>
+              <option value="IPL_2026">🏏 IPL 2026</option>
+              <option value="NEW_IPL">🆕 NEW IPL</option>
+              <option value="KS_PREMIUM">💎 KS Premium (Broadcast)</option>
             </select>
 
             <div className={`p-3 rounded border transition ${match.isSecondInnings ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -726,7 +818,37 @@ const AdminPanel = () => {
                 </div>
               </div>
             )}
-            <button onClick={handleWicket} className="w-full bg-red-600 text-white py-3 rounded font-black shadow-md border-b-4 border-red-800 active:translate-y-1 text-lg uppercase">WKT (W)</button>
+            {showRunOutPanel ? (
+              <div className="p-3 bg-red-50 border border-red-200 rounded text-center">
+                <p className="text-[9px] font-bold text-red-700 uppercase mb-2 tracking-widest">Run Out Config</p>
+                <div className="flex gap-2 justify-center mb-3">
+                  <div className="flex flex-col text-left">
+                    <label className="text-[10px] font-bold text-red-600">Runs Completed</label>
+                    <select className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" value={runOutRuns} onChange={(e) => setRunOutRuns(parseInt(e.target.value))}>
+                      {[0, 1, 2, 3].map(n => <option key={n} value={n}>{n} Runs</option>)}
+                    </select>
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <label className="text-[10px] font-bold text-red-600">Who is Out?</label>
+                    <select className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" value={runOutPlayer} onChange={(e) => setRunOutPlayer(e.target.value)}>
+                      <option value="striker">Striker</option>
+                      <option value="non-striker">Non-Striker</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowRunOutPanel(false)} className="flex-1 bg-white text-red-600 border border-red-200 py-2 rounded font-black text-[10px] uppercase shadow-sm">Cancel</button>
+                  <button onClick={handleRunOut} className="flex-1 bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-2 border-red-800 active:translate-y-px">Confirm Run Out</button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={handleWicket} className="flex-2 bg-red-600 text-white py-3 rounded font-black shadow-md border-b-4 border-red-800 active:translate-y-1 text-lg uppercase w-full">WKT (W)</button>
+                <button onClick={() => setShowRunOutPanel(true)} className="flex-1 bg-red-800 text-white py-3 rounded font-black shadow-md border-b-4 border-red-950 active:translate-y-1 text-sm uppercase whitespace-nowrap px-2 flex flex-col justify-center items-center leading-none">
+                  <span>RUN</span><span>OUT</span>
+                </button>
+              </div>
+            )}
 
             <div className="bg-slate-900 p-4 rounded shadow-2xl border-t-4 border-yellow-400 text-white italic">
               <div className="flex justify-between items-start">

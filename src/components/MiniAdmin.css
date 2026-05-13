@@ -44,17 +44,8 @@
 }
 
 @keyframes maPulse {
-
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.4;
-        transform: scale(0.8);
-    }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
 }
 
 /* ── Score Bar ────────────────────────────────────────────────── */
@@ -214,6 +205,39 @@
     text-transform: uppercase;
 }
 
+/* ── Action Bar (New Match / New Innings / Reset All) ─────────── */
+.ma-action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.015);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+}
+
+.ma-btn-innings {
+    background: linear-gradient(135deg, #78350f, #b45309);
+    color: #fef3c7;
+    border-color: rgba(180, 83, 9, 0.5);
+    font-weight: 900;
+}
+
+.ma-btn-innings:hover {
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.25);
+}
+
+.ma-btn-reset {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    color: #fee2e2;
+    border-color: rgba(220, 38, 38, 0.5);
+    font-weight: 900;
+}
+
+.ma-btn-reset:hover {
+    box-shadow: 0 0 10px rgba(248, 113, 113, 0.25);
+}
+
 /* ── Alerts ───────────────────────────────────────────────────── */
 .ma-over-alert {
     padding: 6px 12px;
@@ -242,16 +266,91 @@
     flex-shrink: 0;
 }
 
+/* ── Manual Target Entry Panel ────────────────────────────────── */
+.ma-target-entry {
+    margin: 4px 10px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(245, 158, 11, 0.04));
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+    animation: maTargetPulse 2s ease-in-out infinite;
+}
+
+@keyframes maTargetPulse {
+    0%, 100% { border-color: rgba(251, 191, 36, 0.3); box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+    50% { border-color: rgba(251, 191, 36, 0.55); box-shadow: 0 0 12px rgba(251, 191, 36, 0.1); }
+}
+
+.ma-target-entry-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-align: center;
+}
+
+.ma-target-entry-hint {
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.ma-target-entry-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.ma-target-entry-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.ma-target-entry-field label {
+    font-size: 8px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.ma-btn-target-update {
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #78350f, #92400e);
+    color: #fef3c7;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 5px;
+    font-weight: 900;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.ma-btn-target-update:hover {
+    box-shadow: 0 0 14px rgba(251, 191, 36, 0.3);
+    border-color: rgba(251, 191, 36, 0.55);
+    background: linear-gradient(135deg, #92400e, #b45309);
+}
+
+.ma-btn-target-update:active {
+    transform: scale(0.95);
+}
+
 @keyframes maFlash {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.6;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
 /* ── Scrollable Section Area ──────────────────────────────────── */
@@ -321,21 +420,10 @@
     color: #fbbf24;
 }
 
-.ma-sec-blue:hover {
-    background: rgba(59, 130, 246, 0.12);
-}
-
-.ma-sec-green:hover {
-    background: rgba(74, 222, 128, 0.1);
-}
-
-.ma-sec-purple:hover {
-    background: rgba(167, 139, 250, 0.1);
-}
-
-.ma-sec-amber:hover {
-    background: rgba(251, 191, 36, 0.1);
-}
+.ma-sec-blue:hover { background: rgba(59, 130, 246, 0.12); }
+.ma-sec-green:hover { background: rgba(74, 222, 128, 0.1); }
+.ma-sec-purple:hover { background: rgba(167, 139, 250, 0.1); }
+.ma-sec-amber:hover { background: rgba(251, 191, 36, 0.1); }
 
 /* ── Generic Row (label + input) ──────────────────────────────── */
 .ma-row {
@@ -423,30 +511,12 @@
 }
 
 /* ── Button Grids ─────────────────────────────────────────────── */
-.ma-grid {
-    display: grid;
-    gap: 3px;
-}
-
-.ma-grid-6 {
-    grid-template-columns: repeat(6, 1fr);
-}
-
-.ma-grid-5 {
-    grid-template-columns: repeat(5, 1fr);
-}
-
-.ma-grid-4 {
-    grid-template-columns: repeat(4, 1fr);
-}
-
-.ma-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.ma-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
+.ma-grid { display: grid; gap: 3px; }
+.ma-grid-6 { grid-template-columns: repeat(6, 1fr); }
+.ma-grid-5 { grid-template-columns: repeat(5, 1fr); }
+.ma-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.ma-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.ma-grid-2 { grid-template-columns: repeat(2, 1fr); }
 
 /* ── Base Button ──────────────────────────────────────────────── */
 .ma-btn {
@@ -462,9 +532,7 @@
     outline: none;
 }
 
-.ma-btn:active {
-    transform: scale(0.93);
-}
+.ma-btn:active { transform: scale(0.93); }
 
 /* ── Button Variants ──────────────────────────────────────────── */
 .ma-btn-run {
@@ -506,9 +574,7 @@
     border-color: rgba(251, 146, 60, 0.12);
 }
 
-.ma-btn-extra:hover {
-    box-shadow: 0 0 10px rgba(251, 146, 60, 0.18);
-}
+.ma-btn-extra:hover { box-shadow: 0 0 10px rgba(251, 146, 60, 0.18); }
 
 .ma-btn-lb {
     background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
@@ -516,9 +582,7 @@
     border-color: rgba(167, 139, 250, 0.12);
 }
 
-.ma-btn-lb:hover {
-    box-shadow: 0 0 8px rgba(167, 139, 250, 0.18);
-}
+.ma-btn-lb:hover { box-shadow: 0 0 8px rgba(167, 139, 250, 0.18); }
 
 .ma-btn-bye {
     background: linear-gradient(135deg, #1a2a2e, #1a3d4e);
@@ -526,9 +590,7 @@
     border-color: rgba(103, 232, 249, 0.12);
 }
 
-.ma-btn-bye:hover {
-    box-shadow: 0 0 8px rgba(103, 232, 249, 0.18);
-}
+.ma-btn-bye:hover { box-shadow: 0 0 8px rgba(103, 232, 249, 0.18); }
 
 .ma-btn-swap {
     background: linear-gradient(135deg, #0a1a2e, #0d2a4a);
@@ -536,9 +598,7 @@
     border-color: rgba(96, 165, 250, 0.12);
 }
 
-.ma-btn-swap:hover {
-    box-shadow: 0 0 10px rgba(96, 165, 250, 0.18);
-}
+.ma-btn-swap:hover { box-shadow: 0 0 10px rgba(96, 165, 250, 0.18); }
 
 .ma-btn-undo {
     background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
@@ -546,9 +606,7 @@
     border-color: rgba(255, 255, 255, 0.06);
 }
 
-.ma-btn-undo:hover {
-    color: rgba(255, 255, 255, 0.7);
-}
+.ma-btn-undo:hover { color: rgba(255, 255, 255, 0.7); }
 
 .ma-btn-blue {
     background: linear-gradient(135deg, #0a1a3e, #102a5e);
@@ -556,9 +614,7 @@
     border-color: rgba(96, 165, 250, 0.12);
 }
 
-.ma-btn-blue:hover {
-    box-shadow: 0 0 8px rgba(96, 165, 250, 0.15);
-}
+.ma-btn-blue:hover { box-shadow: 0 0 8px rgba(96, 165, 250, 0.15); }
 
 .ma-btn-save {
     background: linear-gradient(135deg, #1a1a2e, #2a2a3e);
@@ -614,10 +670,17 @@
     color: rgba(255, 255, 255, 0.25);
 }
 
+/* NB delivery pill — orange to distinguish from normal balls */
+.ma-ball-nb {
+    background: rgba(251, 146, 60, 0.15);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.25);
+}
+
 /* ═══ STICKY QUICK-SCORE BAR ═════════════════════════════════ */
 .ma-sticky-bar {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(9, 1fr);
     gap: 3px;
     padding: 8px 10px;
     background: linear-gradient(180deg, rgba(15, 15, 26, 0.95), rgba(10, 10, 20, 0.98));
@@ -641,9 +704,7 @@
     outline: none;
 }
 
-.ma-sq:active {
-    transform: scale(0.9);
-}
+.ma-sq:active { transform: scale(0.9); }
 
 .ma-sq-dot {
     background: rgba(255, 255, 255, 0.06);
@@ -661,6 +722,16 @@
     color: #a3e635;
     border-color: rgba(163, 230, 53, 0.18);
 }
+
+/* NB quick-action button */
+.ma-sq-nb {
+    background: rgba(251, 146, 60, 0.12);
+    color: #fb923c;
+    border-color: rgba(251, 146, 60, 0.2);
+    font-size: 10px;
+}
+
+.ma-sq-nb:hover { box-shadow: 0 0 10px rgba(251, 146, 60, 0.25); }
 
 .ma-sq-wkt {
     background: rgba(248, 113, 113, 0.12);
@@ -715,9 +786,7 @@
     border-color: rgba(251, 191, 36, 0.5);
 }
 
-.ma-over-btn-ready:active {
-    transform: scale(0.95);
-}
+.ma-over-btn-ready:active { transform: scale(0.95); }
 
 .ma-over-btn-disabled {
     background: rgba(255, 255, 255, 0.02);
@@ -726,21 +795,10 @@
     cursor: not-allowed;
 }
 
-.ma-sq-run:hover {
-    box-shadow: 0 0 12px rgba(74, 222, 128, 0.2);
-}
-
-.ma-sq-six:hover {
-    box-shadow: 0 0 12px rgba(163, 230, 53, 0.2);
-}
-
-.ma-sq-wkt:hover {
-    box-shadow: 0 0 14px rgba(248, 113, 113, 0.25);
-}
-
-.ma-sq-wd:hover {
-    box-shadow: 0 0 10px rgba(251, 146, 60, 0.2);
-}
+.ma-sq-run:hover { box-shadow: 0 0 12px rgba(74, 222, 128, 0.2); }
+.ma-sq-six:hover { box-shadow: 0 0 12px rgba(163, 230, 53, 0.2); }
+.ma-sq-wkt:hover { box-shadow: 0 0 14px rgba(248, 113, 113, 0.25); }
+.ma-sq-wd:hover  { box-shadow: 0 0 10px rgba(251, 146, 60, 0.2); }
 
 /* ── Keyboard Hints ───────────────────────────────────────────── */
 .ma-hints {
@@ -767,20 +825,41 @@
 }
 
 /* ── Helper ───────────────────────────────────────────────────── */
-.w-full {
-    width: 100%;
-}
+.w-full { width: 100%; }
 
 /* ── Scrollbar ────────────────────────────────────────────────── */
-.ma-scroll-area::-webkit-scrollbar {
-    width: 3px;
-}
-
-.ma-scroll-area::-webkit-scrollbar-track {
-    background: transparent;
-}
-
+.ma-scroll-area::-webkit-scrollbar { width: 3px; }
+.ma-scroll-area::-webkit-scrollbar-track { background: transparent; }
 .ma-scroll-area::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 3px;
 }
+
+/* ── Action Bar (New Match / New Innings / Reset All) ─────── */
+.ma-action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.015);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+}
+
+.ma-btn-innings {
+    background: linear-gradient(135deg, #78350f, #b45309);
+    color: #fef3c7;
+    border-color: rgba(180, 83, 9, 0.5);
+    font-weight: 900;
+}
+
+.ma-btn-innings:hover { box-shadow: 0 0 10px rgba(251, 191, 36, 0.25); }
+
+.ma-btn-reset {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    color: #fee2e2;
+    border-color: rgba(220, 38, 38, 0.5);
+    font-weight: 900;
+}
+
+.ma-btn-reset:hover { box-shadow: 0 0 10px rgba(248, 113, 113, 0.25); }

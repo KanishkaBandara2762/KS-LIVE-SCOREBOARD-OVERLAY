@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import { matchesApi } from "../api";
 import { db } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import BroadcastTicker from "./BroadcastTicker";
 import "./BroadcastScreens.css";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const isMongoDB = (id) => id && /^KS-/i.test(id);
+
 const ScorecardDisplay = () => {
+  const { matchId } = useParams();
+  const dbPath = matchId ? `matches/${matchId}/live_match` : 'live_match';
   const [match, setMatch] = useState(null);
   const [showEvent, setShowEvent] = useState(false);
   const [winnerInfo, setWinnerInfo] = useState(null);
@@ -57,29 +64,88 @@ const ScorecardDisplay = () => {
     return t;
   }, []);
 
-  // ── Debounced Firebase listener (reduces bandwidth + re-renders) ────
+  // ── DUAL-MODE DATA SYNC (MongoDB/Socket.IO or Legacy Firebase) ────────────────────────────
   useEffect(() => {
-    const unsubscribe = onValue(ref(db, 'live_match'), (snapshot) => {
-      const data = snapshot.val();
+    const handleIncomingData = (data) => {
       if (!data) return;
+      
+      // Check if data is coming from MongoDB directly with an overlaySettings sub-object
+      let processedMatch = data;
+      if (data.overlaySettings) {
+        processedMatch = {
+          ...data,
+          themeID: data.overlaySettings.themeID || 'IPL_GOLD',
+          battingLogo: data.overlaySettings.battingLogo || '',
+          leagueLogo: data.overlaySettings.leagueLogo || '',
+          showVersus: !!data.overlaySettings.showVersus,
+          showSummary: !!data.overlaySettings.showSummary,
+          showMatchSituation: !!data.overlaySettings.showMatchSituation,
+          tournamentName: data.overlaySettings.tournamentName || ''
+        };
+      }
 
-      setMatch(data);
-      if (data.eventTrigger === "RESET_WINNER") {
+      setMatch(processedMatch);
+
+      if (processedMatch.eventTrigger === "RESET_WINNER") {
         setWinnerInfo(null);
       }
-      if (["FOUR", "SIX", "WICKET"].includes(data.eventTrigger)
-          && data.eventTime && data.eventTime !== prevBannerEventTime.current) {
-        prevBannerEventTime.current = data.eventTime;
+
+      if (["FOUR", "SIX", "WICKET"].includes(processedMatch.eventTrigger) &&
+          processedMatch.eventTime && processedMatch.eventTime !== prevBannerEventTime.current) {
+        prevBannerEventTime.current = processedMatch.eventTime;
         if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
         setShowEvent(true);
-        eventTimerRef.current = setTimeout(() => setShowEvent(false), 2500);
+        eventTimerRef.current = setTimeout(() => setShowEvent(false), 3000);
       }
-    });
-    return () => {
-      unsubscribe();
-      if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
     };
-  }, []);
+
+    if (isMongoDB(matchId)) {
+      console.log('[ScorecardDisplay] Initializing MongoDB mode for matchId:', matchId);
+      
+      // Initial load
+      matchesApi.get(matchId)
+        .then(res => {
+           if (res.match) handleIncomingData(res.match);
+        })
+        .catch(e => console.error('MongoDB initial fetch failed:', e));
+
+      // Socket IO setup
+      let socket;
+      import('socket.io-client').then(({ io }) => {
+        socket = io(`${API_URL}/overlay`, {
+          query: { matchId },
+          transports: ['websocket', 'polling'],
+        });
+
+        socket.on('connection:ack', ({ snapshot }) => {
+          if (snapshot) handleIncomingData(snapshot);
+        });
+
+        // Single-update feed events
+        socket.on('score:update', (data) => handleIncomingData(data));
+        socket.on('score:correction', (data) => handleIncomingData(data));
+        socket.on('players:update', (data) => handleIncomingData(data));
+        socket.on('ticker:update', (data) => handleIncomingData(data));
+        socket.on('match:status', (data) => handleIncomingData(data));
+
+      }).catch(e => console.error('Failed to load socket client:', e));
+
+      return () => {
+        if (socket) socket.disconnect();
+        if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+      };
+    } else {
+      // Legacy Firebase
+      console.log('[ScorecardDisplay] Initializing Firebase Legacy mode. Path:', dbPath);
+      const unsubscribe = onValue(ref(db, dbPath), (snapshot) => {
+        handleIncomingData(snapshot.val());
+      });
+      return () => {
+        unsubscribe();
+        if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+      };
+    }
+  }, [matchId, dbPath]);
 
   // ── Animation detection: score / event / over changes ─────────
   useEffect(() => {
@@ -432,12 +498,228 @@ const ScorecardDisplay = () => {
             </div>
           )}
 
+          
+          {/* ═══════════════════════════════════════════════════════════
+               KS PREMIUM THEME (Inspired by Broadcast Scoreboard)
+          ═══════════════════════════════════════════════════════════ */}
+          {active.isKsPremium ? (() => {
+            const bpo = match.ballsPerOver || 6;
+            const balls = match.recentBalls || [];
+            const striker = [match.player1, match.player2].find(p => p?.onStrike);
+            const nonStriker = [match.player1, match.player2].find(p => !p?.onStrike);
+            const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
+            const totalMatchBallsKSP = (match.maxOvers || 5) * 6;
+            const remainKSP = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
+            const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
+            
+            return (
+              <div className="ksp-wrapper">
+                <div className="ksp-board">
+                  <div className="ksp-bg-pattern" />
+
+                  {/* Top Mini Bar */}
+                  <div className="ksp-top-bar">
+                    <div className="ksp-live-dot" />
+                    {match.isSecondInnings ? `TARGET : ${match.targetScore}` : '1st Inning'}
+                  </div>
+
+                  {/* Left Block: Logo, Team, Score */}
+                  <div className="ksp-left">
+                    <img src={match.battingLogo} alt="Team" className="ksp-logo" />
+                    <div className="ksp-team-info">
+                      <div className="ksp-team-name">{match.battingTeam}</div>
+                      <div className="ksp-tournament">{match.tournamentName || "PREMIER LEAGUE"}</div>
+                    </div>
+                    <div className="ksp-score-wrapper" style={{ marginLeft: 'auto' }}>
+                      <div className={`ksp-score ${scoreAnimClass ? 'ksp-score-update' : ''}`}>{match.score}-{match.wickets}</div>
+                      <div className="ksp-overs">{getOvers(match.legalBallCount ?? match.totalBalls)} <span className="ksp-overs-max">({match.maxOvers} ov)</span></div>
+                    </div>
+                  </div>
+
+                  {/* Center Block: Target OR Batters */}
+                  <div className="ksp-center">
+                    {/* Event Banner (inside center so score on left stays visible) */}
+                    {showEvent && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
+                      <div className={`ksp-event-banner ksp-event-${match.eventTrigger.toLowerCase()}`}>
+                        <div className="ksp-sweep" />
+                        <div className="ksp-event-text">
+                          {match.eventTrigger === "WICKET" ? "WICKET!" : match.eventTrigger === "FOUR" ? "FOUR!" : "SIX!"}
+                        </div>
+                      </div>
+                    )}
+
+                    {match.isSecondInnings && (runsNeeded > 0) && (remainKSP <= 30) ? (
+                      <div className="ksp-target-box">
+                        <div className="ksp-target-text">
+                          {match.battingTeam} NEED <span className="ksp-target-highlight">{runsNeeded}</span> MORE FROM <span className="ksp-target-highlight">{remainKSP}</span> BALLS
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ksp-stats-grid">
+                        <div style={{ zIndex: 2, display: 'flex', flexDirection: 'column', justifySelf: 'stretch', width: '100%' }}>
+                          <div className="ksp-batter-row" style={{ color: striker ? '#fff' : '#aaa' }}>
+                            <div className="ksp-batter-name">
+                              {striker && <span className="ksp-striker-arrow">▶</span>} {striker?.name || 'BAT 1'}
+                            </div>
+                            <div>
+                              <span className="ksp-batter-runs">{striker?.runs || 0}</span> <span className="ksp-batter-balls">{striker?.balls || 0}</span>
+                            </div>
+                          </div>
+                          <div className="ksp-batter-row" style={{ color: nonStriker ? '#fff' : '#aaa' }}>
+                            <div className="ksp-batter-name">
+                              {nonStriker && <span className="ksp-striker-arrow">▶</span>} {nonStriker?.name || 'BAT 2'}
+                            </div>
+                            <div>
+                              <span className="ksp-batter-runs">{nonStriker?.runs || 0}</span> <span className="ksp-batter-balls">{nonStriker?.balls || 0}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="ksp-bowler-section">
+                          <div className="ksp-bowler-title">BOWLING : {match.bowlingTeam}</div>
+                          <div className="ksp-bowler-row">
+                            <div className="ksp-bowler-name">{match.bowler?.name || 'BOWLER'}</div>
+                            <div className="ksp-bowler-figs">{match.bowler?.figures}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Block: Bowling Logo */}
+                  <div className="ksp-right">
+                     <img src={match.leagueLogo} alt="Bowling Logo" className="ksp-bowling-logo" />
+                  </div>
+                </div>
+
+                {/* Bottom Ball Tracker */}
+                <div className="ksp-ball-tracker">
+                  {Array.from({ length: Math.max(bpo, balls.length) }).map((_, i) => {
+                    const b = balls[i] || '';
+                    let ballClass = '';
+                    if (b === '4') ballClass = 'four';
+                    else if (b === '6') ballClass = 'six';
+                    else if (b.includes('W')) ballClass = 'wicket';
+                    else if (b.includes('WD') || b.includes('NB') || b.includes('LB') || b.includes('B')) ballClass = 'extra';
+                    return (
+                      <div key={i} className={`ksp-ball ${ballClass}`}>
+                        {b === '•' ? '0' : b}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })() : active.isNewIpl ? (() => {
+            const bpo = match.ballsPerOver || 6;
+            const balls = match.recentBalls || [];
+            const striker = [match.player1, match.player2].find(p => p?.onStrike);
+            const nonStriker = [match.player1, match.player2].find(p => !p?.onStrike);
+            const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
+            const totalMatchBallsNew = (match.maxOvers || 5) * 6;
+            const remainNew = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsNew - legalDeliveries);
+            const rrrNew = match.isSecondInnings && remainNew > 0 ? ((match.targetScore - match.score) / (remainNew / 6)).toFixed(2) : '--';
+            const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
+            
+            return (
+              <div className="newipl-wrapper">
+                <div className="newipl-board">
+                  {/* Event triggers (animated overlays) */}
+                  {showEvent && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
+                    <div className={`newipl-event-trigger newipl-event-${match.eventTrigger.toLowerCase()}`}>
+                      <div className="newipl-event-text">{match.eventTrigger === "WICKET" ? "WICKET" : match.eventTrigger}</div>
+                    </div>
+                  )}
+
+                  {/* Top section: League info & Live dot */}
+                  <div className="newipl-top">
+                    <div className="newipl-league-name">{match.tournamentName || "TATA IPL 2026"}</div>
+                    <div className="newipl-live">
+                      <div className="newipl-live-dot" /> LIVE
+                    </div>
+                  </div>
+
+                  {/* Middle section: Score & Batters */}
+                  <div className="newipl-middle">
+                    {/* Team & Score */}
+                    <div className="newipl-team-block">
+                      <img src={match.battingLogo} alt="Team" className="newipl-team-logo" />
+                      <div className="newipl-team-name">{match.battingTeam}</div>
+                      <div className={`newipl-score ${scoreAnimClass ? 'newipl-score-update' : ''}`}>
+                        {match.score}-{match.wickets} <span className="newipl-overs">({getOvers(match.legalBallCount ?? match.totalBalls)})</span>
+                      </div>
+                    </div>
+
+                    {/* Target or Batters */}
+                    <div className="newipl-stats-block">
+                      {match.isSecondInnings && (runsNeeded > 0) && (remainNew <= 30) ? (
+                        <div className="newipl-target-box">
+                          <div className="newipl-target-label">TARGET: {match.targetScore}</div>
+                          <div className="newipl-target-value">NEED {runsNeeded} FROM {remainNew}</div>
+                        </div>
+                      ) : (
+                        <div className="newipl-batters">
+                          <div className="newipl-batter-row" style={{ color: striker ? '#fff' : '#aaa' }}>
+                            <div className="newipl-batter-name">
+                              {striker && <span className="newipl-striker-arrow">▶</span>} {striker?.name || 'BAT 1'}
+                            </div>
+                            <div className="newipl-batter-score">{striker?.runs || 0}<span className="newipl-batter-balls">({striker?.balls || 0})</span></div>
+                          </div>
+                          <div className="newipl-batter-row" style={{ color: nonStriker ? '#fff' : '#aaa' }}>
+                            <div className="newipl-batter-name">
+                              {nonStriker && <span className="newipl-striker-arrow">▶</span>} {nonStriker?.name || 'BAT 2'}
+                            </div>
+                            <div className="newipl-batter-score">{nonStriker?.runs || 0}<span className="newipl-batter-balls">({nonStriker?.balls || 0})</span></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bowler */}
+                    <div className="newipl-bowler-block">
+                      <div className="newipl-bowler-label">BOWLER</div>
+                      <div className="newipl-bowler-name">{match.bowler?.name || 'BOWLER'}</div>
+                      <div className="newipl-bowler-figs">{match.bowler?.figures}</div>
+                    </div>
+                  </div>
+
+                  {/* Bottom section: Ball tracker & Extra stats */}
+                  <div className="newipl-bottom">
+                    <div className="newipl-balls">
+                      {Array.from({ length: Math.max(bpo, balls.length) }).map((_, i) => {
+                        const b = balls[i] || '';
+                        let ballClass = '';
+                        if (b === '4') ballClass = 'four';
+                        else if (b === '6') ballClass = 'six';
+                        else if (b.includes('W')) ballClass = 'wicket';
+                        else if (b.includes('WD') || b.includes('NB') || b.includes('LB') || b.includes('B')) ballClass = 'extra';
+                        return (
+                          <div key={i} className={`newipl-ball ${ballClass}`}>
+                            {b === '•' ? '0' : b}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {match.isSecondInnings ? (
+                      <div className="newipl-extras">
+                        CRR: {match.currentRunRate || '0.00'} | RRR: {rrrNew}
+                      </div>
+                    ) : (
+                      <div className="newipl-extras">
+                        CRR: {match.currentRunRate || '0.00'} | PROJ: {Math.floor((match.score / (match.totalBalls > 0 ? match.totalBalls/6 : 1)) * match.maxOvers)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })() : ( <>
+
           {/* BROADCAST TICKER — sits above the scoreboard bar */}
-          <BroadcastTicker />
+          <BroadcastTicker matchId={matchId} tickerData={match?.ticker} />
           <div className={`flex h-28 ${active.main} items-stretch relative overflow-hidden ${active.isWC2026 ? `${active.border} wc2026-open` : `border-t-2 ${active.border} scoreboard-open`} shadow-2xl ${boardAnimClass}`}>
 
             {/* INLINE EVENT BANNER — contained within scoreboard */}
-            {showEvent && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
+            {showEvent && !active.isNewIpl && !active.isKsPremium && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
               <div className={`event-banner event-banner-${match.eventTrigger.toLowerCase()}`}>
                 {/* Particles — lightweight, clipped to scoreboard */}
                 <div className="event-banner-particles">
@@ -593,6 +875,7 @@ const ScorecardDisplay = () => {
               </div>
             )}
           </div>
+        </> )}
         </div>
       )}
     </div>

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { db } from "../firebase";
 import { ref, set, onValue, remove } from "firebase/database";
 
 const TeamManager = () => {
+  const { matchId } = useParams();
+  const liveMatchPath = matchId ? `matches/${matchId}/live_match` : 'live_match';
   const [players, setPlayers] = useState([]);
   const [newPlayer, setNewPlayer] = useState({ name: "", photo: "" });
   const [selectedBatting, setSelectedBatting] = useState([]);
@@ -38,10 +41,10 @@ const TeamManager = () => {
   };
 
   const pushToLiveMatch = () => {
-    set(ref(db, "live_match/battingSquad"), selectedBatting);
-    set(ref(db, "live_match/bowlingSquad"), selectedBowling);
-    set(ref(db, "live_match/battingTeam"), teamNames.teamA.toUpperCase());
-    set(ref(db, "live_match/bowlingTeam"), teamNames.teamB.toUpperCase());
+    set(ref(db, `${liveMatchPath}/battingSquad`), selectedBatting);
+    set(ref(db, `${liveMatchPath}/bowlingSquad`), selectedBowling);
+    set(ref(db, `${liveMatchPath}/battingTeam`), teamNames.teamA.toUpperCase());
+    set(ref(db, `${liveMatchPath}/bowlingTeam`), teamNames.teamB.toUpperCase());
     alert("Match configurations successfully pushed!");
   };
 

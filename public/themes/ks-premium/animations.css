@@ -1,0 +1,26 @@
+/* KS Premium Animations */
+@keyframes ksp-slide-up {
+  0% { transform: translateY(100px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes ksp-pulse {
+  0% { opacity: 0.4; box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }
+  70% { opacity: 1; box-shadow: 0 0 0 6px rgba(229, 57, 53, 0); }
+  100% { opacity: 0.4; box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+}
+
+@keyframes ksp-slide-in-right {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes ksp-sweep-anim {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+@keyframes ksp-odometer {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
