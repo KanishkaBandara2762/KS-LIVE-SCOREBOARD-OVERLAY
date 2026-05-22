@@ -52,7 +52,21 @@ const MiniAdmin = () => {
     const [runOutRuns, setRunOutRuns] = useState(0);
     const [runOutPlayer, setRunOutPlayer] = useState('striker');
     const [showLivePreview, setShowLivePreview] = useState(false);
+    const [obsCopied, setObsCopied] = useState(false);
+
+    // Always use the real hostname/IP — OBS blocks WebSockets to 'localhost'
+    // so we replace it with the actual network IP the browser is currently using.
     const overlayUrl = typeof window !== "undefined" ? `${window.location.origin}/overlay/${matchId}` : `/overlay/${matchId}`;
+    const obsUrl = typeof window !== "undefined"
+        ? `${window.location.protocol}//${window.location.hostname}:${window.location.port || 5173}/overlay/${matchId}`
+        : `/overlay/${matchId}`;
+
+    const copyOBSLink = () => {
+        navigator.clipboard.writeText(obsUrl).then(() => {
+            setObsCopied(true);
+            setTimeout(() => setObsCopied(false), 2500);
+        });
+    };
 
     // ── Debounce: prevents double-click duplicate entries (100ms) ─
     const debounceRef = useRef(false);
@@ -672,8 +686,46 @@ const MiniAdmin = () => {
                 <span>{t("common.matchStatus")}: <b>{match.matchStatus || t("admin.status.live")}</b></span>
             </div>
 
-            {/* LIVE OVERLAY PREVIEW */}
+            {/* LIVE OVERLAY PREVIEW + OBS LINK */}
             <div className="ma-preview-container" style={{ padding: '4px 12px', marginBottom: '8px' }}>
+
+                {/* OBS Link Row */}
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                    <div style={{
+                        flex: 1,
+                        padding: '5px 8px',
+                        background: '#0f172a',
+                        border: '1px solid #334155',
+                        borderRadius: '6px',
+                        fontSize: '9px',
+                        color: '#94a3b8',
+                        fontFamily: 'monospace',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                    }}>
+                        {obsUrl}
+                    </div>
+                    <button
+                        onClick={copyOBSLink}
+                        title="Copy this URL and paste it into OBS Browser Source"
+                        style={{
+                            padding: '5px 10px',
+                            background: obsCopied ? '#10b981' : '#0ea5e9',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '9px',
+                            fontWeight: '900',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            transition: 'background 0.3s',
+                        }}
+                    >
+                        {obsCopied ? '✔ COPIED!' : '📋 COPY OBS LINK'}
+                    </button>
+                </div>
+
                 <button 
                     onClick={() => setShowLivePreview(p => !p)} 
                     style={{ 
