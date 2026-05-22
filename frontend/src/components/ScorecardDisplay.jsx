@@ -152,6 +152,9 @@ const ScorecardDisplay = () => {
       fetchTournamentAndMatch();
 
       let socket;
+      let obsKeepaliveInterval;
+      let obsPollInterval;
+
       import('socket.io-client').then(({ io }) => {
         socket = io(`${API_URL}/overlay`, {
           query: { tournamentId },
@@ -167,8 +170,10 @@ const ScorecardDisplay = () => {
           if (snapshot) handleIncomingData(snapshot);
         });
 
-        socket.on('reconnect', () => {
-          console.log('[ScorecardDisplay] Socket reconnected — resyncing state...');
+        // FIX 1: In Socket.IO v4, reconnect fires on socket.io (Manager), not socket.
+        // Using 'connect' is the correct cross-version way — fires on first connect AND every reconnect.
+        socket.on('connect', () => {
+          console.log('[ScorecardDisplay] Socket connected/reconnected — resyncing state...');
           fetchTournamentAndMatch();
         });
 
@@ -192,10 +197,25 @@ const ScorecardDisplay = () => {
           console.warn('[ScorecardDisplay] Socket connect error:', err.message);
         });
 
+        // FIX 2: Send a keepalive ping every 20s so OBS does not throttle/kill the idle socket.
+        obsKeepaliveInterval = setInterval(() => {
+          if (socket.connected) {
+            socket.emit('ping');
+          }
+        }, 20000);
+
       }).catch(e => console.error('Failed to load socket client:', e));
+
+      // FIX 3: Polling safety net — re-fetch from REST every 30s.
+      // Ensures OBS always shows fresh scores even if the WebSocket silently drops.
+      obsPollInterval = setInterval(() => {
+        fetchTournamentAndMatch();
+      }, 30000);
 
       return () => {
         if (socket) socket.disconnect();
+        if (obsKeepaliveInterval) clearInterval(obsKeepaliveInterval);
+        if (obsPollInterval) clearInterval(obsPollInterval);
         if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
       };
     } else if (isMongoDB(matchId)) {
@@ -210,6 +230,15 @@ const ScorecardDisplay = () => {
 
       // Real-time Socket.IO setup
       let socket;
+      let obsKeepaliveInterval;
+      let obsPollInterval;
+
+      const fetchMatchSnapshot = () => {
+        matchesApi.get(matchId)
+          .then(res => { if (res.match) handleIncomingData(res.match); })
+          .catch(() => {});
+      };
+
       import('socket.io-client').then(({ io }) => {
         socket = io(`${API_URL}/overlay`, {
           query: { matchId },
@@ -225,12 +254,11 @@ const ScorecardDisplay = () => {
           if (snapshot) handleIncomingData(snapshot);
         });
 
-        // On reconnect, do a fresh full fetch to resync all state
-        socket.on('reconnect', () => {
-          console.log('[ScorecardDisplay] Socket reconnected — resyncing state...');
-          matchesApi.get(matchId)
-            .then(res => { if (res.match) handleIncomingData(res.match); })
-            .catch(() => {});
+        // FIX 1: In Socket.IO v4, reconnect fires on socket.io (Manager), not socket.
+        // Using 'connect' is the correct cross-version way — fires on first connect AND every reconnect.
+        socket.on('connect', () => {
+          console.log('[ScorecardDisplay] Socket connected/reconnected — resyncing state...');
+          fetchMatchSnapshot();
         });
 
         // Live update events — all partial updates, merged into state
@@ -244,10 +272,25 @@ const ScorecardDisplay = () => {
           console.warn('[ScorecardDisplay] Socket connect error:', err.message);
         });
 
+        // FIX 2: Send a keepalive ping every 20s so OBS does not throttle/kill the idle socket.
+        obsKeepaliveInterval = setInterval(() => {
+          if (socket.connected) {
+            socket.emit('ping');
+          }
+        }, 20000);
+
       }).catch(e => console.error('Failed to load socket client:', e));
+
+      // FIX 3: Polling safety net — re-fetch from REST every 30s.
+      // Ensures OBS always shows fresh scores even if the WebSocket silently drops.
+      obsPollInterval = setInterval(() => {
+        fetchMatchSnapshot();
+      }, 30000);
 
       return () => {
         if (socket) socket.disconnect();
+        if (obsKeepaliveInterval) clearInterval(obsKeepaliveInterval);
+        if (obsPollInterval) clearInterval(obsPollInterval);
         if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
       };
     } else {
