@@ -22,6 +22,8 @@ const authRoutes = require('./routes/auth');
 const matchRoutes = require('./routes/matches');
 const errorHandler = require('./middleware/errorHandler');
 const initSockets = require('./sockets/socketHandler');
+const tournamentRoutes = require('./routes/tournaments');
+const initCleanupJob = require('./services/cleanupJob');
 
 // ── App & HTTP Server ──────────────────────────────────────────────────────
 const app = express();
@@ -120,6 +122,7 @@ const apiLimiter = rateLimit({
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, requireDB, authRoutes);
 app.use('/api', apiLimiter, requireDB, matchRoutes);
+app.use('/api/tournaments', apiLimiter, requireDB, tournamentRoutes);
 app.use('/api/admin', apiLimiter, requireDB, require('./routes/admin'));
 
 // ── Health check ───────────────────────────────────────────────────────────
@@ -172,6 +175,9 @@ const boot = () => {
 
   // 2️⃣  Connect to MongoDB in background (non-blocking)
   connectDB();
+
+  // 3️⃣ Initialize automatic database cleanup job
+  initCleanupJob();
 };
 
 boot();

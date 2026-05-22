@@ -1,15 +1,17 @@
 @echo off
-title KS LIVE BROADCASTING - LAUNCHER
-color 0A
+title KS LIVE BROADCASTING - SUITE LAUNCHER
+color 0B
 echo.
 echo  =====================================================
-echo   KS LIVE BROADCASTING  ^|  Powered by ngrok
+echo   KS LIVE BROADCASTING SUITE  ^|  MERN + Socket.IO
 echo  =====================================================
 echo.
 
-cd /d "C:\Users\WW\Desktop\Scoreboard overlay"
+:: ── Set root directory to directory containing this batch file ─
+cd /d "%~dp0"
 
 :: ── Detect local WiFi IP address ─────────────────────────────
+set "LOCAL_IP=127.0.0.1"
 for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /c:"IPv4"') do (
     set "LOCAL_IP=%%a"
 )
@@ -22,55 +24,65 @@ taskkill /F /IM node.exe /T >nul 2>&1
 taskkill /F /IM ngrok.exe /T >nul 2>&1
 timeout /t 1 /nobreak >nul
 
-:: ── Step 2: Start Vite dev server (minimised) ────────────────
-echo  [2/5] Starting Vite dev server on port 5173...
+:: ── Step 2: Start Node.js Express Backend ────────────────────
+echo  [2/5] Starting Express Backend on port 3001...
+cd backend
+start /min "KS-Backend" cmd /c "npm run start"
+cd ..
+timeout /t 3 /nobreak >nul
+
+:: ── Step 3: Start Vite Dev Server ────────────────────────────
+echo  [3/5] Starting Vite Dev Server on port 5173...
+cd frontend
 start /min "KS-Vite" cmd /c "npm run dev"
-echo         Waiting for server to start...
-timeout /t 6 /nobreak >nul
+cd ..
+echo         Waiting for servers to fully load...
+timeout /t 5 /nobreak >nul
 
-:: ── Step 3: Start ngrok tunnel (visible window) ──────────────
-echo  [3/5] Opening ngrok tunnel...
-start "KS-ngrok ^| Copy your public URL from this window" cmd /k "ngrok http 5173"
-timeout /t 4 /nobreak >nul
+:: ── Step 4: Start ngrok tunnel (visible window) ──────────────
+echo  [4/5] Opening ngrok tunnel...
+start "KS-ngrok | Copy public URL from this window" cmd /k "ngrok http 5173"
+timeout /t 3 /nobreak >nul
 
-:: ── Step 4: Open Landing Page in browser ─────────────────────
-echo  [4/5] Opening Landing Page in browser...
+:: ── Step 5: Open Landing Page in browser ─────────────────────
+echo  [5/5] Launching KS Live Web interfaces...
 start http://localhost:5173
-
-:: ── Step 5: Open Overlay Scoreboard in browser ───────────────
-echo  [5/5] Opening Overlay Scoreboard in browser...
-timeout /t 2 /nobreak >nul
-start http://localhost:5173/overlay
+timeout /t 1 /nobreak >nul
+start http://localhost:5173/admin
 
 :: ── Display info ─────────────────────────────────────────────
 echo.
 color 0E
 echo  =====================================================
-echo   SERVER IS LIVE!  Do NOT close this window.
+echo   SERVER IS LIVE AND FULLY DEPLOYED!
 echo  =====================================================
 echo.
-echo   PC (localhost):
+echo   LOCAL PC (localhost):
 echo   Landing Page ^|  http://localhost:5173
 echo   Admin Panel  ^|  http://localhost:5173/admin
-echo   Team Manager ^|  http://localhost:5173/teams
+echo   Teams Link   ^|  http://localhost:5173/teams
 echo   OBS Overlay  ^|  http://localhost:5173/overlay
 echo.
 echo  -----------------------------------------------------
-echo   PHONE / TABLET (same WiFi):
+echo   PHONE / TABLET ON THE SAME WIFI:
 echo   Landing Page ^|  http://%LOCAL_IP%:5173
 echo   Admin Panel  ^|  http://%LOCAL_IP%:5173/admin
-echo   Team Manager ^|  http://%LOCAL_IP%:5173/teams
+echo   Teams Link   ^|  http://%LOCAL_IP%:5173/teams
 echo   OBS Overlay  ^|  http://%LOCAL_IP%:5173/overlay
 echo  -----------------------------------------------------
 echo.
-echo   INTERNET (ngrok public URL):
-echo   ^>^> Check the "KS-ngrok" window that just opened
-echo   ^>^> Look for the line: "Forwarding  https://xxxx.ngrok-free.app"
-echo   ^>^> Your public Admin URL = https://xxxx.ngrok-free.app/admin
+echo   INTERNET TUNNEL (ngrok public URL):
+echo   ^>^> Look for forwarding line in the ngrok window
+echo   ^>^> admin public URL = https://[your-subdomain].ngrok-free.app/admin
 echo.
-echo   IMPORTANT - Add ngrok domain to Firebase:
-echo   Firebase Console ^> Authentication ^> Settings
-echo   ^> Authorized Domains ^> Add Domain ^> paste ngrok URL
 echo  =====================================================
-echo.
-pause
+echo   Press any key to clean up and shutdown all servers...
+echo  =====================================================
+pause >nul
+
+echo  Stopping all services...
+taskkill /F /IM node.exe /T >nul 2>&1
+taskkill /F /IM ngrok.exe /T >nul 2>&1
+echo  Shutdown complete!
+timeout /t 2 /nobreak >nul
+exit

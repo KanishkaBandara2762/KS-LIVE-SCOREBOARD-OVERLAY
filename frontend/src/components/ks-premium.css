@@ -1,0 +1,412 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,400;0,600;0,800;1,800&display=swap');
+
+.ksp-wrapper {
+  position: absolute;
+  bottom: 40px; /* Clears global ticker */
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+  pointer-events: none;
+  text-transform: uppercase;
+  z-index: 50;
+}
+
+/* Polka dot pattern background */
+.ksp-bg-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 2px, transparent 2px);
+  background-size: 16px 16px;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.ksp-board {
+  display: flex;
+  height: 80px;
+  width: 95%;
+  max-width: 1800px;
+  margin-bottom: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+  background: #071A2F;
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  z-index: 10;
+  animation: ksp-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Top Mini Bar */
+.ksp-top-bar {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0D47A1;
+  padding: 2px 20px;
+  border-radius: 4px 4px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  z-index: 5;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ksp-live-dot {
+  width: 8px;
+  height: 8px;
+  background: #E53935;
+  border-radius: 50%;
+  animation: ksp-pulse 1.5s infinite;
+}
+
+/* Blocks */
+.ksp-left {
+  flex: 1.8;
+  min-width: 450px;
+  background: linear-gradient(135deg, #0D47A1 0%, #082963 100%);
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 0 20px;
+  border-right: 4px solid #FFC107;
+  gap: 15px;
+}
+
+.ksp-logo {
+  height: 60px;
+  width: 60px;
+  object-fit: contain;
+  margin-right: 15px;
+  z-index: 2;
+}
+
+.ksp-team-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+  min-width: 0;
+  flex: 1;
+}
+
+.ksp-team-name {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ksp-tournament {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FFC107;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ksp-center {
+  flex: 2; /* Balanced flex to allow left block to expand */
+  min-width: 400px;
+  background: #071A2F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30px;
+  position: relative;
+}
+
+.ksp-score-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.ksp-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: #FFC107;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(255, 193, 7, 0.4);
+  white-space: nowrap;
+}
+
+.ksp-overs {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: #FFFFFF;
+  opacity: 0.9;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.ksp-overs-max {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #00D4FF;
+  margin-left: 5px;
+  position: relative;
+  top: -4px;
+  white-space: nowrap;
+}
+
+.ksp-right {
+  flex: 0 0 120px; /* Reduced to just hold logo nicely */
+  background: linear-gradient(135deg, #071A2F 0%, #051224 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+}
+
+/* Stats / Batters / Bowler */
+.ksp-stats-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  width: 100%;
+  gap: 16px;
+  z-index: 2;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.ksp-batter-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ksp-batter-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ksp-batter-name > span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.ksp-striker-arrow {
+  color: #FFC107;
+  font-size: 18px; /* Increased */
+  width: 18px;
+}
+
+.ksp-batter-runs {
+  color: #FFC107;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+
+.ksp-batter-balls {
+  font-size: 12px;
+  color: #aaa;
+  margin-left: 6px;
+}
+
+.ksp-bowler-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  padding-left: 14px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ksp-bowler-title {
+  font-size: 11px;
+  color: #00D4FF;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ksp-bowler-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ksp-bowler-name {
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ksp-bowler-figs {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: #FFC107;
+  white-space: nowrap;
+}
+
+/* Target State */
+.ksp-target-box {
+  width: 100%;
+  text-align: center;
+  z-index: 2;
+}
+
+.ksp-target-text {
+  font-size: 22px;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.ksp-target-highlight {
+  color: #FFC107;
+  font-size: 28px;
+  margin: 0 6px;
+}
+
+.ksp-bowling-logo {
+  height: 60px;
+  width: 60px;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+/* Ball Tracker */
+.ksp-ball-tracker {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px;
+  background: #051224;
+  border-radius: 0 0 12px 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-top: none;
+  z-index: 5;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  margin-top: -1px; /* Pulls it flush with the board */
+  animation: ksp-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ksp-ball {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: #111827;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.ksp-ball.four { background: #00D4FF; color: #000; border-color: #00D4FF; }
+.ksp-ball.six { background: #FFC107; color: #000; border-color: #FFC107; }
+.ksp-ball.wicket { background: #E53935; color: #fff; border-color: #E53935; }
+.ksp-ball.extra { background: #6b7280; color: #fff; border-color: #9ca3af; }
+
+/* Event Banners */
+.ksp-event-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  animation: ksp-slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ksp-event-four { background: linear-gradient(90deg, #0D47A1, #00D4FF); }
+.ksp-event-six { background: linear-gradient(90deg, #E65100, #FFC107); }
+.ksp-event-wicket { background: linear-gradient(90deg, #b91c1c, #E53935); }
+
+.ksp-event-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  color: white;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  letter-spacing: 4px;
+  transform: skewX(-10deg);
+}
+
+.ksp-sweep {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: ksp-sweep-anim 1.5s infinite;
+}
+
+/* Score Animation Odometer effect */
+.ksp-score-update {
+  animation: ksp-odometer 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Animations */
+@keyframes ksp-slide-up {
+  0% { transform: translateY(100px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes ksp-pulse {
+  0% { opacity: 0.4; box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }
+  70% { opacity: 1; box-shadow: 0 0 0 6px rgba(229, 57, 53, 0); }
+  100% { opacity: 0.4; box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+}
+
+@keyframes ksp-slide-in-right {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes ksp-sweep-anim {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+@keyframes ksp-odometer {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}

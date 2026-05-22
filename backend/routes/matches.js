@@ -24,6 +24,8 @@ const {
   manualBallCorrection,
   getOverlay,
   updateMatch,
+  getPublicMatch,
+  getPublicMatches,
 } = require('../controllers/matchController');
 const authMiddleware = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
@@ -32,8 +34,10 @@ const router = express.Router();
 
 const checkSubscription = require('../middleware/subscriptionCheck');
 
-// ── Public: OBS overlay endpoint (no auth required) ───────────────────────
+// ── Public endpoints (no auth required) ───────────────────────
 router.get('/overlay/:matchId', getOverlay);
+router.get('/public/matches', getPublicMatches);
+router.get('/public/match/:idOrSlug', getPublicMatch);
 
 // ── All other routes require auth ─────────────────────────────────────────
 router.use(authMiddleware);

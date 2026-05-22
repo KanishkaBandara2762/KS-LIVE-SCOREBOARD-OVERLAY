@@ -27,6 +27,7 @@ const bowlerSchema = new mongoose.Schema(
     maidens: { type: Number, default: 0 },
     runs: { type: Number, default: 0 },
     wickets: { type: Number, default: 0 },
+    figures: { type: String, default: '0-0 (0.0)' },
   },
   { _id: false }
 );
@@ -90,6 +91,39 @@ const extrasConfigSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// ── Sub-schema: Partnership ────────────────────────────────────────────────────
+const partnershipSchema = new mongoose.Schema(
+  {
+    runs: { type: Number, default: 0 },
+    balls: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
+// ── Sub-schema: Extras Totals ──────────────────────────────────────────────────
+const extrasTotalsSchema = new mongoose.Schema(
+  {
+    wides: { type: Number, default: 0 },
+    noballs: { type: Number, default: 0 },
+    byes: { type: Number, default: 0 },
+    legbyes: { type: Number, default: 0 },
+    total: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
+// ── Sub-schema: Powerplay ──────────────────────────────────────────────────────
+const powerplaySchema = new mongoose.Schema(
+  {
+    active: { type: Boolean, default: false },
+    type: { type: String, default: 'PP1' },
+    runsInPP: { type: Number, default: 0 },
+    wicketsInPP: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
+
 // ── Main Match Schema ─────────────────────────────────────────────────────────
 const matchSchema = new mongoose.Schema(
   {
@@ -102,6 +136,12 @@ const matchSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+      index: true,
+    },
+    tournamentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Tournament',
+      default: null,
       index: true,
     },
 
@@ -128,9 +168,10 @@ const matchSchema = new mongoose.Schema(
     overRuns: { type: Number, default: 0, min: 0 },    // Runs in current over
     recentBalls: { type: [String], default: [] },        // e.g. ['0','1','W','4','6','wd']
 
-    // ── Run Rates ──────────────────────────────────────────────────────────
+    // ── Run Rates & Over History ───────────────────────────────────────────
     currentRunRate: { type: Number, default: 0 },
     requiredRunRate: { type: Number, default: 0 },
+    perOverRuns: { type: [Number], default: [] }, // Runs scored in each completed over
 
     // ── Players ────────────────────────────────────────────────────────────
     player1: { type: batsmanSchema, default: () => ({ name: 'SELECT P1', onStrike: true }) },
@@ -141,11 +182,19 @@ const matchSchema = new mongoose.Schema(
     battingSquad: { type: [String], default: [] },
     bowlingSquad: { type: [String], default: [] },
 
+    // ── Advanced Stats ─────────────────────────────────────────────────────
+    partnership: { type: partnershipSchema, default: () => ({}) },
+    extras: { type: extrasTotalsSchema, default: () => ({}) },
+    powerplay: { type: powerplaySchema, default: () => ({}) },
+
     // ── Innings State ──────────────────────────────────────────────────────
     isSecondInnings: { type: Boolean, default: false },
     targetScore: { type: Number, default: 0 },
     targetBalls: { type: Number, default: 0 },
     isSuperOver: { type: Boolean, default: false },
+    firstInningsScore: { type: Number, default: 0 },
+    firstInningsWickets: { type: Number, default: 0 },
+    firstInningsOvers: { type: String, default: '0.0' },
 
     // ── Wicket Info ────────────────────────────────────────────────────────
     fallOfWickets: { type: [fowSchema], default: [] },
@@ -171,11 +220,24 @@ const matchSchema = new mongoose.Schema(
     // ── Extras Config ──────────────────────────────────────────────────────
     extrasConfig: { type: extrasConfigSchema, default: () => ({}) },
 
-    // ── Match Status ───────────────────────────────────────────────────────
+    // ── Match Status & Result ──────────────────────────────────────────────
     matchStatus: {
       type: String,
       enum: ['upcoming', 'live', 'innings_break', 'completed', 'abandoned'],
       default: 'live',
+    },
+    matchResult: { type: String, default: '' },
+
+    // ── Public Preview Settings ────────────────────────────────────────────
+    publicScorePreview: {
+      type: Boolean,
+      default: true,
+    },
+    slug: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
     },
   },
   {
@@ -191,7 +253,10 @@ const matchSchema = new mongoose.Schema(
   }
 );
 
-// ── Compound index for fast user match listing ─────────────────────────────
+// ── Performance Indexes ─────────────────────────────────────────────────────
 matchSchema.index({ ownerUid: 1, createdAt: -1 });
+matchSchema.index({ slug: 1 }, { unique: true, sparse: true });
+matchSchema.index({ matchStatus: 1 });
+matchSchema.index({ publicScorePreview: 1 });
 
 module.exports = mongoose.model('Match', matchSchema);

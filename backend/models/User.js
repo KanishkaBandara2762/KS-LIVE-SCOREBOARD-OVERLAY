@@ -62,6 +62,31 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    isSessionActive: {
+      type: Boolean,
+      default: false,
+    },
+    sessionType: {
+      type: String,
+      enum: ['none', '2-hour-trial', '6-hour-trial', '1-day', 'monthly', 'custom'],
+      default: 'none',
+    },
+    sessionStart: {
+      type: Date,
+      default: null,
+    },
+    sessionExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    isTrialUsed: {
+      type: Boolean,
+      default: false,
+    },
+    whatsappNumber: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

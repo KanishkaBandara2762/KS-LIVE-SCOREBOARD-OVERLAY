@@ -1,55 +1,51 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key_to_prevent_crash');
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const SubscriptionPlan = require('../models/SubscriptionPlan');
+const UserSubscription = require('../models/UserSubscription');
 
-const PLANS = {
-  one_day: {
-    name: 'One Day Pass',
-    price: 200, // $2.00
-    interval: 'one_time',
-    durationDays: 1,
-    planId: 'pro',
-  },
-  monthly: {
-    name: 'Monthly Plan',
-    price: 1000, // $10.00
-    interval: 'month',
-    durationDays: 30,
-    planId: 'pro',
-  },
-  annual: {
-    name: 'Annual Plan',
-    price: 5000, // $50.00
-    interval: 'year',
-    durationDays: 365,
-    planId: 'enterprise',
-  },
+// ── GET /api/subscription/plans ───────────────────────────────────────────
+const getPlans = async (req, res, next) => {
+  try {
+    const plans = await SubscriptionPlan.find({ isActive: true }).sort({ priceUsd: 1 });
+    res.json({ success: true, plans });
+  } catch (err) {
+    next(err);
+  }
 };
 
+// ── POST /api/subscription/checkout ───────────────────────────────────────
 const createCheckoutSession = async (req, res, next) => {
   try {
     if (!process.env.STRIPE_SECRET_KEY) {
-      return res.status(500).json({ success: false, error: 'Stripe keys are not configured in the backend environment. Please set STRIPE_SECRET_KEY in backend/.env.' });
+      return res.status(500).json({
+        success: false,
+        error: 'Stripe keys are not configured in the backend environment. Please set STRIPE_SECRET_KEY in backend/.env.'
+      });
     }
 
-    const { planKey } = req.body;
-    const plan = PLANS[planKey];
+    const { planId } = req.body; // This is the plan slug ('daily', 'monthly', 'annual')
+    const plan = await SubscriptionPlan.findOne({ slug: planId, isActive: true });
 
     if (!plan) {
-      return res.status(400).json({ success: false, error: 'Invalid plan selected' });
+      return res.status(400).json({ success: false, error: 'Invalid plan selected.' });
     }
 
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      return res.status(404).json({ success: false, error: 'User not found.' });
     }
 
-    let sessionData = {
+    // Single charge for 1-day pass, recurring subscription for monthly/annual
+    const isRecurring = plan.slug !== 'daily';
+
+    const sessionData = {
       payment_method_types: ['card'],
       customer_email: user.email,
       client_reference_id: user._id.toString(),
       metadata: {
-        planKey: planKey,
+        planSlug: plan.slug,
+        durationDays: String(plan.durationInDays),
       },
       line_items: [
         {
@@ -57,20 +53,22 @@ const createCheckoutSession = async (req, res, next) => {
             currency: 'usd',
             product_data: {
               name: plan.name,
-              description: `KS Live ${plan.name} access`,
+              description: plan.description || `KS Live ${plan.name} access`,
             },
-            unit_amount: plan.price,
+            unit_amount: plan.priceUsd * 100, // Dollars to cents
           },
           quantity: 1,
         },
       ],
-      mode: plan.interval === 'one_time' ? 'payment' : 'subscription',
+      mode: isRecurring ? 'subscription' : 'payment',
       success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pricing?payment=cancelled`,
     };
 
-    if (plan.interval !== 'one_time') {
-      sessionData.line_items[0].price_data.recurring = { interval: plan.interval };
+    if (isRecurring) {
+      sessionData.line_items[0].price_data.recurring = {
+        interval: plan.slug === 'monthly' ? 'month' : 'year',
+      };
     }
 
     const session = await stripe.checkout.sessions.create(sessionData);
@@ -81,83 +79,243 @@ const createCheckoutSession = async (req, res, next) => {
   }
 };
 
+// ── GET /api/subscription/remaining-time ───────────────────────────────────
+const getRemainingTime = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found.' });
+    }
+
+    const now = new Date();
+    
+    // Check if the user has a valid active session (which counts as active access!)
+    let expiry = user.subscriptionExpiry;
+    let isSessionValid = user.isSessionActive && user.sessionExpiresAt && new Date(user.sessionExpiresAt) > now;
+    
+    if (isSessionValid) {
+      expiry = new Date(user.sessionExpiresAt);
+    }
+
+    if (!expiry || expiry <= now || (!isSessionValid && user.plan === 'free')) {
+      return res.json({
+        status: 'expired',
+        plan: user.plan === 'free' ? 'Free Tier' : user.plan,
+        expires_at: expiry || null,
+        days_remaining: 0,
+        hours_remaining: 0,
+        minutes_remaining: 0,
+        seconds_remaining: 0,
+        total_seconds_remaining: 0,
+        percentage_remaining: 0,
+      });
+    }
+
+    const totalDiffMs = expiry.getTime() - now.getTime();
+    const totalSeconds = Math.floor(totalDiffMs / 1000);
+
+    const days = Math.floor(totalSeconds / (3600 * 24));
+    const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    let percent = 100;
+    if (isSessionValid) {
+      // For active sessions, calculate percentage based on the session window
+      const sessionStart = user.sessionStart ? new Date(user.sessionStart).getTime() : now.getTime();
+      const totalSessionDuration = expiry.getTime() - sessionStart;
+      if (totalSessionDuration > 0) {
+        percent = Math.max(0, Math.min(100, Math.round((totalDiffMs / totalSessionDuration) * 100)));
+      }
+    } else {
+      // Calculate percentage remaining based on latest user subscription startedAt or default timeframe
+      const latestSub = await UserSubscription.findOne({ userId: user._id }).sort({ expiresAt: -1 });
+      if (latestSub) {
+        const fullTimeMs = latestSub.expiresAt.getTime() - latestSub.startedAt.getTime();
+        if (fullTimeMs > 0) {
+          percent = Math.max(0, Math.min(100, Math.round((totalDiffMs / fullTimeMs) * 100)));
+        }
+      } else {
+        percent = Math.max(0, Math.min(100, Math.round((totalSeconds / (30 * 24 * 3600)) * 100)));
+      }
+    }
+
+    res.json({
+      status: 'active',
+      plan: isSessionValid ? `${user.sessionType || 'Session'}` : user.plan,
+      expires_at: expiry.toISOString(),
+      days_remaining: days,
+      hours_remaining: hours,
+      minutes_remaining: minutes,
+      seconds_remaining: seconds,
+      total_seconds_remaining: totalSeconds,
+      percentage_remaining: percent,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── POST /api/subscription/cancel ─────────────────────────────────────────
+const cancelSubscription = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || !user.stripeSubscriptionId) {
+      return res.status(400).json({ success: false, error: 'No active subscription found to cancel.' });
+    }
+
+    // Update stripe to cancel at period end
+    await stripe.subscriptions.update(user.stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
+
+    await UserSubscription.findOneAndUpdate(
+      { userId: user._id, stripeSubscriptionId: user.stripeSubscriptionId },
+      { $set: { status: 'cancelled', autoRenew: false } }
+    );
+
+    res.json({ success: true, message: 'Your subscription will cancel at the end of the billing cycle.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Webhook Processor Logic (Factored for readability) ───────────────────
+const processPaymentSuccess = async (session) => {
+  const userId = session.client_reference_id;
+  const slug = session.metadata.planSlug;
+
+  if (!userId || !slug) return;
+
+  const plan = await SubscriptionPlan.findOne({ slug });
+  if (!plan) return;
+
+  const user = await User.findById(userId);
+  if (!user) return;
+
+  let startedAt = new Date();
+  let expiresAt = new Date();
+
+  // ── TIME STACKING LOGIC ───────────────────────────────────────────
+  const isCurrentlyActive = user.subscriptionExpiry && new Date(user.subscriptionExpiry) > new Date();
+  
+  if (isCurrentlyActive) {
+    // Extend existing expiry date
+    startedAt = new Date(user.subscriptionExpiry);
+    expiresAt = new Date(user.subscriptionExpiry);
+    expiresAt.setDate(expiresAt.getDate() + plan.durationInDays);
+  } else {
+    // Fresh purchase starts right now
+    expiresAt.setDate(expiresAt.getDate() + plan.durationInDays);
+  }
+
+  // Update User Account
+  const mappedTier = slug === 'annual' ? 'enterprise' : 'pro';
+  const updateData = {
+    plan: mappedTier,
+    subscriptionExpiry: expiresAt,
+  };
+
+  if (session.subscription) {
+    updateData.stripeSubscriptionId = session.subscription;
+  }
+  if (session.customer) {
+    updateData.stripeCustomerId = session.customer;
+  }
+
+  await User.findByIdAndUpdate(userId, { $set: updateData });
+
+  // Store detailed UserSubscription tracking record
+  const userSub = await UserSubscription.create({
+    userId: user._id,
+    planId: plan._id,
+    stripeSubscriptionId: session.subscription || null,
+    amountPaid: session.amount_total ? session.amount_total / 100 : plan.priceUsd,
+    currency: session.currency || 'usd',
+    startedAt: startedAt,
+    expiresAt: expiresAt,
+    status: 'active',
+    autoRenew: !!session.subscription,
+  });
+
+  // Log the physical payment
+  await Payment.create({
+    userId: user._id,
+    stripeSessionId: session.id,
+    amount: session.amount_total ? session.amount_total / 100 : plan.priceUsd,
+    currency: session.currency || 'usd',
+    planId: plan.slug,
+    status: 'completed',
+  });
+};
+
+// ── POST /api/payment/webhook ────────────────────────────────────────────
 const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
   try {
-    // Note: req.body must be raw string/buffer for Stripe signature verification
-    event = stripe.webhooks.constructEvent(req.rawBody || req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    const payload = req.rawBody || req.body;
+    event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error(`Webhook Error: ${err.message}`);
+    console.error(`Webhook signature verification failed: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   try {
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const userId = session.client_reference_id;
-      const planKey = session.metadata.planKey;
-      const plan = PLANS[planKey];
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        await processPaymentSuccess(session);
+        break;
 
-      if (userId && plan) {
-        let expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + plan.durationDays);
-
-        const updateData = {
-          plan: plan.planId,
-          subscriptionExpiry: expiryDate,
-        };
-
-        if (session.subscription) {
-          updateData.stripeSubscriptionId = session.subscription;
-        }
-        if (session.customer) {
-          updateData.stripeCustomerId = session.customer;
-        }
-
-        await User.findByIdAndUpdate(userId, { $set: updateData });
-
-        await Payment.create({
-          userId: userId,
-          stripeSessionId: session.id,
-          amount: session.amount_total / 100,
-          currency: session.currency,
-          planId: planKey,
-          status: 'completed',
-        });
-      }
-    } else if (event.type === 'invoice.payment_succeeded') {
-       // Handle recurring subscription payments
-       const invoice = event.data.object;
-       const subscriptionId = invoice.subscription;
-       if (subscriptionId) {
-          const user = await User.findOne({ stripeSubscriptionId: subscriptionId });
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const user = await User.findOne({ stripeSubscriptionId: invoice.subscription });
           if (user) {
-              // Find which plan this was by the price/amount
-              // Simplistic logic: Just extend by 30 days if it's recurring.
-              // In production, fetch subscription details from stripe.
-              let expiryDate = new Date();
-              expiryDate.setDate(expiryDate.getDate() + 30); // Default to 30 days for now
-              await User.findByIdAndUpdate(user._id, { $set: { subscriptionExpiry: expiryDate } });
+            const latestSub = await UserSubscription.findOne({ userId: user._id })
+              .sort({ expiresAt: -1 })
+              .populate('planId');
+            const durationDays = latestSub?.planId?.durationInDays
+              || (user.plan === 'enterprise' ? 365 : 30);
+            const base = user.subscriptionExpiry && new Date(user.subscriptionExpiry) > new Date()
+              ? new Date(user.subscriptionExpiry)
+              : new Date();
+            const expiresAt = new Date(base);
+            expiresAt.setDate(expiresAt.getDate() + durationDays);
+            await User.findByIdAndUpdate(user._id, { $set: { subscriptionExpiry: expiresAt } });
           }
-       }
-    } else if (event.type === 'customer.subscription.deleted') {
-       const subscription = event.data.object;
-       const user = await User.findOne({ stripeSubscriptionId: subscription.id });
-       if (user) {
-          await User.findByIdAndUpdate(user._id, { $set: { plan: 'free', subscriptionExpiry: null, stripeSubscriptionId: null } });
-       }
+        }
+        break;
+      }
+
+      case 'customer.subscription.deleted':
+        const subscription = event.data.object;
+        const cancelledUser = await User.findOne({ stripeSubscriptionId: subscription.id });
+        if (cancelledUser) {
+          await User.findByIdAndUpdate(cancelledUser._id, {
+            $set: { plan: 'free', stripeSubscriptionId: null }
+          });
+          await UserSubscription.updateMany(
+            { stripeSubscriptionId: subscription.id },
+            { $set: { status: 'expired', autoRenew: false } }
+          );
+        }
+        break;
     }
 
     res.status(200).json({ received: true });
   } catch (error) {
-    console.error('Error handling webhook', error);
+    console.error('Webhook execution fault:', error);
     res.status(500).end();
   }
 };
 
 module.exports = {
+  getPlans,
   createCheckoutSession,
+  getRemainingTime,
+  cancelSubscription,
   handleWebhook,
 };

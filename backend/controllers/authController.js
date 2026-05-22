@@ -20,11 +20,18 @@ const register = async (req, res, next) => {
       });
     }
 
-    // Create user (passwordHash will be hashed by pre-save hook)
+    const now = new Date();
+
+    // Create user with 2-hour free trial pre-assigned
     const user = await User.create({
       email: email.toLowerCase(),
       displayName,
       passwordHash: password, // pre-save hook hashes this
+      isSessionActive: true,
+      sessionType: '2-hour-trial',
+      sessionStart: now,
+      sessionExpiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000), // exactly 2 hours
+      isTrialUsed: true,
     });
 
     // Sign token
@@ -40,6 +47,11 @@ const register = async (req, res, next) => {
         plan: user.plan,
         subscriptionExpiry: user.subscriptionExpiry,
         role: user.role,
+        isSessionActive: user.isSessionActive,
+        sessionType: user.sessionType,
+        sessionStart: user.sessionStart,
+        sessionExpiresAt: user.sessionExpiresAt,
+        whatsappNumber: user.whatsappNumber,
       },
       message: 'Registration successful. Welcome to KS Live!',
     });
@@ -69,8 +81,24 @@ const login = async (req, res, next) => {
       return res.status(401).json({ success: false, error: 'Invalid email or password.' });
     }
 
+    const now = new Date();
+
+    // 1. Enforce session expiration check at login
+    if (user.isSessionActive && user.sessionExpiresAt && now > user.sessionExpiresAt) {
+      user.isSessionActive = false;
+    }
+
+    // 2. Fallback trial assignment if registration missed it
+    if (!user.isSessionActive && !user.isTrialUsed) {
+      user.isSessionActive = true;
+      user.sessionType = '2-hour-trial';
+      user.sessionStart = now;
+      user.sessionExpiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+      user.isTrialUsed = true;
+    }
+
     // Update last login
-    user.lastLogin = new Date();
+    user.lastLogin = now;
     await user.save({ validateBeforeSave: false });
 
     // Sign token
@@ -88,6 +116,11 @@ const login = async (req, res, next) => {
         role: user.role,
         matchCount: user.matchCount,
         lastLogin: user.lastLogin,
+        isSessionActive: user.isSessionActive,
+        sessionType: user.sessionType,
+        sessionStart: user.sessionStart,
+        sessionExpiresAt: user.sessionExpiresAt,
+        whatsappNumber: user.whatsappNumber,
       },
     });
   } catch (err) {
@@ -103,6 +136,24 @@ const getMe = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'User not found.' });
     }
 
+    const now = new Date();
+
+    // 1. Enforce session expiration check at /me verification
+    if (user.isSessionActive && user.sessionExpiresAt && now > user.sessionExpiresAt) {
+      user.isSessionActive = false;
+      await user.save({ validateBeforeSave: false });
+    }
+
+    // 2. Fallback trial assignment if registration/login missed it
+    if (!user.isSessionActive && !user.isTrialUsed) {
+      user.isSessionActive = true;
+      user.sessionType = '2-hour-trial';
+      user.sessionStart = now;
+      user.sessionExpiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+      user.isTrialUsed = true;
+      await user.save({ validateBeforeSave: false });
+    }
+
     res.json({
       success: true,
       user: {
@@ -115,6 +166,11 @@ const getMe = async (req, res, next) => {
         matchCount: user.matchCount,
         createdAt: user.createdAt,
         lastLogin: user.lastLogin,
+        isSessionActive: user.isSessionActive,
+        sessionType: user.sessionType,
+        sessionStart: user.sessionStart,
+        sessionExpiresAt: user.sessionExpiresAt,
+        whatsappNumber: user.whatsappNumber,
       },
     });
   } catch (err) {

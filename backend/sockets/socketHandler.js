@@ -5,7 +5,7 @@
  *  /overlay — OBS browser sources connect here (read-only)
  *  /admin   — Admin panel connects here (read/write)
  *
- * Rooms: match:{matchId}
+ * Rooms: match:{matchId}, tournament:{tournamentId}
  *
  * Events emitted:
  *  score:update       — Every valid delivery
@@ -14,10 +14,12 @@
  *  ticker:update      — Ticker toggle / message change
  *  over:complete      — End of over
  *  match:status       — Match status change (innings break, complete, etc.)
+ *  matchSwitched      — When current match in tournament changes
  *  connection:ack     — Sent to client on join confirmation
  */
 
 const Match = require('../models/Match');
+const Tournament = require('../models/Tournament');
 const { formatOvers } = require('../services/scoreEngine');
 
 module.exports = function initSockets(io) {
@@ -25,41 +27,75 @@ module.exports = function initSockets(io) {
   const overlayNS = io.of('/overlay');
 
   overlayNS.on('connection', (socket) => {
-    const { matchId } = socket.handshake.query;
+    const { matchId, tournamentId } = socket.handshake.query;
 
-    if (!matchId) {
-      socket.emit('error', { message: 'matchId is required.' });
+    if (!matchId && !tournamentId) {
+      socket.emit('error', { message: 'matchId or tournamentId is required.' });
       socket.disconnect();
       return;
     }
 
-    const room = `match:${matchId}`;
-    socket.join(room);
+    if (tournamentId) {
+      const room = `tournament:${tournamentId}`;
+      socket.join(room);
+      console.log(`[OVERLAY] OBS connected for tournament ${tournamentId} (socket: ${socket.id})`);
 
-    console.log(`[OVERLAY] OBS connected for match ${matchId} (socket: ${socket.id})`);
-
-    // Send current match state immediately so OBS doesn't wait for next update
-    Match.findOne({ matchId })
-      .lean()
-      .then((match) => {
-        if (!match) {
-          socket.emit('error', { message: `Match ${matchId} not found.` });
-          return;
-        }
-
-        socket.emit('connection:ack', {
-          matchId,
-          status: 'connected',
-          room,
-          snapshot: buildOverlaySnapshot(match),
+      Tournament.findById(tournamentId)
+        .populate('currentMatchId')
+        .then((tournament) => {
+          if (!tournament) {
+            socket.emit('error', { message: `Tournament ${tournamentId} not found.` });
+            return;
+          }
+          if (tournament.currentMatchId) {
+            socket.emit('connection:ack', {
+              tournamentId,
+              matchId: tournament.currentMatchId.matchId,
+              status: 'connected',
+              room,
+              snapshot: buildOverlaySnapshot(tournament.currentMatchId),
+            });
+          } else {
+            socket.emit('connection:ack', {
+              tournamentId,
+              status: 'connected',
+              room,
+              snapshot: null,
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('[OVERLAY] tournament snapshot fetch error:', err.message);
         });
-      })
-      .catch((err) => {
-        console.error('[OVERLAY] snapshot fetch error:', err.message);
-      });
+    } else {
+      const room = `match:${matchId}`;
+      socket.join(room);
+
+      console.log(`[OVERLAY] OBS connected for match ${matchId} (socket: ${socket.id})`);
+
+      // Send current match state immediately so OBS doesn't wait for next update
+      Match.findOne({ matchId })
+        .lean()
+        .then((match) => {
+          if (!match) {
+            socket.emit('error', { message: `Match ${matchId} not found.` });
+            return;
+          }
+
+          socket.emit('connection:ack', {
+            matchId,
+            status: 'connected',
+            room,
+            snapshot: buildOverlaySnapshot(match),
+          });
+        })
+        .catch((err) => {
+          console.error('[OVERLAY] snapshot fetch error:', err.message);
+        });
+    }
 
     socket.on('disconnect', (reason) => {
-      console.log(`[OVERLAY] OBS disconnected from match ${matchId}. Reason: ${reason}`);
+      console.log(`[OVERLAY] OBS disconnected from ${tournamentId ? 'tournament ' + tournamentId : 'match ' + matchId}. Reason: ${reason}`);
     });
   });
 
@@ -67,21 +103,22 @@ module.exports = function initSockets(io) {
   const adminNS = io.of('/admin');
 
   adminNS.on('connection', (socket) => {
-    const { matchId } = socket.handshake.query;
+    const { matchId, tournamentId } = socket.handshake.query;
 
-    if (!matchId) {
-      socket.emit('error', { message: 'matchId query param required.' });
+    if (!matchId && !tournamentId) {
+      socket.emit('error', { message: 'matchId or tournamentId query param required.' });
       socket.disconnect();
       return;
     }
 
-    const room = `match:${matchId}`;
+    const room = tournamentId ? `tournament:${tournamentId}` : `match:${matchId}`;
     socket.join(room);
 
-    console.log(`[ADMIN] Admin panel connected for match ${matchId} (socket: ${socket.id})`);
+    console.log(`[ADMIN] Admin panel connected for ${tournamentId ? 'tournament ' + tournamentId : 'match ' + matchId} (socket: ${socket.id})`);
 
     socket.emit('connection:ack', {
       matchId,
+      tournamentId,
       status: 'connected',
       room,
       message: 'Admin channel ready.',
@@ -90,13 +127,24 @@ module.exports = function initSockets(io) {
     // ── Client-initiated: request current state ───────────────────────────────
     socket.on('request:snapshot', async () => {
       try {
-        const match = await Match.findOne({ matchId }).lean();
-        if (match) {
-          socket.emit('score:update', {
-            matchId,
-            ...buildOverlaySnapshot(match),
-            timestamp: Date.now(),
-          });
+        if (tournamentId) {
+          const tournament = await Tournament.findById(tournamentId).populate('currentMatchId');
+          if (tournament && tournament.currentMatchId) {
+            socket.emit('score:update', {
+              matchId: tournament.currentMatchId.matchId,
+              ...buildOverlaySnapshot(tournament.currentMatchId),
+              timestamp: Date.now(),
+            });
+          }
+        } else {
+          const match = await Match.findOne({ matchId }).lean();
+          if (match) {
+            socket.emit('score:update', {
+              matchId,
+              ...buildOverlaySnapshot(match),
+              timestamp: Date.now(),
+            });
+          }
         }
       } catch (err) {
         socket.emit('error', { message: 'Failed to fetch snapshot.' });
@@ -104,21 +152,11 @@ module.exports = function initSockets(io) {
     });
 
     // ── Ping / heartbeat ──────────────────────────────────────────────────────
-    socket.on('ping', () => socket.emit('pong', { matchId, t: Date.now() }));
+    socket.on('ping', () => socket.emit('pong', { matchId, tournamentId, t: Date.now() }));
 
     socket.on('disconnect', (reason) => {
-      console.log(`[ADMIN] Admin disconnected from match ${matchId}. Reason: ${reason}`);
+      console.log(`[ADMIN] Admin disconnected from ${tournamentId ? 'tournament ' + tournamentId : 'match ' + matchId}. Reason: ${reason}`);
     });
-  });
-
-  // ── Default namespace: cross-namespace relay ──────────────────────────────
-  // REST controllers emit to io directly (not namespace-specific)
-  // This allows a single emitMatchUpdate call to reach ALL namespaces
-  io.on('connection', (socket) => {
-    const { matchId } = socket.handshake.query || {};
-    if (matchId) {
-      socket.join(`match:${matchId}`);
-    }
   });
 
   console.log('✅ Socket.IO initialized — namespaces: /overlay, /admin');
@@ -144,5 +182,10 @@ function buildOverlaySnapshot(match) {
     overlaySettings: match.overlaySettings,
     manualBallsOverride: match.manualBallsOverride,
     manualBallsValue: match.manualBallsValue,
+    overRuns: match.overRuns,
+    partnership: match.partnership,
+    extras: match.extras,
+    powerplay: match.powerplay,
+    fallOfWickets: match.fallOfWickets,
   };
 }

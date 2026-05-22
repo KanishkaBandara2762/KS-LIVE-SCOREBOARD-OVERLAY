@@ -1,0 +1,1602 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Rajdhani:wght@500;600;700&display=swap');
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* ═══════════════════════════════════════════════════════════════
+   BROADCAST TYPOGRAPHY SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+
+.font-broadcast {
+  font-family: 'Roboto', 'Arial', 'Helvetica', sans-serif;
+  font-style: normal;
+}
+
+.text-broadcast-shadow {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.text-broadcast-glow {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 255, 255, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   OVER SUMMARY BAR — Promoted Runs Section
+   ═══════════════════════════════════════════════════════════════ */
+
+.over-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.92) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 48px;
+  font-family: 'Poppins', 'Roboto', sans-serif;
+}
+
+.over-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  min-width: 56px;
+  font-style: normal;
+}
+
+.over-balls-track {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.over-ball-capsule {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.over-ball-capsule.has-value {
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.over-ball-capsule.is-dot {
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.over-ball-capsule.is-boundary {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(6, 182, 212, 0.15) 100%);
+  color: #67e8f9;
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.15);
+  font-weight: 800;
+}
+
+.over-ball-capsule.is-six {
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.2) 0%, rgba(234, 179, 8, 0.15) 100%);
+  color: #fde047;
+  border-color: rgba(250, 204, 21, 0.3);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.15);
+  font-weight: 800;
+}
+
+.over-ball-capsule.is-wicket {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  font-weight: 800;
+}
+
+.over-ball-capsule.is-extra {
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+  color: #fcd34d;
+  border-color: rgba(250, 204, 21, 0.2);
+  font-size: 11px;
+}
+
+.over-total {
+  min-width: 48px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  font-style: normal;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  letter-spacing: 0.02em;
+  font-family: 'Poppins', sans-serif;
+}
+
+.over-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* This makes sure the OBS background stays transparent */
+.bg-transparent {
+  background-color: transparent !important;
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-150px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(150px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fadeInLeft {
+  animation: fadeInLeft 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-fadeInRight {
+  animation: fadeInRight 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-33.3%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+}
+
+/* Match Situation Overlay */
+@keyframes matchSituationIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.match-situation-overlay {
+  animation: matchSituationIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.match-situation-card {
+  min-width: 500px;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.6), 0 0 30px rgba(234, 179, 8, 0.08);
+}
+
+/* Overlay Mode Section Transition */
+.overlay-section-transition {
+  animation: overlayFadeIn 0.3s ease forwards;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* =============================================
+   T20 BROADCAST THEMES
+   ============================================= */
+
+/* 1. Classic Dark */
+.theme-classic-dark {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  transition: background 0.4s ease;
+}
+
+.theme-classic-dark-bat {
+  background: linear-gradient(135deg, #2d2d44 0%, #3d3d5c 100%);
+}
+
+/* 2. T20 Neon */
+.theme-t20-neon {
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a0033 50%, #0d001a 100%);
+  transition: background 0.4s ease;
+}
+
+.theme-t20-neon-accent {
+  background: linear-gradient(135deg, #06b6d4 0%, #d946ef 100%);
+}
+
+.theme-t20-neon-bat {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+}
+
+/* 3. World Cup Blue-Purple */
+.theme-wc-bp {
+  background: linear-gradient(135deg, #0c0a3e 0%, #1e1b6e 50%, #2d1b69 100%);
+  transition: background 0.4s ease;
+}
+
+.theme-wc-bp-accent {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+.theme-wc-bp-bat {
+  background: linear-gradient(135deg, #1e1b4b 0%, #3b0764 100%);
+}
+
+/* 4. Gold Championship */
+.theme-gold-champ {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a0a 50%, #0d0d00 100%);
+  transition: background 0.4s ease;
+}
+
+.theme-gold-champ-accent {
+  background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
+}
+
+.theme-gold-champ-bat {
+  background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
+}
+
+/* 5. KS SPECIAL Broadcast Theme */
+
+.theme-ks-special {
+  background: linear-gradient(90deg, #0f766e 0%, #115e59 100%);
+  font-family: 'Poppins', 'Roboto', sans-serif;
+  letter-spacing: 0.04em;
+  transition: background 0.4s ease;
+}
+
+.theme-ks-special-accent {
+  background: linear-gradient(90deg, #2dd4bf 0%, #14b8a6 100%);
+}
+
+.theme-ks-special-bat {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  font-family: 'Poppins', 'Roboto', sans-serif;
+}
+
+.theme-ks-special-chase {
+  background: linear-gradient(90deg, #115e59 0%, #134e4a 100%);
+}
+
+/* 6. SL Broadcast (Sri Lankan Broadcast Style — Royal Blue + Gold) */
+
+.theme-sl-broadcast {
+  background: linear-gradient(180deg, #1a3a8c 0%, #0e2460 60%, #0a1a45 100%);
+  font-family: 'Poppins', 'Roboto', sans-serif;
+  letter-spacing: 0.03em;
+  transition: background 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle top-lit sheen */
+.theme-sl-broadcast::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.06) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.theme-sl-broadcast-accent {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb800 100%);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+}
+
+.theme-sl-broadcast-bat {
+  background: linear-gradient(135deg, #2a4a9c 0%, #1e3a7c 100%);
+  border-left: 2px solid rgba(255, 215, 0, 0.2);
+  border-right: 2px solid rgba(255, 215, 0, 0.2);
+}
+
+.theme-sl-broadcast-bowler {
+  background: linear-gradient(135deg, #0e2460 0%, #071540 100%);
+  border-left: 2px solid rgba(255, 215, 0, 0.15);
+}
+
+.theme-sl-broadcast-chase {
+  background: linear-gradient(90deg, #0e2460 0%, #071540 100%);
+  border-top: 1px solid rgba(255, 215, 0, 0.25);
+}
+
+.theme-sl-broadcast-border {
+  border-top: 3px solid #ffd700;
+  box-shadow: 0 -4px 20px rgba(255, 215, 0, 0.3), 0 0 30px rgba(26, 58, 140, 0.4);
+}
+
+.theme-sl-broadcast-score {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* =============================================
+   THEME ANIMATION VARIABLES
+   Per-theme color tokens for shared animations
+   ============================================= */
+
+/* IPL Gold */
+.anim-ipl-gold {
+  --anim-accent: 234, 179, 8;
+  --anim-glow: 250, 204, 21;
+  --anim-boundary: 34, 211, 238;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(234, 179, 8, 0.5);
+}
+
+/* Sky Sports Pro */
+.anim-sky-pro {
+  --anim-accent: 220, 38, 38;
+  --anim-glow: 239, 68, 68;
+  --anim-boundary: 59, 130, 246;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(220, 38, 38, 0.5);
+}
+
+/* Neon Vavuniya */
+.anim-neon-vavuniya {
+  --anim-accent: 132, 204, 22;
+  --anim-glow: 163, 230, 53;
+  --anim-boundary: 34, 211, 238;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(132, 204, 22, 0.5);
+}
+
+/* Minimal Dark */
+.anim-minimal-dark {
+  --anim-accent: 255, 255, 255;
+  --anim-glow: 200, 200, 200;
+  --anim-boundary: 96, 165, 250;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(255, 255, 255, 0.3);
+}
+
+/* Classic Dark */
+.anim-classic-dark {
+  --anim-accent: 156, 163, 175;
+  --anim-glow: 209, 213, 219;
+  --anim-boundary: 96, 165, 250;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(156, 163, 175, 0.5);
+}
+
+/* T20 Neon */
+.anim-t20-neon {
+  --anim-accent: 6, 182, 212;
+  --anim-glow: 217, 70, 239;
+  --anim-boundary: 34, 211, 238;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(6, 182, 212, 0.5);
+}
+
+/* World Cup Blue-Purple */
+.anim-wc-bp {
+  --anim-accent: 99, 102, 241;
+  --anim-glow: 168, 85, 247;
+  --anim-boundary: 129, 140, 248;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(99, 102, 241, 0.5);
+}
+
+/* Gold Championship */
+.anim-gold-champ {
+  --anim-accent: 245, 158, 11;
+  --anim-glow: 234, 179, 8;
+  --anim-boundary: 251, 191, 36;
+  --anim-six: 255, 215, 0;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(245, 158, 11, 0.5);
+}
+
+/* KS Special */
+.anim-ks-special {
+  --anim-accent: 45, 212, 191;
+  --anim-glow: 20, 184, 166;
+  --anim-boundary: 94, 234, 212;
+  --anim-six: 250, 204, 21;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(45, 212, 191, 0.5);
+}
+
+/* WC2026 */
+.anim-wc2026 {
+  --anim-accent: 255, 204, 0;
+  --anim-glow: 255, 0, 127;
+  --anim-boundary: 255, 204, 0;
+  --anim-six: 255, 215, 0;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(255, 204, 0, 0.5);
+}
+
+/* SL Broadcast */
+.anim-sl-broadcast {
+  --anim-accent: 255, 215, 0;
+  --anim-glow: 255, 184, 0;
+  --anim-boundary: 34, 211, 238;
+  --anim-six: 255, 215, 0;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(255, 215, 0, 0.5);
+}
+
+/* APOGEE ARENA — Holographic Blue */
+.anim-apogee {
+  --anim-accent: 56, 189, 248;
+  --anim-glow: 99, 102, 241;
+  --anim-boundary: 34, 197, 94;
+  --anim-six: 251, 191, 36;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(56, 189, 248, 0.55);
+}
+
+/* =============================================
+   SHARED SCOREBOARD ANIMATIONS
+   GPU-accelerated: transform + opacity only
+   ============================================= */
+
+/* -- Scoreboard Entry (mid-to-side expand) -- */
+@keyframes scoreboardOpen {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+    filter: brightness(2.5);
+  }
+
+  55% {
+    transform: scaleX(1.04);
+    opacity: 1;
+    filter: brightness(1.4);
+  }
+
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+.scoreboard-open {
+  transform-origin: center;
+  animation: scoreboardOpen 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+/* -- Content reveal after board opens -- */
+@keyframes contentReveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-reveal {
+  opacity: 0;
+  animation: contentReveal 0.4s ease-out forwards;
+  animation-delay: 0.55s;
+}
+
+/* -- Score Flash (runs added) -- */
+@keyframes scoreFlash {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 0 transparent;
+  }
+
+  30% {
+    transform: scale(1.18);
+    text-shadow: 0 0 20px rgba(var(--anim-accent), 0.8);
+  }
+
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 0 transparent;
+  }
+}
+
+.score-flash {
+  animation: scoreFlash 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
+}
+
+/* -- Boundary Glow Sweep (FOUR) -- */
+@keyframes boundaryGlow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 transparent;
+  }
+
+  20% {
+    transform: scale(1.08);
+    box-shadow: -30px 0 40px rgba(var(--anim-boundary), 0.5), 30px 0 40px rgba(var(--anim-boundary), 0.5);
+  }
+
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 60px rgba(var(--anim-boundary), 0.7), inset 0 0 20px rgba(var(--anim-boundary), 0.15);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 transparent;
+  }
+}
+
+.score-boundary-glow {
+  animation: boundaryGlow 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, box-shadow;
+}
+
+/* -- Six Golden Burst -- */
+@keyframes sixBurst {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 0 transparent;
+    filter: brightness(1);
+  }
+
+  15% {
+    transform: scale(1.25);
+    text-shadow: 0 0 30px rgba(var(--anim-six), 0.9), 0 0 60px rgba(var(--anim-six), 0.4);
+    filter: brightness(1.8);
+  }
+
+  40% {
+    transform: scale(1.1);
+    text-shadow: 0 0 45px rgba(var(--anim-six), 0.7), 0 0 80px rgba(var(--anim-six), 0.3);
+    filter: brightness(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 0 transparent;
+    filter: brightness(1);
+  }
+}
+
+.score-six-burst {
+  animation: sixBurst 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, filter;
+}
+
+/* -- Wicket Red Impact -- */
+@keyframes wicketImpact {
+  0% {
+    transform: scale(1) translateX(0);
+    box-shadow: 0 0 0 transparent;
+  }
+
+  10% {
+    transform: scale(1.05) translateX(-3px);
+  }
+
+  20% {
+    transform: scale(1.05) translateX(3px);
+    box-shadow: 0 0 40px rgba(var(--anim-wicket), 0.6);
+  }
+
+  30% {
+    transform: scale(1.05) translateX(-2px);
+  }
+
+  40% {
+    transform: scale(1.02) translateX(0);
+    box-shadow: 0 0 60px rgba(var(--anim-wicket), 0.8), inset 0 0 15px rgba(var(--anim-wicket), 0.15);
+  }
+
+  100% {
+    transform: scale(1) translateX(0);
+    box-shadow: 0 0 0 transparent;
+  }
+}
+
+.score-wicket-impact {
+  animation: wicketImpact 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, box-shadow;
+}
+
+/* -- Over Transition Slide — bowler section -- */
+@keyframes overSlideIn {
+  0% {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translateX(-4px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.over-slide-in {
+  animation: overSlideIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* -- Bowler Name Highlight -- */
+@keyframes bowlerHighlight {
+  0% {
+    text-shadow: 0 0 0 transparent;
+  }
+
+  30% {
+    text-shadow: 0 0 18px rgba(var(--anim-accent), 0.9), 0 0 35px rgba(var(--anim-accent), 0.4);
+  }
+
+  100% {
+    text-shadow: 0 0 0 transparent;
+  }
+}
+
+.bowler-highlight {
+  animation: bowlerHighlight 1s ease-out forwards;
+  will-change: opacity;
+}
+
+/* -- Light Sweep (over transition bar) -- */
+@keyframes lightSweep {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.over-light-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--anim-accent), 0.15) 45%, rgba(var(--anim-accent), 0.25) 50%, rgba(var(--anim-accent), 0.15) 55%, transparent 100%);
+  background-size: 200% 100%;
+  animation: lightSweep 0.8s ease-out forwards;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* -- Ball Dot Stagger Fade In (new over) -- */
+@keyframes ballDotFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ball-dot-reset {
+  animation: ballDotFadeIn 0.3s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+.ball-dot-reset:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.ball-dot-reset:nth-child(2) {
+  animation-delay: 0.10s;
+}
+
+.ball-dot-reset:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.ball-dot-reset:nth-child(4) {
+  animation-delay: 0.20s;
+}
+
+.ball-dot-reset:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.ball-dot-reset:nth-child(6) {
+  animation-delay: 0.30s;
+}
+
+/* =============================================
+   INLINE EVENT BANNER (Scoreboard-Contained)
+   Broadcast-quality FOUR / SIX / WICKET
+   Renders INSIDE the scoreboard — never covers video
+   ============================================= */
+
+/* -- Base banner: absolute within scoreboard -- */
+.event-banner {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  animation: bannerFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes bannerFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* -- Per-event color themes -- */
+.event-banner-four {
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.88) 0%, rgba(6, 78, 99, 0.92) 50%, rgba(0, 0, 0, 0.85) 100%);
+  --eb-primary: #22d3ee;
+  --eb-secondary: #0ea5e9;
+  --eb-glow: rgba(34, 211, 238, 0.6);
+  --eb-particle: #67e8f9;
+}
+
+.event-banner-six {
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.90) 0%, rgba(120, 70, 5, 0.92) 50%, rgba(0, 0, 0, 0.85) 100%);
+  --eb-primary: #fbbf24;
+  --eb-secondary: #a3e635;
+  --eb-glow: rgba(250, 204, 21, 0.65);
+  --eb-particle: #fde68a;
+}
+
+.event-banner-wicket {
+  background: linear-gradient(135deg, rgba(185, 28, 28, 0.90) 0%, rgba(127, 20, 20, 0.92) 50%, rgba(0, 0, 0, 0.85) 100%);
+  --eb-primary: #f87171;
+  --eb-secondary: #ef4444;
+  --eb-glow: rgba(239, 68, 68, 0.55);
+  --eb-particle: #fca5a5;
+}
+
+/* -- Radial glow (sized for scoreboard height) -- */
+.event-banner-glow {
+  position: absolute;
+  width: 400px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--eb-glow) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: bannerGlowPulse 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@keyframes bannerGlowPulse {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.6; }
+  40%  { transform: translate(-50%, -50%) scale(1.1); opacity: 0.4; }
+  100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+}
+
+/* -- Horizontal sweep line (full scoreboard width) -- */
+.event-banner-sweep {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--eb-primary) 20%, var(--eb-primary) 80%, transparent 100%);
+  transform: translateY(-50%) scaleX(0);
+  animation: bannerSweep 0.5s 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 0 12px var(--eb-glow), 0 0 30px var(--eb-glow);
+  pointer-events: none;
+}
+
+@keyframes bannerSweep {
+  from { transform: translateY(-50%) scaleX(0); }
+  to   { transform: translateY(-50%) scaleX(1); }
+}
+
+/* -- Particle container (clipped to scoreboard) -- */
+.event-banner-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.event-banner-particle {
+  position: absolute;
+  bottom: 20%;
+  width: 3px;
+  height: 3px;
+  background: var(--eb-particle);
+  border-radius: 50%;
+  opacity: 0;
+  animation: bannerParticleRise linear forwards;
+  box-shadow: 0 0 4px var(--eb-glow);
+}
+
+@keyframes bannerParticleRise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.85; }
+  100% { transform: translateY(-80px) scale(0); opacity: 0; }
+}
+
+/* -- Content block: slide-in from right + fade -- */
+.event-banner-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: bannerContentSlideIn 0.45s 0.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bannerContentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(60px) scale(0.9);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* -- Label (BOUNDARY / WICKET) -- */
+.event-banner-label {
+  font-family: 'Poppins', 'Montserrat', sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--eb-primary);
+  margin-bottom: 2px;
+  text-shadow: 0 0 12px var(--eb-glow);
+  animation: bannerLabelPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes bannerLabelPulse {
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 1; text-shadow: 0 0 18px var(--eb-glow), 0 0 36px var(--eb-glow); }
+}
+
+/* -- Main title (sized for scoreboard strip) -- */
+.event-banner-title {
+  font-family: 'Poppins', 'Montserrat', sans-serif;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 900;
+  font-style: normal;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: white;
+  background: linear-gradient(180deg, #ffffff 30%, var(--eb-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 16px var(--eb-glow)) drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  animation: bannerTitlePop 0.5s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bannerTitlePop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.event-banner-stat {
+  font-size: 0.6em;
+  font-style: normal;
+  opacity: 0.85;
+}
+
+/* -- Accent line under title -- */
+.event-banner-accent {
+  width: 80px;
+  height: 3px;
+  margin: 6px auto 0;
+  background: linear-gradient(90deg, transparent, var(--eb-primary), transparent);
+  border-radius: 2px;
+  animation: bannerAccentGrow 0.4s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow: 0 0 10px var(--eb-glow);
+}
+
+@keyframes bannerAccentGrow {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+
+/* =============================================
+   T20 WORLD CUP 2026 THEME
+   Deep Navy + Gold Lightning + Magenta
+   ============================================= */
+
+/* -- Main scoreboard background (deep navy) -- */
+.theme-wc2026 {
+  background: linear-gradient(180deg, #001242 0%, #000821 100%);
+  transition: background 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle shimmer scan-line effect on the bg */
+.theme-wc2026::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 204, 0, 0.018) 3px,
+      rgba(255, 204, 0, 0.018) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* -- Gold lightning bolt divider -- */
+.wc2026-strike {
+  width: 40px;
+  height: 100%;
+  background: #ffcc00;
+  clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 0% 100%, 25% 50%, 0% 0%);
+  z-index: 10;
+  margin: 0 -10px;
+  filter: drop-shadow(0 0 6px rgba(255, 204, 0, 0.55));
+  flex-shrink: 0;
+}
+
+/* Inverse bolt (right side) */
+.wc2026-strike.inverse {
+  clip-path: polygon(100% 0, 75% 50%, 100% 100%, 25% 100%, 0 50%, 25% 0);
+}
+
+/* -- Magenta accent bar (team name block) -- */
+.theme-wc2026-accent {
+  background: #ff007f;
+  box-shadow: 0 0 14px rgba(255, 0, 127, 0.45);
+}
+
+/* -- White batsman panel -- */
+.theme-wc2026-bat {
+  background: #ffffff;
+}
+
+/* -- Bowler gradient -- */
+.theme-wc2026-bowler {
+  background: linear-gradient(135deg, #001a5e 0%, #000d2e 100%);
+  border-left: 2px solid rgba(255, 204, 0, 0.25);
+}
+
+/* -- Bottom chase strip -- */
+.theme-wc2026-chase {
+  background: linear-gradient(90deg, #001242 0%, #00073d 100%);
+  border-top: 1px solid rgba(255, 204, 0, 0.3);
+}
+
+/* -- Glow border for the scoreboard container -- */
+.theme-wc2026-border {
+  border-top: 2px solid #ffcc00;
+  box-shadow: 0 -4px 20px rgba(255, 204, 0, 0.35), 0 0 40px rgba(255, 0, 127, 0.12);
+}
+
+/* -- Ball dot indicators for WC2026 -- */
+.wc2026-ball-dot {
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+}
+
+/* -- Score display in magenta box -- */
+.theme-wc2026-score {
+  color: #ffcc00;
+  text-shadow: 0 0 12px rgba(255, 204, 0, 0.5);
+}
+
+/* -- Animated gold pulse on boundary/six events -- */
+@keyframes wc2026GoldPulse {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(255, 204, 0, 0.55));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 18px rgba(255, 204, 0, 0.95));
+  }
+}
+
+.wc2026-strike-active {
+  animation: wc2026GoldPulse 1s ease-in-out infinite;
+}
+
+/* -- Mid-to-Side Opening Animation ──────────────────────────── */
+/* The whole scoreboard scales from 0 (invisible center line) to full width
+   with a glow flash, slight overshoot bounce, then settles. */
+@keyframes wc2026MidToSide {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+    filter: brightness(3);
+    /* Gold flash on pop-in */
+  }
+
+  50% {
+    transform: scaleX(1.05);
+    /* Slight overshoot bounce */
+    opacity: 1;
+    filter: brightness(1.5);
+  }
+
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+.wc2026-open {
+  transform-origin: center;
+  animation: wc2026MidToSide 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+/* -- Content Reveal (children fade-in after board expands) ──── */
+@keyframes wc2026ContentReveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wc2026-content-reveal {
+  opacity: 0;
+  animation: wc2026ContentReveal 0.4s ease-out forwards;
+  animation-delay: 0.6s;
+  /* Wait for board expansion */
+}
+
+/* =============================================
+   DC BLUE — IPL-Style Compact Horizontal Scorebar
+   ============================================= */
+
+.anim-dc-blue {
+  --anim-accent: 0, 200, 83;
+  --anim-glow: 255, 171, 0;
+  --anim-boundary: 0, 200, 83;
+  --anim-six: 255, 171, 0;
+  --anim-wicket: 239, 68, 68;
+  --anim-border: rgba(255, 171, 0, 0.5);
+}
+
+/* ── Outer wrapper ────────────────────────────────────────────── */
+.dc-scorebar {
+  display: flex;
+  height: 65px;
+  width: 100%;
+  color: white;
+  font-family: 'Arial', sans-serif;
+  animation: dcBarSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dcBarSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+/* ── LEFT — Batting team ──────────────────────────────────────── */
+.dc-left {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(to right, #0a2a66, #123c8c);
+  padding: 0 12px;
+  gap: 10px;
+  min-width: 160px;
+}
+
+.dc-left img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: white;
+  padding: 2px;
+}
+
+.dc-team-abbr {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dc-score-main {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+.dc-overs-small {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+/* ── CENTER — Batsmen ──────────────────────────────────────────── */
+.dc-center {
+  background: #123c8c;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 16px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.dc-player-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.dc-player-name {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dc-player-stat {
+  font-weight: bold;
+  opacity: 0.85;
+}
+
+/* ── TARGET — 2nd innings chase info ─────────────────────────── */
+.dc-target {
+  background: #0d2f6f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 0 16px;
+  white-space: nowrap;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  gap: 2px;
+}
+
+.dc-target-label {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.dc-target-value {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.dc-need {
+  font-size: 10px;
+  opacity: 0.7;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── RIGHT — Bowler + ball tracker ────────────────────────────── */
+.dc-right {
+  background: linear-gradient(to right, #123c8c, #0a2a66);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  min-width: 220px;
+  gap: 10px;
+}
+
+.dc-bowler-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dc-bowler-name {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Ball tracker dots ────────────────────────────────────────── */
+.dc-balls-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.dc-ball {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.dc-ball-empty  { background: rgba(255,255,255,0.15); }
+.dc-ball-dot    { background: #555; }
+.dc-ball-one    { background: #888; }
+.dc-ball-two    { background: #6699ff; }
+.dc-ball-three  { background: #44aaff; }
+.dc-ball-four   { background: #00c853; }
+.dc-ball-six    { background: #ffab00; color: #000; }
+.dc-ball-wicket { background: #e53935; }
+.dc-ball-extra  { background: #f59e0b; color: #000; font-size: 8px; }
+
+/* ── Bowler figures ────────────────────────────────────────────── */
+.dc-bowler-figures {
+  font-size: 13px;
+  font-weight: bold;
+  text-align: right;
+  line-height: 1.3;
+}
+
+.dc-bowler-overs {
+  font-size: 10px;
+  opacity: 0.6;
+  text-align: right;
+}
+
+/* ── Right logo (bowling team) ─────────────────────────────────── */
+.dc-right-logo-wrap {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255,255,255,0.15);
+}
+
+.dc-right-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: white;
+  padding: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECOND INNINGS — BIG CHASE BAR
+   Broadcast-quality "NEED X RUNS FROM Y BALLS" display
+   GPU-accelerated, no italic, high-readability
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes chaseBarSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes chaseNeedPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes chaseNeedFourFlash {
+  0%   { box-shadow: inset 0 0 0 rgba(34,197,94,0); }
+  25%  { box-shadow: inset 0 0 60px rgba(34,197,94,0.35); }
+  100% { box-shadow: inset 0 0 0 rgba(34,197,94,0); }
+}
+
+@keyframes chaseNeedSixFlash {
+  0%   { box-shadow: inset 0 0 0 rgba(251,191,36,0); }
+  20%  { box-shadow: inset 0 0 70px rgba(251,191,36,0.45); }
+  100% { box-shadow: inset 0 0 0 rgba(251,191,36,0); }
+}
+
+@keyframes chaseNeedWicketFlash {
+  0%   { box-shadow: inset 0 0 0 rgba(239,68,68,0); }
+  20%  { box-shadow: inset 0 0 60px rgba(239,68,68,0.4); }
+  100% { box-shadow: inset 0 0 0 rgba(239,68,68,0); }
+}
+
+@keyframes chaseNeedCriticalPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.82; }
+}
+
+.chase-bar-root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 18px;
+  background: rgba(0, 20, 55, 0.96);
+  border-top: 2px solid rgba(0, 140, 255, 0.35);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Roboto', 'Arial', 'Helvetica', sans-serif;
+  font-style: normal;
+  animation: chaseBarSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.chase-bar-root::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 5%; right: 5%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 180, 255, 0.6), transparent);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.chase-bar-root.chase-need-pulse .chase-need-runs,
+.chase-bar-root.chase-need-four .chase-need-runs,
+.chase-bar-root.chase-need-six .chase-need-runs,
+.chase-bar-root.chase-need-wicket .chase-need-runs {
+  animation: chaseNeedPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.chase-bar-root.chase-need-four   { animation: chaseNeedFourFlash 0.7s ease forwards; }
+.chase-bar-root.chase-need-six    { animation: chaseNeedSixFlash 1s ease forwards; }
+.chase-bar-root.chase-need-wicket { animation: chaseNeedWicketFlash 0.7s ease forwards; }
+
+.chase-bar-root.chase-normal   { border-top-color: rgba(0, 180, 255, 0.35); }
+.chase-bar-root.chase-warning  { border-top-color: rgba(251, 146, 60, 0.6); }
+.chase-bar-root.chase-danger   { border-top-color: rgba(239, 68, 68, 0.55); }
+.chase-bar-root.chase-critical { border-top-color: rgba(239, 68, 68, 0.9); background: rgba(30, 5, 5, 0.97); }
+.chase-bar-root.chase-won      { border-top-color: rgba(34, 197, 94, 0.7); background: rgba(0, 25, 10, 0.97); }
+
+.chase-bar-rates {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.chase-rate-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-style: normal;
+}
+
+.chase-rate-pill b { color: #00ccff; font-weight: 900; }
+.chase-rate-pill.rrr-pill b { color: #ff8c00; }
+
+.chase-target-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-style: normal;
+}
+
+.chase-target-pill b { color: #fff; font-weight: 900; }
+
+.chase-bar-need {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 0 12px;
+  position: relative;
+}
+
+.chase-need-runs {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 20px rgba(255,255,255,0.35), 0 2px 8px rgba(0,0,0,0.7);
+  will-change: transform;
+  font-style: normal;
+  display: inline-block;
+}
+
+.chase-bar-root.chase-warning  .chase-need-runs { color: #fb923c; text-shadow: 0 0 20px rgba(251,146,60,0.5), 0 2px 8px rgba(0,0,0,0.7); }
+.chase-bar-root.chase-danger   .chase-need-runs { color: #f87171; text-shadow: 0 0 20px rgba(248,113,113,0.6), 0 2px 8px rgba(0,0,0,0.7); }
+.chase-bar-root.chase-critical .chase-need-runs { color: #ff3333; animation: chaseNeedCriticalPulse 1s ease-in-out infinite; text-shadow: 0 0 25px rgba(255,51,51,0.7), 0 2px 8px rgba(0,0,0,0.8); }
+.chase-bar-root.chase-won      .chase-need-runs { color: #4ade80; text-shadow: 0 0 20px rgba(74,222,128,0.5); }
+
+.chase-need-sep {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-style: normal;
+  align-self: center;
+}
+
+.chase-need-balls {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: #ffcc00;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 15px rgba(255,204,0,0.5), 0 2px 8px rgba(0,0,0,0.7);
+  font-style: normal;
+  display: inline-block;
+}
+
+.chase-last-over-badge {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ff8c00;
+  background: rgba(251, 146, 60, 0.15);
+  border: 1px solid rgba(251, 146, 60, 0.4);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-right: 8px;
+  animation: chaseNeedCriticalPulse 1.2s ease-in-out infinite;
+  align-self: center;
+  font-style: normal;
+}
+
+.chase-bar-msg {
+  font-family: 'Roboto', 'Arial', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-style: normal;
+}
+
+.chase-bar-root.chase-danger   .chase-bar-msg,
+.chase-bar-root.chase-critical .chase-bar-msg { color: rgba(251, 146, 60, 0.8); }
+.chase-bar-root.chase-won      .chase-bar-msg { color: rgba(74, 222, 128, 0.7); }
+
+/* =============================================
+   TEAM & PLAYER ROLE BADGES
+   ============================================= */
+.team-role {
+    display: inline-block;
+    font-style: normal !important;
+    animation: roleSlideFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    vertical-align: baseline;
+}
+
+.team-role.batting {
+    font-size: 0.7em;
+    opacity: 0.95;
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    margin-left: 6px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.team-role.bowling {
+    font-size: 0.65em;
+    opacity: 0.6;
+    color: #A0AEC0;
+    margin-left: 6px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+@keyframes roleSlideFade {
+    0% { opacity: 0; transform: translateX(-12px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+.player-role-badge {
+    font-style: normal !important;
+    font-size: 0.65em;
+    font-weight: 700;
+    margin-left: 5px;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+    vertical-align: baseline;
+    animation: strikeFade 0.3s ease-in-out forwards;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes strikeFade {
+    0% { opacity: 0; }
+    100% { opacity: 0.85; }
+}
+

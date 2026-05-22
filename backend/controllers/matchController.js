@@ -113,7 +113,7 @@ const getMatches = async (req, res, next) => {
       .select(
         'matchId battingTeam bowlingTeam matchType matchStatus status score wickets ' +
         'legalBallCount maxOvers ballsPerOver createdAt matchTitle tournamentName ' +
-        'venueName matchDate overlaySettings isSecondInnings targetScore'
+        'venueName matchDate overlaySettings isSecondInnings targetScore slug publicScorePreview'
       )
       .sort({ createdAt: -1 })
       .limit(50);
@@ -168,6 +168,100 @@ const updateScore = async (req, res, next) => {
     // ── Update bowler figures string ──────────────────────────────────────────
     const currentOverStr = formatOvers(result.newLegalBallCount, match.ballsPerOver);
 
+    // ── Determine striker and update player runs/balls ────────────────────────
+    const p1IsStriker = match.player1.onStrike;
+    const strikerKey = p1IsStriker ? 'player1' : 'player2';
+    const nonStrikerKey = p1IsStriker ? 'player2' : 'player1';
+
+    // Runs credited to batter (not for wides, lb, byes)
+    const BATTER_CREDIT_TYPES = ['dot', '1', '2', '3', '4', '5', '6', 'wicket', 'runout', 'noball'];
+    const creditRunsToBatter = BATTER_CREDIT_TYPES.includes(delivery);
+    // Legal ball increments batter's ball count (not wides, not noball)
+    const incrementBatterBalls = result.isLegalDelivery && delivery !== 'noball';
+
+    const strikerRuns = (match[strikerKey].runs || 0) + (creditRunsToBatter ? result.runsScored : 0);
+    const strikerBalls = (match[strikerKey].balls || 0) + (incrementBatterBalls ? 1 : 0);
+    const strikerFours = (match[strikerKey].fours || 0) + (delivery === '4' ? 1 : 0);
+    const strikerSixes = (match[strikerKey].sixes || 0) + (delivery === '6' ? 1 : 0);
+
+    // Rotate strike on odd runs (including run-outs with odd runs)
+    let p1StrikeAfter = match.player1.onStrike;
+    let p2StrikeAfter = match.player2.onStrike;
+    if (result.runsScored % 2 !== 0 && !result.isWicket) {
+      p1StrikeAfter = !p1StrikeAfter;
+      p2StrikeAfter = !p2StrikeAfter;
+    }
+    // On over completion, rotate strike
+    if (result.overCompleted) {
+      p1StrikeAfter = !p1StrikeAfter;
+      p2StrikeAfter = !p2StrikeAfter;
+    }
+
+    // Updated player objects
+    let updatedPlayer1 = { ...match.player1.toObject() };
+    let updatedPlayer2 = { ...match.player2.toObject() };
+
+    if (p1IsStriker) {
+      updatedPlayer1 = { ...updatedPlayer1, runs: strikerRuns, balls: strikerBalls, fours: strikerFours, sixes: strikerSixes, onStrike: p1StrikeAfter };
+      updatedPlayer2 = { ...updatedPlayer2, onStrike: p2StrikeAfter };
+    } else {
+      updatedPlayer2 = { ...updatedPlayer2, runs: strikerRuns, balls: strikerBalls, fours: strikerFours, sixes: strikerSixes, onStrike: p2StrikeAfter };
+      updatedPlayer1 = { ...updatedPlayer1, onStrike: p1StrikeAfter };
+    }
+
+    // On wicket: reset the out batsman slot
+    if (result.isWicket) {
+      updatedPlayer1 = p1IsStriker
+        ? { name: 'NEW PLAYER', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: p1StrikeAfter }
+        : updatedPlayer1;
+      updatedPlayer2 = !p1IsStriker
+        ? { name: 'NEW PLAYER', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: p2StrikeAfter }
+        : updatedPlayer2;
+    }
+
+    // ── Update bowler stats ────────────────────────────────────────────────────
+    const bowlerRunsFromDelivery = result.runsScored; // All runs (including extras) go against bowler
+    const bowlerLegalBalls = result.isLegalDelivery ? (match.bowler.overs * match.ballsPerOver + (match.bowler.overs % 1 !== 0 ? 0 : 0)) : 0;
+    // Simpler approach: track bowler legal balls with a separate counter
+    // bowler.overs stores decimal like "2.4" but in DB it's stored as number
+    // We'll reconstruct: bowler's delivered legal balls = floor(overs) * bpo + fraction
+    const bowlerPrevLegalBalls = Math.round((match.bowler.overs || 0) * match.ballsPerOver);
+    const bowlerNewLegalBalls = bowlerPrevLegalBalls + (result.isLegalDelivery ? 1 : 0);
+    const bowlerNewOvers = bowlerNewLegalBalls / match.ballsPerOver; // store as decimal
+    const bowlerNewRuns = (match.bowler.runs || 0) + bowlerRunsFromDelivery;
+    const bowlerNewWickets = (match.bowler.wickets || 0) + (result.isWicket ? 1 : 0);
+    const bowlerOversDisplay = formatOvers(bowlerNewLegalBalls, match.ballsPerOver);
+    const bowlerNewFigures = `${bowlerNewWickets}-${bowlerNewRuns} (${bowlerOversDisplay})`;
+
+    const updatedBowler = {
+      name: match.bowler.name || 'BOWLER',
+      overs: bowlerNewOvers,
+      runs: bowlerNewRuns,
+      wickets: bowlerNewWickets,
+      maidens: match.bowler.maidens || 0,
+      figures: bowlerNewFigures,
+    };
+
+    // ── Extras & Partnership updates ───────────────────────────────────────────
+    const extrasUpdate = { ...(match.extras ? match.extras.toObject?.() ?? match.extras : {}) };
+    if (delivery === 'wide') extrasUpdate.wides = (extrasUpdate.wides || 0) + result.runsScored;
+    else if (delivery === 'noball') extrasUpdate.noballs = (extrasUpdate.noballs || 0) + result.runsScored;
+    else if (delivery === 'byes') extrasUpdate.byes = (extrasUpdate.byes || 0) + result.runsScored;
+    else if (delivery === 'lb') extrasUpdate.legbyes = (extrasUpdate.legbyes || 0) + result.runsScored;
+    extrasUpdate.total = (extrasUpdate.wides || 0) + (extrasUpdate.noballs || 0) + (extrasUpdate.byes || 0) + (extrasUpdate.legbyes || 0);
+
+    const partnershipUpdate = { ...(match.partnership ? match.partnership.toObject?.() ?? match.partnership : {}) };
+    partnershipUpdate.runs = (partnershipUpdate.runs || 0) + result.runsScored;
+    if (result.isLegalDelivery && delivery !== 'noball') {
+      partnershipUpdate.balls = (partnershipUpdate.balls || 0) + 1;
+    }
+    if (result.isWicket) {
+      partnershipUpdate.runs = 0;
+      partnershipUpdate.balls = 0;
+    }
+
+    const currentOverRunsFinal = match.overRuns + result.runsScored;
+
     // ── Build update payload ──────────────────────────────────────────────────
     const updateData = {
       score: result.newScore,
@@ -177,29 +271,42 @@ const updateScore = async (req, res, next) => {
       currentRunRate: result.newCRR,
       requiredRunRate: result.newRRR,
       recentBalls,
-      overRuns: result.overCompleted ? 0 : match.overRuns + result.runsScored,
+      overRuns: result.overCompleted ? 0 : currentOverRunsFinal,
       manualBallsValue: result.newManualBallsValue,
+      player1: updatedPlayer1,
+      player2: updatedPlayer2,
+      bowler: updatedBowler,
+      extras: extrasUpdate,
+      partnership: partnershipUpdate,
     };
 
     // ── Wicket handling ───────────────────────────────────────────────────────
     if (result.isWicket) {
-      const strikerName = match.player1.onStrike ? match.player1.name : match.player2.name;
-      const strikerRuns = match.player1.onStrike ? match.player1.runs : match.player2.runs;
-      const strikerBalls = match.player1.onStrike ? match.player1.balls : match.player2.balls;
+      const strikerName = match[strikerKey].name;
+      const strikerRunsAtOut = match[strikerKey].runs;
+      const strikerBallsAtOut = match[strikerKey].balls;
 
       updateData.lastWicketName = strikerName;
-      updateData.lastWicketRuns = strikerRuns;
-      updateData.lastWicketBalls = strikerBalls;
+      updateData.lastWicketRuns = strikerRunsAtOut;
+      updateData.lastWicketBalls = strikerBallsAtOut;
       updateData.eventTrigger = 'WICKET';
       updateData.eventTime = new Date();
       updateData.eventId = uuidv4();
       updateData.$push = {
+        ...(updateData.$push || {}),
         fallOfWickets: {
           score: result.newScore,
           wicket: result.newWickets,
           playerName: strikerName,
           overAtFall: currentOverStr,
         },
+      };
+    }
+
+    if (result.overCompleted) {
+      updateData.$push = {
+        ...(updateData.$push || {}),
+        perOverRuns: currentOverRunsFinal,
       };
     }
 
@@ -238,8 +345,8 @@ const updateScore = async (req, res, next) => {
       snapshotWickets: result.newWickets,
       snapshotLegalBalls: result.newLegalBallCount,
       snapshotOver: currentOverStr,
-      batsmanName: batsmanName || '',
-      bowlerName: bowlerName || '',
+      batsmanName: batsmanName || match[strikerKey].name || '',
+      bowlerName: bowlerName || match.bowler.name || '',
     });
 
     // ── Emit Socket.IO update ─────────────────────────────────────────────────
@@ -254,11 +361,17 @@ const updateScore = async (req, res, next) => {
       legalBallCount: result.newLegalBallCount,
       overRuns: result.overCompleted ? 0 : match.overRuns + result.runsScored,
       recentBalls,
+      player1: updatedPlayer1,
+      player2: updatedPlayer2,
+      bowler: updatedBowler,
+      extras: extrasUpdate,
+      partnership: partnershipUpdate,
       eventTrigger: updateData.eventTrigger || null,
       eventId: updateData.eventId || null,
       overCompleted: result.overCompleted,
       manualBallsValue: result.newManualBallsValue,
       manualBallsOverride: match.manualBallsOverride,
+      overlaySettings: match.overlaySettings, // Ensure overlaySettings are always sent to maintain theme
       timestamp: Date.now(),
     });
 
@@ -271,6 +384,7 @@ const updateScore = async (req, res, next) => {
     next(err);
   }
 };
+
 
 // ── PUT /update-players/:id ───────────────────────────────────────────────────
 const updatePlayers = async (req, res, next) => {
@@ -418,6 +532,7 @@ const manualBallCorrection = async (req, res, next) => {
       legalBallCount: corrected.legalBallCount,
       manualBallsValue: updateData.manualBallsValue,
       manualBallsOverride: updateData.manualBallsOverride,
+      overlaySettings: match.overlaySettings,
       timestamp: Date.now(),
     });
 
@@ -500,7 +615,7 @@ const updateMatch = async (req, res, next) => {
       'matchDate', 'maxOvers', 'ballsPerOver', 'isSecondInnings', 'targetScore', 'targetBalls',
       'isSuperOver', 'matchStatus', 'manualBallsOverride', 'manualBallsValue', 'autoDecreaseBalls', 'score', 'wickets', 'totalBalls', 'legalBallCount',
       'currentOver', 'overRuns', 'recentBalls', 'eventTrigger', 'firstInningsScore', 'firstInningsWickets', 'firstInningsOvers',
-      'overLocked', 'fallOfWickets', 'extrasConfig'
+      'overLocked', 'fallOfWickets', 'extrasConfig', 'publicScorePreview', 'slug'
     ];
     
     const overlayFields = ['themeID', 'overlayMode', 'showVersus', 'showSummary', 'showMatchSituation', 'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo'];
@@ -532,6 +647,28 @@ const updateMatch = async (req, res, next) => {
       return res.json({ success: true, match });
     }
 
+    // Auto-generate match result
+    if (updates.matchStatus === 'completed') {
+      const chasingTeam = updates.battingTeam || match.battingTeam;
+      const defendingTeam = updates.bowlingTeam || match.bowlingTeam;
+      const finalScore = updates.score !== undefined ? updates.score : match.score;
+      const finalWickets = updates.wickets !== undefined ? updates.wickets : match.wickets;
+      const targetScore = updates.targetScore !== undefined ? updates.targetScore : match.targetScore;
+      const isSecondInnings = updates.isSecondInnings !== undefined ? updates.isSecondInnings : match.isSecondInnings;
+
+      if (isSecondInnings && targetScore > 0) {
+        if (finalScore >= targetScore) {
+          updateData.$set.matchResult = `${chasingTeam} won by ${10 - finalWickets} wickets`;
+        } else if (finalScore === targetScore - 1) {
+          updateData.$set.matchResult = 'Match Tied';
+        } else {
+          updateData.$set.matchResult = `${defendingTeam} won by ${targetScore - 1 - finalScore} runs`;
+        }
+      }
+    } else if (updates.matchStatus === 'abandoned') {
+      updateData.$set.matchResult = 'Match Abandoned';
+    }
+
     const updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
       updateData,
@@ -543,11 +680,9 @@ const updateMatch = async (req, res, next) => {
     }
 
     // Prepare payload for Socket.IO
-    // We send back what changed, but also the updated match explicitly.
-    // In order for the frontend to merge it correctly, we can send the top-level keys
-    // and also the nested overlaySettings keys flattened out if necessary, or just send the full match.
-    // Let's send the full snapshot or just the changes that were requested:
-    const emitPayload = { matchId: id, timestamp: Date.now(), ...updates };
+    // We send the full updated match explicitly to guarantee that nested overlaySettings changes
+    // (like themeID) are correctly pushed to the overlay client for immediate re-render.
+    const emitPayload = { matchId: id, timestamp: Date.now(), ...updatedMatch.toObject() };
     emitMatchUpdate(req, id, 'score:update', emitPayload);
 
     res.json({ success: true, match: updatedMatch });
@@ -580,6 +715,98 @@ const deleteMatch = async (req, res, next) => {
   }
 };
 
+// ── GET /public/match/:idOrSlug ──────────────────────────────────────────────
+const getPublicMatch = async (req, res, next) => {
+  try {
+    const { idOrSlug } = req.params;
+
+    // Lookup by matchId OR slug OR MongoDB _id
+    const match = await Match.findOne({
+      $or: [
+        { matchId: idOrSlug },
+        { slug: idOrSlug },
+        { _id: idOrSlug.match(/^[0-9a-fA-F]{24}$/) ? idOrSlug : null }
+      ]
+    });
+
+    if (!match) {
+      return res.status(404).json({ success: false, error: 'Match not found.' });
+    }
+
+    // Access check: if organizer disabled public scoring preview
+    if (match.publicScorePreview === false) {
+      return res.json({
+        success: true,
+        isPrivate: true,
+        matchTitle: match.matchTitle,
+        battingTeam: match.battingTeam,
+        bowlingTeam: match.bowlingTeam
+      });
+    }
+
+    // Fetch overlay settings & ball-by-ball score events
+    const [overlaySettings, scoreEvents] = await Promise.all([
+      OverlaySettings.findOne({ matchId: match.matchId }).lean(),
+      ScoreEvent.find({ matchId: match.matchId }).sort({ createdAt: 1 }).lean()
+    ]);
+
+    res.json({
+      success: true,
+      isPrivate: false,
+      match,
+      overlaySettings: overlaySettings || match.overlaySettings,
+      commentary: scoreEvents || []
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── GET /public/matches ──────────────────────────────────────────────────────
+const getPublicMatches = async (req, res, next) => {
+  try {
+    // We only want public matches
+    const matches = await Match.find({ publicScorePreview: { $ne: false } })
+      .select(
+        'matchId battingTeam bowlingTeam matchType matchStatus score wickets ' +
+        'legalBallCount maxOvers ballsPerOver createdAt matchTitle tournamentName ' +
+        'venueName matchDate overlaySettings isSecondInnings targetScore slug updatedAt'
+      )
+      .sort({ updatedAt: -1 })
+      .limit(100);
+
+    const live = [];
+    const upcoming = [];
+    const recent = [];
+
+    // Categorize
+    for (const m of matches) {
+      const obj = m.toJSON();
+      obj.themeID = obj.overlaySettings?.themeID || 'IPL_GOLD';
+      
+      const status = (obj.matchStatus || '').toLowerCase();
+      if (['live', 'innings_break', 'break', 'rain delay'].includes(status)) {
+        live.push(obj);
+      } else if (status === 'upcoming') {
+        upcoming.push(obj);
+      } else {
+        recent.push(obj);
+      }
+    }
+
+    res.json({
+      success: true,
+      matches: {
+        live,
+        upcoming,
+        recent
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createMatch,
   getMatch,
@@ -591,4 +818,6 @@ module.exports = {
   manualBallCorrection,
   getOverlay,
   updateMatch,
+  getPublicMatch,
+  getPublicMatches,
 };
