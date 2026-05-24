@@ -1,8 +1,19 @@
 node_modules/
 .env
 .env.local
+.env.production
 dist/
 .vscode/
 .idea/
 .cursor/
 *.log
+
+# Docker secrets
+.env.production
+
+# Nginx SSL certs (never commit)
+nginx/certs/
+
+# OS files
+.DS_Store
+Thumbs.db

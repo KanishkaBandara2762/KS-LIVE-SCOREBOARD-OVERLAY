@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  backend:
+    image: ${DOCKERHUB_USERNAME}/ks-live-backend:latest
+    container_name: ks-live-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env.production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ks-live-network
+
+networks:
+  ks-live-network:
+    driver: bridge
