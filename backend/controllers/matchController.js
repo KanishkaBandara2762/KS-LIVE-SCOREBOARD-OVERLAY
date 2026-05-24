@@ -259,6 +259,7 @@ const updateScore = async (req, res, next) => {
       overCompleted: result.overCompleted,
       manualBallsValue: result.newManualBallsValue,
       manualBallsOverride: match.manualBallsOverride,
+      overlaySettings: match.overlaySettings, // Ensure overlaySettings are always sent to maintain theme
       timestamp: Date.now(),
     });
 
@@ -418,6 +419,7 @@ const manualBallCorrection = async (req, res, next) => {
       legalBallCount: corrected.legalBallCount,
       manualBallsValue: updateData.manualBallsValue,
       manualBallsOverride: updateData.manualBallsOverride,
+      overlaySettings: match.overlaySettings,
       timestamp: Date.now(),
     });
 
@@ -543,11 +545,9 @@ const updateMatch = async (req, res, next) => {
     }
 
     // Prepare payload for Socket.IO
-    // We send back what changed, but also the updated match explicitly.
-    // In order for the frontend to merge it correctly, we can send the top-level keys
-    // and also the nested overlaySettings keys flattened out if necessary, or just send the full match.
-    // Let's send the full snapshot or just the changes that were requested:
-    const emitPayload = { matchId: id, timestamp: Date.now(), ...updates };
+    // We send the full updated match explicitly to guarantee that nested overlaySettings changes
+    // (like themeID) are correctly pushed to the overlay client for immediate re-render.
+    const emitPayload = { matchId: id, timestamp: Date.now(), ...updatedMatch.toObject() };
     emitMatchUpdate(req, id, 'score:update', emitPayload);
 
     res.json({ success: true, match: updatedMatch });

@@ -6,6 +6,9 @@ import { ref, onValue } from "firebase/database";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import BroadcastTicker from "./BroadcastTicker";
 import "./BroadcastScreens.css";
+import "./ks-premium.css";
+import "./newipl.css";
+import "./IPL2026Theme.css";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const isMongoDB = (id) => id && /^KS-/i.test(id);
@@ -54,7 +57,8 @@ const ScorecardDisplay = () => {
     GOLD_CHAMPIONSHIP: { main: "theme-gold-champ", accent: "theme-gold-champ-accent", text: "text-amber-300", batsman: "theme-gold-champ-bat", bowler: "from-amber-900 to-yellow-950", border: "border-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.3)]", chase: "bg-amber-950", animClass: "anim-gold-champ" },
     KS_SPECIAL: { main: "theme-ks-special", accent: "theme-ks-special-accent", text: "text-teal-300", batsman: "theme-ks-special-bat", bowler: "from-gray-800 to-gray-900", border: "border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.35)]", chase: "theme-ks-special-chase", animClass: "anim-ks-special" },
     WC2026: { main: "theme-wc2026", accent: "theme-wc2026-accent", text: "theme-wc2026-score", batsman: "theme-wc2026-bat", bowler: "theme-wc2026-bowler", border: "theme-wc2026-border", chase: "theme-wc2026-chase", isWC2026: true, animClass: "anim-wc2026" },
-    SL_BROADCAST: { main: "theme-sl-broadcast", accent: "theme-sl-broadcast-accent", text: "theme-sl-broadcast-score", batsman: "theme-sl-broadcast-bat", bowler: "theme-sl-broadcast-bowler", border: "theme-sl-broadcast-border", chase: "theme-sl-broadcast-chase", animClass: "anim-sl-broadcast" }
+    SL_BROADCAST: { main: "theme-sl-broadcast", accent: "theme-sl-broadcast-accent", text: "theme-sl-broadcast-score", batsman: "theme-sl-broadcast-bat", bowler: "theme-sl-broadcast-bowler", border: "theme-sl-broadcast-border", chase: "theme-sl-broadcast-chase", animClass: "anim-sl-broadcast" },
+    DC_BLUE: { main: "bg-blue-900", accent: "bg-cyan-400", text: "text-cyan-400", batsman: "bg-blue-950 text-white border-x border-blue-800", bowler: "from-blue-800 to-blue-950", border: "border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.3)]", chase: "bg-blue-950", animClass: "anim-ipl-gold" }
   }), []);
 
   // ── Reusable animation trigger helper ──────────────────────────
@@ -66,67 +70,117 @@ const ScorecardDisplay = () => {
 
   // ── DUAL-MODE DATA SYNC (MongoDB/Socket.IO or Legacy Firebase) ────────────────────────────
   useEffect(() => {
+    // ─── Merge helper: socket payloads are often PARTIAL (only changed fields).
+    // We must MERGE into existing state, not replace, to preserve themeID/teamNames etc.
+    const mergeMatchState = (prev, incoming) => {
+      if (!incoming) return prev;
+      if (!prev) {
+        // First load — flatten overlaySettings into top-level fields
+        if (incoming.overlaySettings) {
+          return {
+            ...incoming,
+            themeID: incoming.overlaySettings.themeID || 'IPL_GOLD',
+            battingLogo: incoming.overlaySettings.battingLogo || incoming.battingLogo || '',
+            leagueLogo: incoming.overlaySettings.leagueLogo || incoming.leagueLogo || '',
+            overlayMode: incoming.overlaySettings.overlayMode || 'full',
+            showVersus: !!incoming.overlaySettings.showVersus,
+            showSummary: !!incoming.overlaySettings.showSummary,
+            showMatchSituation: !!incoming.overlaySettings.showMatchSituation,
+          };
+        }
+        return incoming;
+      }
+
+      // Merge: start with existing state, overlay changed fields
+      const merged = { ...prev, ...incoming };
+
+      // If the update includes overlaySettings, always extract theme fields
+      if (incoming.overlaySettings) {
+        merged.themeID = incoming.overlaySettings.themeID || prev.themeID || 'IPL_GOLD';
+        merged.battingLogo = incoming.overlaySettings.battingLogo || prev.battingLogo || '';
+        merged.leagueLogo = incoming.overlaySettings.leagueLogo || prev.leagueLogo || '';
+        merged.overlayMode = incoming.overlaySettings.overlayMode || prev.overlayMode || 'full';
+        merged.showVersus = incoming.overlaySettings.showVersus ?? prev.showVersus ?? false;
+        merged.showSummary = incoming.overlaySettings.showSummary ?? prev.showSummary ?? false;
+        merged.showMatchSituation = incoming.overlaySettings.showMatchSituation ?? prev.showMatchSituation ?? false;
+      }
+
+      // If themeID was sent directly (from updateMatch broadcasting raw updates)
+      if (incoming.themeID) {
+        merged.themeID = incoming.themeID;
+      }
+
+      return merged;
+    };
+
     const handleIncomingData = (data) => {
       if (!data) return;
-      
-      // Check if data is coming from MongoDB directly with an overlaySettings sub-object
-      let processedMatch = data;
-      if (data.overlaySettings) {
-        processedMatch = {
-          ...data,
-          themeID: data.overlaySettings.themeID || 'IPL_GOLD',
-          battingLogo: data.overlaySettings.battingLogo || '',
-          leagueLogo: data.overlaySettings.leagueLogo || '',
-          showVersus: !!data.overlaySettings.showVersus,
-          showSummary: !!data.overlaySettings.showSummary,
-          showMatchSituation: !!data.overlaySettings.showMatchSituation,
-          tournamentName: data.overlaySettings.tournamentName || ''
-        };
-      }
 
-      setMatch(processedMatch);
+      setMatch(prev => {
+        const merged = mergeMatchState(prev, data);
 
-      if (processedMatch.eventTrigger === "RESET_WINNER") {
-        setWinnerInfo(null);
-      }
+        // Check event triggers AFTER merge
+        if (merged.eventTrigger === 'RESET_WINNER') {
+          setWinnerInfo(null);
+        }
 
-      if (["FOUR", "SIX", "WICKET"].includes(processedMatch.eventTrigger) &&
-          processedMatch.eventTime && processedMatch.eventTime !== prevBannerEventTime.current) {
-        prevBannerEventTime.current = processedMatch.eventTime;
-        if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
-        setShowEvent(true);
-        eventTimerRef.current = setTimeout(() => setShowEvent(false), 3000);
-      }
+        if (['FOUR', 'SIX', 'WICKET'].includes(merged.eventTrigger) &&
+            merged.eventTime && merged.eventTime !== prevBannerEventTime.current) {
+          prevBannerEventTime.current = merged.eventTime;
+          if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+          setShowEvent(true);
+          eventTimerRef.current = setTimeout(() => setShowEvent(false), 3000);
+        }
+
+        return merged;
+      });
     };
 
     if (isMongoDB(matchId)) {
       console.log('[ScorecardDisplay] Initializing MongoDB mode for matchId:', matchId);
       
-      // Initial load
+      // Initial full load from REST
       matchesApi.get(matchId)
         .then(res => {
-           if (res.match) handleIncomingData(res.match);
+          if (res.match) handleIncomingData(res.match);
         })
         .catch(e => console.error('MongoDB initial fetch failed:', e));
 
-      // Socket IO setup
+      // Real-time Socket.IO setup
       let socket;
       import('socket.io-client').then(({ io }) => {
         socket = io(`${API_URL}/overlay`, {
           query: { matchId },
           transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionAttempts: Infinity,
+          reconnectionDelay: 500,
+          reconnectionDelayMax: 2000,
+          timeout: 10000,
         });
 
         socket.on('connection:ack', ({ snapshot }) => {
           if (snapshot) handleIncomingData(snapshot);
         });
 
-        // Single-update feed events
+        // On reconnect, do a fresh full fetch to resync all state
+        socket.on('reconnect', () => {
+          console.log('[ScorecardDisplay] Socket reconnected — resyncing state...');
+          matchesApi.get(matchId)
+            .then(res => { if (res.match) handleIncomingData(res.match); })
+            .catch(() => {});
+        });
+
+        // Live update events — all partial updates, merged into state
         socket.on('score:update', (data) => handleIncomingData(data));
         socket.on('score:correction', (data) => handleIncomingData(data));
         socket.on('players:update', (data) => handleIncomingData(data));
         socket.on('ticker:update', (data) => handleIncomingData(data));
         socket.on('match:status', (data) => handleIncomingData(data));
+
+        socket.on('connect_error', (err) => {
+          console.warn('[ScorecardDisplay] Socket connect error:', err.message);
+        });
 
       }).catch(e => console.error('Failed to load socket client:', e));
 
@@ -135,10 +189,11 @@ const ScorecardDisplay = () => {
         if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
       };
     } else {
-      // Legacy Firebase
+      // Legacy Firebase — full state on every update
       console.log('[ScorecardDisplay] Initializing Firebase Legacy mode. Path:', dbPath);
       const unsubscribe = onValue(ref(db, dbPath), (snapshot) => {
-        handleIncomingData(snapshot.val());
+        const val = snapshot.val();
+        if (val) setMatch(val);
       });
       return () => {
         unsubscribe();
@@ -262,9 +317,24 @@ const ScorecardDisplay = () => {
   // ── Memoized helpers (MUST be above early return — Rules of Hooks) ──
   const getOvers = useCallback((balls) => { const bpo = match?.ballsPerOver || 6; return `${Math.floor(balls / bpo)}.${balls % bpo}`; }, [match?.ballsPerOver]);
 
-  if (!match) return <div className="fixed inset-0 bg-black flex items-center justify-center text-white font-black italic uppercase tracking-widest">Connecting to KS Live...</div>;
+  const active = useMemo(() => {
+    const base = themes[match?.themeID] || themes.IPL_GOLD;
+    return {
+      ...base,
+      isKsPremium: match?.themeID === 'KS_PREMIUM',
+      isNewIpl: match?.themeID === 'NEW_IPL',
+      isIpl2026: match?.themeID === 'IPL_2026',
+      isApogee: match?.themeID === 'APOGEE',
+      isDcBlue: match?.themeID === 'DC_BLUE',
+    };
+  }, [match?.themeID]);
 
-  const active = themes[match.themeID] || themes.IPL_GOLD;
+  if (!match) return (
+    <div className="fixed inset-0 bg-[#071A2F] flex flex-col items-center justify-center text-white font-black italic uppercase tracking-widest gap-6">
+      <img src="/ks_logo.png" className="h-24 w-24 object-contain animate-pulse" alt="KS Live logo" />
+      <span className="text-lg tracking-[0.3em]">Connecting to KS Live...</span>
+    </div>
+  );
   const animThemeClass = active.animClass || "anim-ipl-gold";
   const totalMatchBalls = (match.maxOvers || 5) * 6;
   const remainingBalls = totalMatchBalls - match.totalBalls;
@@ -474,7 +544,7 @@ const ScorecardDisplay = () => {
                 {match.battingTeam}
               </h1>
               <p className="text-yellow-400 font-black text-2xl italic">
-                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.maxOvers || 5) * 6) - match.totalBalls}</span> balls
+                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.maxOvers || 5) * 6) - match.totalBalls}</span> balls
               </p>
               <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">to win</p>
             </div>
@@ -712,6 +782,175 @@ const ScorecardDisplay = () => {
                 </div>
               </div>
             );
+          })() : active.isIpl2026 ? (() => {
+            const bpo = match.ballsPerOver || 6;
+            const balls = match.recentBalls || [];
+            const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
+            const totalMatchBallsKSP = (match.maxOvers || 5) * 6;
+            const remainIPL = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
+            const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
+            const bannerInfo = {
+              title: match.matchTitle || match.bowlingPrefix || "Live Match",
+              tournament: match.tournamentName || "Cricket Scoreboard",
+            };
+
+            return (
+              <div className="ipl26-wrapper anim-ipl2026">
+                <div className="ipl26-ticker">
+                  <div className="ipl26-ticker-text">
+                    {(typeof match.ticker === 'object' ? match.ticker?.message : match.ticker) || bannerInfo.tournament}
+                  </div>
+                </div>
+                
+                <div className="ipl26-scoreboard ipl26-glass">
+                  <div className="ipl26-glow-line" />
+                  <div className="ipl26-glow-line-soft" />
+                  
+                  <div className="ipl26-team-section">
+                    <img src={match.battingLogo} className="ipl26-logo" />
+                    <div className="ipl26-team-info">
+                      <div className="ipl26-team-name">{match.battingTeam}</div>
+                      <div className="ipl26-team-sub">{match.matchTitle || match.bowlingPrefix}</div>
+                    </div>
+                    <div className="ipl26-score-block">
+                      <div className="ipl26-score-glow" />
+                      <span className="ipl26-score">{match.score}-{match.wickets}</span>
+                      <span className="ipl26-overs">({getOvers(match.legalBallCount ?? match.totalBalls)})</span>
+                    </div>
+                  </div>
+                  
+                  <div className="ipl26-divider" />
+                  
+                  <div className="ipl26-right-area">
+                    <div className="ipl26-batsmen">
+                      {[match.player1, match.player2].map((p, i) => p?.name ? (
+                        <div key={i} className={`ipl26-batsman-row ${!p.onStrike ? 'non-striker' : ''}`}>
+                          {p.onStrike ? <div className="ipl26-striker-dot" /> : <div className="ipl26-non-striker-placeholder" />}
+                          <div className="ipl26-batsman-name">{p.name}</div>
+                          <div className="ipl26-batsman-stats">{p.runs} <span className="ipl26-batsman-balls">({p.balls})</span></div>
+                        </div>
+                      ) : null)}
+                    </div>
+                    
+                    <div className="ipl26-bowler">
+                      <div className="ipl26-bowler-name">{match.bowler?.name || 'BOWLER'}</div>
+                      <div className="ipl26-bowler-figures">{match.bowler?.figures || '0-0'}</div>
+                      <div className="ipl26-balls-row">
+                        {Array.from({ length: Math.max(bpo, balls.length) }).map((_, i) => {
+                          const b = balls[i] || '';
+                          let cls = 'empty';
+                          if (b === '4') cls = 'boundary';
+                          else if (b === '6') cls = 'six';
+                          else if (b.includes('W')) cls = 'wicket';
+                          else if (b && !b.includes('W') && b !== '•') cls = 'single';
+                          else if (b.includes('WD') || b.includes('NB') || b.includes('LB') || b.includes('B')) cls = 'extra';
+                          return <div key={i} className={`ipl26-ball ${cls}`}>{b === '•' ? '0' : b}</div>;
+                        })}
+                      </div>
+                    </div>
+                    
+                    {match.isSecondInnings ? (
+                      <div className="ipl26-target">
+                        <div className="ipl26-target-label">TARGET</div>
+                        <div className="ipl26-target-value">{match.targetScore}</div>
+                      </div>
+                    ) : (
+                      <div className="ipl26-this-over">
+                        <div className="ipl26-this-over-label">THIS OVER</div>
+                        <div className="ipl26-this-over-value">{match.overRuns || 0}</div>
+                      </div>
+                    )}
+                    
+                    <div className="ipl26-right-logo-wrap">
+                      <img src={match.leagueLogo} className="ipl26-right-logo" />
+                    </div>
+                  </div>
+                </div>
+                
+                {match.isSecondInnings ? (
+                  <div className="ipl26-chase-strip">
+                    <div className="ipl26-chase-rates">
+                      <span className="ipl26-crr">CRR <span className="ipl26-crr-value">{match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}</span></span>
+                      <span className="ipl26-rrr">RRR <span className="ipl26-rrr-value">{remainIPL > 0 ? (runsNeeded / (remainIPL / 6)).toFixed(2) : "--"}</span></span>
+                    </div>
+                    <div className="ipl26-chase-need">NEED {runsNeeded} RUNS IN {remainIPL} BALLS TO WIN</div>
+                  </div>
+                ) : (
+                  <div className="ipl26-bottom-strip">
+                    <span className="ipl26-crr">CURRENT RUN RATE <span className="ipl26-crr-value">{match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}</span></span>
+                    <div className="ipl26-welcome">{match.tournamentName || "LIVE"}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })() : active.isApogee ? (() => {
+            const bpo = match.ballsPerOver || 6;
+            const balls = match.recentBalls || [];
+            const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
+            const totalMatchBallsKSP = (match.maxOvers || 5) * 6;
+            const remainApogee = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
+            const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
+
+            return (
+              <div className="apogee-bar anim-apogee apogee-open">
+                <div className="apogee-bar-glow" />
+                <div className="apogee-bar-glow-soft" />
+                
+                <div className="apogee-panel apogee-panel-left">
+                  <img src={match.battingLogo} className="apogee-logo" />
+                  <div className="apogee-team-block">
+                    <div className="apogee-team-name">{match.battingTeam}</div>
+                    <div className="apogee-team-sub">{match.matchTitle || "LIVE"} <span className="apogee-live-dot" /></div>
+                  </div>
+                  <div className="apogee-score-block">
+                    <div className="apogee-score">{match.score}-{match.wickets}</div>
+                    <div className="apogee-overs-row">
+                      <span className="apogee-overs">({getOvers(match.legalBallCount ?? match.totalBalls)})</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="apogee-panel apogee-panel-batsmen">
+                  {[match.player1, match.player2].map((p, i) => p?.name ? (
+                    <div key={i} className={`apogee-batsman-row ${!p.onStrike ? 'non-striker' : ''}`}>
+                      {p.onStrike ? <div className="apogee-striker-arrow">▶</div> : null}
+                      <div className="apogee-batsman-name">{p.name}</div>
+                      <div className="apogee-batsman-stats">{p.runs} <span className="apogee-batsman-balls">({p.balls})</span></div>
+                    </div>
+                  ) : null)}
+                </div>
+                
+                <div className="apogee-panel apogee-panel-bowler">
+                  <div className="apogee-bowler-info">
+                    <div className="apogee-bowler-name">{match.bowler?.name || 'BOWLER'}</div>
+                    <div className="apogee-bowler-figures">{match.bowler?.figures || '0-0'}</div>
+                  </div>
+                  <div className="apogee-balls-row">
+                    {Array.from({ length: Math.max(bpo, balls.length) }).map((_, i) => {
+                      const b = balls[i] || '';
+                      let cls = 'empty';
+                      if (b === '4') cls = 'boundary';
+                      else if (b === '6') cls = 'six';
+                      else if (b.includes('W')) cls = 'wicket';
+                      else if (b && !b.includes('W') && b !== '•') cls = 'single';
+                      else if (b.includes('WD') || b.includes('NB') || b.includes('LB') || b.includes('B')) cls = 'extra';
+                      return <div key={i} className={`apogee-ball ${cls}`}>{b === '•' ? '0' : b}</div>;
+                    })}
+                  </div>
+                </div>
+
+                {match.isSecondInnings ? (
+                  <div className="apogee-panel apogee-panel-target">
+                    <div className="apogee-target-label">NEED {runsNeeded} RUNS IN</div>
+                    <div className="apogee-target-num">{remainApogee} BALLS</div>
+                  </div>
+                ) : (
+                  <div className="apogee-panel apogee-panel-logo-right">
+                    <img src={match.leagueLogo} className="apogee-logo-right" />
+                  </div>
+                )}
+              </div>
+            );
           })() : ( <>
 
           {/* BROADCAST TICKER — sits above the scoreboard bar */}
@@ -870,7 +1109,7 @@ const ScorecardDisplay = () => {
             ) : (
               <div className="flex w-full justify-between items-center h-full px-4">
                 <span className="text-white/70 font-bold italic text-[11px] uppercase tracking-wide">CRR: <span className="text-cyan-400">{match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}</span></span>
-                <p className="text-white font-semibold italic text-[11px] uppercase tracking-[0.4em] truncate text-center flex-1 mx-4">{match.ticker}</p>
+                <p className="text-white font-semibold italic text-[11px] uppercase tracking-[0.4em] truncate text-center flex-1 mx-4">{(typeof match.ticker === 'object' ? match.ticker?.message : match.ticker)}</p>
                 <span className="text-white/50 font-bold italic text-[11px] uppercase tracking-wide">RRR: --</span>
               </div>
             )}

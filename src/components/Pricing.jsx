@@ -18,13 +18,13 @@ const Pricing = () => {
     setLoading(true);
     try {
       const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/subscriptions/create-checkout-session`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/subscriptions/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ planKey }),
+        body: JSON.stringify({ planId }),
       });
 
       const data = await response.json();
@@ -49,10 +49,10 @@ const Pricing = () => {
       </div>
 
       <div className="pricing-grid">
-        {/* ONE DAY PASS */}
+        {/* DAILY PASS */}
         <div className="pricing-card">
           <div className="pricing-card-header">
-            <h3>One Day Pass</h3>
+            <h3>Daily Pass</h3>
             <div className="price">
               <span className="currency">$</span>
               <span className="amount">2</span>
@@ -72,10 +72,10 @@ const Pricing = () => {
           <div className="pricing-card-footer">
             <button 
               className="btn-subscribe" 
-              onClick={() => handleSubscribe('one_day')}
+              onClick={() => handleSubscribe('daily')}
               disabled={loading}
             >
-              Get One Day Pass
+              Get Daily Pass
             </button>
           </div>
         </div>

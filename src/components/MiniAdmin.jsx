@@ -11,7 +11,7 @@ import { matchesApi, getToken } from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 // MongoDB matches have matchId like KS-XXXXXXXX
-const isMongoDB = (id) => id && /^KS-/i.test(id);
+const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
 
 /* ═══════════════════════════════════════════════════════════════
    MiniAdmin — Full-Control Compact Console
@@ -50,6 +50,8 @@ const MiniAdmin = () => {
     const [showRunOutPanel, setShowRunOutPanel] = useState(false);
     const [runOutRuns, setRunOutRuns] = useState(0);
     const [runOutPlayer, setRunOutPlayer] = useState('striker');
+    const [showLivePreview, setShowLivePreview] = useState(false);
+    const overlayUrl = typeof window !== "undefined" ? `${window.location.origin}/overlay/${matchId}` : `/overlay/${matchId}`;
 
     // ── Debounce: prevents double-click duplicate entries (100ms) ─
     const debounceRef = useRef(false);
@@ -643,8 +645,11 @@ const MiniAdmin = () => {
         <div className="ma-root">
 
             {/* ═══ HEADER ═══════════════════════════════════════════════ */}
-            <div className="ma-header">
-                <span className="ma-logo">⚡ KS CONTROL</span>
+            <div className="ma-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="ma-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img src="/ks_logo.png" alt="KS Logo" style={{ height: '24px', width: 'auto', objectFit: 'contain' }} />
+                    <span style={{ fontWeight: '900', letterSpacing: '1px' }}>KS CONTROL</span>
+                </div>
                 <div className="flex items-center gap-2"><LanguageSwitcher compact /><span className="ma-live-pulse" /></div>
             </div>
 
@@ -664,6 +669,57 @@ const MiniAdmin = () => {
                 <span>{t("common.innings")}: <b>{match.isSecondInnings ? "2ND" : "1ST"}</b></span>
                 <span>{t("common.matchStage")}: <b>{match.matchTitle || match.bowlingPrefix || "--"}</b></span>
                 <span>{t("common.matchStatus")}: <b>{match.matchStatus || t("admin.status.live")}</b></span>
+            </div>
+
+            {/* LIVE OVERLAY PREVIEW */}
+            <div className="ma-preview-container" style={{ padding: '4px 12px', marginBottom: '8px' }}>
+                <button 
+                    onClick={() => setShowLivePreview(p => !p)} 
+                    style={{ 
+                        width: '100%', 
+                        padding: '6px 12px', 
+                        background: '#1e293b', 
+                        color: '#38bdf8', 
+                        border: '1px solid #334155', 
+                        borderRadius: '6px', 
+                        fontSize: '10px', 
+                        fontWeight: '900', 
+                        letterSpacing: '0.5px', 
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '6px'
+                    }}
+                >
+                    <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: showLivePreview ? '#10b981' : '#cbd5e1', animation: showLivePreview ? 'maPulse 1.5s infinite' : 'none' }} />
+                    {showLivePreview ? "HIDE VISUAL OVERLAY" : "SHOW VISUAL OVERLAY MONITOR"}
+                </button>
+                {showLivePreview && (
+                    <div style={{ 
+                        marginTop: '8px', 
+                        position: 'relative', 
+                        width: '100%', 
+                        paddingTop: '56.25%', 
+                        background: '#000', 
+                        borderRadius: '8px', 
+                        border: '1px solid #334155', 
+                        overflow: 'hidden', 
+                        boxShadow: 'inset 0 0 15px rgba(0,0,0,0.8)' 
+                    }}>
+                        <iframe 
+                            src={overlayUrl} 
+                            title="Mini Overlay Preview" 
+                            style={{ 
+                                position: 'absolute', 
+                                top: 0, left: 0, 
+                                width: '100%', height: '100%', 
+                                border: 'none', 
+                                pointerEvents: 'none' 
+                            }} 
+                        />
+                    </div>
+                )}
             </div>
 
             {/* ── Action Bar: New Match / New Innings / Reset All ── */}

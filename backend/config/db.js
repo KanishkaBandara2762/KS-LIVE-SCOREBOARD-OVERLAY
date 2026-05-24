@@ -1,12 +1,19 @@
 /**
- * KS Live — MongoDB Connection
+ * KS Live — MongoDB Atlas Connection
+ * Uses Stable API v1 (Atlas recommended) via Mongoose
  * Non-blocking: server starts immediately, DB connects in background
  */
 
 const mongoose = require('mongoose');
+const { ServerApiVersion } = require('mongodb');
 
 const MONGO_OPTIONS = {
-  serverSelectionTimeoutMS: 5000,  // Fail fast per attempt
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+  serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
   connectTimeoutMS: 10000,
 };
@@ -14,7 +21,7 @@ const MONGO_OPTIONS = {
 let isConnected = false;
 
 /**
- * Connect to MongoDB — non-blocking background retry.
+ * Connect to MongoDB Atlas — non-blocking background retry.
  * Server starts on port 3001 immediately regardless of DB state.
  */
 const connectDB = async () => {
@@ -22,55 +29,64 @@ const connectDB = async () => {
 
   if (!uri) {
     console.error('\n🚨 MONGODB_URI is not set in backend/.env!');
-    console.error('   Add your MongoDB Atlas URI:');
-    console.error('   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/ks-live\n');
-    // Don't crash — server still starts for health checks
+    console.error('   Example Atlas URI:');
+    console.error('   MONGODB_URI=mongodb+srv://user:password@kslive.h3yz7kj.mongodb.net/ks-live?retryWrites=true&w=majority&appName=KSlive\n');
+    return;
+  }
+
+  if (uri.includes('<db_password>')) {
+    console.error('\n🚨 You have not replaced <db_password> in your MONGODB_URI!');
+    console.error('   Open backend/.env and replace <db_password> with your real Atlas password.\n');
     return;
   }
 
   const tryConnect = async (attempt = 1) => {
     try {
       if (mongoose.connection.readyState === 1) return; // already connected
+
+      console.log(`\n🔄 Connecting to MongoDB Atlas... (attempt ${attempt})`);
       await mongoose.connect(uri, MONGO_OPTIONS);
+
+      // Ping to confirm connection (Atlas recommended check)
+      await mongoose.connection.db.admin().command({ ping: 1 });
+
       isConnected = true;
-      console.log(`\n✅ MongoDB connected: ${mongoose.connection.host}`);
+      console.log(`✅ MongoDB Atlas connected: ${mongoose.connection.host}`);
+      console.log(`📦 Database: ${mongoose.connection.name}`);
 
       mongoose.connection.on('disconnected', () => {
         isConnected = false;
         console.warn('⚠️  MongoDB disconnected. Retrying in 5s...');
         setTimeout(() => tryConnect(), 5000);
       });
+
+      mongoose.connection.on('error', (err) => {
+        console.error('❌ MongoDB error:', err.message);
+      });
+
     } catch (err) {
       isConnected = false;
-      const isAtlas = uri.includes('mongodb+srv');
-      console.error(`\n❌ MongoDB connect failed (attempt ${attempt}): ${err.message}`);
+      console.error(`\n❌ MongoDB Atlas connect failed (attempt ${attempt}): ${err.message}`);
 
       if (attempt === 1) {
-        console.error('\n📋 To fix this, choose one option:');
-        console.error('   OPTION A — MongoDB Atlas (recommended, free):');
-        console.error('     1. Go to https://cloud.mongodb.com');
-        console.error('     2. Create free cluster → Connect → Drivers');
-        console.error('     3. Copy the URI and paste into backend/.env:');
-        console.error('        MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/ks-live');
-        console.error('     4. In Atlas → Network Access → Add IP: 0.0.0.0/0');
-        console.error('\n   OPTION B — Install MongoDB locally:');
-        console.error('     Download from https://www.mongodb.com/try/download/community');
-        console.error('     Then run: net start MongoDB\n');
+        console.error('\n📋 Checklist:');
+        console.error('   1. Replace <db_password> in backend/.env with your real password');
+        console.error('   2. Atlas → Network Access → Add IP: 0.0.0.0/0 (allow all)');
+        console.error('   3. Atlas → Database Access → Confirm user has readWrite role');
+        console.error('   4. Make sure your cluster is not paused in Atlas dashboard\n');
       }
 
-      // Retry with backoff (max 30s between retries)
       const delay = Math.min(5000 * attempt, 30000);
       console.log(`   Retrying in ${delay / 1000}s...`);
       setTimeout(() => tryConnect(attempt + 1), delay);
     }
   };
 
-  // Start connection attempt without awaiting (non-blocking)
   tryConnect();
 };
 
 /**
- * Returns true if MongoDB is currently connected
+ * Returns true if MongoDB Atlas is currently connected
  */
 const isDBConnected = () => mongoose.connection.readyState === 1;
 

@@ -22,7 +22,6 @@ const overlaySettingsSchema = new mongoose.Schema(
     // ── Theme ──────────────────────────────────────────────────────────────
     themeID: {
       type: String,
-      enum: ['IPL_GOLD', 'IPL_BLUE', 'KS_DARK', 'KS_SPECIAL', 'KS_SPECIAL_2', 'NEW_IPL', 'CLASSIC'],
       default: 'IPL_GOLD',
     },
 

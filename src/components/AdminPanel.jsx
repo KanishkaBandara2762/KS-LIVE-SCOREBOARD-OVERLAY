@@ -7,19 +7,15 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "../i18n/LanguageContext";
 import { createMatchEvent } from "../utils/matchEvent";
 import { generateMatchKey } from "../utils/matchKey";
+import { matchesApi } from "../api";
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const isMongoDB = (id) => id && /^KS-/i.test(id);
 
 const AdminPanel = () => {
   const { t } = useLanguage();
   const { matchId: urlMatchId } = useParams();
   const navigate = useNavigate();
-
-  // ── SaaS Redirection ─────────────────────────────────────────────
-  // Full Admin panel is legacy Firebase only. Forward SaaS matches to MiniAdmin.
-  useEffect(() => {
-    if (urlMatchId && /^KS-/i.test(urlMatchId)) {
-      navigate(`/mini-admin/${urlMatchId}`, { replace: true });
-    }
-  }, [urlMatchId, navigate]);
 
   const initialState = {
     battingTeam: "TEAM NAME",
@@ -76,6 +72,7 @@ const AdminPanel = () => {
   });
 
   const [history, setHistory] = useState([]);
+  const [showLivePreview, setShowLivePreview] = useState(true);
   const [customExtraType, setCustomExtraType] = useState("WD");
   const [customExtraRuns, setCustomExtraRuns] = useState(0);
 
@@ -128,6 +125,7 @@ const AdminPanel = () => {
 
   // Sync ticker state from Firebase on load
   useEffect(() => {
+    if (isMongoDB(matchDbId)) return;
     const tickerRef = ref(db, tickerPath);
     const unsub = onValue(tickerRef, (snap) => {
       const data = snap.val();
@@ -139,78 +137,143 @@ const AdminPanel = () => {
       }
     });
     return () => unsub();
-  }, [tickerPath]);
+  }, [tickerPath, matchDbId]);
 
-  // Push ticker changes to Firebase (lightweight — only overlay_ticker node)
+  // Push ticker changes (dual-mode)
   const pushTicker = (overrides = {}) => {
+    const msg = overrides.message ?? tickerMsg;
+    const vis = overrides.visible ?? tickerVisible;
+    const mode = overrides.mode ?? tickerMode;
+
+    if (isMongoDB(matchDbId)) {
+      matchesApi.toggleTicker(matchDbId, {
+        message: msg,
+        mode: mode,
+        visible: vis,
+      }).catch(() => {});
+      setTickerMsg(msg);
+      setTickerVisible(vis);
+      setTickerMode(mode);
+      return;
+    }
+
     const payload = {
-      message: overrides.message ?? tickerMsg,
-      mode: overrides.mode ?? tickerMode,
+      message: msg,
+      mode: mode,
       preset: overrides.preset ?? tickerPreset,
-      visible: overrides.visible ?? tickerVisible,
+      visible: vis,
       timestamp: Date.now(),
     };
     update(ref(db, tickerPath), payload);
   };
 
-  // --- SYNC TEAM MANAGER SQUADS & AUTO-SELECT NEW PLAYERS ---
+  // --- DUAL-MODE DATA SYNC ---
   useEffect(() => {
-    const squadRef = ref(db, dbPath);
-    const unsubscribe = onValue(squadRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        isFromFirebase.current = true;
-        setMatch(prev => {
-          const newBattingSquad = data.battingSquad || [];
-          const newBowlingSquad = data.bowlingSquad || [];
-
-          let p1 = prev.player1;
-          let p2 = prev.player2;
-          let currentBowler = prev.bowler;
-
-          if ((p1.name === "SELECT P1" || p1.name === "NEW PLAYER") && newBattingSquad.length > 0) {
-            p1 = { ...p1, name: newBattingSquad[0].name };
+    if (isMongoDB(matchDbId)) {
+      matchesApi.get(matchDbId)
+        .then(res => {
+          if (res.match) {
+            const flattenedMatch = {
+              ...res.match,
+              themeID: res.match.overlaySettings?.themeID || 'IPL_GOLD',
+              battingLogo: res.match.overlaySettings?.battingLogo || '',
+              leagueLogo: res.match.overlaySettings?.leagueLogo || '',
+              showVersus: res.match.overlaySettings?.showVersus || false,
+              showSummary: res.match.overlaySettings?.showSummary || false,
+              showMatchSituation: res.match.overlaySettings?.showMatchSituation || false
+            };
+            setMatch(flattenedMatch);
+            if (res.ticker) {
+              setTickerMsg(res.ticker.message || "");
+              setTickerMode(res.ticker.mode || "banner");
+              setTickerVisible(!!res.ticker.visible);
+            }
           }
-          if ((p2.name === "SELECT P2" || p2.name === "NEW PLAYER") && newBattingSquad.length > 1) {
-            p2 = { ...p2, name: newBattingSquad[1].name };
-          }
-          if ((currentBowler.name === "SELECT BOWLER") && newBowlingSquad.length > 0) {
-            currentBowler = { ...currentBowler, name: newBowlingSquad[0].name };
-          }
+        })
+        .catch(() => {});
 
-          return {
-            ...prev,
-            battingSquad: newBattingSquad,
-            bowlingSquad: newBowlingSquad,
-            battingTeam: data.battingTeam || prev.battingTeam,
-            bowlingTeam: data.bowlingTeam || prev.bowlingTeam,
-            battingLogo: data.battingLogo || prev.battingLogo,
-            leagueLogo: data.leagueLogo || prev.leagueLogo,
-            player1: p1,
-            player2: p2,
-            bowler: currentBowler
-          };
+      let socket;
+      import('socket.io-client').then(({ io }) => {
+        socket = io(`${API_URL}/admin`, {
+          query: { matchId: matchDbId },
+          transports: ['websocket', 'polling'],
         });
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+        socket.on('connection:ack', ({ snapshot }) => { if (snapshot) setMatch(prev => ({ ...prev, ...snapshot })); });
+        socket.on('score:update', (data) => { if (data) setMatch(prev => ({ ...prev, ...data })); });
+        socket.on('score:correction', (data) => { if (data) setMatch(prev => ({ ...prev, ...data })); });
+        socket.on('players:update', (data) => { if (data) setMatch(prev => ({ ...prev, ...data })); });
+        socket.on('ticker:update', (data) => {
+          if (data.ticker) {
+            setTickerMsg(data.ticker.message || '');
+            setTickerMode(data.ticker.mode || 'banner');
+            setTickerVisible(!!data.ticker.visible);
+          }
+        });
+      }).catch(e => console.error(e));
+      return () => { if (socket) socket.disconnect(); };
+    } else {
+      const squadRef = ref(db, dbPath);
+      const unsubscribe = onValue(squadRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          isFromFirebase.current = true;
+          setMatch(prev => {
+            const newBattingSquad = data.battingSquad || [];
+            const newBowlingSquad = data.bowlingSquad || [];
 
-  // ── Diff-based Firebase push (bandwidth optimized) ──────────────────
+            let p1 = prev.player1;
+            let p2 = prev.player2;
+            let currentBowler = prev.bowler;
+
+            if ((p1.name === "SELECT P1" || p1.name === "NEW PLAYER") && newBattingSquad.length > 0) {
+              p1 = { ...p1, name: newBattingSquad[0].name };
+            }
+            if ((p2.name === "SELECT P2" || p2.name === "NEW PLAYER") && newBattingSquad.length > 1) {
+              p2 = { ...p2, name: newBattingSquad[1].name };
+            }
+            if ((currentBowler.name === "SELECT BOWLER") && newBowlingSquad.length > 0) {
+              currentBowler = { ...currentBowler, name: newBowlingSquad[0].name };
+            }
+
+            return {
+              ...prev,
+              battingSquad: newBattingSquad,
+              bowlingSquad: newBowlingSquad,
+              battingTeam: data.battingTeam || prev.battingTeam,
+              bowlingTeam: data.bowlingTeam || prev.bowlingTeam,
+              battingLogo: data.battingLogo || prev.battingLogo,
+              leagueLogo: data.leagueLogo || prev.leagueLogo,
+              player1: p1,
+              player2: p2,
+              bowler: currentBowler,
+              score: data.score ?? prev.score,
+              wickets: data.wickets ?? prev.wickets,
+              totalBalls: data.totalBalls ?? prev.totalBalls,
+              recentBalls: data.recentBalls ?? prev.recentBalls,
+              overRuns: data.overRuns ?? prev.overRuns,
+              legalBallCount: data.legalBallCount ?? prev.legalBallCount,
+              currentOver: data.currentOver ?? prev.currentOver,
+              overLocked: data.overLocked ?? prev.overLocked,
+            };
+          });
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [matchDbId, dbPath]);
+
+  // ── Diff-based database push (dual-mode) ──────────────────
   useEffect(() => {
     if (isFromFirebase.current) {
       isFromFirebase.current = false;
       prevMatchRef.current = match;
       localStorage.setItem("ks_master_record", JSON.stringify(match));
-      return; // Don't write back to Firebase when the change came from Firebase
+      return;
     }
     localStorage.setItem("ks_master_record", JSON.stringify(match));
 
-    // Build delta: only push fields that actually changed
     const prev = prevMatchRef.current;
     if (!prev) {
-      // First render — full write needed
-      update(ref(db, dbPath), match);
       prevMatchRef.current = match;
       return;
     }
@@ -220,7 +283,6 @@ const AdminPanel = () => {
       const curVal = match[key];
       const prevVal = prev[key];
       if (curVal !== prevVal) {
-        // Deep compare objects/arrays via JSON (player1, bowler, recentBalls, etc.)
         if (typeof curVal === 'object' && curVal !== null) {
           if (JSON.stringify(curVal) !== JSON.stringify(prevVal)) {
             delta[key] = curVal;
@@ -232,10 +294,14 @@ const AdminPanel = () => {
     }
 
     if (Object.keys(delta).length > 0) {
-      update(ref(db, dbPath), delta);
+      if (isMongoDB(matchDbId)) {
+        matchesApi.updateMatch(matchDbId, delta).catch(() => {});
+      } else {
+        update(ref(db, dbPath), delta);
+      }
     }
     prevMatchRef.current = match;
-  }, [match]);
+  }, [match, matchDbId, dbPath]);
 
   const handleLogoUpload = (e, team) => {
     const file = e.target.files[0];
@@ -527,7 +593,10 @@ const legalBallCount = match.legalBallCount || 0;
         {/* HEADER NAVIGATION */}
         <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
           <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <img src="/ks_logo.png" alt="KS Logo" className="h-7 w-auto object-contain" />
             <h1 className="font-bold tracking-tighter text-yellow-400 text-xl italic">{t("admin.header")}</h1>
+          </div>
             <div className="flex gap-2 ml-4">
               <button onClick={() => window.open(`/overlay/${matchDbId}`, '_blank')} className="text-[10px] bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay ↗</button>
               <button onClick={() => window.open(`/teams/${matchDbId}`, '_blank')} className="text-[10px] bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Teams ↗</button>
@@ -542,6 +611,32 @@ const legalBallCount = match.legalBallCount || 0;
             <button onClick={handleSuperOver} className="bg-red-500 px-3 py-1 rounded text-[10px] font-black shadow-lg">Super Over</button>
             <button onClick={handleUndo} className="bg-white/10 px-4 py-1 rounded text-xs font-bold border border-white/20">Undo (U)</button>
           </div>
+        </div>
+
+        {/* LIVE PREVIEW ROW */}
+        <div className="bg-slate-800 px-6 py-3 border-b border-slate-700 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-black tracking-[0.15em] text-slate-300">LIVE OVERLAY MONITOR</span>
+            </div>
+            <button onClick={() => setShowLivePreview(p => !p)} className="text-[10px] font-bold px-3 py-1 bg-white/10 text-white hover:bg-white/20 rounded border border-white/10">
+              {showLivePreview ? "Hide Preview ▲" : "Show Preview ▼"}
+            </button>
+          </div>
+          {showLivePreview && (
+            <div className="relative w-full bg-black rounded-lg overflow-hidden border border-slate-700 aspect-video max-h-[280px] shadow-inner flex items-center justify-center">
+              <iframe
+                src={overlayUrl}
+                title="Live Overlay Monitor"
+                className="absolute top-0 left-0 w-full h-full"
+                style={{ border: 'none', pointerEvents: 'none' }}
+              />
+              <div className="absolute bottom-2 right-2 bg-black/75 backdrop-blur px-2.5 py-1 rounded text-[8px] tracking-[0.1em] text-slate-400 border border-white/10 pointer-events-none">
+                RESOLUTION SCALED TO VIEWPORT
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -65,4 +65,18 @@ router.get('/payments', async (req, res, next) => {
   }
 });
 
+// Get all matches globally (Super Admin view)
+router.get('/matches', async (req, res, next) => {
+  try {
+    const Match = require('../models/Match');
+    const matches = await Match.find()
+      .populate('ownerUid', 'email displayName')
+      .sort({ createdAt: -1 })
+      .limit(100);
+    res.json({ success: true, matches });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

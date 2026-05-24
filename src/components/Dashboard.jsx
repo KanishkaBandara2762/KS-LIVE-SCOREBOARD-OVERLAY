@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, getToken } from '../api';
+import SubscriptionCountdownWidget from './SubscriptionCountdownWidget';
 import './Dashboard.css';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
@@ -285,7 +286,7 @@ const Dashboard = () => {
     return res;
   };
 
-  const isMongoDB = (id) => id && /^KS-/i.test(id);
+  const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
 
   const handleOpen = (matchId) => {
     if (isMongoDB(matchId)) {
@@ -332,8 +333,8 @@ const Dashboard = () => {
       {/* Header */}
       <header className="dash-header">
         <div className="dash-header-left">
-          <div className="dash-logo">
-            <span className="dash-logo-icon">⚡</span>
+          <div className="dash-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="/ks_logo.png" alt="KS Live Logo" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
             <span className="dash-logo-text">KS <span>LIVE</span></span>
           </div>
           <div className="dash-user-info">
@@ -363,6 +364,9 @@ const Dashboard = () => {
           <button className="btn-logout" onClick={handleLogout}>Sign Out</button>
         </div>
       </header>
+
+      {/* Live Subscription Tracking & Expiration Barrier */}
+      <SubscriptionCountdownWidget />
 
       {/* Stats Bar */}
       <div className="dash-stats">

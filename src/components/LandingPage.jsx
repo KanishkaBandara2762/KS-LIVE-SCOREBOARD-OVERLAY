@@ -194,7 +194,7 @@ export default function LandingPage() {
             {!introComplete && (
                 <div className="landing-intro-overlay">
                     <div className="landing-intro-logo-wrap">
-                        <div className="landing-intro-icon">🏏</div>
+                        <img src="/ks_logo.png" className="w-28 h-28 object-contain mb-4" alt="KS Live Logo" style={{ filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.4))' }} />
                         <div className="landing-intro-text">KS LIVE</div>
                         <div className="landing-intro-tagline">Broadcasting</div>
                         <div className="landing-intro-particles">
@@ -217,8 +217,8 @@ export default function LandingPage() {
             )}
 
             <nav className={`landing-nav ${navScrolled ? "scrolled" : ""}`}>
-                <Link to="/landing" className="landing-nav-brand">
-                    <div className="landing-nav-logo">🏏</div>
+                <Link to="/landing" className="landing-nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <img src="/ks_logo.png" alt="KS Live" className="landing-nav-logo-img" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
                     <span className="landing-nav-name">KS Live</span>
                 </Link>
 
