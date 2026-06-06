@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════
+   T20 BLITZ — Custom Layout
+   Bold diagonal-cut layout, cyan/purple neon gradient
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Main Container - Add slant */
+.theme-t20-blitz.scoreboard-open {
+    height: 120px !important;
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    padding: 0 50px 10px 50px !important;
+    gap: 8px !important;
+}
+
+/* Individual blocks */
+.theme-t20-blitz .content-reveal,
+.theme-t20-blitz .w-\[35\%\],
+.theme-t20-blitz .w-\[30\%\],
+.theme-t20-blitz .flex-1 {
+    height: 100px !important;
+    background: linear-gradient(135deg, rgba(30,27,75,0.95), rgba(76,29,149,0.9)) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 2px solid rgba(34, 211, 238, 0.4) !important;
+    transform: skewX(-12deg) !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    box-shadow: 4px 4px 0 rgba(34, 211, 238, 0.5) !important;
+}
+
+/* Unskew content inside the slanted blocks */
+.theme-t20-blitz .content-reveal > *,
+.theme-t20-blitz .w-\[35\%\] > *,
+.theme-t20-blitz .w-\[30\%\] > *,
+.theme-t20-blitz .flex-1 > * {
+    transform: skewX(12deg) !important;
+}
+
+/* Left Box */
+.theme-t20-blitz .w-\[35\%\] {
+    flex: 0 0 380px !important;
+    width: auto !important;
+    border-left: 6px solid #22d3ee !important;
+}
+
+/* Middle Box */
+.theme-t20-blitz .w-\[30\%\] {
+    flex: 1 !important;
+    width: auto !important;
+    background: linear-gradient(135deg, rgba(88,28,135,0.95), rgba(15,23,42,0.95)) !important;
+    padding-left: 30px !important;
+}
+
+/* Right Box */
+.theme-t20-blitz .flex-1 {
+    flex: 0 0 500px !important;
+    border-right: 6px solid #c084fc !important;
+}
+
+/* Fonts inside score block */
+.theme-t20-blitz .text-4xl,
+.theme-t20-blitz .text-5xl,
+.theme-t20-blitz .text-6xl {
+    font-size: 3.5rem !important;
+    font-weight: 900 !important;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.5), 0 0 20px rgba(34,211,238,0.5) !important;
+    color: #fff !important;
+}
+
+/* Ball tracker */
+.theme-t20-blitz .w-8.h-8 {
+    border-radius: 4px !important;
+    background: rgba(0,0,0,0.4) !important;
+    border: 1px solid rgba(192, 132, 252, 0.4) !important;
+    color: #c084fc !important;
+    transform: skewX(-8deg) !important;
+}
+.theme-t20-blitz .bg-cyan-400.text-black {
+    background: #22d3ee !important;
+    color: black !important;
+    box-shadow: 0 0 12px #22d3ee !important;
+    border: none !important;
+}

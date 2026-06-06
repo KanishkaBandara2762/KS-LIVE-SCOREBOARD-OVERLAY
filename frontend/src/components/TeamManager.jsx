@@ -11,6 +11,9 @@ const TeamManager = () => {
   const [selectedBatting, setSelectedBatting] = useState([]);
   const [selectedBowling, setSelectedBowling] = useState([]);
   const [teamNames, setTeamNames] = useState({ teamA: "TEAM A", teamB: "TEAM B" });
+  const adminPath = matchId ? `/admin/${matchId}` : "/admin";
+  const miniAdminPath = matchId ? `/mini-admin/${matchId}` : "/mini-admin";
+  const overlayPath = matchId ? `/overlay/${matchId}` : "/overlay";
 
   // Load master player list from Firebase
   useEffect(() => {
@@ -25,6 +28,21 @@ const TeamManager = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const matchRef = ref(db, liveMatchPath);
+    const unsubscribe = onValue(matchRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+      setSelectedBatting(data.battingSquad || []);
+      setSelectedBowling(data.bowlingSquad || []);
+      setTeamNames({
+        teamA: data.battingTeam || "TEAM A",
+        teamB: data.bowlingTeam || "TEAM B",
+      });
+    });
+    return () => unsubscribe();
+  }, [liveMatchPath]);
 
   const addPlayerToDB = () => {
     if (!newPlayer.name) return;
@@ -55,8 +73,9 @@ const TeamManager = () => {
         <div>
           <h1 className="text-2xl font-black italic text-yellow-400 tracking-widest">KS TEAM MANAGER</h1>
           <div className="flex gap-4 mt-2">
-            <button onClick={() => window.open('/admin', '_blank')} className="text-[10px] bg-blue-600 hover:bg-blue-500 px-4 py-1 rounded-full font-black transition">Admin Panel ↗</button>
-            <button onClick={() => window.open('/', '_blank')} className="text-[10px] bg-slate-700 hover:bg-slate-600 px-4 py-1 rounded-full font-black transition border border-white/10">Scoreboard ↗</button>
+            <button onClick={() => window.open(adminPath, '_blank')} className="text-[10px] bg-blue-600 hover:bg-blue-500 px-4 py-1 rounded-full font-black transition">Admin Panel ↗</button>
+            <button onClick={() => window.open(miniAdminPath, '_blank')} className="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-4 py-1 rounded-full font-black transition">Mini Admin ↗</button>
+            <button onClick={() => window.open(overlayPath, '_blank')} className="text-[10px] bg-slate-700 hover:bg-slate-600 px-4 py-1 rounded-full font-black transition border border-white/10">Scoreboard ↗</button>
           </div>
         </div>
         <button onClick={pushToLiveMatch} className="bg-green-600 hover:bg-green-500 text-white px-10 py-3 rounded-full font-black text-sm animate-pulse border-2 border-white/20">Sync Match Data Now</button>

@@ -96,6 +96,9 @@ app.use('/api/subscriptions', requireDB, subscriptionRoutes);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// ── Serve uploaded logos ───────────────────────────────────────────────────
+app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
+
 // ── Rate limiting ──────────────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV !== 'production';
 

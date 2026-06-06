@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import './Pricing.css';
@@ -9,23 +9,58 @@ const WHATSAPP_DISPLAY = "0719574089";
 const FACEBOOK_LINK = "https://www.facebook.com/kslive.lk"; // Or Messenger link: https://m.me/yourusername
 const FACEBOOK_DISPLAY = "KS Live Broadcasting";
 
+const isSriLankanUser = () => {
+  const locale = navigator.language || '';
+  const locales = navigator.languages || [];
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+
+  return locale.toLowerCase().includes('-lk')
+    || locales.some((item) => item.toLowerCase().includes('-lk'))
+    || timeZone === 'Asia/Colombo';
+};
+
+const getPlanPrices = () => {
+  const local = isSriLankanUser();
+
+  return {
+    daily: {
+      name: 'Daily Pass',
+      currency: local ? 'Rs' : '$',
+      amount: local ? '500' : '2',
+      price: local ? 'Rs 500' : '$2',
+      period: '/ 24 hours'
+    },
+    monthly: {
+      name: 'Monthly Plan',
+      currency: local ? 'Rs' : '$',
+      amount: local ? '4000' : '10',
+      price: local ? 'Rs 4000' : '$10',
+      period: '/ month'
+    },
+    annual: {
+      name: 'Annual Plan',
+      currency: local ? 'Rs' : '$',
+      amount: local ? '15000' : '40',
+      price: local ? 'Rs 15000' : '$40',
+      period: '/ year'
+    }
+  };
+};
+
 const Pricing = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [activeModalTab, setActiveModalTab] = useState('message'); // 'message' or 'bank'
+  const planPrices = useMemo(() => getPlanPrices(), []);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const plan = queryParams.get('plan');
     if (plan && ['daily', 'monthly', 'annual'].includes(plan)) {
       if (currentUser) {
-        const planDetails = {
-          daily: { name: 'Daily Pass', price: '$2' },
-          monthly: { name: 'Monthly Plan', price: '$10' },
-          annual: { name: 'Annual Plan', price: '$50' }
-        }[plan];
+        const planDetails = planPrices[plan];
         setSelectedPlan(planDetails);
         setActiveModalTab('message');
         setShowModal(true);
@@ -33,7 +68,7 @@ const Pricing = () => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
-  }, [currentUser]);
+  }, [currentUser, planPrices]);
 
   const handleSubscribe = (planKey) => {
     if (!currentUser) {
@@ -41,11 +76,7 @@ const Pricing = () => {
       return;
     }
 
-    const planDetails = {
-      daily: { name: 'Daily Pass', price: '$2' },
-      monthly: { name: 'Monthly Plan', price: '$10' },
-      annual: { name: 'Annual Plan', price: '$50' }
-    }[planKey];
+    const planDetails = planPrices[planKey];
 
     setSelectedPlan(planDetails);
     setActiveModalTab('message'); // Default tab
@@ -65,9 +96,9 @@ const Pricing = () => {
           <div className="pricing-card-header">
             <h3>Daily Pass</h3>
             <div className="price">
-              <span className="currency">$</span>
-              <span className="amount">2</span>
-              <span className="period">/ 24 hours</span>
+              <span className="currency">{planPrices.daily.currency}</span>
+              <span className="amount">{planPrices.daily.amount}</span>
+              <span className="period">{planPrices.daily.period}</span>
             </div>
           </div>
           <div className="pricing-card-body">
@@ -96,9 +127,9 @@ const Pricing = () => {
           <div className="pricing-card-header">
             <h3>Monthly Plan</h3>
             <div className="price">
-              <span className="currency">$</span>
-              <span className="amount">10</span>
-              <span className="period">/ month</span>
+              <span className="currency">{planPrices.monthly.currency}</span>
+              <span className="amount">{planPrices.monthly.amount}</span>
+              <span className="period">{planPrices.monthly.period}</span>
             </div>
           </div>
           <div className="pricing-card-body">
@@ -125,9 +156,9 @@ const Pricing = () => {
           <div className="pricing-card-header">
             <h3>Annual Plan</h3>
             <div className="price">
-              <span className="currency">$</span>
-              <span className="amount">50</span>
-              <span className="period">/ year</span>
+              <span className="currency">{planPrices.annual.currency}</span>
+              <span className="amount">{planPrices.annual.amount}</span>
+              <span className="period">{planPrices.annual.period}</span>
             </div>
           </div>
           <div className="pricing-card-body">

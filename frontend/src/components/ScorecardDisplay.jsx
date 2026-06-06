@@ -9,6 +9,10 @@ import "./BroadcastScreens.css";
 import "./ks-premium.css";
 import "./newipl.css";
 import "./IPL2026Theme.css";
+import "./neon-vavuniya.css";
+import "./t20-blitz.css";
+import "./sl-broadcast.css";
+import "./gold-championship.css";
 
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
@@ -18,6 +22,7 @@ const ScorecardDisplay = () => {
   const dbPath = matchId ? `matches/${matchId}/live_match` : 'live_match';
   const [match, setMatch] = useState(null);
   const [showEvent, setShowEvent] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState(null);
   const [winnerInfo, setWinnerInfo] = useState(null);
 
   // ── Animation state ───────────────────────────────────────────
@@ -30,6 +35,9 @@ const ScorecardDisplay = () => {
   const prevWickets = useRef(null);
   const prevEventTime = useRef(null);
   const prevBannerEventTime = useRef(null);
+  const eventQueueRef = useRef([]);
+  const eventPlayingRef = useRef(false);
+  const currentEventRef = useRef(null);
   const prevTourneyBannerTime = useRef(null);
   const eventTimerRef = useRef(null);
   const prevCurrentOver = useRef(null);
@@ -49,15 +57,15 @@ const ScorecardDisplay = () => {
   const themes = useMemo(() => ({
     IPL_GOLD: { main: "bg-slate-900", accent: "bg-yellow-400", text: "text-yellow-400", batsman: "bg-yellow-400", bowler: "from-blue-800 to-blue-950", border: "border-yellow-500", chase: "bg-blue-900", animClass: "anim-ipl-gold" },
     SKY_PRO: { main: "bg-white", accent: "bg-red-600", text: "text-red-600", batsman: "bg-slate-100", bowler: "from-red-600 to-red-800", border: "border-red-600", chase: "bg-slate-900", animClass: "anim-sky-pro" },
-    NEON_VAVUNIYA: { main: "bg-black", accent: "bg-lime-500", text: "text-lime-400", batsman: "bg-zinc-900", bowler: "from-zinc-800 to-black", border: "border-lime-500", chase: "bg-zinc-800", animClass: "anim-neon-vavuniya" },
+    NEON_VAVUNIYA: { main: "theme-neon-pulse", accent: "bg-lime-500", text: "text-lime-400", batsman: "bg-zinc-900", bowler: "from-zinc-800 to-black", border: "border-lime-500", chase: "bg-zinc-800", animClass: "anim-neon-vavuniya" },
     MINIMAL_DARK: { main: "bg-zinc-950", accent: "bg-white", text: "text-white", batsman: "bg-zinc-800", bowler: "from-zinc-700 to-zinc-900", border: "border-white/20", chase: "bg-black", animClass: "anim-minimal-dark" },
     CLASSIC_DARK: { main: "theme-classic-dark", accent: "bg-gray-300", text: "text-gray-200", batsman: "theme-classic-dark-bat", bowler: "from-gray-800 to-gray-950", border: "border-gray-500", chase: "bg-gray-900", animClass: "anim-classic-dark" },
-    T20_NEON: { main: "theme-t20-neon", accent: "theme-t20-neon-accent", text: "text-cyan-300", batsman: "theme-t20-neon-bat", bowler: "from-purple-900 to-fuchsia-950", border: "border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]", chase: "bg-fuchsia-900", animClass: "anim-t20-neon" },
+    T20_NEON: { main: "theme-t20-blitz", accent: "theme-t20-neon-accent", text: "text-cyan-300", batsman: "theme-t20-neon-bat", bowler: "from-purple-900 to-fuchsia-950", border: "border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]", chase: "bg-fuchsia-900", animClass: "anim-t20-neon" },
     WC_BLUE_PURPLE: { main: "theme-wc-bp", accent: "theme-wc-bp-accent", text: "text-blue-300", batsman: "theme-wc-bp-bat", bowler: "from-indigo-900 to-purple-950", border: "border-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.4)]", chase: "bg-indigo-900", animClass: "anim-wc-bp" },
-    GOLD_CHAMPIONSHIP: { main: "theme-gold-champ", accent: "theme-gold-champ-accent", text: "text-amber-300", batsman: "theme-gold-champ-bat", bowler: "from-amber-900 to-yellow-950", border: "border-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.3)]", chase: "bg-amber-950", animClass: "anim-gold-champ" },
+    GOLD_CHAMPIONSHIP: { main: "theme-gold-championship", accent: "theme-gold-champ-accent", text: "text-amber-300", batsman: "theme-gold-champ-bat", bowler: "from-amber-900 to-yellow-950", border: "border-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.3)]", chase: "bg-amber-950", animClass: "anim-gold-champ" },
     KS_SPECIAL: { main: "theme-ks-special", accent: "theme-ks-special-accent", text: "text-teal-300", batsman: "theme-ks-special-bat", bowler: "from-gray-800 to-gray-900", border: "border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.35)]", chase: "theme-ks-special-chase", animClass: "anim-ks-special" },
     WC2026: { main: "theme-wc2026", accent: "theme-wc2026-accent", text: "theme-wc2026-score", batsman: "theme-wc2026-bat", bowler: "theme-wc2026-bowler", border: "theme-wc2026-border", chase: "theme-wc2026-chase", isWC2026: true, animClass: "anim-wc2026" },
-    SL_BROADCAST: { main: "theme-sl-broadcast", accent: "theme-sl-broadcast-accent", text: "theme-sl-broadcast-score", batsman: "theme-sl-broadcast-bat", bowler: "theme-sl-broadcast-bowler", border: "theme-sl-broadcast-border", chase: "theme-sl-broadcast-chase", animClass: "anim-sl-broadcast" },
+    SL_BROADCAST: { main: "theme-sl-broadcast2", accent: "theme-sl-broadcast-accent", text: "theme-sl-broadcast-score", batsman: "theme-sl-broadcast-bat", bowler: "theme-sl-broadcast-bowler", border: "theme-sl-broadcast-border", chase: "theme-sl-broadcast-chase", animClass: "anim-sl-broadcast" },
     DC_BLUE: { main: "bg-blue-900", accent: "bg-cyan-400", text: "text-cyan-400", batsman: "bg-blue-950 text-white border-x border-blue-800", bowler: "from-blue-800 to-blue-950", border: "border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.3)]", chase: "bg-blue-950", animClass: "anim-ipl-gold" }
   }), []);
 
@@ -67,6 +75,37 @@ const ScorecardDisplay = () => {
     const t = setTimeout(() => setter(""), duration);
     return t;
   }, []);
+
+  const playQueuedEvent = useCallback(() => {
+    if (eventPlayingRef.current) return;
+    const nextEvent = eventQueueRef.current.shift();
+    if (!nextEvent) return;
+    eventPlayingRef.current = true;
+    currentEventRef.current = nextEvent;
+    setCurrentEvent(nextEvent);
+    setShowEvent(true);
+    let duration = 3500;
+    if (nextEvent.type === "FOUR") duration = 2500;
+    else if (nextEvent.type === "SIX") duration = 3000;
+    else if (nextEvent.type === "WICKET") duration = 3500;
+    
+    if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+    eventTimerRef.current = setTimeout(() => {
+      setShowEvent(false);
+      eventPlayingRef.current = false;
+      currentEventRef.current = null;
+      setCurrentEvent(null);
+      playQueuedEvent();
+    }, duration);
+  }, []);
+
+  const queueEvent = useCallback((event) => {
+    if (!event?.type || !event?.time) return;
+    const exists = eventQueueRef.current.some((queued) => queued.time === event.time && queued.type === event.type);
+    if (exists || (currentEventRef.current?.time === event.time && currentEventRef.current?.type === event.type)) return;
+    eventQueueRef.current.push(event);
+    playQueuedEvent();
+  }, [playQueuedEvent]);
 
   // ── DUAL-MODE DATA SYNC (MongoDB/Socket.IO or Legacy Firebase) ────────────────────────────
   useEffect(() => {
@@ -127,9 +166,14 @@ const ScorecardDisplay = () => {
         if (['FOUR', 'SIX', 'WICKET'].includes(merged.eventTrigger) &&
             merged.eventTime && merged.eventTime !== prevBannerEventTime.current) {
           prevBannerEventTime.current = merged.eventTime;
-          if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
-          setShowEvent(true);
-          eventTimerRef.current = setTimeout(() => setShowEvent(false), 3000);
+          queueEvent({
+            type: merged.eventTrigger,
+            time: merged.eventTime,
+            id: merged.eventId || `${merged.eventTrigger}_${merged.eventTime}`,
+            lastWicketName: merged.lastWicketName,
+            lastWicketRuns: merged.lastWicketRuns,
+            lastWicketBalls: merged.lastWicketBalls,
+          });
         }
 
         return merged;
@@ -298,14 +342,28 @@ const ScorecardDisplay = () => {
       console.log('[ScorecardDisplay] Initializing Firebase Legacy mode. Path:', dbPath);
       const unsubscribe = onValue(ref(db, dbPath), (snapshot) => {
         const val = snapshot.val();
-        if (val) setMatch(val);
+        if (val) {
+          if (['FOUR', 'SIX', 'WICKET'].includes(val.eventTrigger) &&
+              val.eventTime && val.eventTime !== prevBannerEventTime.current) {
+            prevBannerEventTime.current = val.eventTime;
+            queueEvent({
+              type: val.eventTrigger,
+              time: val.eventTime,
+              id: val.eventId || `${val.eventTrigger}_${val.eventTime}`,
+              lastWicketName: val.lastWicketName,
+              lastWicketRuns: val.lastWicketRuns,
+              lastWicketBalls: val.lastWicketBalls,
+            });
+          }
+          setMatch(val);
+        }
       });
       return () => {
         unsubscribe();
         if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
       };
     }
-  }, [matchId, dbPath, tournamentId]);
+  }, [matchId, dbPath, tournamentId, queueEvent]);
 
   // ── Animation detection: score / event / over changes ─────────
   useEffect(() => {
@@ -398,8 +456,8 @@ const ScorecardDisplay = () => {
     }
 
     if (match.isSecondInnings && !match.isSuperOver) {
-      const totalBalls = (match.maxOvers || 5) * 6;
-      const remainingBalls = totalBalls - match.totalBalls;
+      const totalBalls = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
+      const remainingBalls = totalBalls - (match.legalBallCount ?? match.totalBalls ?? 0);
       
       let winnerObj = null;
       if (match.score >= (match.targetScore || 0)) {
@@ -441,8 +499,12 @@ const ScorecardDisplay = () => {
     </div>
   );
   const animThemeClass = active.animClass || "anim-ipl-gold";
-  const totalMatchBalls = (match.maxOvers || 5) * 6;
-  const remainingBalls = totalMatchBalls - match.totalBalls;
+  const eventType = currentEvent?.type || match.eventTrigger;
+  const eventWicketName = currentEvent?.lastWicketName || match.lastWicketName;
+  const eventWicketRuns = currentEvent?.lastWicketRuns ?? match.lastWicketRuns;
+  const eventWicketBalls = currentEvent?.lastWicketBalls ?? match.lastWicketBalls;
+  const totalMatchBalls = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
+  const remainingBalls = totalMatchBalls - (match.legalBallCount ?? match.totalBalls ?? 0);
   const isMatchFinished = ["finished", "match ended"].includes(String(match.matchStatus || "").toLowerCase());
   const bannerInfo = {
     title: match.matchTitle || match.bowlingPrefix || "Live Match",
@@ -649,7 +711,7 @@ const ScorecardDisplay = () => {
                 {match.battingTeam}
               </h1>
               <p className="text-yellow-400 font-black text-2xl italic">
-                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.maxOvers || 5) * 6) - match.totalBalls}</span> balls
+                need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6))) - match.totalBalls}</span> balls
               </p>
               <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">to win</p>
             </div>
@@ -681,7 +743,7 @@ const ScorecardDisplay = () => {
             const bpo = match.ballsPerOver || 6;
             const balls = match.recentBalls || [];
             const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
-            const totalMatchBallsKSP = (match.maxOvers || 5) * 6;
+            const totalMatchBallsKSP = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
             const remainKSP = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
             const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
             
@@ -719,11 +781,11 @@ const ScorecardDisplay = () => {
                   {/* Center Block: Target OR Batters */}
                   <div className="ksp-center">
                     {/* Event Banner (inside center so score on left stays visible) */}
-                    {showEvent && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
-                      <div className={`ksp-event-banner ksp-event-${match.eventTrigger.toLowerCase()}`}>
+                    {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+                      <div className={`ksp-event-banner ksp-event-${eventType.toLowerCase()}`}>
                         <div className="ksp-sweep" />
                         <div className="ksp-event-text">
-                          {match.eventTrigger === "WICKET" ? "WICKET!" : match.eventTrigger === "FOUR" ? "FOUR!" : "SIX!"}
+                          {eventType === "WICKET" ? "WICKET!" : eventType === "FOUR" ? "FOUR!" : "SIX!"}
                         </div>
                       </div>
                     )}
@@ -768,7 +830,7 @@ const ScorecardDisplay = () => {
                             </div>
                           </div>
                           {match.partnership && match.partnership.runs > 0 && (
-                            <div className="ksp-partnership" style={{ fontSize: '10px', color: '#ffb900', marginTop: '2px', fontWeight: '800', textAlign: 'right' }}>
+                            <div className="ksp-partnership">
                               P'SHIP: {match.partnership.runs} ({match.partnership.balls})
                             </div>
                           )}
@@ -815,7 +877,7 @@ const ScorecardDisplay = () => {
             const bpo = match.ballsPerOver || 6;
             const balls = match.recentBalls || [];
             const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
-            const totalMatchBallsNew = (match.maxOvers || 5) * 6;
+            const totalMatchBallsNew = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
             const remainNew = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsNew - legalDeliveries);
             const rrrNew = match.isSecondInnings && remainNew > 0 ? ((match.targetScore - match.score) / (remainNew / 6)).toFixed(2) : '--';
             const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
@@ -824,9 +886,9 @@ const ScorecardDisplay = () => {
               <div className="newipl-wrapper">
                 <div className="newipl-board">
                   {/* Event triggers (animated overlays) */}
-                  {showEvent && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
-                    <div className={`newipl-event-trigger newipl-event-${match.eventTrigger.toLowerCase()}`}>
-                      <div className="newipl-event-text">{match.eventTrigger === "WICKET" ? "WICKET" : match.eventTrigger}</div>
+                  {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+                    <div className={`newipl-event-trigger newipl-event-${eventType.toLowerCase()}`}>
+                      <div className="newipl-event-text">{eventType === "WICKET" ? "WICKET" : eventType}</div>
                     </div>
                   )}
 
@@ -934,7 +996,7 @@ const ScorecardDisplay = () => {
             const bpo = match.ballsPerOver || 6;
             const balls = match.recentBalls || [];
             const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
-            const totalMatchBallsKSP = (match.maxOvers || 5) * 6;
+            const totalMatchBallsKSP = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
             const remainIPL = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
             const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
             const bannerInfo = {
@@ -944,6 +1006,11 @@ const ScorecardDisplay = () => {
 
             return (
               <div className="ipl26-wrapper anim-ipl2026">
+                {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+                  <div className={`ipl26-event-banner ipl26-event-${eventType.toLowerCase()}`}>
+                    <h1 className="ipl26-event-title">{eventType}</h1>
+                  </div>
+                )}
                 <div className="ipl26-ticker">
                   <div className="ipl26-ticker-text">
                     {(typeof match.ticker === 'object' ? match.ticker?.message : match.ticker) || bannerInfo.tournament}
@@ -1042,12 +1109,17 @@ const ScorecardDisplay = () => {
             const bpo = match.ballsPerOver || 6;
             const balls = match.recentBalls || [];
             const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
-            const totalMatchBallsKSP = (match.maxOvers || 5) * 6;
+            const totalMatchBallsKSP = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
             const remainApogee = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
             const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
 
             return (
               <div className="apogee-bar anim-apogee apogee-open">
+                {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+                  <div className={`apogee-event-banner apogee-event-${eventType.toLowerCase()}`}>
+                    <h1 className="apogee-event-title">{eventType}</h1>
+                  </div>
+                )}
                 <div className="apogee-bar-glow" />
                 <div className="apogee-bar-glow-soft" />
                 
@@ -1120,8 +1192,8 @@ const ScorecardDisplay = () => {
           <div className={`flex h-28 ${active.main} items-stretch relative overflow-hidden ${active.isWC2026 ? `${active.border} wc2026-open` : `border-t-2 ${active.border} scoreboard-open`} shadow-2xl ${boardAnimClass}`}>
 
             {/* INLINE EVENT BANNER — contained within scoreboard */}
-            {showEvent && !active.isNewIpl && !active.isKsPremium && ["FOUR", "SIX", "WICKET"].includes(match.eventTrigger) && (
-              <div className={`event-banner event-banner-${match.eventTrigger.toLowerCase()}`}>
+            {showEvent && !active.isNewIpl && !active.isKsPremium && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+              <div className={`event-banner event-banner-${eventType.toLowerCase()}`}>
                 {/* Particles — lightweight, clipped to scoreboard */}
                 <div className="event-banner-particles">
                   {particleData.map((p, i) => (
@@ -1139,12 +1211,12 @@ const ScorecardDisplay = () => {
                 {/* Content — slide-in from right */}
                 <div className="event-banner-content">
                   <p className="event-banner-label">
-                    {match.eventTrigger === "WICKET" ? "WICKET" : "BOUNDARY"}
+                    {eventType === "WICKET" ? "WICKET" : "BOUNDARY"}
                   </p>
                   <h1 className="event-banner-title">
-                    {match.eventTrigger === "WICKET"
-                      ? <>{match.lastWicketName} <span className="event-banner-stat">{match.lastWicketRuns}({match.lastWicketBalls})</span> OUT!</>
-                      : match.eventTrigger === "FOUR" ? "IT'S A FOUR!" : "MASSIVE SIX!"}
+                    {eventType === "WICKET"
+                      ? <>{eventWicketName} <span className="event-banner-stat">{eventWicketRuns}({eventWicketBalls})</span> OUT!</>
+                      : eventType === "FOUR" ? "IT'S A FOUR!" : "MASSIVE SIX!"}
                   </h1>
                   <div className="event-banner-accent" />
                 </div>
@@ -1183,7 +1255,7 @@ const ScorecardDisplay = () => {
 
             {/* BATSMEN SECTION — WC2026 gets lightning bolt dividers */}
             {active.isWC2026 && (match.overlayMode || 'full') === 'full' && (
-              <div className={`wc2026-strike wc2026-content-reveal ${showEvent && (match.eventTrigger === 'FOUR' || match.eventTrigger === 'SIX') ? 'wc2026-strike-active' : ''}`} />
+              <div className={`wc2026-strike wc2026-content-reveal ${showEvent && (eventType === 'FOUR' || eventType === 'SIX') ? 'wc2026-strike-active' : ''}`} />
             )}
             {(match.overlayMode || 'full') === 'full' && match.player1?.name && match.player2?.name && (
               <div className={`w-[30%] ${active.batsman} flex flex-col justify-center px-8 border-x border-black/10 shadow-inner overlay-section-transition ${active.isWC2026 ? '' : 'content-reveal'}`}>
@@ -1289,3 +1361,4 @@ const ScorecardDisplay = () => {
 };
 
 export default ScorecardDisplay;
+

@@ -1920,3 +1920,147 @@
     0% { transform: translateX(30px); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   EVENT BANNERS (FOUR, SIX, WICKET)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Generic Theme Event Banner ───────────────────────────────── */
+.event-banner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    z-index: 9999;
+    text-align: center;
+    padding: 20px 80px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(20,20,20,0.8));
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: genericEventPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, genericEventFadeOut 0.5s calc(var(--duration, 2.5s) - 0.5s) forwards;
+}
+
+.event-banner-four { border-color: #3b82f6; box-shadow: 0 0 40px rgba(59,130,246,0.5); }
+.event-banner-six { border-color: #8b5cf6; box-shadow: 0 0 40px rgba(139,92,246,0.5); }
+.event-banner-wicket { border-color: #ef4444; box-shadow: 0 0 40px rgba(239,68,68,0.5); }
+
+@keyframes genericEventPop {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes genericEventFadeOut {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
+}
+
+.event-banner-title {
+    font-size: 100px;
+    font-weight: 900;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+}
+.event-banner-four .event-banner-title { color: #60a5fa; }
+.event-banner-six .event-banner-title { color: #a78bfa; }
+.event-banner-wicket .event-banner-title { color: #f87171; }
+
+.event-banner-label {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    color: rgba(255,255,255,0.7);
+    margin: 0;
+    text-transform: uppercase;
+}
+
+/* ── IPL 2026 Theme Event Banner ───────────────────────────────── */
+.ipl26-event-banner {
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: rgba(10, 25, 47, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(100, 255, 218, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
+    animation: ipl26EventEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards, ipl26EventExit 0.4s calc(var(--duration, 2.5s) - 0.4s) ease-in forwards;
+}
+
+.ipl26-event-four { border-bottom: 4px solid #64ffda; box-shadow: 0 20px 40px rgba(100,255,218,0.15); }
+.ipl26-event-six { border-bottom: 4px solid #b388ff; box-shadow: 0 20px 40px rgba(179,136,255,0.15); }
+.ipl26-event-wicket { border-bottom: 4px solid #ff5252; box-shadow: 0 20px 40px rgba(255,82,82,0.15); }
+
+@keyframes ipl26EventEnter {
+    0% { transform: translate(-50%, 0) scale(0.9); opacity: 0; filter: blur(10px); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0); }
+}
+
+@keyframes ipl26EventExit {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0); }
+    100% { transform: translate(-50%, -100%) scale(0.9); opacity: 0; filter: blur(10px); }
+}
+
+.ipl26-event-title {
+    font-size: 110px;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    letter-spacing: -2px;
+}
+.ipl26-event-four .ipl26-event-title { color: #64ffda; text-shadow: 0 0 20px rgba(100,255,218,0.4); }
+.ipl26-event-six .ipl26-event-title { color: #b388ff; text-shadow: 0 0 20px rgba(179,136,255,0.4); }
+.ipl26-event-wicket .ipl26-event-title { color: #ff5252; text-shadow: 0 0 20px rgba(255,82,82,0.4); }
+
+/* ── APOGEE Theme Event Banner ─────────────────────────────────── */
+.apogee-event-banner {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: linear-gradient(90deg, transparent, rgba(20,20,20,0.95), transparent);
+    animation: apogeeEventEnter 0.5s ease-out forwards, apogeeEventExit 0.4s calc(var(--duration, 2.5s) - 0.4s) ease-in forwards;
+}
+
+.apogee-event-four { border-top: 2px solid #38bdf8; border-bottom: 2px solid #38bdf8; }
+.apogee-event-six { border-top: 2px solid #facc15; border-bottom: 2px solid #facc15; }
+.apogee-event-wicket { border-top: 2px solid #f43f5e; border-bottom: 2px solid #f43f5e; }
+
+@keyframes apogeeEventEnter {
+    0% { transform: translateY(-50%) scaleY(0); opacity: 0; }
+    100% { transform: translateY(-50%) scaleY(1); opacity: 1; }
+}
+
+@keyframes apogeeEventExit {
+    0% { transform: translateY(-50%) scaleY(1); opacity: 1; }
+    100% { transform: translateY(-50%) scaleY(0); opacity: 0; }
+}
+
+.apogee-event-title {
+    font-size: 80px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: white;
+    transform: skewX(-10deg);
+}
+.apogee-event-four .apogee-event-title { color: #38bdf8; }
+.apogee-event-six .apogee-event-title { color: #facc15; }
+.apogee-event-wicket .apogee-event-title { color: #f43f5e; }

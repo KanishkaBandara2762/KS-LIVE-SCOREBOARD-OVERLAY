@@ -368,6 +368,28 @@ export default function PublicMatchPreview() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const bannerInfo = {
+    title: match.matchTitle || match.bowlingPrefix || "Live Match",
+    tournament: match.tournamentName || "Cricket Scoreboard",
+    venue: match.venueName || "Venue TBA",
+    date: match.matchDate || "Date TBA",
+    battingTeam: match.battingTeam || "TEAM A",
+    bowlingTeam: match.bowlingTeam || "TEAM B",
+  };
+
+  const getLogoUrl = (logoPath) => {
+    if (!logoPath) return "";
+    if (logoPath.startsWith('http')) return logoPath;
+    if (logoPath.startsWith('/')) return `${API_URL}${logoPath}`;
+    return `${API_URL}/${logoPath}`;
+  };
+
+  const battingLogoPath = match.battingLogo || overlaySettings?.battingLogo || "";
+  const bowlingLogoPath = match.leagueLogo || overlaySettings?.leagueLogo || "";
+  
+  const battingLogoUrl = getLogoUrl(battingLogoPath);
+  const bowlingLogoUrl = getLogoUrl(bowlingLogoPath);
+
   const getShareText = () => {
     if (!match) return "";
     return `Watch the live score of ${match.matchTitle || "the cricket match"} between ${match.battingTeam} and ${match.bowlingTeam} live on KS Live! Currently ${match.score}/${match.wickets} (${getOvers(match.legalBallCount || 0)} ov). Link: `;
@@ -509,9 +531,17 @@ export default function PublicMatchPreview() {
             <div className="flex-1 space-y-4">
               <div className={`flex items-center justify-between md:justify-start md:gap-6 transition-all duration-300 ${livePulse ? "scale-[1.02]" : ""}`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-sm text-teal-400 shadow-inner uppercase">
-                    {getTeamInitials(match.battingTeam)}
-                  </div>
+                  {battingLogoUrl ? (
+                    <img 
+                      src={battingLogoUrl} 
+                      alt="Batting Team" 
+                      className="w-10 h-10 rounded-full bg-white object-contain p-0.5 shadow-inner" 
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-sm text-teal-400 shadow-inner uppercase">
+                      {getTeamInitials(match.battingTeam)}
+                    </div>
+                  )}
                   <h3 className="text-xl md:text-2xl font-extrabold text-slate-100 uppercase tracking-wide">
                     {match.battingTeam}
                   </h3>
@@ -528,9 +558,17 @@ export default function PublicMatchPreview() {
 
               <div className="flex items-center gap-3 justify-between md:justify-start md:gap-6 opacity-60">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-800/40 border border-white/5 flex items-center justify-center font-bold text-sm text-slate-400 uppercase">
-                    {getTeamInitials(match.bowlingTeam)}
-                  </div>
+                  {bowlingLogoUrl ? (
+                    <img 
+                      src={bowlingLogoUrl} 
+                      alt="Bowling Team" 
+                      className="w-10 h-10 rounded-full bg-white/10 object-contain p-0.5 border border-white/5 shadow-inner" 
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-slate-800/40 border border-white/5 flex items-center justify-center font-bold text-sm text-slate-400 uppercase">
+                      {getTeamInitials(match.bowlingTeam)}
+                    </div>
+                  )}
                   <h3 className="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-wide">
                     {match.bowlingTeam}
                   </h3>

@@ -1,0 +1,117 @@
+.features-hub-wrapper {
+    padding: 4rem 1.5rem;
+    background-color: #0f172a;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.hub-title {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    color: white;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.hub-title span {
+    color: #14b8a6;
+}
+
+.hub-subtitle {
+    text-align: center;
+    color: #94a3b8;
+    margin-bottom: 3rem;
+}
+
+.hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.hub-category-card {
+    background-color: #1e293b;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.category-title {
+    font-family: var(--font-serif);
+    color: white;
+    font-size: 1.4rem;
+    border-bottom: 2px solid #14b8a6;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+}
+
+.category-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.hub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.item-icon {
+    font-size: 1.5rem;
+    background: rgba(20, 184, 166, 0.1);
+    padding: 0.5rem;
+    border-radius: 8px;
+    line-height: 1;
+}
+
+.item-text h4 {
+    color: #f8fafc;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.item-text p {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.hub-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.preview-card {
+    background: #020617;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.preview-card h4 {
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    background: #1e293b;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.preview-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.preview-card:hover .preview-img {
+    opacity: 1;
+}

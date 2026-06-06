@@ -8,6 +8,7 @@ import AdminPanel from "./components/AdminPanel";
 import ScorecardDisplay from "./components/ScorecardDisplay";
 import TeamManager from "./components/TeamManager";
 import MiniAdmin from "./components/MiniAdmin";
+import ControlRoom from "./components/ControlRoom";
 import OverlayPage from "./components/OverlayPage";
 import AdminCustomers from "./components/AdminCustomers";
 
@@ -98,6 +99,14 @@ function App() {
               <PrivateRoute><MiniAdmin /></PrivateRoute>
             } />
             <Route path="/mini-admin" element={
+              <PrivateRoute><Navigate to="/dashboard" replace /></PrivateRoute>
+            } />
+
+            {/* Desktop Control Room — high density vMix style controller */}
+            <Route path="/control-room/:idOrSlug" element={
+              <PrivateRoute><ControlRoom /></PrivateRoute>
+            } />
+            <Route path="/control-room" element={
               <PrivateRoute><Navigate to="/dashboard" replace /></PrivateRoute>
             } />
 

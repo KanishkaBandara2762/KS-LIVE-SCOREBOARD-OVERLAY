@@ -1,0 +1,306 @@
+/* LandingExtras.css */
+
+/* Broadcasting Services Section */
+.landing-broadcasting-section {
+    padding: 3rem 1.5rem;
+    background: #05080f;
+    position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.broadcasting-content {
+    max-w: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.broadcasting-badge {
+    display: inline-block;
+    background: rgba(20, 184, 166, 0.1);
+    color: #14b8a6;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(20, 184, 166, 0.2);
+}
+
+.broadcasting-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.broadcasting-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 2.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.broadcasting-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(20, 184, 166, 0.3);
+}
+
+.broadcasting-icon {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.broadcasting-card h3 {
+    color: #f8fafc;
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+}
+
+.broadcasting-card p {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.broadcasting-cta {
+    margin-top: 2rem;
+    background: rgba(20, 184, 166, 0.05);
+    border: 1px dashed rgba(20, 184, 166, 0.3);
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.broadcasting-cta p {
+    color: #f8fafc;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+
+/* Reviews Section */
+.landing-reviews-section {
+    padding: 3rem 1.5rem;
+    background: #020617;
+}
+
+.reviews-container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.review-form {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 3rem;
+    text-align: left;
+}
+
+.star-rating-input {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.star-btn {
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    color: #334155;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star-btn:hover, .star-btn.active {
+    color: #fbbf24;
+}
+
+.form-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.review-input, .review-textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    color: white;
+    font-family: inherit;
+}
+
+.review-textarea {
+    min-height: 80px;
+    resize: vertical;
+    margin-bottom: 1.5rem;
+}
+
+.review-input:focus, .review-textarea:focus {
+    outline: none;
+    border-color: #14b8a6;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.submit-review-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+.review-success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 3rem;
+    border-radius: 16px;
+    margin-top: 3rem;
+}
+
+.success-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+
+/* Modern Footer */
+.modern-footer {
+    background: #000;
+    color: #94a3b8;
+    padding: 3rem 1.5rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-top {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 4rem;
+    margin-bottom: 4rem;
+}
+
+.footer-logo {
+    height: 50px;
+    margin-bottom: 1.5rem;
+}
+
+.company-info h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.est-text {
+    color: #14b8a6;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.company-desc {
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
+.developer-info h4, .quick-contact h4 {
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dev-name {
+    color: #fbbf24;
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+}
+
+.dev-title {
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.contact-details p {
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    line-height: 1.5;
+}
+
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.social-btn {
+    display: inline-block;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.social-btn.call {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+.social-btn.call:hover { background: rgba(255, 255, 255, 0.2); }
+
+.social-btn.whatsapp {
+    background: #25D366;
+    color: white;
+}
+.social-btn.whatsapp:hover { background: #20bd5a; }
+
+.social-btn.email {
+    background: rgba(20, 184, 166, 0.1);
+    color: #14b8a6;
+    border: 1px solid rgba(20, 184, 166, 0.3);
+}
+.social-btn.email:hover { background: rgba(20, 184, 166, 0.2); }
+
+.footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.footer-bottom strong {
+    color: white;
+    font-weight: 500;
+}
+
+.dev-credit {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+@media (max-width: 768px) {
+    .footer-top {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+    .form-group {
+        grid-template-columns: 1fr;
+    }
+}
+

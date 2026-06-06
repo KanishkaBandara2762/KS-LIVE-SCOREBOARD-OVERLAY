@@ -1,0 +1,125 @@
+/* ═══════════════════════════════════════════════════════════════
+   SRI LANKA TV BROADCAST — Custom Layout
+   Clean, professional horizontal strip, minimal height
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Main Container - Slim height, flat design */
+.theme-sl-broadcast2.scoreboard-open {
+    height: 72px !important;
+    background: #020617 !important;
+    border-top: 2px solid #fbbf24 !important;
+    border-bottom: none !important;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+}
+
+/* Individual blocks - Reset padding/margins */
+.theme-sl-broadcast2 .content-reveal,
+.theme-sl-broadcast2 .w-\[35\%\],
+.theme-sl-broadcast2 .w-\[30\%\],
+.theme-sl-broadcast2 .flex-1 {
+    height: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Left Box - Team and Score */
+.theme-sl-broadcast2 .w-\[35\%\] {
+    flex: 0 0 400px !important;
+    width: auto !important;
+    background: linear-gradient(90deg, #1e3a8a, #0f172a) !important;
+    padding: 0 20px !important;
+    clip-path: polygon(0 0, 95% 0, 100% 100%, 0 100%);
+    position: relative;
+}
+.theme-sl-broadcast2 .w-\[35\%\]::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #fbbf24;
+}
+
+/* Middle Box - Batsmen */
+.theme-sl-broadcast2 .w-\[30\%\] {
+    flex: 1 !important;
+    width: auto !important;
+    padding: 0 16px !important;
+    justify-content: flex-start !important;
+    gap: 24px !important;
+}
+
+/* Right Box - Bowler */
+.theme-sl-broadcast2 .flex-1 {
+    flex: 0 0 450px !important;
+    background: linear-gradient(90deg, #0f172a, #1e3a8a) !important;
+    clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%);
+    padding-left: 40px !important;
+    padding-right: 20px !important;
+    position: relative;
+}
+.theme-sl-broadcast2 .flex-1::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #fbbf24;
+}
+
+/* Typography Overrides */
+.theme-sl-broadcast2 .text-4xl,
+.theme-sl-broadcast2 .text-5xl,
+.theme-sl-broadcast2 .text-6xl {
+    font-size: 2.2rem !important;
+    color: #fff !important;
+    font-family: 'Helvetica Neue', Arial, sans-serif !important;
+    letter-spacing: -1px;
+}
+.theme-sl-broadcast2 .text-slate-400 {
+    color: #cbd5e1 !important;
+}
+
+/* Batsman Row overrides */
+.theme-sl-broadcast2 .w-\[30\%\] > div {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    height: auto !important;
+}
+.theme-sl-broadcast2 .w-\[30\%\] > div .font-bold {
+    font-size: 16px !important;
+    text-transform: uppercase;
+}
+
+/* Ball tracker */
+.theme-sl-broadcast2 .w-8.h-8 {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.1) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    font-size: 11px !important;
+    color: #fff !important;
+}
+.theme-sl-broadcast2 .bg-amber-400.text-black,
+.theme-sl-broadcast2 .bg-yellow-400.text-black {
+    background: #fbbf24 !important;
+    border: none !important;
+}

@@ -8,6 +8,10 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../i18n/LanguageContext';
 import { createMatchEvent } from '../utils/matchEvent';
 import { matchesApi, tournamentsApi, getToken } from '../api';
+import TossModal from './TossModal';
+import LogoUpload from './LogoUpload';
+import NewBatterModal from './NewBatterModal';
+
 
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 // MongoDB matches have matchId like KS-XXXXXXXX
@@ -44,6 +48,7 @@ const MiniAdmin = () => {
     const [match, setMatch] = useState(null);
     const [history, setHistory] = useState([]);
     const [openSections, setOpenSections] = useState({ scoring: true });
+    const [activeTab, setActiveTab] = useState('score');
     const [overCooldown, setOverCooldown] = useState(false);
     const [showNextMatch, setShowNextMatch] = useState(false);
 
@@ -53,6 +58,15 @@ const MiniAdmin = () => {
     const [runOutPlayer, setRunOutPlayer] = useState('striker');
     const [showLivePreview, setShowLivePreview] = useState(false);
     const [obsCopied, setObsCopied] = useState(false);
+    const [newBattingPlayer, setNewBattingPlayer] = useState("");
+    const [newBowlingPlayer, setNewBowlingPlayer] = useState("");
+
+    // ── v2.1 NEW STATE ────────────────────────────────────────────────────
+    const [showTossModal, setShowTossModal] = useState(false);
+    const [showNewBatterModal, setShowNewBatterModal] = useState(false);
+    const [newBatterSlot, setNewBatterSlot] = useState(null); // 'player1' | 'player2'
+    const [outPlayerName, setOutPlayerName] = useState('');
+    const [showBowlerHistory, setShowBowlerHistory] = useState(false);
 
     // Always use the real hostname/IP — OBS blocks WebSockets to 'localhost'
     // so we replace it with the actual network IP the browser is currently using.
@@ -424,11 +438,31 @@ const MiniAdmin = () => {
                 recentBalls, overRuns,
                 fallOfWickets: [...(match.fallOfWickets || []), { name: op.name, runs: op.runs, balls: op.balls, bowler: match.bowler?.name, fowScore: match.score, fowWicket: match.wickets + 1 }],
                 lastWicketName: op.name, lastWicketRuns: op.runs, lastWicketBalls: op.balls,
-                [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, onStrike: true },
+                [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: true },
                 legalBallCount: (match.legalBallCount || 0) + 1,
                 ...getManualBallsUpdate(),
             }, "WICKET");
         }
+        // Show new batter selection modal
+        setOutPlayerName(op.name);
+        setNewBatterSlot(outKey);
+        setShowNewBatterModal(true);
+    };
+
+    const handleNewBatterConfirm = (playerName) => {
+        setShowNewBatterModal(false);
+        if (!playerName || !newBatterSlot) return;
+        // Update squad status
+        const updatedSquad = (match.battingSquad || []).map(p => {
+            const name = p.name || p;
+            if (name === outPlayerName) return { ...p, status: 'out' };
+            if (name === playerName) return { ...p, status: 'batting' };
+            return p;
+        });
+        push({
+            [newBatterSlot]: { name: playerName, runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: match[newBatterSlot]?.onStrike ?? true },
+            battingSquad: updatedSquad,
+        });
     };
 
     const handleRunOut = () => {
@@ -506,23 +540,20 @@ const MiniAdmin = () => {
         });
     };
 
-    const handleUndo = () => {
-        if (history.length === 0) return;
-        const prev = history[history.length - 1];
-        setHistory(h => h.slice(0, -1));
+    const handleUndo = async () => {
+        if (history.length === 0 && !isMongoDB(matchId)) return;
+        
         if (isMongoDB(matchId)) {
-            // For MongoDB: use manualCorrection to restore last state snapshot
-            // Calculate deltas relative to current match state
-            const scoreDelta = (prev.score ?? 0) - (match?.score ?? 0);
-            const wicketsDelta = (prev.wickets ?? 0) - (match?.wickets ?? 0);
-            const ballsDelta = (prev.legalBallCount ?? 0) - (match?.legalBallCount ?? 0);
-            matchesApi.manualCorrection(matchId, {
-                scoreDelta, wicketsDelta, ballsDelta,
-                correctionNote: 'Undo last delivery',
-            }).then(res => { if (res.match) setMatch(res.match); }).catch(() => {});
-            // Optimistically restore local state
-            setMatch(prev);
+            try {
+                const res = await matchesApi.undoLastBall(matchId);
+                if (res.match) setMatch(res.match);
+            } catch (err) {
+                console.error("Undo failed:", err);
+                alert("Failed to undo last ball.");
+            }
         } else {
+            const prev = history[history.length - 1];
+            setHistory(h => h.slice(0, -1));
             update(ref(db, dbPath), prev);
         }
     };
@@ -538,32 +569,54 @@ const MiniAdmin = () => {
             isSecondInnings: false, targetScore: 0, overLocked: false,
             player1: { name: "", runs: 0, balls: 0, onStrike: true },
             player2: { name: "", runs: 0, balls: 0, onStrike: false },
+            bowler: { name: "SELECT BOWLER", legalBalls: 0, overs: 0, maidens: 0, runs: 0, wickets: 0, economy: 0, figures: "0-0 (0.0)" },
+            bowlerHistory: [],
+            battingScorecard: [],
             fallOfWickets: [], firstInningsScore: 0, firstInningsWickets: 0, firstInningsOvers: 0,
+            extras: { wides: 0, noballs: 0, byes: 0, legbyes: 0, total: 0 },
+            partnership: { runs: 0, balls: 0 },
             eventTrigger: "RESET_WINNER",
         });
     };
 
     // ── New Innings — does NOT auto-set target; user sets it manually ──
-    const handleNewInnings = () => {
+    const handleNewInnings = async () => {
         if (!match) return;
         if (match.isSecondInnings) {
             alert("Match is already in the 2nd innings.");
             return;
         }
         if (!window.confirm(`Start 2nd Innings?\n1st Innings Score: ${match.score}\nYou will need to set the target manually.\nThis will reset scores.`)) return;
-        setHistory([]);
-        push({
-            firstInningsScore: match.score,
-            firstInningsWickets: match.wickets,
-            firstInningsOvers: match.totalBalls,
-            score: 0, wickets: 0, totalBalls: 0, currentOver: 0,
-            overRuns: 0, recentBalls: [], legalBallCount: 0,
-            isSecondInnings: true,
-            targetScore: 0,
-            player1: { name: "", runs: 0, balls: 0, onStrike: true },
-            player2: { name: "", runs: 0, balls: 0, onStrike: false },
-            eventTrigger: "RESET_WINNER",
-        });
+        
+        if (isMongoDB(matchId)) {
+            try {
+                const res = await matchesApi.startSecondInnings(matchId);
+                if (res.match) setMatch(res.match);
+            } catch (err) {
+                console.error("Failed to start second innings:", err);
+                alert("Failed to start second innings.");
+            }
+        } else {
+            setHistory([]);
+            push({
+                firstInningsScore: match.score,
+                firstInningsWickets: match.wickets,
+                firstInningsOvers: match.legalBallCount,
+                score: 0, wickets: 0, totalBalls: 0, currentOver: 0,
+                overRuns: 0, recentBalls: [], legalBallCount: 0,
+                isSecondInnings: true,
+                targetScore: 0,
+                player1: { name: "", runs: 0, balls: 0, onStrike: true },
+                player2: { name: "", runs: 0, balls: 0, onStrike: false },
+                bowler: { name: "SELECT BOWLER", legalBalls: 0, overs: 0, maidens: 0, runs: 0, wickets: 0, economy: 0, figures: "0-0 (0.0)" },
+                battingScorecard: [],
+                bowlerHistory: [],
+                fallOfWickets: [],
+                extras: { wides: 0, noballs: 0, byes: 0, legbyes: 0, total: 0 },
+                partnership: { runs: 0, balls: 0 },
+                eventTrigger: "RESET_WINNER",
+            });
+        }
     };
 
     // ── Reset Tournament — full wipe (teams + match + tournament info) ─
@@ -647,7 +700,42 @@ const MiniAdmin = () => {
     const nonStriker = match.player1?.onStrike ? match.player2 : match.player1;
     const strikerKey = match.player1?.onStrike ? "player1" : "player2";
     const nonStrikerKey = match.player1?.onStrike ? "player2" : "player1";
-    const totalMatchBalls = (match.maxOvers || 5) * 6;
+    const battingSquad = Array.isArray(match.battingSquad) ? match.battingSquad : [];
+    const bowlingSquad = Array.isArray(match.bowlingSquad) ? match.bowlingSquad : [];
+    const normalizePlayerName = (value) => value.trim().toUpperCase();
+    const addSquadPlayer = (side) => {
+        const rawName = side === "batting" ? newBattingPlayer : newBowlingPlayer;
+        const name = normalizePlayerName(rawName);
+        if (!name) return;
+        const squadKey = side === "batting" ? "battingSquad" : "bowlingSquad";
+        const currentSquad = side === "batting" ? battingSquad : bowlingSquad;
+        if (currentSquad.some((player) => normalizePlayerName(player.name || "") === name)) return;
+        push({ [squadKey]: [...currentSquad, { id: Date.now(), name }] });
+        if (side === "batting") setNewBattingPlayer("");
+        if (side === "bowling") setNewBowlingPlayer("");
+    };
+    const removeSquadPlayer = (side, index) => {
+        const squadKey = side === "batting" ? "battingSquad" : "bowlingSquad";
+        const currentSquad = side === "batting" ? battingSquad : bowlingSquad;
+        push({ [squadKey]: currentSquad.filter((_, itemIndex) => itemIndex !== index) });
+    };
+    const setBatterSlot = (slotKey, player) => {
+        push({ [slotKey]: { ...match[slotKey], name: player.name } });
+    };
+    const handleChangeBowler = async (player) => {
+        if (!player || !player.name) return;
+        if (isMongoDB(matchId)) {
+            try {
+                const res = await matchesApi.changeBowler(matchId, { bowlerName: player.name });
+                if (res.match) setMatch(res.match);
+            } catch (err) {
+                console.error("Failed to change bowler:", err);
+            }
+        } else {
+            push({ bowler: { ...match.bowler, name: player.name } });
+        }
+    };
+    const totalMatchBalls = match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * bpo;
     const legalBallCount = match.legalBallCount || 0;
     const remainingBalls = match.manualBallsOverride ? (match.manualBallsValue || 0) : (totalMatchBalls - legalBallCount);
     const crr = legalBallCount > 0 ? (match.score / (legalBallCount / 6)).toFixed(2) : "0.00";
@@ -655,785 +743,780 @@ const MiniAdmin = () => {
         ? ((match.targetScore - match.score) / (remainingBalls / 6)).toFixed(2)
         : "--";
     const isOverReady = isMongoDB(matchId) ? (legalBallCount > 0 && legalBallCount % bpo === 0) : (legalBallCount >= bpo);
+    const currentOverBalls = isMongoDB(matchId) ? (legalBallCount > 0 && legalBallCount % bpo === 0 ? bpo : legalBallCount % bpo) : legalBallCount;
 
     return (
         <div className="ma-root">
+            {showTossModal && (
+                <TossModal 
+                    matchId={matchId} 
+                    match={match} 
+                    onClose={() => setShowTossModal(false)} 
+                    onUpdate={(updatedMatch) => setMatch(updatedMatch)} 
+                />
+            )}
+            {showNewBatterModal && (
+                <NewBatterModal 
+                    match={match}
+                    slot={newBatterSlot}
+                    onConfirm={handleNewBatterConfirm}
+                    onClose={() => setShowNewBatterModal(false)}
+                />
+            )}
 
-            {/* ═══ HEADER ═══════════════════════════════════════════════ */}
-            <div className="ma-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="ma-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <img src="/ks_logo.png" alt="KS Logo" style={{ height: '24px', width: 'auto', objectFit: 'contain' }} />
-                    <span style={{ fontWeight: '900', letterSpacing: '1px' }}>KS CONTROL</span>
+            {/* ══ HEADER ══════════════════════════════════════════════ */}
+            <div className="ma-header">
+                <div className="ma-logo">
+                    <img src="/ks_logo.png" alt="KS" style={{ height: '20px', width: 'auto', objectFit: 'contain' }} />
+                    KS CONTROL
                 </div>
-                <div className="flex items-center gap-2"><LanguageSwitcher compact /><span className="ma-live-pulse" /></div>
-            </div>
-
-            {/* ═══ LIVE SCORE BAR ═══════════════════════════════════════ */}
-            <div className="ma-score-bar">
-                <div>
-                    <div className="ma-team">{match.battingTeam || "TEAM"}</div>
-                    <div className="ma-sub-info">vs {match.bowlingTeam || "OPPONENT"}</div>
-                </div>
-                <div className="ma-score-right">
-                    <span className="ma-score-big">{match.score}-{match.wickets}</span>
-                    <span className="ma-score-overs">({overs(match.totalBalls)})</span>
-                </div>
-            </div>
-
-            <div className="ma-status-strip">
-                <span>{t("common.innings")}: <b>{match.isSecondInnings ? "2ND" : "1ST"}</b></span>
-                <span>{t("common.matchStage")}: <b>{match.matchTitle || match.bowlingPrefix || "--"}</b></span>
-                <span>{t("common.matchStatus")}: <b>{match.matchStatus || t("admin.status.live")}</b></span>
-            </div>
-
-            {/* LIVE OVERLAY PREVIEW + OBS LINK */}
-            <div className="ma-preview-container" style={{ padding: '4px 12px', marginBottom: '8px' }}>
-
-                {/* OBS Link Row */}
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                    <div style={{
-                        flex: 1,
-                        padding: '5px 8px',
-                        background: '#0f172a',
-                        border: '1px solid #334155',
-                        borderRadius: '6px',
-                        fontSize: '9px',
-                        color: '#94a3b8',
-                        fontFamily: 'monospace',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                    }}>
-                        {obsUrl}
-                    </div>
-                    <button
-                        onClick={copyOBSLink}
-                        title="Copy this URL and paste it into OBS Browser Source"
-                        style={{
-                            padding: '5px 10px',
-                            background: obsCopied ? '#10b981' : '#0ea5e9',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            fontSize: '9px',
-                            fontWeight: '900',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            transition: 'background 0.3s',
-                        }}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                        onClick={() => window.open(`/control-room/${matchId}`, '_blank')}
+                        style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
-                        {obsCopied ? '✔ COPIED!' : '📋 COPY OBS LINK'}
+                        DESKTOP CONTROL ROOM ↗
                     </button>
-                </div>
-
-                <button 
-                    onClick={() => setShowLivePreview(p => !p)} 
-                    style={{ 
-                        width: '100%', 
-                        padding: '6px 12px', 
-                        background: '#1e293b', 
-                        color: '#38bdf8', 
-                        border: '1px solid #334155', 
-                        borderRadius: '6px', 
-                        fontSize: '10px', 
-                        fontWeight: '900', 
-                        letterSpacing: '0.5px', 
-                        cursor: 'pointer',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '6px'
-                    }}
-                >
-                    <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: showLivePreview ? '#10b981' : '#cbd5e1', animation: showLivePreview ? 'maPulse 1.5s infinite' : 'none' }} />
-                    {showLivePreview ? "HIDE VISUAL OVERLAY" : "SHOW VISUAL OVERLAY MONITOR"}
-                </button>
-                {showLivePreview && (
-                    <div style={{ 
-                        marginTop: '8px', 
-                        position: 'relative', 
-                        width: '100%', 
-                        paddingTop: '56.25%', 
-                        background: '#000', 
-                        borderRadius: '8px', 
-                        border: '1px solid #334155', 
-                        overflow: 'hidden', 
-                        boxShadow: 'inset 0 0 15px rgba(0,0,0,0.8)' 
-                    }}>
-                        <iframe 
-                            src={overlayUrl} 
-                            title="Mini Overlay Preview" 
-                            style={{ 
-                                position: 'absolute', 
-                                top: 0, left: 0, 
-                                width: '100%', height: '100%', 
-                                border: 'none', 
-                                pointerEvents: 'none' 
-                            }} 
-                        />
-                    </div>
-                )}
-            </div>
-
-            {/* ── Action Bar: New Match / New Innings / Reset All ── */}
-            <div className="ma-action-bar">
-                {match.tournamentId && (
-                    <button className="ma-btn" style={{ background: '#facc15', color: '#000', gridColumn: 'span 3', fontWeight: '900', animation: 'maPulse 1.5s infinite' }} onClick={() => setShowNextMatch(true)}>🚀 DEPLOY NEXT MATCH</button>
-                )}
-                <button className="ma-btn ma-btn-blue" onClick={handleNewMatch}>🆕 NEW MATCH</button>
-                <button className="ma-btn ma-btn-innings" onClick={handleNewInnings}>🔄 NEW INNINGS</button>
-                <button className="ma-btn ma-btn-reset" onClick={handleResetTournament}>💥 RESET ALL</button>
-            </div>
-
-            <div className="ma-quick-edit">
-                <div className="ma-quick-edit-title">{t("common.quickEdit")}</div>
-                <div className="ma-quick-edit-grid">
-                    <div className="ma-quick-edit-item">
-                        <label>{t("mini.quickEdit.striker")}</label>
-                        <ComboboxPlayerInput
-                            options={match.battingSquad}
-                            className="ma-inp uppercase focus:outline-blue-500"
-                            value={striker?.name || ""}
-                            onChange={(e) => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })}
-                        />
-                    </div>
-                    <div className="ma-quick-edit-item">
-                        <label>{t("mini.quickEdit.nonStriker")}</label>
-                        <ComboboxPlayerInput
-                            options={match.battingSquad}
-                            className="ma-inp uppercase focus:outline-blue-500"
-                            value={nonStriker?.name || ""}
-                            onChange={(e) => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })}
-                        />
-                    </div>
-                    <div className="ma-quick-edit-item">
-                        <label>{t("mini.quickEdit.bowler")}</label>
-                        <ComboboxPlayerInput
-                            options={match.bowlingSquad}
-                            className="ma-inp uppercase focus:outline-purple-500"
-                            value={match.bowler?.name || ""}
-                            onChange={(e) => push({ bowler: { ...match.bowler, name: e.target.value } })}
-                        />
-                    </div>
+                    <LanguageSwitcher compact />
+                    <div className="ma-live-dot" />
                 </div>
             </div>
 
-            {/* CRR / RRR strip */}
-            <div className="ma-rate-strip">
+            {/* ══ SCORE BAR ════════════════════════════════════════════ */}
+            <div className="ma-score-bar">
+                <div className="ma-teams-col">
+                    <div className="ma-team-name">{match.battingTeam || "TEAM"}</div>
+                    <div className="ma-vs-line">vs {match.bowlingTeam || "OPPONENT"}</div>
+                </div>
+                <div className="ma-score-col">
+                    <span className="ma-score-big">{match.score}-{match.wickets}</span>
+                    <span className="ma-score-overs">({overs(legalBallCount)})</span>
+                </div>
+            </div>
+
+            {/* ══ INFO STRIP ═══════════════════════════════════════════ */}
+            <div className="ma-info-strip">
+                <span>INN: <b>{match.isSecondInnings ? '2ND' : '1ST'}</b></span>
+                <span>STAGE: <b>{match.matchTitle || match.bowlingPrefix || '--'}</b></span>
+                <span>STATUS: <b>{match.matchStatus || 'LIVE'}</b></span>
                 <span>CRR: <b>{crr}</b></span>
-                <span>RRR: <b>{rrr}</b></span>
-                <span>Over: <b>{match.overRuns || 0}</b></span>
+                {match.isSecondInnings && <span>RRR: <b>{rrr}</b></span>}
+                <span>OVER: <b>{match.overRuns || 0}</b></span>
             </div>
 
-            {/* Over complete alert + button */}
-            {match.totalBalls > 0 && isOverReady && (
-                <div className="ma-over-alert">⚠ OVER COMPLETE ({legalBallCount}/{bpo}) — Click below!</div>
-            )}
-            <button
-                onClick={handleOverCompleted}
-                disabled={!isOverReady || overCooldown}
-                className={`ma-over-btn ${isOverReady && !overCooldown ? 'ma-over-btn-ready' : 'ma-over-btn-disabled'}`}
-            >
-                {overCooldown ? '✔ LOCKED' : isOverReady ? `⚡ OVER COMPLETED (${legalBallCount}/${bpo})` : `⏳ ${legalBallCount}/${bpo} BALLS`}
-            </button>
+            {/* ══ MAIN CONTENT (tab-based) ══════════════════════════════ */}
+            <div className="ma-content">
 
-            {/* Chase info */}
-            {match.isSecondInnings && match.targetScore > 0 && (
-                <div className="ma-chase-alert">Need {Math.max(0, match.targetScore - match.score)} in {remainingBalls} balls · Target: {match.targetScore}</div>
-            )}
+                {/* ─── SCORE TAB ──────────────────────────────────────── */}
+                {activeTab === 'score' && (
+                    <div className="ma-score-tab">
 
-            {/* ── MANUAL TARGET ENTRY — shows when 2nd innings started but target not set ── */}
-            {match.isSecondInnings && !match.targetScore && (
-                <div className="ma-target-entry">
-                    <div className="ma-target-entry-title">🎯 SET TARGET</div>
-                    <div className="ma-target-entry-hint">1st Innings: {match.firstInningsScore || 0}-{match.firstInningsWickets ?? 0} ({overs(match.firstInningsOvers || 0)})</div>
-                    <div className="ma-target-entry-row">
-                        <div className="ma-target-entry-field">
-                            <label>Target Runs</label>
-                            <input id="ma-target-runs" type="number" className="ma-inp" placeholder={String((match.firstInningsScore || 0) + 1)} defaultValue="" />
+                        {/* Players at crease */}
+                        <div className="ma-players-card">
+                            <div className="ma-player-row ma-striker-row">
+                                <div className="ma-player-info">
+                                    <span className="ma-player-icon">🏏</span>
+                                    <span className="ma-player-name">{striker?.name || 'SELECT STRIKER'}</span>
+                                </div>
+                                <span className="ma-player-stat">{striker?.runs ?? 0}({striker?.balls ?? 0})</span>
+                            </div>
+                            <div className="ma-divider" />
+                            <div className="ma-player-row">
+                                <div className="ma-player-info">
+                                    <span className="ma-player-icon" style={{ opacity: 0.5 }}>🏏</span>
+                                    <span className="ma-player-name" style={{ color: 'rgba(255,255,255,0.6)' }}>{nonStriker?.name || 'SELECT NON-STRIKER'}</span>
+                                </div>
+                                <span className="ma-player-stat">{nonStriker?.runs ?? 0}({nonStriker?.balls ?? 0})</span>
+                            </div>
+                            <div className="ma-divider" />
+                            <div className="ma-player-row">
+                                <div className="ma-player-info">
+                                    <span className="ma-player-icon">🎳</span>
+                                    <span className="ma-player-name" style={{ color: '#a78bfa' }}>{match.bowler?.name || 'SELECT BOWLER'}</span>
+                                </div>
+                                <span className="ma-player-stat" style={{ color: '#c4b5fd' }}>{match.bowler?.figures || ''}</span>
+                            </div>
                         </div>
-                        <div className="ma-target-entry-field">
-                            <label>Total Balls</label>
-                            <input id="ma-target-balls" type="number" className="ma-inp" placeholder={String((match.maxOvers || 5) * 6)} defaultValue="" />
+
+                        {/* Over alert */}
+                        {legalBallCount > 0 && isOverReady && (
+                            <div className="ma-over-alert">⚠️ OVER COMPLETE — Click OVER DONE below!</div>
+                        )}
+
+                        {/* Chase alert */}
+                        {match.isSecondInnings && match.targetScore > 0 && (
+                            <div className="ma-chase-bar">
+                                Need {Math.max(0, match.targetScore - match.score)} off {remainingBalls}b · Target: {match.targetScore}
+                            </div>
+                        )}
+
+                        {/* Run buttons */}
+                        <div className="ma-run-section">
+                            <div className="ma-section-label">RUNS</div>
+                            <div className="ma-run-grid">
+                                <button className="ma-big-btn ma-btn-dot" onClick={() => debounce(() => addRun(0))}>•</button>
+                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(1))}>1</button>
+                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(2))}>2</button>
+                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(3))}>3</button>
+                                <button className="ma-big-btn ma-btn-four" onClick={() => debounce(() => addBoundary(4))}>4</button>
+                                <button className="ma-big-btn ma-btn-six" onClick={() => debounce(() => addBoundary(6))}>6</button>
+                            </div>
                         </div>
-                    </div>
-                    <button className="ma-btn ma-btn-target-update" onClick={() => {
-                        const runsEl = document.getElementById('ma-target-runs');
-                        const ballsEl = document.getElementById('ma-target-balls');
-                        const runs = parseInt(runsEl?.value) || 0;
-                        const balls = parseInt(ballsEl?.value) || ((match.maxOvers || 5) * 6);
-                        if (runs <= 0) { alert('Please enter a valid target runs value.'); return; }
-                        const maxOversFromBalls = Math.ceil(balls / (match.ballsPerOver || 6));
-                        push({ targetScore: runs, maxOvers: maxOversFromBalls });
-                    }}>✅ UPDATE TARGET</button>
-                </div>
-            )}
 
-            {/* ═══ SCROLLABLE SECTIONS ═════════════════════════════════ */}
-            <div className="ma-scroll-area">
+                        {/* Wicket */}
+                        <button className="ma-wicket-btn" onClick={() => debounce(() => handleWicket())}>⚡ WICKET (W)</button>
 
-                {/* ── 1. MATCH CONTROL (Blue) ──────────────────────────── */}
-                <Section label="MATCH CONTROL" color="blue" icon="🎯" open={!!openSections.match} onClick={() => toggle("match")}>
-                    <div className="ma-row" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '4px' }}>
-                        <div style={{ flex: 1, minWidth: '40%' }}>
-                           <label>Batting Team</label>
-                           <input type="text" className="ma-inp" value={match.battingTeam || ""} onChange={(e) => push({ battingTeam: e.target.value.toUpperCase() })} />
-                           <div style={{ display: 'flex', gap: '4px', marginTop: '4px', alignItems: 'center' }}>
-                               <input type="file" accept="image/*" id="batLogoUpload" style={{ display: 'none' }} onChange={(e) => {
-                                   if (e.target.files && e.target.files[0]) {
-                                       const reader = new FileReader();
-                                       reader.onload = (ev) => push({ battingLogo: ev.target.result });
-                                       reader.readAsDataURL(e.target.files[0]);
-                                   }
-                               }} />
-                               <button className="ma-btn" style={{ padding: '4px 6px', fontSize: '10px', background: '#334155', color: '#fff', border: '1px solid #475569' }} onClick={() => document.getElementById('batLogoUpload').click()}>📁 Upload</button>
-                               <input type="text" className="ma-inp" placeholder="or URL" style={{ fontSize: '10px', flex: 1 }} value={match.battingLogo || ""} onChange={(e) => push({ battingLogo: e.target.value })} />
-                           </div>
-                        </div>
-                        <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'flex-end', paddingBottom: '2px' }}>
-                           <button className="ma-btn ma-btn-swap" style={{ padding: '6px' }} onClick={() => push({ battingTeam: match.bowlingTeam, bowlingTeam: match.battingTeam, battingLogo: match.leagueLogo, leagueLogo: match.battingLogo })}>↔</button>
-                        </div>
-                        <div style={{ flex: 1, minWidth: '40%' }}>
-                           <label>Bowling Team</label>
-                           <input type="text" className="ma-inp" value={match.bowlingTeam || ""} onChange={(e) => push({ bowlingTeam: e.target.value.toUpperCase() })} />
-                           <div style={{ display: 'flex', gap: '4px', marginTop: '4px', alignItems: 'center' }}>
-                               <input type="file" accept="image/*" id="bowlLogoUpload" style={{ display: 'none' }} onChange={(e) => {
-                                   if (e.target.files && e.target.files[0]) {
-                                       const reader = new FileReader();
-                                       reader.onload = (ev) => push({ leagueLogo: ev.target.result });
-                                       reader.readAsDataURL(e.target.files[0]);
-                                   }
-                               }} />
-                               <button className="ma-btn" style={{ padding: '4px 6px', fontSize: '10px', background: '#334155', color: '#fff', border: '1px solid #475569' }} onClick={() => document.getElementById('bowlLogoUpload').click()}>📁 Upload</button>
-                               <input type="text" className="ma-inp" placeholder="or URL" style={{ fontSize: '10px', flex: 1 }} value={match.leagueLogo || ""} onChange={(e) => push({ leagueLogo: e.target.value })} />
-                           </div>
-                        </div>
-                    </div>
-                    <div className="ma-row">
-                        <label>Format</label>
-                        <select className="ma-sel" value={match.matchType || "T20"} onChange={(e) => push({ matchType: e.target.value })}>
-                            <option value="T20">T20</option>
-                            <option value="ODI">ODI</option>
-                            <option value="Test">Test</option>
-                            <option value="T10">T10</option>
-                            <option value="Custom">Custom</option>
-                        </select>
-                    </div>
-                    <div className="ma-row">
-                        <label>Title / Stage</label>
-                        <input type="text" className="ma-inp" placeholder="e.g. GRAND FINAL" value={match.matchTitle || match.bowlingPrefix || ""} onChange={(e) => push({ matchTitle: e.target.value, bowlingPrefix: e.target.value })} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Max Overs</label>
-                        <input type="number" className="ma-inp" value={match.maxOvers} onChange={(e) => push({ maxOvers: parseInt(e.target.value) || 5 })} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Balls/Over</label>
-                        <input type="number" className="ma-inp" value={match.ballsPerOver} onChange={(e) => push({ ballsPerOver: parseInt(e.target.value) || 6 })} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Innings</label>
-                        <select className="ma-sel" value={match.isSecondInnings ? "2" : "1"} onChange={(e) => push({ isSecondInnings: e.target.value === "2" })}>
-                            <option value="1">1st Innings</option>
-                            <option value="2">2nd Innings</option>
-                        </select>
-                    </div>
-                    <div className="ma-row" style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', flexWrap: 'wrap' }}>
-                        <label style={{ width: '100%', marginBottom: '6px' }}>Allowed Extras</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '10px', width: '100%', color: '#ccc' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.wd !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, wd: e.target.checked } })} /> Wides</label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.nb !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, nb: e.target.checked } })} /> No Balls</label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.b !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, b: e.target.checked } })} /> Byes</label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', width: 'auto', color: '#ccc' }}><input type="checkbox" checked={match.extrasConfig?.lb !== false} onChange={(e) => push({ extrasConfig: { ...match.extrasConfig, lb: e.target.checked } })} /> Leg Byes</label>
-                        </div>
-                    </div>
-                    <div className="ma-row">
-                        <label>Target</label>
-                        <input type="number" className="ma-inp" value={match.targetScore} onChange={(e) => push({ targetScore: parseInt(e.target.value) || 0 })} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Theme</label>
-                        <select className="ma-sel" value={match.themeID} onChange={(e) => push({ themeID: e.target.value })}>
-                            <option value="IPL_GOLD">IPL Classic</option>
-                            <option value="SKY_PRO">Sky Sports</option>
-                            <option value="NEON_VAVUNIYA">Neon Green</option>
-                            <option value="CLASSIC_DARK">Classic Dark</option>
-                            <option value="T20_NEON">T20 Neon</option>
-                            <option value="WC_BLUE_PURPLE">WC Blue-Purple</option>
-                            <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
-                            <option value="WC2026">🏆 T20 WC 2026</option>
-                            <option value="KS_SPECIAL">☆ KS Special</option>
-                            <option value="SL_BROADCAST">📺 SL Broadcast</option>
-                            <option value="APOGEE">🔮 APOGEE ARENA</option>
-                            <option value="DC_BLUE">🟦 DC Blue Bar</option>
-                            <option value="IPL_2026">🏏 IPL 2026</option>
-                            <option value="NEW_IPL">🆕 NEW IPL</option>
-                            <option value="KS_PREMIUM">💎 KS Premium (Broadcast)</option>
-                        </select>
-                    </div>
-                    <div className="ma-row">
-                        <label>Overlay</label>
-                        <select className="ma-sel" value={match.overlayMode || "full"} onChange={(e) => push({ overlayMode: e.target.value })}>
-                            <option value="full">Full</option>
-                            <option value="simple">Simple</option>
-                        </select>
-                    </div>
-                    <div className="ma-btn-row">
-                        <button className="ma-btn ma-btn-blue" onClick={() => push({ showVersus: !match.showVersus })}>{match.showVersus ? "✓ " : ""}VS Tab</button>
-                        <button className="ma-btn ma-btn-blue" onClick={() => push({ showSummary: !match.showSummary })}>{match.showSummary ? "✓ " : ""}Summary</button>
-                    </div>
-                    <button className="ma-btn w-full mt-2" style={{ backgroundColor: '#06b6d4', color: 'white', fontWeight: '900', borderBottom: '3px solid #0891b2' }} onClick={() => push({ eventTrigger: "SHOW_BANNER" })}>✨ SHOW BANNER</button>
-                </Section>
-
-                {/* ── 1.5. INNINGS & SUPER OVER ────────────────────────── */}
-                <Section label="INNINGS & EXTRA" color="amber" icon="🔄" open={!!openSections.innings} onClick={() => toggle("innings")}>
-                    <div className="ma-btn-row mb-2">
-                        <button className={`ma-btn ${!match.isSecondInnings ? "bg-amber-600 text-white border-amber-800" : "ma-btn-blue opacity-50"}`} onClick={() => push({ isSecondInnings: false })}>1ST INN</button>
-                        <button className={`ma-btn ${match.isSecondInnings ? "bg-amber-600 text-white border-amber-800" : "ma-btn-blue opacity-50"}`} onClick={() => push({ isSecondInnings: true })}>2ND INN</button>
-                    </div>
-
-                    <button className="ma-btn ma-btn-wicket w-full mb-2" style={{ backgroundColor: '#ef4444', borderColor: '#991b1b' }} onClick={() => {
-                        if (match.isSecondInnings) {
-                            alert("Match is already in the 2nd innings. Action ignored to protect target score.");
-                            return;
-                        }
-                        if (window.confirm("Start 2nd Innings?\n1st Innings Score: " + match.score + "\nYou will need to set the target manually.\nThis will reset scores.")) {
-                            push({
-                                firstInningsScore: match.score, firstInningsWickets: match.wickets, firstInningsOvers: match.totalBalls,
-                                score: 0, wickets: 0, totalBalls: 0, currentOver: 0, overRuns: 0, recentBalls: [],
-                                legalBallCount: 0, isSecondInnings: true, targetScore: 0,
-                                player1: { name: "", runs: 0, balls: 0, onStrike: true },
-                                player2: { name: "", runs: 0, balls: 0, onStrike: false },
-                                eventTrigger: "RESET_WINNER"
-                            });
-                        }
-                    }}>⚠ RESET & START 2ND INNINGS</button>
-
-                    <div className="ma-row" style={{ marginTop: 8, padding: 8, background: 'rgba(255, 204, 0, 0.1)', borderRadius: 4, border: '1px solid rgba(255, 204, 0, 0.3)' }}>
-                        <label style={{ color: '#fbbf24', fontWeight: 'bold' }}>⚡ Super Over</label>
-                        <input type="checkbox" checked={!!match.isSuperOver} onChange={(e) => push({ isSuperOver: e.target.checked })} style={{ transform: 'scale(1.5)', marginRight: 4 }} />
-                    </div>
-                </Section>
-
-                {/* ── 2. BATTING CONTROL ───────────────────────────────── */}
-                <Section label="BATTING" color="green" icon="🏏" open={!!openSections.batting} onClick={() => toggle("batting")}>
-                    <div className="ma-bat-row ma-bat-active">
-                        <span>🏏 {striker?.name}</span>
-                        <span className="ma-bat-stat">{striker?.runs}({striker?.balls})</span>
-                    </div>
-                    <div className="ma-bat-row">
-                        <span>{nonStriker?.name}</span>
-                        <span className="ma-bat-stat">{nonStriker?.runs}({nonStriker?.balls})</span>
-                    </div>
-                    <div className="ma-row" style={{ overflow: "visible" }}>
-                        <label>Striker</label>
-                        <ComboboxPlayerInput
-                            options={match.battingSquad}
-                            className="ma-inp uppercase focus:outline-blue-500"
-                            placeholder="Type or Select"
-                            value={striker?.name || ""}
-                            onChange={(e) => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })}
-                        />
-                    </div>
-                    <div className="ma-row" style={{ overflow: "visible" }}>
-                        <label>Non-Striker</label>
-                        <ComboboxPlayerInput
-                            options={match.battingSquad}
-                            className="ma-inp uppercase focus:outline-blue-500"
-                            placeholder="Type or Select"
-                            value={nonStriker?.name || ""}
-                            onChange={(e) => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })}
-                        />
-                    </div>
-                    <button className="ma-btn ma-btn-swap w-full" onClick={swapStrike}>↔ SWAP STRIKE (S)</button>
-                    <div className="ma-row" style={{ marginTop: 6 }}>
-                        <label>Edit Striker Runs</label>
-                        <input type="number" className="ma-inp" value={striker?.runs || 0} onChange={(e) => push({ [strikerKey]: { ...match[strikerKey], runs: parseInt(e.target.value) || 0 } })} />
-                    </div>
-                </Section>
-
-                {/* ── 3. BOWLING CONTROL ───────────────────────────────── */}
-                <Section label="BOWLING" color="purple" icon="🎳" open={!!openSections.bowling} onClick={() => toggle("bowling")}>
-                    <div className="ma-bat-row">
-                        <span>🎳 {match.bowler?.name}</span>
-                        <span className="ma-bat-stat">{match.bowler?.figures}</span>
-                    </div>
-                    <div className="ma-row" style={{ overflow: "visible" }}>
-                        <label>Bowler</label>
-                        <ComboboxPlayerInput
-                            options={match.bowlingSquad}
-                            className="ma-inp uppercase focus:outline-purple-500"
-                            placeholder="Type or Select"
-                            value={match.bowler?.name || ""}
-                            onChange={(e) => push({ bowler: { ...match.bowler, name: e.target.value } })}
-                        />
-                    </div>
-                    <div className="ma-row">
-                        <label>Edit Figures</label>
-                        <input className="ma-inp" value={match.bowler?.figures || ""} onChange={(e) => push({ bowler: { ...match.bowler, figures: e.target.value } })} />
-                    </div>
-                </Section>
-
-                {/* ── 4. SCORING ENGINE ─────────────────────────────────── */}
-                <Section label="SCORING" color="green" icon="🏏" open={!!openSections.scoring} onClick={() => toggle("scoring")}>
-                    {/* Runs */}
-                    <div className="ma-label">RUNS</div>
-                    <div className="ma-grid ma-grid-6">
-                        {[0, 1, 2, 3].map(r => (
-                            <button key={r} className="ma-btn ma-btn-run" onClick={() => addRun(r)}>
-                                {r === 0 ? "•" : `+${r}`}
-                            </button>
-                        ))}
-                        <button className="ma-btn ma-btn-run ma-btn-boundary" onClick={() => addBoundary(4)}>+4</button>
-                        <button className="ma-btn ma-btn-run ma-btn-boundary" onClick={() => addBoundary(6)}>+6</button>
-                    </div>
-
-                    {/* Wicket */}
-                    <button className="ma-btn ma-btn-wicket w-full" onClick={handleWicket}>WICKET (W)</button>
-
-                    {/* Wides */}
-                    {match.extrasConfig?.wd !== false && (
-                    <>
-                        <div className="ma-label">WIDE +</div>
-                        <div className="ma-grid ma-grid-5">
-                            {[0, 1, 2, 3, 4].map(r => (
-                                <button key={r} className="ma-btn ma-btn-extra" onClick={() => addExtra("WD", r)}>
-                                    WD{r > 0 ? `+${r}` : ""}
-                                </button>
-                            ))}
-                        </div>
-                    </>
-                    )}
-
-                    {/* No Balls */}
-                    {match.extrasConfig?.nb !== false && (
-                    <>
-                        <div className="ma-label">NO BALL +</div>
-                        <div className="ma-grid ma-grid-5">
-                            {[0, 1, 2, 3, 4].map(r => (
-                                <button key={r} className="ma-btn ma-btn-extra" onClick={() => addExtra("NB", r)}>
-                                    NB{r > 0 ? `+${r}` : ""}
-                                </button>
-                            ))}
-                        </div>
-                    </>
-                    )}
-
-                    {/* Leg Byes */}
-                    {match.extrasConfig?.lb !== false && (
-                    <>
-                        <div className="ma-label">LEG BYE</div>
-                        <div className="ma-grid ma-grid-4">
-                            {[1, 2, 3, 4].map(r => (
-                                <button key={r} className="ma-btn ma-btn-lb" onClick={() => addLegBye(r)}>LB {r}</button>
-                            ))}
-                        </div>
-                    </>
-                    )}
-
-                    {/* Byes */}
-                    {match.extrasConfig?.b !== false && (
-                    <>
-                        <div className="ma-label">BYE</div>
-                        <div className="ma-grid ma-grid-4">
-                            {[1, 2, 3, 4].map(r => (
-                                <button key={r} className="ma-btn ma-btn-bye" onClick={() => addBye(r)}>B {r}</button>
-                            ))}
-                        </div>
-                    </>
-                    )}
-                </Section>
-
-                {/* ── 5. OVER CONTROL ──────────────────────────────────── */}
-                <Section label="OVER CONTROL" color="amber" icon="🔧" open={!!openSections.overs} onClick={() => toggle("overs")}>
-                    <div className="ma-btn-row">
-                        <button className="ma-btn ma-btn-undo" onClick={handleUndo}>↶ UNDO (U)</button>
-                        <button className="ma-btn ma-btn-swap" onClick={swapStrike}>↔ SWAP (S)</button>
-                    </div>
-                    <div className="ma-row" style={{ flexWrap: 'wrap', gap: '4px', background: 'rgba(255, 0, 0, 0.05)', padding: '8px', borderRadius: '4px', border: '1px solid rgba(255, 0, 0, 0.2)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: '4px' }}>
-                            <label style={{ color: '#ef4444', fontWeight: 'bold' }}>Remaining Balls Input</label>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                {match.manualBallsOverride && (
-                                    <label style={{ fontSize: '10px', color: '#a7f3d0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={match.autoDecreaseBalls !== false} onChange={(e) => push({ autoDecreaseBalls: e.target.checked })} /> Auto Decrease
-                                    </label>
+                        {/* Extras */}
+                        <div className="ma-run-section">
+                            <div className="ma-section-label">EXTRAS</div>
+                            <div className="ma-extras-grid">
+                                {match.extrasConfig?.wd !== false && (
+                                    <button className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', 0))}>WD</button>
                                 )}
-                                <label style={{ fontSize: '10px', color: '#ccc', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                                    <input type="checkbox" checked={!!match.manualBallsOverride} onChange={(e) => push({ manualBallsOverride: e.target.checked })} /> Use Manual Balls
+                                {match.extrasConfig?.nb !== false && (
+                                    <button className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', 0))}>NB</button>
+                                )}
+                                {match.extrasConfig?.lb !== false && (
+                                    <button className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(1))}>LB</button>
+                                )}
+                                {match.extrasConfig?.b !== false && (
+                                    <button className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(1))}>BYE</button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Control row */}
+                        <div className="ma-control-row">
+                            <button className="ma-ctrl-btn ma-btn-swap" onClick={swapStrike}>↔ SWAP (S)</button>
+                            <button className="ma-ctrl-btn ma-btn-undo" onClick={handleUndo}>↶ UNDO (U)</button>
+                            <button className="ma-ctrl-btn ma-btn-ro" onClick={() => setShowRunOutPanel(v => !v)}>🏃 RUN OUT</button>
+                        </div>
+
+                        {/* Run Out Panel (inline) */}
+                        {showRunOutPanel && (
+                            <div className="ma-runout-panel">
+                                <div className="ma-runout-title">🏃 RUN OUT</div>
+                                <div className="ma-runout-row">
+                                    <div className="ma-runout-group">
+                                        <div className="ma-runout-group-label">Runs scored</div>
+                                        <div className="ma-runout-btns">
+                                            {[0,1,2,3].map(r => (
+                                                <button
+                                                    key={r}
+                                                    className={`ma-ro-num-btn${runOutRuns === r ? ' selected' : ''}`}
+                                                    onClick={() => setRunOutRuns(r)}
+                                                >{r}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="ma-runout-group">
+                                        <div className="ma-runout-group-label">Who is out?</div>
+                                        <div className="ma-runout-player-btns">
+                                            <button
+                                                className={`ma-ro-who-btn${runOutPlayer === 'striker' ? ' selected' : ''}`}
+                                                onClick={() => setRunOutPlayer('striker')}
+                                            >Striker<br/><span style={{fontSize:'9px',opacity:0.7}}>{striker?.name || '--'}</span></button>
+                                            <button
+                                                className={`ma-ro-who-btn${runOutPlayer === 'non-striker' ? ' selected' : ''}`}
+                                                onClick={() => setRunOutPlayer('non-striker')}
+                                            >Non-Str<br/><span style={{fontSize:'9px',opacity:0.7}}>{nonStriker?.name || '--'}</span></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="ma-runout-actions">
+                                    <button className="ma-ro-cancel" onClick={() => setShowRunOutPanel(false)}>✕ CANCEL</button>
+                                    <button className="ma-ro-confirm" onClick={() => { debounce(() => handleRunOut()); setShowRunOutPanel(false); }}>✅ CONFIRM RUN OUT</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Over button */}
+                        <button
+                            onClick={handleOverCompleted}
+                            disabled={!isOverReady || overCooldown}
+                            className={`ma-over-btn ${isOverReady && !overCooldown ? 'ma-over-ready' : 'ma-over-wait'}`}
+                        >
+                            {overCooldown ? '✔ OVER LOCKED' : isOverReady ? `⚡ OVER DONE (${currentOverBalls}/${bpo})` : `⏳ ${currentOverBalls}/${bpo} BALLS`}
+                        </button>
+
+                        {/* Recent balls */}
+                        <div className="ma-balls-row">
+                            {(match.recentBalls || []).length === 0 && <span style={{color:'rgba(255,255,255,0.12)',fontSize:'9px'}}>No balls bowled yet</span>}
+                            {(match.recentBalls || []).map((b, i) => (
+                                <span key={i} className={`ma-ball ${b === 'W' ? 'ma-ball-w' : b === '•' ? 'ma-ball-dot' : typeof b === 'string' && b.startsWith('NB') ? 'ma-ball-nb' : ''}`}>{b}</span>
+                            ))}
+                        </div>
+
+                        {/* Target entry (2nd innings with no target) */}
+                        {match.isSecondInnings && !match.targetScore && (
+                            <div className="ma-target-card">
+                                <div className="ma-target-title">🎯 SET TARGET</div>
+                                <div className="ma-target-hint">1st Inn: {match.firstInningsScore || 0}-{match.firstInningsWickets ?? 0} ({overs(match.firstInningsOvers || 0)})</div>
+                                <div className="ma-target-inputs">
+                                    <div className="ma-target-field">
+                                        <label>Target Runs</label>
+                                        <input id="ma-tgt-runs" type="number" className="ma-inp" placeholder={String((match.firstInningsScore || 0) + 1)} />
+                                    </div>
+                                    <div className="ma-target-field">
+                                        <label>Total Balls</label>
+                                        <input id="ma-tgt-balls" type="number" className="ma-inp" placeholder={String((match.maxOvers || 5) * bpo)} />
+                                    </div>
+                                </div>
+                                <button
+                                    className="ma-over-btn ma-over-ready"
+                                    style={{ animation: 'none' }}
+                                    onClick={() => {
+                                        const runs = parseInt(document.getElementById('ma-tgt-runs')?.value) || 0;
+                                        const balls = parseInt(document.getElementById('ma-tgt-balls')?.value) || ((match.maxOvers || 5) * bpo);
+                                        if (runs <= 0) { alert('Enter a valid target'); return; }
+                                        push({ targetScore: runs, targetBalls: balls });
+                                    }}
+                                >✅ SET TARGET</button>
+                            </div>
+                        )}
+
+                    </div>
+                )}
+
+                {/* ─── MATCH TAB ──────────────────────────────────────── */}
+                {activeTab === 'match' && (
+                    <div className="ma-match-tab">
+
+                        {/* Teams */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Teams</div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Batting</span>
+                                <input type="text" className="ma-inp" value={match.battingTeam || ''} onChange={e => push({ battingTeam: e.target.value.toUpperCase() })} />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Bowling</span>
+                                <input type="text" className="ma-inp" value={match.bowlingTeam || ''} onChange={e => push({ bowlingTeam: e.target.value.toUpperCase() })} />
+                            </div>
+                            <button
+                                className="ma-over-btn ma-over-wait"
+                                style={{ cursor: 'pointer', color: '#60a5fa', borderColor: 'rgba(96,165,250,0.2)' }}
+                                onClick={() => push({ battingTeam: match.bowlingTeam, bowlingTeam: match.battingTeam, battingLogo: match.leagueLogo, leagueLogo: match.battingLogo })}
+                            >↔ SWAP TEAMS</button>
+                        </div>
+
+                        {/* Logos */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Team Logos</div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Bat Logo</span>
+                                <div style={{flex: 1, display: 'flex', gap: '8px', alignItems: 'center'}}>
+                                    {match.overlaySettings?.battingLogo && (
+                                        <img src={match.overlaySettings.battingLogo.startsWith('http') || match.overlaySettings.battingLogo.startsWith('/') ? match.overlaySettings.battingLogo : `${API_URL}${match.overlaySettings.battingLogo}`} 
+                                             alt="Batting Team Logo" 
+                                             className="ma-logo-preview" 
+                                        />
+                                    )}
+                                    <LogoUpload 
+                                        matchId={matchId} 
+                                        side="batting" 
+                                        isMongoDB={isMongoDB(matchId)}
+                                        onUploaded={(url) => push({ overlaySettings: { ...match.overlaySettings, battingLogo: url } })} 
+                                    />
+                                </div>
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Bowl Logo</span>
+                                <div style={{flex: 1, display: 'flex', gap: '8px', alignItems: 'center'}}>
+                                    {match.overlaySettings?.leagueLogo && (
+                                        <img src={match.overlaySettings.leagueLogo.startsWith('http') || match.overlaySettings.leagueLogo.startsWith('/') ? match.overlaySettings.leagueLogo : `${API_URL}${match.overlaySettings.leagueLogo}`} 
+                                             alt="Bowling Team Logo" 
+                                             className="ma-logo-preview" 
+                                        />
+                                    )}
+                                    <LogoUpload 
+                                        matchId={matchId} 
+                                        side="bowling" 
+                                        isMongoDB={isMongoDB(matchId)}
+                                        onUploaded={(url) => push({ overlaySettings: { ...match.overlaySettings, leagueLogo: url } })} 
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Format */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Format & Rules</div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Format</span>
+                                <select className="ma-sel" value={match.matchType || 'T20'} onChange={e => push({ matchType: e.target.value })}>
+                                    <option>T20</option><option>T10</option><option>ODI</option><option>Test</option><option>Custom</option>
+                                </select>
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Max Overs</span>
+                                <input type="number" className="ma-inp" value={match.maxOvers || 20} onChange={e => push({ maxOvers: parseInt(e.target.value) || 20 })} />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Balls/Over</span>
+                                <input type="number" className="ma-inp" value={match.ballsPerOver || 6} onChange={e => push({ ballsPerOver: parseInt(e.target.value) || 6 })} />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Stage</span>
+                                <input type="text" className="ma-inp" placeholder="e.g. GRAND FINAL" value={match.matchTitle || match.bowlingPrefix || ''} onChange={e => push({ matchTitle: e.target.value, bowlingPrefix: e.target.value })} />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Target</span>
+                                <input type="number" className="ma-inp" value={match.targetScore || 0} onChange={e => push({ targetScore: parseInt(e.target.value) || 0 })} />
+                            </div>
+                        </div>
+
+                        {/* Innings */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Innings</div>
+                            <div className="ma-status-grid">
+                                <button className={`ma-status-btn ${!match.isSecondInnings ? 'active-live' : ''}`} onClick={() => push({ isSecondInnings: false })}>1ST INNINGS</button>
+                                <button className={`ma-status-btn ${match.isSecondInnings ? 'active-live' : ''}`} onClick={() => push({ isSecondInnings: true })}>2ND INNINGS</button>
+                            </div>
+                            <button
+                                className="ma-action-btn w-full mt-2"
+                                style={{ background: 'rgba(220,38,38,0.3)', color: '#fca5a5', borderColor: 'rgba(248,113,113,0.25)' }}
+                                onClick={() => {
+                                    if (match.isSecondInnings) { alert('Already in 2nd innings.'); return; }
+                                    if (window.confirm('Start 2nd Innings? Score will reset.\n1st Inn: ' + match.score + '-' + match.wickets)) {
+                                        push({
+                                            firstInningsScore: match.score, firstInningsWickets: match.wickets, firstInningsOvers: match.legalBallCount,
+                                            score: 0, wickets: 0, totalBalls: 0, currentOver: 0, overRuns: 0, recentBalls: [],
+                                            legalBallCount: 0, isSecondInnings: true, targetScore: 0,
+                                            player1: { name: '', runs: 0, balls: 0, onStrike: true },
+                                            player2: { name: '', runs: 0, balls: 0, onStrike: false },
+                                            eventTrigger: 'RESET_WINNER'
+                                        });
+                                    }
+                                }}
+                            >⚠ RESET & START 2ND INNINGS</button>
+                            <div className="ma-field-row" style={{ marginTop: 4 }}>
+                                <span className="ma-field-label">Super Over</span>
+                                <input type="checkbox" checked={!!match.isSuperOver} onChange={e => push({ isSuperOver: e.target.checked })} style={{ transform: 'scale(1.8)', margin: '0 8px' }} />
+                            </div>
+                        </div>
+
+                        {/* Theme & Overlay */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Overlay Theme</div>
+                            <select className="ma-sel" value={match.themeID || 'IPL_GOLD'} onChange={e => push({ themeID: e.target.value })}>
+                                <option value="IPL_GOLD">IPL Classic</option>
+                                <option value="SKY_PRO">Sky Sports</option>
+                                <option value="NEON_VAVUNIYA">Neon Green</option>
+                                <option value="CLASSIC_DARK">Classic Dark</option>
+                                <option value="T20_NEON">T20 Neon</option>
+                                <option value="WC_BLUE_PURPLE">WC Blue-Purple</option>
+                                <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
+                                <option value="WC2026">🏆 T20 WC 2026</option>
+                                <option value="KS_SPECIAL">☆ KS Special</option>
+                                <option value="SL_BROADCAST">📺 SL Broadcast</option>
+                                <option value="APOGEE">🔮 APOGEE ARENA</option>
+                                <option value="DC_BLUE">🟦 DC Blue Bar</option>
+                                <option value="IPL_2026">🏏 IPL 2026</option>
+                                <option value="NEW_IPL">🆕 NEW IPL</option>
+                                <option value="KS_PREMIUM">💎 KS Premium</option>
+                            </select>
+                            <div className="ma-grid-2">
+                                <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
+                                <button className={`ma-status-btn ${match.showSummary ? 'active-break' : ''}`} onClick={() => push({ showSummary: !match.showSummary })}>Summary</button>
+                            </div>
+                            <button
+                                className="ma-over-btn ma-over-wait"
+                                style={{ cursor: 'pointer', color: '#22d3ee', borderColor: 'rgba(34,211,238,0.25)' }}
+                                onClick={() => push({ eventTrigger: 'SHOW_BANNER' })}
+                            >✨ SHOW BANNER</button>
+                        </div>
+
+                        {/* Extras config */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Allowed Extras</div>
+                            <div className="ma-status-grid">
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#fb923c', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                    <input type="checkbox" checked={match.extrasConfig?.wd !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, wd: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> Wides
+                                </label>
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#fdba74', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                    <input type="checkbox" checked={match.extrasConfig?.nb !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, nb: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> No Balls
+                                </label>
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#a78bfa', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                    <input type="checkbox" checked={match.extrasConfig?.lb !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, lb: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> Leg Byes
+                                </label>
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#67e8f9', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                    <input type="checkbox" checked={match.extrasConfig?.b !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, b: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> Byes
                                 </label>
                             </div>
                         </div>
-                        <div style={{ display: 'flex', width: '100%', gap: '8px', alignItems: 'center' }}>
-                            <input id="ma-manual-balls" type="number" className="ma-inp" placeholder="e.g. 16" defaultValue={match.manualBallsValue || ""} />
-                            <button className="ma-btn" style={{ background: '#ef4444', color: 'white', padding: '4px 12px', flexShrink: 0, fontWeight: 'bold' }} onClick={() => {
-                                const valEl = document.getElementById('ma-manual-balls');
-                                const val = parseInt(valEl?.value);
-                                const maxAllowed = (match.maxOvers || 5) * 6;
-                                if (!isNaN(val) && val >= 0) {
-                                    if (val > maxAllowed) {
-                                        alert(`Maximum balls allowed for this format is ${maxAllowed}.`);
-                                        valEl.value = maxAllowed;
-                                        push({ manualBallsOverride: true, manualBallsValue: maxAllowed });
-                                    } else {
-                                        push({ manualBallsOverride: true, manualBallsValue: val });
-                                    }
-                                } else {
-                                    alert('Please enter a valid positive number for balls.');
-                                }
-                            }}>UPDATE</button>
+
+                        {/* Match status */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Match Status</div>
+                            <div className="ma-status-grid">
+                                <button className={`ma-status-btn ${(!match.matchStatus || match.matchStatus === 'Live') ? 'active-live' : ''}`} onClick={() => push({ matchStatus: 'Live' })}>🔴 LIVE</button>
+                                <button className={`ma-status-btn ${match.matchStatus === 'Break' ? 'active-break' : ''}`} onClick={() => push({ matchStatus: 'Break' })}>⏸ BREAK</button>
+                                <button className={`ma-status-btn ${match.matchStatus === 'Innings Break' ? 'active-inn' : ''}`} onClick={() => push({ matchStatus: 'Innings Break' })}>🔄 INN BREAK</button>
+                                <button className={`ma-status-btn ${match.matchStatus === 'Rain Delay' ? 'active-rain' : ''}`} onClick={() => push({ matchStatus: 'Rain Delay' })}>☔ RAIN</button>
+                            </div>
+                            <button className={`ma-status-btn w-full mt-2 ${match.matchStatus === 'Match Ended' ? 'active-ended' : ''}`} style={{ width:'100%' }} onClick={() => push({ matchStatus: 'Match Ended' })}>🏁 MATCH ENDED</button>
                         </div>
-                        {!match.manualBallsOverride && (
-                            <div style={{ display: 'flex', width: '100%', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-                                <span style={{ fontSize: '10px', color: '#888' }}>Total Balls:</span>
-                                <input type="number" className="ma-inp" value={match.totalBalls} onChange={(e) => push({ totalBalls: parseInt(e.target.value) || 0 })} />
+
+                        {/* Score override */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Score Override</div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Score</span>
+                                <input type="number" className="ma-inp" value={match.score || 0} onChange={e => push({ score: parseInt(e.target.value) || 0 })} />
                             </div>
-                        )}
-                    </div>
-                    <div className="ma-row">
-                        <label>Score Override</label>
-                        <input type="number" className="ma-inp" value={match.score} onChange={(e) => push({ score: parseInt(e.target.value) || 0 })} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Wickets Override</label>
-                        <input type="number" className="ma-inp" value={match.wickets} onChange={(e) => push({ wickets: parseInt(e.target.value) || 0 })} />
-                    </div>
-                    {/* Recent balls display */}
-                    <div className="ma-recent">
-                        {(match.recentBalls || []).map((b, i) => (
-                            <span key={i} className={`ma-ball ${b === "W" ? "ma-ball-w" : b === "•" ? "ma-ball-dot" : typeof b === "string" && b.startsWith("NB") ? "ma-ball-nb" : ""}`}>{b}</span>
-                        ))}
-                    </div>
-                </Section>
-
-                {/* ── 6. MATCH STATUS ──────────────────────────────────────── */}
-                <Section label="MATCH STATUS" color="amber" icon="📡" open={!!openSections.status} onClick={() => toggle("status")}>
-                    <div className="ma-grid ma-grid-2" style={{ gap: '6px' }}>
-                        <button className={`ma-btn ${match.matchStatus === 'Live' || !match.matchStatus ? "bg-red-600 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Live" })}>🔴 LIVE</button>
-                        <button className={`ma-btn ${match.matchStatus === 'Break' ? "bg-blue-600 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Break" })}>⏸ BREAK</button>
-                        <button className={`ma-btn ${match.matchStatus === 'Innings Break' ? "bg-amber-600 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Innings Break" })}>🔄 INN BREAK</button>
-                        <button className={`ma-btn ${match.matchStatus === 'Rain Delay' ? "bg-blue-900 text-cyan-300 border-blue-500 font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Rain Delay" })}>☔ RAIN</button>
-                    </div>
-                    <button className={`ma-btn w-full mt-2 ${match.matchStatus === 'Match Ended' ? "bg-purple-700 text-white font-black" : "ma-btn-undo"}`} onClick={() => push({ matchStatus: "Match Ended" })}>🏁 MATCH ENDED</button>
-                </Section>
-
-                {/* ── 7. TICKER ────────────────────────────────────────── */}
-                <Section label="BROADCAST TICKER" color="amber" icon="📺" open={!!openSections.ticker} onClick={() => toggle("ticker")}>
-                    <input
-                        className="ma-inp w-full"
-                        placeholder="GRAND FINAL — MATCH 3"
-                        value={tickerMsg}
-                        onChange={(e) => setTickerMsg(e.target.value.toUpperCase())}
-                    />
-                    <div className="ma-grid ma-grid-2" style={{ marginTop: 4 }}>
-                        <select className="ma-sel" value={tickerMode} onChange={(e) => { setTickerMode(e.target.value); pushTicker({ mode: e.target.value }); }}>
-                            <option value="banner">🏆 Tournament</option>
-                            <option value="breaking">🔴 Breaking</option>
-                        </select>
-                        <select className="ma-sel" value={tickerPreset} onChange={(e) => { setTickerPreset(e.target.value); pushTicker({ preset: e.target.value }); }}>
-                            <option value="final">🥇 Final</option>
-                            <option value="semi">🔵 Semi</option>
-                            <option value="custom">🟢 Custom</option>
-                        </select>
-                    </div>
-                    <div className="ma-btn-row" style={{ marginTop: 4 }}>
-                        <button className="ma-btn ma-btn-save" onClick={() => pushTicker({ message: tickerMsg })}>💾 SAVE</button>
-                        <button className={`ma-btn ${tickerVisible ? "ma-btn-hide" : "ma-btn-show"}`} onClick={() => { const v = !tickerVisible; setTickerVisible(v); pushTicker({ visible: v, timestamp: Date.now() }); }}>
-                            {tickerVisible ? "🔴 HIDE TICKER" : "🟢 SHOW TICKER"}
-                        </button>
-                    </div>
-                    <div className="ma-row" style={{ marginTop: 8, padding: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }}>
-                        <label style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', color: '#cbd5e1' }}>
-                            <span>Auto Repeat (Loop)</span>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <button className={`ma-btn ${!tickerAutoRepeat ? 'bg-red-600 text-white' : 'ma-btn-undo'}`} style={{ padding: '4px 12px' }} onClick={() => pushTicker({ autoRepeat: false })}>OFF</button>
-                                <button className={`ma-btn ${tickerAutoRepeat ? 'bg-green-600 text-white' : 'ma-btn-undo'}`} style={{ padding: '4px 12px' }} onClick={() => pushTicker({ autoRepeat: true })}>ON</button>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Wickets</span>
+                                <input type="number" className="ma-inp" value={match.wickets || 0} onChange={e => push({ wickets: parseInt(e.target.value) || 0 })} />
                             </div>
-                        </label>
-                    </div>
-                </Section>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Legal Balls</span>
+                                <input type="number" className="ma-inp" value={match.legalBallCount || 0} onChange={e => push({ totalBalls: parseInt(e.target.value) || 0, legalBallCount: parseInt(e.target.value) || 0 })} />
+                            </div>
+                        </div>
 
-                {/* ── 8. MATCH SITUATION ───────────────────────────────── */}
-                <Section label="MATCH SITUATION" color="blue" icon="📊" open={!!openSections.matchSituation} onClick={() => toggle("matchSituation")}>
-                    <div className="ma-row">
-                        <label>CRR</label>
-                        <input type="text" className="ma-inp" placeholder="e.g. 7.25" value={msCrr} onChange={(e) => setMsCrr(e.target.value)} />
-                    </div>
-                    <div className="ma-row">
-                        <label>RRR</label>
-                        <input type="text" className="ma-inp" placeholder="e.g. 8.10" value={msRrr} onChange={(e) => setMsRrr(e.target.value)} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Target</label>
-                        <input type="number" className="ma-inp" placeholder="e.g. 145" value={msTarget} onChange={(e) => setMsTarget(e.target.value)} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Overs Left</label>
-                        <input type="text" className="ma-inp" placeholder="e.g. 5.0" value={msOvers} onChange={(e) => setMsOvers(e.target.value)} />
-                    </div>
-                    <div className="ma-row">
-                        <label>Wickets</label>
-                        <input type="number" className="ma-inp" placeholder="e.g. 6" value={msWickets} onChange={(e) => setMsWickets(e.target.value)} />
-                    </div>
-                    <div className="ma-row" style={{ alignItems: 'flex-start' }}>
-                        <label style={{ paddingTop: '6px' }}>Message</label>
-                        <input type="text" className="ma-inp" placeholder="Need 25 runs in 12 balls" value={msMsg} onChange={(e) => setMsMsg(e.target.value)} />
-                    </div>
-                    <div className="ma-btn-row" style={{ marginTop: 4 }}>
-                        <button className="ma-btn ma-btn-blue" onClick={() => {
-                            push({
-                                showMatchSituation: true,
-                                matchSituation: {
-                                    crr: msCrr || null,
-                                    rrr: msRrr || null,
-                                    target: msTarget ? parseInt(msTarget) : null,
-                                    oversRemaining: msOvers || null,
-                                    wicketsInHand: msWickets ? parseInt(msWickets) : null,
-                                    customMsg: msMsg || null,
-                                }
-                            });
-                        }}>📡 UPDATE</button>
-                        <button className="ma-btn ma-btn-hide" onClick={() => {
-                            push({ showMatchSituation: false, matchSituation: {} });
-                            setMsCrr(''); setMsRrr(''); setMsTarget(''); setMsOvers(''); setMsWickets(''); setMsMsg('');
-                        }}>✖ CLEAR</button>
-                    </div>
-                    <div style={{ marginTop: 4, padding: '6px', background: 'rgba(96,165,250,0.05)', borderRadius: 4, fontSize: '9px', color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
-                        Leave fields blank to use auto-calculated values
-                    </div>
-                </Section>
+                        {/* Actions */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Match Actions</div>
+                            {match.tournamentId && (
+                                <button className="ma-btn-deploy" onClick={() => setShowNextMatch(true)}>🚀 DEPLOY NEXT MATCH</button>
+                            )}
+                            <div className="ma-action-grid">
+                                <button className="ma-action-btn ma-btn-new" onClick={() => setShowTossModal(true)}>🪙 TOSS</button>
+                                <button className="ma-action-btn ma-btn-new" onClick={handleNewMatch}>🆕 NEW MATCH</button>
+                                <button className="ma-action-btn ma-btn-inn" onClick={handleNewInnings}>🔄 NEW INNINGS</button>
+                                <button className="ma-action-btn ma-btn-reset" onClick={handleResetTournament}>💥 RESET ALL</button>
+                            </div>
+                        </div>
 
+                    </div>
+                )}
+
+                {/* ─── LINEUP TAB ─────────────────────────────────────── */}
+                {activeTab === 'lineup' && (
+                    <div className="ma-lineup-tab">
+
+                        {/* Striker */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Current Players</div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label" style={{ color: '#ffcc00' }}>Striker ★</span>
+                                <ComboboxPlayerInput
+                                    options={match.battingSquad}
+                                    className="ma-inp"
+                                    placeholder="Select striker"
+                                    value={striker?.name || ''}
+                                    onChange={e => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })}
+                                />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Non-Str</span>
+                                <ComboboxPlayerInput
+                                    options={match.battingSquad}
+                                    className="ma-inp"
+                                    placeholder="Select non-striker"
+                                    value={nonStriker?.name || ''}
+                                    onChange={e => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })}
+                                />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label" style={{ color: '#a78bfa' }}>Bowler</span>
+                                <ComboboxPlayerInput
+                                    options={match.bowlingSquad}
+                                    className="ma-inp"
+                                    placeholder="Select bowler"
+                                    value={match.bowler?.name || ''}
+                                    onChange={e => push({ bowler: { ...match.bowler, name: e.target.value } })}
+                                />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label" style={{ color: '#a78bfa' }}>Figures</span>
+                                <input className="ma-inp" placeholder="e.g. 2-24" value={match.bowler?.figures || ''} onChange={e => push({ bowler: { ...match.bowler, figures: e.target.value } })} />
+                            </div>
+                            <button className="ma-over-btn ma-over-wait" style={{ cursor:'pointer', color:'#60a5fa', borderColor:'rgba(96,165,250,0.2)' }} onClick={swapStrike}>↔ SWAP STRIKE</button>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Str Runs</span>
+                                <input type="number" className="ma-inp" value={striker?.runs || 0} onChange={e => push({ [strikerKey]: { ...match[strikerKey], runs: parseInt(e.target.value) || 0 } })} />
+                            </div>
+                        </div>
+
+                        {/* Batting Squad */}
+                        <div className="ma-squad-section ma-batting-card">
+                            <div className="ma-card-title" style={{ color: '#4ade80' }}>🏏 Batting Squad</div>
+                            <div className="ma-add-row">
+                                <input
+                                    className="ma-inp"
+                                    placeholder="Add batter name"
+                                    value={newBattingPlayer}
+                                    onChange={e => setNewBattingPlayer(e.target.value.toUpperCase())}
+                                    onKeyDown={e => { if (e.key === 'Enter') addSquadPlayer('batting'); }}
+                                />
+                                <button className="ma-add-btn" onClick={() => addSquadPlayer('batting')}>ADD</button>
+                            </div>
+                            <div className="ma-squad-list">
+                                {battingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added</div>}
+                                {battingSquad.map((p, i) => (
+                                    <div className="ma-squad-chip" key={`b-${i}`}>
+                                        <span className="ma-chip-name">{i+1}. {p.name}</span>
+                                        <div className="ma-chip-actions">
+                                            <button className="ma-chip-btn" onClick={() => setBatterSlot(strikerKey, p)}>ST</button>
+                                            <button className="ma-chip-btn" onClick={() => setBatterSlot(nonStrikerKey, p)}>NS</button>
+                                            <button className="ma-chip-btn ma-chip-remove" onClick={() => removeSquadPlayer('batting', i)}>✕</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Bowling Squad */}
+                        <div className="ma-squad-section ma-bowling-card">
+                            <div className="ma-card-title" style={{ color: '#a78bfa' }}>🎳 Bowling Squad</div>
+                            <div className="ma-add-row">
+                                <input
+                                    className="ma-inp"
+                                    placeholder="Add bowler name"
+                                    value={newBowlingPlayer}
+                                    onChange={e => setNewBowlingPlayer(e.target.value.toUpperCase())}
+                                    onKeyDown={e => { if (e.key === 'Enter') addSquadPlayer('bowling'); }}
+                                />
+                                <button className="ma-add-btn" onClick={() => addSquadPlayer('bowling')}>ADD</button>
+                            </div>
+                            <div className="ma-squad-list">
+                                {bowlingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added</div>}
+                                {bowlingSquad.map((p, i) => (
+                                    <div className="ma-squad-chip" key={`bwl-${i}`}>
+                                        <span className="ma-chip-name">{i+1}. {p.name}</span>
+                                        <div className="ma-chip-actions">
+                                            <button className="ma-chip-btn" style={{ borderColor:'rgba(167,139,250,0.35)', color:'#a78bfa', background:'rgba(139,92,246,0.15)' }} onClick={() => handleChangeBowler(p)}>BOWL</button>
+                                            <button className="ma-chip-btn ma-chip-remove" onClick={() => removeSquadPlayer('bowling', i)}>✕</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                    </div>
+                )}
+
+                {/* ─── MORE TAB ──────────────────────────────────────── */}
+                {activeTab === 'more' && (
+                    <div className="ma-more-tab">
+
+                        {/* OBS Link */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">OBS Browser Source</div>
+                            <div className="ma-obs-row">
+                                <div className="ma-obs-url">{obsUrl}</div>
+                                <button
+                                    className="ma-obs-copy"
+                                    style={{ background: obsCopied ? '#10b981' : '#0ea5e9', color: '#fff' }}
+                                    onClick={copyOBSLink}
+                                >{obsCopied ? '✔ COPIED!' : '📋 COPY'}</button>
+                            </div>
+                            <button className="ma-preview-toggle" onClick={() => setShowLivePreview(p => !p)}>
+                                <div className="ma-preview-dot" style={{ background: showLivePreview ? '#10b981' : '#475569', animation: showLivePreview ? 'pulse 1.5s infinite' : 'none' }} />
+                                {showLivePreview ? 'HIDE OVERLAY PREVIEW' : 'SHOW OVERLAY PREVIEW'}
+                            </button>
+                            {showLivePreview && (
+                                <div style={{ position:'relative', width:'100%', paddingTop:'56.25%', background:'#000', borderRadius:8, border:'1px solid #334155', overflow:'hidden', marginTop:6 }}>
+                                    <iframe src={overlayUrl} title="Overlay Preview" style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', border:'none', pointerEvents:'none' }} />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Broadcast Ticker */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Broadcast Ticker</div>
+                            <input className="ma-inp" placeholder="GRAND FINAL — MATCH 3" value={tickerMsg} onChange={e => setTickerMsg(e.target.value.toUpperCase())} />
+                            <div className="ma-grid-2">
+                                <select className="ma-sel" value={tickerMode} onChange={e => { setTickerMode(e.target.value); pushTicker({ mode: e.target.value }); }}>
+                                    <option value="banner">🏆 Tournament</option>
+                                    <option value="breaking">🔴 Breaking</option>
+                                </select>
+                                <select className="ma-sel" value={tickerPreset} onChange={e => { setTickerPreset(e.target.value); pushTicker({ preset: e.target.value }); }}>
+                                    <option value="final">🥇 Final</option>
+                                    <option value="semi">🔵 Semi</option>
+                                    <option value="custom">🟢 Custom</option>
+                                </select>
+                            </div>
+                            <div className="ma-btn-row-2">
+                                <button className="ma-ticker-btn ma-ticker-save" onClick={() => pushTicker({ message: tickerMsg })}>💾 SAVE</button>
+                                <button
+                                    className={`ma-ticker-btn ${tickerVisible ? 'ma-ticker-hide' : 'ma-ticker-show'}`}
+                                    onClick={() => { const v = !tickerVisible; setTickerVisible(v); pushTicker({ visible: v, timestamp: Date.now() }); }}
+                                >{tickerVisible ? '🔴 HIDE TICKER' : '🟢 SHOW TICKER'}</button>
+                            </div>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px', background:'rgba(255,255,255,0.03)', borderRadius:6 }}>
+                                <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontWeight:700 }}>AUTO REPEAT</span>
+                                <div style={{ display:'flex', gap:4 }}>
+                                    <button className={`ma-ticker-btn ${!tickerAutoRepeat ? 'ma-ticker-hide' : ''}`} style={{ padding:'6px 12px' }} onClick={() => pushTicker({ autoRepeat: false })}>OFF</button>
+                                    <button className={`ma-ticker-btn ${tickerAutoRepeat ? 'ma-ticker-show' : ''}`} style={{ padding:'6px 12px' }} onClick={() => pushTicker({ autoRepeat: true })}>ON</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Extended Extras (all variants) */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Extended Extras</div>
+                            {match.extrasConfig?.wd !== false && (
+                                <>
+                                    <div className="ma-section-label">WIDE +</div>
+                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
+                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', r))}>WD{r > 0 ? `+${r}` : ''}</button>)}
+                                    </div>
+                                </>
+                            )}
+                            {match.extrasConfig?.nb !== false && (
+                                <>
+                                    <div className="ma-section-label">NO BALL +</div>
+                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
+                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', r))}>NB{r > 0 ? `+${r}` : ''}</button>)}
+                                    </div>
+                                </>
+                            )}
+                            {match.extrasConfig?.lb !== false && (
+                                <>
+                                    <div className="ma-section-label">LEG BYE</div>
+                                    <div className="ma-extras-grid">
+                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(r))}>LB {r}</button>)}
+                                    </div>
+                                </>
+                            )}
+                            {match.extrasConfig?.b !== false && (
+                                <>
+                                    <div className="ma-section-label">BYE</div>
+                                    <div className="ma-extras-grid">
+                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(r))}>B {r}</button>)}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Match Situation */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Match Situation Panel</div>
+                            <div className="ma-field-row"><span className="ma-field-label">CRR</span><input type="text" className="ma-inp" placeholder="7.25" value={msCrr} onChange={e => setMsCrr(e.target.value)} /></div>
+                            <div className="ma-field-row"><span className="ma-field-label">RRR</span><input type="text" className="ma-inp" placeholder="8.10" value={msRrr} onChange={e => setMsRrr(e.target.value)} /></div>
+                            <div className="ma-field-row"><span className="ma-field-label">Target</span><input type="number" className="ma-inp" placeholder="145" value={msTarget} onChange={e => setMsTarget(e.target.value)} /></div>
+                            <div className="ma-field-row"><span className="ma-field-label">Overs Left</span><input type="text" className="ma-inp" placeholder="5.0" value={msOvers} onChange={e => setMsOvers(e.target.value)} /></div>
+                            <div className="ma-field-row"><span className="ma-field-label">Wkts Left</span><input type="number" className="ma-inp" placeholder="6" value={msWickets} onChange={e => setMsWickets(e.target.value)} /></div>
+                            <div className="ma-field-row"><span className="ma-field-label">Message</span><input type="text" className="ma-inp" placeholder="Need 25 in 12 balls" value={msMsg} onChange={e => setMsMsg(e.target.value)} /></div>
+                            <div className="ma-btn-row-2">
+                                <button className="ma-ticker-btn ma-sit-update" onClick={() => push({ showMatchSituation: true, matchSituation: { crr: msCrr || null, rrr: msRrr || null, target: msTarget ? parseInt(msTarget) : null, oversRemaining: msOvers || null, wicketsInHand: msWickets ? parseInt(msWickets) : null, customMsg: msMsg || null } })}>📡 UPDATE</button>
+                                <button className="ma-ticker-btn ma-sit-clear" onClick={() => { push({ showMatchSituation: false, matchSituation: {} }); setMsCrr(''); setMsRrr(''); setMsTarget(''); setMsOvers(''); setMsWickets(''); setMsMsg(''); }}>✖ CLEAR</button>
+                            </div>
+                        </div>
+
+                        {/* Manual balls override */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Remaining Balls (Manual)</div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Balls Left</span>
+                                <input id="ma-manual-balls" type="number" className="ma-inp" placeholder="e.g. 16" defaultValue={match.manualBallsValue || ''} />
+                            </div>
+                            <div className="ma-grid-2">
+                                <button className="ma-ticker-btn ma-sit-update" onClick={() => {
+                                    const val = parseInt(document.getElementById('ma-manual-balls')?.value);
+                                    const max = match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * bpo;
+                                    if (!isNaN(val) && val >= 0) push({ manualBallsOverride: true, manualBallsValue: Math.min(val, max) });
+                                    else alert('Enter a valid number');
+                                }}>SET</button>
+                                <button className="ma-ticker-btn" style={{ background:'rgba(255,255,255,0.04)', color:'rgba(255,255,255,0.4)', border:'1px solid rgba(255,255,255,0.08)' }} onClick={() => push({ manualBallsOverride: false, manualBallsValue: 0 })}>AUTO</button>
+                            </div>
+                        </div>
+
+                    </div>
+                )}
+
+            </div>{/* end ma-content */}
+
+            {/* ══ QUICK SCORE BAR (above tab bar) ════════════════════ */}
+            <div className="ma-quick-bar">
+                <button className="ma-qb ma-qb-dot" onClick={() => debounce(() => addRun(0))}>•</button>
+                <button className="ma-qb ma-qb-run" onClick={() => debounce(() => addRun(1))}>1</button>
+                <button className="ma-qb ma-qb-run" onClick={() => debounce(() => addRun(2))}>2</button>
+                <button className="ma-qb ma-qb-run" onClick={() => debounce(() => addRun(3))}>3</button>
+                <button className="ma-qb ma-qb-four" onClick={() => debounce(() => addBoundary(4))}>4</button>
+                <button className="ma-qb ma-qb-six" onClick={() => debounce(() => addBoundary(6))}>6</button>
+                <button className="ma-qb ma-qb-nb" onClick={() => debounce(() => addExtra('NB', 0))}>NB</button>
+                <button className="ma-qb ma-qb-wkt" onClick={() => debounce(() => handleWicket())}>W</button>
+                <button
+                    className={`ma-qb ${isOverReady && !overCooldown ? 'ma-qb-over' : 'ma-qb-undo'}`}
+                    onClick={() => isOverReady && !overCooldown ? debounce(handleOverCompleted) : handleUndo()}
+                >{isOverReady && !overCooldown ? '⚡' : '↶'}</button>
             </div>
 
-            {/* ═══ STICKY BOTTOM — QUICK SCORE BAR ═════════════════════ */}
-            {showRunOutPanel ? (
-                <div className="ma-sticky-bar" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px', background: 'linear-gradient(to top, #7f1d1d, #991b1b)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                            <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#fca5a5', textTransform: 'uppercase', marginBottom: '2px' }}>Runs</label>
-                            <select className="ma-inp" style={{ padding: '4px', fontSize: '11px', height: 'auto' }} value={runOutRuns} onChange={(e) => setRunOutRuns(parseInt(e.target.value))}>
-                                {[0, 1, 2, 3].map(n => <option key={n} value={n}>{n}</option>)}
-                            </select>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 2 }}>
-                            <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#fca5a5', textTransform: 'uppercase', marginBottom: '2px' }}>Who is Out?</label>
-                            <select className="ma-inp" style={{ padding: '4px', fontSize: '11px', height: 'auto' }} value={runOutPlayer} onChange={(e) => setRunOutPlayer(e.target.value)}>
-                                <option value="striker">Striker</option>
-                                <option value="non-striker">Non-Striker</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                        <button onClick={() => setShowRunOutPanel(false)} style={{ flex: 1, backgroundColor: 'transparent', color: '#fca5a5', border: '1px solid #fca5a5', borderRadius: '4px', padding: '6px', fontSize: '10px', fontWeight: 'bold' }}>CANCEL</button>
-                        <button onClick={() => debounce(() => handleRunOut())} style={{ flex: 2, backgroundColor: 'white', color: '#991b1b', border: 'none', borderRadius: '4px', padding: '6px', fontSize: '10px', fontWeight: 'bold' }}>SUMBIT RUN OUT</button>
-                    </div>
-                </div>
-            ) : (
-                <div className="ma-sticky-bar">
-                    <button className="ma-sq ma-sq-dot" onClick={() => debounce(() => addRun(0))}>•</button>
-                    <button className="ma-sq ma-sq-run" onClick={() => debounce(() => addRun(1))}>1</button>
-                    <button className="ma-sq ma-sq-run" onClick={() => debounce(() => addRun(2))}>2</button>
-                    <button className="ma-sq ma-sq-run" onClick={() => debounce(() => addBoundary(4))}>4</button>
-                    <button className="ma-sq ma-sq-six" onClick={() => debounce(() => addBoundary(6))}>6</button>
-                    <button className="ma-sq ma-sq-nb"  onClick={() => debounce(() => addExtra("NB", 0))}>NB</button>
-                    <button className="ma-sq ma-sq-wkt" onClick={() => debounce(() => handleWicket())}>W</button>
-                    <button className="ma-sq ma-sq-wkt" style={{ fontSize: '10px', backgroundColor: '#7f1d1d' }} onClick={() => setShowRunOutPanel(true)}>RO</button>
-                    <button className={`ma-sq ${isOverReady ? 'ma-sq-over-ready' : 'ma-sq-undo'}`} onClick={() => debounce(() => isOverReady ? handleOverCompleted() : handleUndo())}>{isOverReady ? '⚡' : '↶'}</button>
-                </div>
-            )}
+            {/* ══ TAB BAR ════════════════════════════════════════════ */}
+            <div className="ma-tab-bar">
+                <button className={`ma-tab ${activeTab === 'score' ? 'active' : ''}`} onClick={() => setActiveTab('score')}>
+                    <span className="ma-tab-icon">🏏</span>SCORE
+                </button>
+                <button className={`ma-tab ${activeTab === 'match' ? 'active' : ''}`} onClick={() => setActiveTab('match')}>
+                    <span className="ma-tab-icon">⚙️</span>MATCH
+                </button>
+                <button className={`ma-tab ${activeTab === 'lineup' ? 'active' : ''}`} onClick={() => setActiveTab('lineup')}>
+                    <span className="ma-tab-icon">👥</span>LINEUP
+                </button>
+                <button className={`ma-tab ${activeTab === 'more' ? 'active' : ''}`} onClick={() => setActiveTab('more')}>
+                    <span className="ma-tab-icon">📺</span>MORE
+                </button>
+            </div>
 
-            {/* Keyboard hint */}
-            <div className="ma-hints">Keys: 0-4,6 = Runs · W = Wicket · S = Swap · U = Undo · NB = No Ball</div>
+            {/* keyboard hint */}
+            <div className="ma-kb-hints">Keys: 0–4,6 = Runs &nbsp;|&nbsp; W = Wicket &nbsp;|&nbsp; S = Swap &nbsp;|&nbsp; U = Undo</div>
 
+            {/* ══ DEPLOY NEXT MATCH MODAL ════════════════════════════ */}
             {showNextMatch && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
-                    <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px', padding: '16px', width: '100%', maxWidth: '380px', color: '#f8fafc', textTransform: 'uppercase' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '8px', marginBottom: '12px' }}>
-                            <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#eab308', margin: 0 }}>⚡ DEPLOY NEXT MATCH</h3>
-                            <button onClick={() => setShowNextMatch(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '14px', cursor: 'pointer' }}>✕</button>
+                <div className="ma-modal-overlay">
+                    <div className="ma-modal-card">
+                        <div className="ma-modal-header">
+                            <span className="ma-modal-title">⚡ DEPLOY NEXT MATCH</span>
+                            <button className="ma-modal-close" onClick={() => setShowNextMatch(false)}>✕</button>
                         </div>
-                        
-                        <form onSubmit={async (e) => {
+                        <form className="ma-modal-form" onSubmit={async e => {
                             e.preventDefault();
-                            const form = e.target;
+                            const f = e.target;
                             const body = {
-                                battingTeam: form.battingTeam.value.toUpperCase(),
-                                bowlingTeam: form.bowlingTeam.value.toUpperCase(),
-                                maxOvers: parseInt(form.maxOvers.value) || 20,
-                                ballsPerOver: parseInt(form.ballsPerOver.value) || 6,
-                                matchType: form.matchType.value,
-                                matchTitle: form.matchTitle.value,
-                                themeID: form.themeID.value,
+                                battingTeam: f.battingTeam.value.toUpperCase(),
+                                bowlingTeam: f.bowlingTeam.value.toUpperCase(),
+                                maxOvers: parseInt(f.maxOvers.value) || 20,
+                                ballsPerOver: parseInt(f.ballsPerOver.value) || 6,
+                                matchType: f.matchType.value,
+                                matchTitle: f.matchTitle.value,
+                                themeID: f.themeID.value,
                                 matchDate: new Date().toISOString().split('T')[0],
                             };
-
                             try {
                                 const tId = typeof match.tournamentId === 'object' ? (match.tournamentId?.id || match.tournamentId?._id) : match.tournamentId;
                                 const res = await tournamentsApi.nextMatch(tId, body);
                                 setShowNextMatch(false);
-                                if (res.matchId) {
-                                    window.location.href = `/mini-admin/${res.matchId}`;
-                                }
-                            } catch (err) {
-                                alert(err.message || "Failed to switch match");
-                            }
-                        }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                    <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#94a3b8' }}>Batting Team</label>
-                                    <input name="battingTeam" required placeholder="COLOMBIA XI" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px', padding: '6px', fontSize: '11px', color: 'white' }} />
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                    <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#94a3b8' }}>Bowling Team</label>
-                                    <input name="bowlingTeam" required placeholder="VAVUNIYA LIONS" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px', padding: '6px', fontSize: '11px', color: 'white' }} />
-                                </div>
+                                if (res.matchId) window.location.href = `/mini-admin/${res.matchId}`;
+                            } catch (err) { alert(err.message || 'Failed to switch match'); }
+                        }}>
+                            <div className="ma-modal-row">
+                                <div className="ma-modal-field"><label className="ma-modal-label">Batting Team</label><input name="battingTeam" required className="ma-modal-inp" placeholder="COLOMBO XI" /></div>
+                                <div className="ma-modal-field"><label className="ma-modal-label">Bowling Team</label><input name="bowlingTeam" required className="ma-modal-inp" placeholder="VAVUNIYA" /></div>
                             </div>
-
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                    <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#94a3b8' }}>Format</label>
-                                    <select name="matchType" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px', padding: '6px', fontSize: '11px', color: 'white' }}>
-                                        <option value="T20">T20</option>
-                                        <option value="T10">T10</option>
-                                        <option value="ODI">ODI</option>
-                                        <option value="Test">Test</option>
-                                        <option value="Custom">Custom</option>
-                                    </select>
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                    <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#94a3b8' }}>Max Overs</label>
-                                    <input name="maxOvers" type="number" defaultValue="20" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px', padding: '6px', fontSize: '11px', color: 'white' }} />
-                                </div>
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                    <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#94a3b8' }}>Balls/Over</label>
-                                    <input name="ballsPerOver" type="number" defaultValue="6" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px', padding: '6px', fontSize: '11px', color: 'white' }} />
-                                </div>
+                            <div className="ma-modal-row">
+                                <div className="ma-modal-field"><label className="ma-modal-label">Format</label><select name="matchType" className="ma-modal-inp"><option>T20</option><option>T10</option><option>ODI</option></select></div>
+                                <div className="ma-modal-field"><label className="ma-modal-label">Max Overs</label><input name="maxOvers" type="number" defaultValue={20} className="ma-modal-inp" /></div>
+                                <div className="ma-modal-field"><label className="ma-modal-label">Balls/Over</label><input name="ballsPerOver" type="number" defaultValue={6} className="ma-modal-inp" /></div>
                             </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                    <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#94a3b8' }}>Stage / Match Title</label>
-                                    <input name="matchTitle" placeholder="GRAND FINAL" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px', padding: '6px', fontSize: '11px', color: 'white' }} />
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                                <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#94a3b8' }}>Overlay Theme</label>
-                                <select name="themeID" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px', padding: '6px', fontSize: '11px', color: 'white' }}>
-                                    <option value="IPL_GOLD">IPL Classic</option>
-                                    <option value="IPL_2026">🏏 IPL 2026</option>
-                                    <option value="NEW_IPL">🆕 NEW IPL</option>
-                                    <option value="WC2026">🏆 T20 WC 2026</option>
-                                    <option value="SKY_PRO">Sky Sports</option>
+                            <div className="ma-modal-field"><label className="ma-modal-label">Stage / Title</label><input name="matchTitle" className="ma-modal-inp" placeholder="GRAND FINAL" /></div>
+                            <div className="ma-modal-field"><label className="ma-modal-label">Theme</label>
+                                <select name="themeID" className="ma-modal-inp">
+                                    <option value="IPL_GOLD">IPL Classic</option><option value="IPL_2026">IPL 2026</option><option value="WC2026">T20 WC 2026</option><option value="SKY_PRO">Sky Sports</option>
                                 </select>
                             </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #1e293b' }}>
-                                <button type="button" onClick={() => setShowNextMatch(false)} style={{ backgroundColor: 'transparent', border: '1px solid #475569', color: '#cbd5e1', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>Cancel</button>
-                                <button type="submit" style={{ backgroundColor: '#eab308', border: 'none', color: '#0f172a', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', fontWeight: 'black', cursor: 'pointer' }}>🚀 Switch Match</button>
+                            <div className="ma-modal-footer">
+                                <button type="button" onClick={() => setShowNextMatch(false)} style={{ background:'transparent', border:'1px solid #475569', color:'#cbd5e1', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}>Cancel</button>
+                                <button type="submit" style={{ background:'#eab308', border:'none', color:'#0f172a', borderRadius:6, padding:'8px 16px', fontWeight:900, cursor:'pointer' }}>🚀 Switch Match</button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+
         </div>
     );
 };

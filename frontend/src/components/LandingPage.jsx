@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+﻿import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "./LandingPage.css";
 import { ScreenshotsShowcase, ThemesGallery, BuyerSolutions } from "./Portfolio";
 import { useLanguage } from "../i18n/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { matchesApi } from "../api";
+import { BroadcastingServices, ReviewsSection, ModernFooter } from './LandingExtras';
+import { HeroCarousel } from './HeroCarousel';
+import { FeaturesHub } from './FeaturesHub';
 
 const TESTIMONIALS = [
     {
@@ -47,12 +50,12 @@ const STATS = [
 ];
 
 const FEATURES = [
-    { icon: "📡", titleKey: "landing.feature.liveOverlay.title", descKey: "landing.feature.liveOverlay.desc" },
-    { icon: "⚡", titleKey: "landing.feature.realtime.title", descKey: "landing.feature.realtime.desc" },
-    { icon: "🎨", titleKey: "landing.feature.themes.title", descKey: "landing.feature.themes.desc" },
-    { icon: "📱", titleKey: "landing.feature.mobile.title", descKey: "landing.feature.mobile.desc" },
-    { icon: "👥", titleKey: "landing.feature.team.title", descKey: "landing.feature.team.desc" },
-    { icon: "🔒", titleKey: "landing.feature.secure.title", descKey: "landing.feature.secure.desc" },
+    { icon: "ðŸ“¡", titleKey: "landing.feature.liveOverlay.title", descKey: "landing.feature.liveOverlay.desc" },
+    { icon: "âš¡", titleKey: "landing.feature.realtime.title", descKey: "landing.feature.realtime.desc" },
+    { icon: "ðŸŽ¨", titleKey: "landing.feature.themes.title", descKey: "landing.feature.themes.desc" },
+    { icon: "ðŸ“±", titleKey: "landing.feature.mobile.title", descKey: "landing.feature.mobile.desc" },
+    { icon: "ðŸ‘¥", titleKey: "landing.feature.team.title", descKey: "landing.feature.team.desc" },
+    { icon: "ðŸ”’", titleKey: "landing.feature.secure.title", descKey: "landing.feature.secure.desc" },
 ];
 
 function useAnimatedCounter(target, duration = 2000, shouldStart = false) {
@@ -99,6 +102,38 @@ function generateParticles(count) {
 
 const PARTICLES = generateParticles(16);
 
+const isSriLankanUser = () => {
+    const locale = navigator.language || "";
+    const locales = navigator.languages || [];
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+
+    return locale.toLowerCase().includes("-lk")
+        || locales.some((item) => item.toLowerCase().includes("-lk"))
+        || timeZone === "Asia/Colombo";
+};
+
+const getPlanPrices = () => {
+    const local = isSriLankanUser();
+
+    return {
+        daily: {
+            currency: local ? "Rs" : "$",
+            amount: local ? "500" : "2",
+            period: "/ 24h",
+        },
+        monthly: {
+            currency: local ? "Rs" : "$",
+            amount: local ? "4000" : "10",
+            period: "/ mo",
+        },
+        annual: {
+            currency: local ? "Rs" : "$",
+            amount: local ? "15000" : "40",
+            period: "/ yr",
+        },
+    };
+};
+
 export default function LandingPage() {
     const { t } = useLanguage();
     const [introComplete, setIntroComplete] = useState(false);
@@ -108,9 +143,20 @@ export default function LandingPage() {
     const [activeTestimonial, setActiveTestimonial] = useState(0);
     const [statsVisible, setStatsVisible] = useState(false);
     const [copyState, setCopyState] = useState(false);
+    const [showMore, setShowMore] = useState(false);
     const statsRef = useRef(null);
     const testimonialTimer = useRef(null);
     const overlayUrl = typeof window !== "undefined" ? `${window.location.origin}/overlay` : "/overlay";
+    const planPrices = getPlanPrices();
+    const handleFeatureNav = (e) => {
+        e.preventDefault();
+        setShowMore(true);
+        setMobileMenuOpen(false);
+        setTimeout(() => {
+            document.getElementById('features-hub')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    };
+
 
     useEffect(() => {
         const timer = setTimeout(() => setIntroComplete(true), 3600);
@@ -252,10 +298,10 @@ export default function LandingPage() {
 
                 <ul className={`landing-nav-links ${mobileMenuOpen ? "open" : ""}`}>
                     <li><Link to="/live" onClick={() => setMobileMenuOpen(false)} style={{ color: '#2dd4bf', fontWeight: 'bold' }}>{t("landing.nav.liveScores")}</Link></li>
-                    <li><a href="#features" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.features")}</a></li>
-                    <li><a href="#screenshots" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.showcase")}</a></li>
+                    <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.features")}</a></li>
+                    <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.showcase")}</a></li>
                     <li><a href="#themes" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.themes")}</a></li>
-                    <li><a href="#solutions" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.solutions")}</a></li>
+                    <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.solutions")}</a></li>
                     <li><a href="#plans" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.plans")}</a></li>
                     <li><a href="#testimonials" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.testimonials")}</a></li>
                     <li className="landing-nav-language"><LanguageSwitcher compact /></li>
@@ -267,24 +313,7 @@ export default function LandingPage() {
                 </ul>
             </nav>
 
-            <section className="landing-hero">
-                <div className="landing-hero-content">
-                    <div className="landing-hero-badge">🔴 {t("landing.hero.badge")}</div>
-                    <h1>
-                        {t("landing.hero.titleLine1")}<br />
-                        <span>{t("landing.hero.titleLine2")}</span>
-                    </h1>
-                    <p className="landing-hero-sub">{t("landing.hero.subtitle")}</p>
-                    <div className="landing-hero-btns">
-                        <Link to="/register" className="landing-btn-primary">
-                            {t("landing.hero.getStarted")}
-                        </Link>
-                        <Link to="/login" className="landing-btn-secondary">
-                            {t("landing.hero.signIn")} →
-                        </Link>
-                    </div>
-                </div>
-            </section>
+            <HeroCarousel />
 
             {liveMatches.length > 0 && (
                 <section className="max-w-7xl mx-auto px-6 py-8 -mt-16 relative z-10">
@@ -300,7 +329,7 @@ export default function LandingPage() {
                                 </h2>
                             </div>
                             <Link to="/live" className="text-sm font-bold text-teal-400 hover:text-teal-300 transition-colors flex items-center gap-1">
-                                View All Scores <span className="text-base">→</span>
+                                View All Scores <span className="text-base">â†’</span>
                             </Link>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -309,10 +338,7 @@ export default function LandingPage() {
                                 const overs = Math.floor((m.legalBallCount || 0) / 6);
                                 const balls = (m.legalBallCount || 0) % 6;
                                 const formattedOvers = `${overs}.${balls}`;
-                                const getInitials = (name) => {
-                                    if (!name) return "";
-                                    return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 3);
-                                };
+                                const getInitials = (name) => { if (!name) return ""; const words = name.split(" "); if (words.length === 1) return name.slice(0, 3).toUpperCase(); return words.map(w => w[0]).join("").toUpperCase().slice(0, 3); };
 
                                 return (
                                     <Link
@@ -324,7 +350,7 @@ export default function LandingPage() {
                                         
                                         <div className="flex items-center justify-between text-[11px] text-slate-500 mb-3">
                                             <span className="font-bold text-teal-400 uppercase tracking-wider">{m.matchType || "T20"}</span>
-                                            <span className="truncate max-w-[150px] font-medium bg-slate-900 px-2 py-0.5 rounded border border-white/5">{m.tournamentName || "KS Cup"}</span>
+                                            <span className="truncate max-w-[50%] font-medium bg-slate-900 px-2 py-0.5 rounded border border-white/5">{m.tournamentName || "KS Cup"}</span>
                                         </div>
 
                                         <div className="space-y-3 mb-4">
@@ -334,7 +360,7 @@ export default function LandingPage() {
                                                     <div className="w-7 h-7 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-[10px] text-teal-400 uppercase shadow-inner">
                                                         {getInitials(m.battingTeam)}
                                                     </div>
-                                                    <span className="font-bold text-sm text-slate-200 group-hover:text-white transition-colors truncate max-w-[130px]">
+                                                    <span className="font-bold text-sm text-slate-200 group-hover:text-white transition-colors truncate">
                                                         {m.battingTeam}
                                                     </span>
                                                 </div>
@@ -350,7 +376,7 @@ export default function LandingPage() {
                                                     <div className="w-7 h-7 rounded-full bg-slate-800/40 border border-white/5 flex items-center justify-center font-bold text-[10px] text-slate-500 uppercase">
                                                         {getInitials(m.bowlingTeam)}
                                                     </div>
-                                                    <span className="font-medium text-xs text-slate-400 truncate max-w-[130px]">
+                                                    <span className="font-medium text-xs text-slate-400 truncate">
                                                         {m.bowlingTeam}
                                                     </span>
                                                 </div>
@@ -380,61 +406,7 @@ export default function LandingPage() {
                 </section>
             )}
 
-            <section className="landing-section landing-reveal" id="features">
-                <h2 className="landing-section-title">
-                    {t("landing.features.titlePrefix")} <span>{t("landing.features.titleHighlight")}</span>
-                </h2>
-                <p className="landing-section-sub">{t("landing.features.subtitle")}</p>
-                <div className="landing-features-grid">
-                    {FEATURES.map((feature, index) => (
-                        <div className="landing-feature-card" key={index}>
-                            <div className="landing-feature-icon">{feature.icon}</div>
-                            <h3>{t(feature.titleKey)}</h3>
-                            <p>{t(feature.descKey)}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            <section className="landing-section landing-reveal" id="how-it-works">
-                <h2 className="landing-section-title">
-                    {t("landing.how.titlePrefix")} <span>{t("landing.how.titleHighlight")}</span>
-                </h2>
-                <p className="landing-section-sub">{t("landing.how.subtitle")}</p>
-                <div className="landing-how-grid">
-                    <div className="landing-how-card">
-                        <h3>{t("landing.how.step1.title")}</h3>
-                        <p>{t("landing.how.step1.desc")}</p>
-                    </div>
-                    <div className="landing-how-card">
-                        <h3>{t("landing.how.step2.title")}</h3>
-                        <p>{t("landing.how.step2.desc")}</p>
-                    </div>
-                    <div className="landing-how-card">
-                        <h3>{t("landing.how.step3.title")}</h3>
-                        <p>{t("landing.how.step3.desc")}</p>
-                    </div>
-                </div>
-                <div className="landing-obs-box">
-                    <div>
-                        <div className="landing-obs-label">{t("landing.how.obsTitle")}</div>
-                        <p className="landing-obs-text">{t("landing.how.obsDesc")}</p>
-                        <code className="landing-obs-code">{overlayUrl}</code>
-                    </div>
-                    <div className="landing-obs-actions">
-                        <Link to="/admin" className="landing-btn-primary">
-                            {t("common.startSystem")}
-                        </Link>
-                        <button type="button" className="landing-btn-secondary landing-copy-btn" onClick={handleCopyOverlay}>
-                            {copyState ? t("common.copied") : t("common.overlayUrl")}
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <ScreenshotsShowcase />
             <ThemesGallery />
-            <BuyerSolutions />
 
             <section className="landing-plans-section landing-reveal" id="plans">
                 <h2 className="landing-section-title">
@@ -456,9 +428,9 @@ export default function LandingPage() {
                         </div>
                         <div className="landing-plan-body">
                             <ul>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.allThemes")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.liveScoring")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.obsSupport")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.allThemes")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.liveScoring")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.obsSupport")}</li>
                             </ul>
                         </div>
                         <div className="landing-plan-footer">
@@ -481,11 +453,11 @@ export default function LandingPage() {
                         </div>
                         <div className="landing-plan-body">
                             <ul>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.allThemes")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.liveScoring")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.obsSupport")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.unlimitedMatches")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.prioritySupport")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.allThemes")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.liveScoring")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.obsSupport")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.unlimitedMatches")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.prioritySupport")}</li>
                             </ul>
                         </div>
                         <div className="landing-plan-footer">
@@ -508,13 +480,13 @@ export default function LandingPage() {
                         </div>
                         <div className="landing-plan-body">
                             <ul>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.allThemes")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.liveScoring")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.obsSupport")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.unlimitedMatches")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.prioritySupport")}</li>
-                                <li><span className="check">✓</span> {t("landing.plans.feature.earlyAccess")}</li>
-                                <li className="highlight-feature"><span className="check">✓</span> {t("landing.plans.feature.saveMore")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.allThemes")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.liveScoring")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.obsSupport")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.unlimitedMatches")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.prioritySupport")}</li>
+                                <li><span className="check">G£ô</span> {t("landing.plans.feature.earlyAccess")}</li>
+                                <li className="highlight-feature"><span className="check">G£ô</span> {t("landing.plans.feature.saveMore")}</li>
                             </ul>
                         </div>
                         <div className="landing-plan-footer">
@@ -526,22 +498,15 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="landing-stats-section landing-reveal" id="stats" ref={statsRef}>
-                <h2 className="landing-section-title" style={{ marginBottom: "2.5rem" }}>
-                    {t("landing.stats.titlePrefix")} <span>{t("landing.stats.titleHighlight")}</span>
-                </h2>
-                <div className="landing-stats-grid">
-                    {STATS.map((stat, i) => (
-                        <div className="landing-stat-card" key={stat.labelKey}>
-                            <div className="landing-stat-number">
-                                {counts[i]}
-                                {stat.suffix}
-                            </div>
-                            <div className="landing-stat-label">{t(stat.labelKey)}</div>
-                        </div>
-                    ))}
+            {!showMore ? (
+                <div style={{textAlign: 'center', margin: '4rem 0'}}>
+                    <button onClick={() => setShowMore(true)} className="landing-btn-primary" style={{padding: '1rem 3rem', fontSize: '1.2rem', fontFamily: 'var(--font-serif)'}}>
+                        Discover All Features & Tools ðŸ‘‡
+                    </button>
                 </div>
-            </section>
+            ) : (
+                <div id="features-hub"><FeaturesHub /></div>
+            )}
 
             <section className="landing-testimonials-section landing-reveal" id="testimonials">
                 <h2 className="landing-section-title">
@@ -553,7 +518,7 @@ export default function LandingPage() {
                     {TESTIMONIALS.map((testimonial, index) => (
                         <div className="landing-testimonial-card" key={index}>
                             <div className="landing-testimonial-inner">
-                                <div className="landing-testimonial-quote">❝</div>
+                                <div className="landing-testimonial-quote">â</div>
                                 <p className="landing-testimonial-text">{testimonial.text}</p>
                                 <div className="landing-testimonial-author">
                                     <div className="landing-testimonial-avatar">{testimonial.initials}</div>
@@ -580,10 +545,10 @@ export default function LandingPage() {
 
                 <div className="landing-testimonial-arrows">
                     <button className="landing-testimonial-arrow" onClick={prevTestimonial} aria-label="Previous testimonial">
-                        ←
+                        â†
                     </button>
                     <button className="landing-testimonial-arrow" onClick={nextTestimonial} aria-label="Next testimonial">
-                        →
+                        â†’
                     </button>
                 </div>
             </section>
@@ -600,11 +565,16 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <footer className="landing-footer">
-                <p>
-                    © {new Date().getFullYear()} <a href="#top">{t("landing.footer")}</a>
-                </p>
-            </footer>
+            <BroadcastingServices />
+            <ReviewsSection />
+            <ModernFooter />
         </div>
     );
 }
+
+
+
+
+
+
+

@@ -817,6 +817,51 @@ body {
   --eb-particle: #fca5a5;
 }
 
+.anim-t20-neon .event-banner-four,
+.anim-wc-bp .event-banner-four,
+.anim-wc2026 .event-banner-four {
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.92), rgba(112, 26, 117, 0.9));
+  --eb-primary: #22d3ee;
+  --eb-secondary: #f0abfc;
+  --eb-glow: rgba(34, 211, 238, 0.72);
+}
+
+.anim-t20-neon .event-banner-six,
+.anim-wc-bp .event-banner-six,
+.anim-wc2026 .event-banner-six {
+  background: radial-gradient(circle at center, rgba(250, 204, 21, 0.28), transparent 42%), linear-gradient(135deg, rgba(88, 28, 135, 0.94), rgba(15, 23, 42, 0.9));
+  --eb-primary: #facc15;
+  --eb-secondary: #22d3ee;
+  --eb-glow: rgba(250, 204, 21, 0.78);
+}
+
+.anim-gold-champ .event-banner-four,
+.anim-gold-champ .event-banner-six,
+.anim-ks-special .event-banner-six {
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.32), transparent 45%), linear-gradient(135deg, rgba(120, 53, 15, 0.95), rgba(3, 7, 18, 0.92));
+  --eb-primary: #fbbf24;
+  --eb-secondary: #fde68a;
+  --eb-glow: rgba(251, 191, 36, 0.76);
+}
+
+.anim-sky-pro .event-banner-four,
+.anim-classic-dark .event-banner-four,
+.anim-minimal-dark .event-banner-four {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.92));
+  --eb-primary: #e5e7eb;
+  --eb-secondary: #38bdf8;
+  --eb-glow: rgba(148, 163, 184, 0.5);
+}
+
+.anim-sky-pro .event-banner-wicket,
+.anim-classic-dark .event-banner-wicket,
+.anim-minimal-dark .event-banner-wicket {
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.94), rgba(3, 7, 18, 0.94));
+  --eb-primary: #fb7185;
+  --eb-secondary: #ffffff;
+  --eb-glow: rgba(248, 113, 113, 0.62);
+}
+
 /* -- Radial glow (sized for scoreboard height) -- */
 .event-banner-glow {
   position: absolute;
@@ -1598,5 +1643,128 @@ body {
 @keyframes strikeFade {
     0% { opacity: 0; }
     100% { opacity: 0.85; }
+}
+
+/* =============================================
+   UNIVERSAL OVERLAY SAFETY & RESPONSIVENESS
+   ============================================= */
+.font-broadcast,
+.font-broadcast * {
+  box-sizing: border-box;
+}
+
+.font-broadcast h1,
+.font-broadcast h2,
+.font-broadcast h3,
+.font-broadcast span,
+.font-broadcast div {
+  min-width: 0;
+}
+
+.summary-team-name,
+.summary-bat-name,
+.summary-roster-name,
+.summary-fow-name,
+.summary-bowler-name,
+.vs-team-name,
+.tourney-name,
+.tourney-venue,
+.ksp-team-name,
+.ksp-batsman-name,
+.ksp-bowler-name,
+.newipl-team-name,
+.newipl-batter-name,
+.newipl-bowler-name,
+.ipl26-team-name,
+.ipl26-batsman-name,
+.ipl26-bowler-name,
+.apogee-team-name,
+.apogee-batsman-name,
+.apogee-bowler-name,
+.dc-team-name,
+.dc-batsman-name,
+.dc-bowler-name {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ksp-team-name,
+.newipl-team-name,
+.ipl26-team-name,
+.apogee-team-name,
+.dc-team-name,
+.vs-team-name,
+.summary-team-name {
+  font-size: clamp(16px, 2vw, 32px);
+  line-height: 1.05;
+}
+
+.ksp-batsman-name,
+.ksp-bowler-name,
+.newipl-batter-name,
+.newipl-bowler-name,
+.ipl26-batsman-name,
+.ipl26-bowler-name,
+.apogee-batsman-name,
+.apogee-bowler-name,
+.dc-batsman-name,
+.dc-bowler-name,
+.summary-bat-name,
+.summary-bowler-name {
+  font-size: clamp(11px, 1.1vw, 18px);
+  line-height: 1.12;
+}
+
+.ksp-score,
+.newipl-score,
+.ipl26-score,
+.apogee-score,
+.dc-score,
+.summary-score-big {
+  font-size: clamp(30px, 4.5vw, 72px);
+  line-height: 0.95;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.event-banner,
+.newipl-event-trigger,
+.ksp-event-banner {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  contain: layout paint;
+}
+
+@media (max-width: 1366px) {
+  .font-broadcast .h-28 {
+    height: 96px;
+  }
+
+  .font-broadcast .text-6xl {
+    font-size: clamp(38px, 4.4vw, 56px);
+  }
+
+  .font-broadcast .text-4xl {
+    font-size: clamp(22px, 2.6vw, 36px);
+  }
+}
+
+@media (max-width: 900px) {
+  .font-broadcast .h-28 {
+    height: auto;
+    min-height: 86px;
+  }
+
+  .event-banner-title {
+    font-size: clamp(20px, 6vw, 32px);
+  }
+
+  .event-banner-label {
+    font-size: 8px;
+    letter-spacing: 0.32em;
+  }
 }
 

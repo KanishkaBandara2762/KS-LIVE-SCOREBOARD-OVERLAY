@@ -1,0 +1,128 @@
+.hero-carousel-wrapper {
+    position: relative;
+    width: 100%;
+    height: 65vh; /* Massive cricinfo-style hero */
+    min-height: 450px;
+    max-height: 700px;
+    overflow: hidden;
+    background-color: #0f172a;
+}
+
+.hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s ease-in-out, transform 8s linear;
+    transform: scale(1);
+    z-index: 1;
+}
+
+.hero-slide.active {
+    opacity: 1;
+    transform: scale(1.05); /* Slow zoom effect */
+    z-index: 2;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(2,6,23,0.95) 0%, rgba(2,6,23,0.6) 40%, rgba(2,6,23,0.1) 100%);
+}
+
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    transform: translateY(-50%);
+    z-index: 3;
+    max-width: 600px;
+}
+
+.hero-subtitle {
+    color: #14b8a6;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.hero-title {
+    color: white;
+    font-size: 4rem !important;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.hero-desc {
+    color: #e2e8f0;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.hero-btn {
+    background-color: #14b8a6;
+    color: #020617;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(20,184,166,0.3);
+}
+
+.hero-btn:hover {
+    background-color: #0d9488;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(20,184,166,0.4);
+}
+
+.hero-indicators {
+    position: absolute;
+    bottom: 30px;
+    left: 10%;
+    z-index: 3;
+    display: flex;
+    gap: 10px;
+}
+
+.indicator-dot {
+    width: 40px;
+    height: 4px;
+    background-color: rgba(255,255,255,0.3);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.indicator-dot.active {
+    background-color: #14b8a6;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem !important;
+    }
+    .hero-content {
+        left: 5%;
+        right: 5%;
+    }
+    .hero-overlay {
+        background: linear-gradient(0deg, rgba(2,6,23,0.95) 0%, rgba(2,6,23,0.7) 100%);
+    }
+}

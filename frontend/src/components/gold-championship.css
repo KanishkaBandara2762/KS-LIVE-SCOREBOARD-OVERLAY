@@ -1,0 +1,120 @@
+/* ═══════════════════════════════════════════════════════════════
+   GOLD CHAMPIONSHIP — Custom Layout
+   Premium gold/black layout, metallic shimmer, elegant typography
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Main Container */
+.theme-gold-championship.scoreboard-open {
+    height: 125px !important;
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    padding: 0 60px 20px 60px !important;
+    gap: 12px !important;
+}
+
+/* Base style for all internal boxes */
+.theme-gold-championship .content-reveal,
+.theme-gold-championship .w-\[35\%\],
+.theme-gold-championship .w-\[30\%\],
+.theme-gold-championship .flex-1 {
+    height: 90px !important;
+    background: linear-gradient(to bottom, #18181b, #09090b) !important;
+    border: 1px solid #d4af37 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(212,175,55,0.1) !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    position: relative;
+}
+
+/* Metallic Shimmer Overlay */
+.theme-gold-championship .content-reveal::before,
+.theme-gold-championship .w-\[35\%\]::before,
+.theme-gold-championship .w-\[30\%\]::before,
+.theme-gold-championship .flex-1::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+    transform: skewX(-20deg);
+    animation: goldShimmer 4s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes goldShimmer {
+    0% { left: -100%; }
+    50% { left: 200%; }
+    100% { left: 200%; }
+}
+
+/* Left Box */
+.theme-gold-championship .w-\[35\%\] {
+    flex: 0 0 360px !important;
+    width: auto !important;
+    border-top: 3px solid #d4af37 !important;
+    background: linear-gradient(135deg, #27272a, #09090b) !important;
+}
+
+/* Middle Box */
+.theme-gold-championship .w-\[30\%\] {
+    flex: 1 !important;
+    width: auto !important;
+    justify-content: center !important;
+    gap: 30px !important;
+    border-bottom: 3px solid #d4af37 !important;
+}
+
+/* Right Box */
+.theme-gold-championship .flex-1 {
+    flex: 0 0 460px !important;
+    border-top: 3px solid #d4af37 !important;
+}
+
+/* Elegant Typography */
+.theme-gold-championship * {
+    font-family: 'Cinzel', 'Playfair Display', 'Times New Roman', serif !important;
+}
+
+.theme-gold-championship .text-4xl,
+.theme-gold-championship .text-5xl,
+.theme-gold-championship .text-6xl {
+    font-size: 3rem !important;
+    color: #d4af37 !important;
+    font-weight: 700 !important;
+    text-shadow: 0 2px 10px rgba(212,175,55,0.4) !important;
+}
+
+.theme-gold-championship .text-slate-400 {
+    color: #a1a1aa !important;
+    font-style: italic !important;
+}
+
+/* Batsman Row overrides */
+.theme-gold-championship .w-\[30\%\] > div {
+    background: rgba(212,175,55,0.05) !important;
+    border: 1px solid rgba(212,175,55,0.2) !important;
+    border-radius: 2px !important;
+    padding: 8px 16px !important;
+    margin: 0 !important;
+    height: auto !important;
+}
+
+/* Ball tracker */
+.theme-gold-championship .w-8.h-8 {
+    border-radius: 0 !important;
+    background: #18181b !important;
+    border: 1px solid #d4af37 !important;
+    color: #d4af37 !important;
+    font-weight: bold !important;
+}
+.theme-gold-championship .bg-amber-400.text-black {
+    background: #d4af37 !important;
+    color: #000 !important;
+    box-shadow: 0 0 10px rgba(212,175,55,0.5) !important;
+    border: none !important;
+}

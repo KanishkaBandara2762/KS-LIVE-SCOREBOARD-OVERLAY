@@ -1,13 +1,15 @@
 /**
- * KS Live — Score Calculation Service
+ * KS Live — Score Calculation Service v2.0
  *
  * Central engine for:
  *  - Valid ball counting (ignoring wides/no-balls)
  *  - Current Run Rate (CRR)
  *  - Required Run Rate (RRR) — 2nd innings
- *  - Remaining balls calculation (fixes the over/ball display bug)
+ *  - Remaining balls calculation
  *  - Over progression & over-lock logic
  *  - Manual score correction
+ *  - Bowler stats tracking (O/M/R/W/Economy)
+ *  - Match state snapshots for undo system
  */
 
 const LEGAL_DELIVERIES = ['dot', '1', '2', '3', '4', '5', '6', 'wicket', 'runout', 'lb', 'byes', 'deadball'];
@@ -22,6 +24,23 @@ const formatOvers = (legalBalls, ballsPerOver = 6) => {
   const completedOvers = Math.floor(legalBalls / ballsPerOver);
   const remainingBalls = legalBalls % ballsPerOver;
   return `${completedOvers}.${remainingBalls}`;
+};
+
+/**
+ * Format bowler figures: "W-R (O.B)" e.g. "2-24 (3.2)"
+ */
+const formatBowlerFigures = (legalBalls, runs, wickets, maidens = 0, ballsPerOver = 6) => {
+  const oversStr = formatOvers(legalBalls, ballsPerOver);
+  return `${wickets}-${runs} (${oversStr})`;
+};
+
+/**
+ * Calculate bowler economy rate
+ */
+const calculateEconomy = (runs, legalBalls, ballsPerOver = 6) => {
+  if (legalBalls === 0) return 0;
+  const overs = legalBalls / ballsPerOver;
+  return Math.round((runs / overs) * 100) / 100;
 };
 
 /**
@@ -42,7 +61,7 @@ const getRunsFromDelivery = (deliveryType, extraRuns = 0) => {
     '5': 5,
     '6': 6,
     wicket: 0,
-    runout: extraRuns || 0,   // run-out: optional runs + wicket
+    runout: extraRuns || 0,
     lb: extraRuns || 1,
     byes: extraRuns || 1,
     wide: 1 + (extraRuns || 0),
@@ -54,8 +73,6 @@ const getRunsFromDelivery = (deliveryType, extraRuns = 0) => {
 
 /**
  * Calculate Current Run Rate
- * CRR = total runs / total overs bowled
- * Uses legalBallCount for precision
  */
 const calculateCRR = (score, legalBallCount, ballsPerOver = 6) => {
   if (legalBallCount === 0) return 0;
@@ -65,28 +82,20 @@ const calculateCRR = (score, legalBallCount, ballsPerOver = 6) => {
 
 /**
  * Calculate Required Run Rate (2nd innings)
- * RRR = runs needed / overs remaining
- *
- * FIX: Uses legalBallCount (not totalBalls) to correctly count remaining balls
  */
 const calculateRRR = (targetScore, currentScore, legalBallCount, targetBalls, ballsPerOver = 6) => {
   const runsNeeded = targetScore - currentScore;
   const ballsBowled = legalBallCount;
-
-  // Use targetBalls if set, otherwise default to maxOvers * ballsPerOver
-  const totalBallsInInnings = targetBalls > 0 ? targetBalls : 120; // 120 = 20*6 default
+  const totalBallsInInnings = targetBalls > 0 ? targetBalls : 120;
   const remainingBalls = totalBallsInInnings - ballsBowled;
-
   if (remainingBalls <= 0) return 99.99;
   if (runsNeeded <= 0) return 0;
-
   const oversRemaining = remainingBalls / ballsPerOver;
   return Math.round((runsNeeded / oversRemaining) * 100) / 100;
 };
 
 /**
  * Calculate remaining balls in second innings
- * FIX: Always uses legalBallCount (valid deliveries only), not totalBalls
  */
 const getRemainingBalls = (legalBallCount, targetBalls, maxOvers, ballsPerOver = 6) => {
   const totalBalls = targetBalls > 0 ? targetBalls : maxOvers * ballsPerOver;
@@ -95,10 +104,67 @@ const getRemainingBalls = (legalBallCount, targetBalls, maxOvers, ballsPerOver =
 };
 
 /**
+ * Create an immutable snapshot of critical match state for undo system
+ */
+const createStateSnapshot = (match) => {
+  return {
+    score: match.score,
+    wickets: match.wickets,
+    legalBallCount: match.legalBallCount,
+    totalBalls: match.totalBalls,
+    currentOver: match.currentOver,
+    overRuns: match.overRuns,
+    recentBalls: [...(match.recentBalls || [])],
+    currentRunRate: match.currentRunRate,
+    requiredRunRate: match.requiredRunRate,
+    manualBallsValue: match.manualBallsValue,
+    player1: match.player1 ? {
+      name: match.player1.name,
+      runs: match.player1.runs,
+      balls: match.player1.balls,
+      fours: match.player1.fours,
+      sixes: match.player1.sixes,
+      onStrike: match.player1.onStrike,
+    } : null,
+    player2: match.player2 ? {
+      name: match.player2.name,
+      runs: match.player2.runs,
+      balls: match.player2.balls,
+      fours: match.player2.fours,
+      sixes: match.player2.sixes,
+      onStrike: match.player2.onStrike,
+    } : null,
+    bowler: match.bowler ? {
+      name: match.bowler.name,
+      overs: match.bowler.overs,
+      runs: match.bowler.runs,
+      wickets: match.bowler.wickets,
+      maidens: match.bowler.maidens,
+      figures: match.bowler.figures,
+      legalBalls: match.bowler.legalBalls,
+    } : null,
+    extras: match.extras ? {
+      wides: match.extras.wides,
+      noballs: match.extras.noballs,
+      byes: match.extras.byes,
+      legbyes: match.extras.legbyes,
+      total: match.extras.total,
+    } : null,
+    partnership: match.partnership ? {
+      runs: match.partnership.runs,
+      balls: match.partnership.balls,
+    } : null,
+    lastWicketName: match.lastWicketName,
+    lastWicketRuns: match.lastWicketRuns,
+    lastWicketBalls: match.lastWicketBalls,
+    fallOfWickets: match.fallOfWickets ? [...match.fallOfWickets.map(f => ({ ...f }))] : [],
+    battingScorecard: match.battingScorecard ? [...match.battingScorecard.map(b => ({ ...b }))] : [],
+    timestamp: Date.now(),
+  };
+};
+
+/**
  * Process a ball delivery and return the score delta
- * Returns what fields to $inc in MongoDB, plus derived fields
- *
- * FIX: Wides and No-balls do NOT increment legalBallCount
  */
 const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
   const { legalBallCount, ballsPerOver, maxOvers, score, wickets, isSecondInnings,
@@ -110,44 +176,38 @@ const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
   const isBoundary = [...BOUNDARY_FOURS, ...BOUNDARY_SIXES].includes(deliveryType);
   const isDead = deliveryType === 'deadball';
 
-  // ── New counts ────────────────────────────────────────────────────────────
   const newScore = isDead ? score : score + runsScored;
   const newWickets = isWicket ? wickets + 1 : wickets;
   const newLegalBallCount = legal && !isDead ? legalBallCount + 1 : legalBallCount;
   const newTotalBalls = match.totalBalls + 1;
 
-  // ── Over display (ball-in-over uses legalBallCount) ────────────────────────
   const ballInOver = newLegalBallCount % ballsPerOver;
   const currentOverDisplay = `${Math.floor(newLegalBallCount / ballsPerOver)}.${ballInOver}`;
 
-  // ── CRR ───────────────────────────────────────────────────────────────────
   const newCRR = calculateCRR(newScore, newLegalBallCount, ballsPerOver);
 
-  // ── RRR (only for 2nd innings) ────────────────────────────────────────────
   let newRRR = 0;
   if (isSecondInnings) {
     newRRR = calculateRRR(targetScore, newScore, newLegalBallCount, targetBalls, ballsPerOver);
   }
 
-  // ── Manual balls override auto-decrement ───────────────────────────────────
   let newManualBallsValue = manualBallsValue;
   if (manualBallsOverride && match.autoDecreaseBalls !== false && legal && !isDead) {
     newManualBallsValue = Math.max(0, manualBallsValue - 1);
   }
 
-  // ── Remaining balls (2nd innings) ─────────────────────────────────────────
   const remainingBalls = isSecondInnings
     ? getRemainingBalls(newLegalBallCount, targetBalls, maxOvers, ballsPerOver)
     : null;
 
-  // ── Over transition check ──────────────────────────────────────────────────
   const overCompleted = legal && !isDead && (newLegalBallCount % ballsPerOver === 0) && newLegalBallCount > 0;
 
-  // ── Recent balls update (max 6 shown) ─────────────────────────────────────
   const ballLabel = isDead ? 'DB' : deliveryType === 'wide' ? 'WD'
     : deliveryType === 'noball' ? 'NB'
     : deliveryType === 'wicket' ? 'W'
     : deliveryType === 'runout' ? (runsScored > 0 ? `${runsScored}RO` : 'RO')
+    : deliveryType === 'lb' ? (runsScored > 0 ? `LB${runsScored}` : 'LB')
+    : deliveryType === 'byes' ? (runsScored > 0 ? `B${runsScored}` : 'B')
     : String(runsScored);
 
   return {
@@ -178,7 +238,6 @@ const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
 
 /**
  * Apply manual score correction
- * Adjusts score and optionally wickets/balls without creating a score event
  */
 const applyManualCorrection = (match, correction) => {
   const { scoreDelta = 0, wicketsDelta = 0, ballsDelta = 0 } = correction;
@@ -190,7 +249,7 @@ const applyManualCorrection = (match, correction) => {
 };
 
 /**
- * Check if the innings is complete (all out or overs done)
+ * Check if the innings is complete
  */
 const isInningsComplete = (wickets, legalBallCount, maxOvers, ballsPerOver = 6) => {
   return wickets >= 10 || legalBallCount >= maxOvers * ballsPerOver;
@@ -198,11 +257,14 @@ const isInningsComplete = (wickets, legalBallCount, maxOvers, ballsPerOver = 6) 
 
 module.exports = {
   formatOvers,
+  formatBowlerFigures,
+  calculateEconomy,
   isLegalDelivery,
   getRunsFromDelivery,
   calculateCRR,
   calculateRRR,
   getRemainingBalls,
+  createStateSnapshot,
   processBallDelivery,
   applyManualCorrection,
   isInningsComplete,

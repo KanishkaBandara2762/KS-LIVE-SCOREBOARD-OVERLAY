@@ -1,9 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --font-serif: 'Times New Roman', Times, serif;
+  --font-sans: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+  --color-dark: #0f172a;
+  --color-card-bg: #1e293b;
+}
+
+.landing-page {
+  font-family: var(--font-sans);
+  background-color: var(--color-dark);
+}
+
+.landing-section-title, h1, h2, h3, .landing-hero h1 {
+  font-family: var(--font-serif) !important;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Make existing sections compact */
+.landing-section, .landing-plans-section, .landing-stats-section, .landing-testimonials-section {
+  padding: 3rem 1.5rem !important;
+}
+
+.landing-section-title {
+  font-size: 2rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.landing-section-sub {
+  font-size: 1rem !important;
+  margin-bottom: 2rem !important;
+}
+
+/* Compact features grid */
+.landing-features-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: 1rem !important;
+}
+
+.landing-feature-card {
+  padding: 1.5rem !important;
+  border-radius: 8px !important;
+}
+
+.landing-feature-icon {
+  font-size: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.landing-feature-card h3 {
+  font-size: 1.1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.landing-feature-card p {
+  font-size: 0.85rem !important;
+  line-height: 1.4 !important;
+}
+
+.landing-showcase-matches {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(20, 184, 166, 0.5) transparent;
+}
+.landing-showcase-matches::-webkit-scrollbar {
+  height: 6px;
+}
+.landing-showcase-matches::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.5);
+  border-radius: 10px;
+}
+.landing-showcase-card {
+  min-width: 240px;
+  max-width: 240px;
+  background: var(--color-card-bg);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: border-color 0.2s;
+}
+.landing-showcase-card:hover {
+  border-color: rgba(20, 184, 166, 0.4);
+}
 /* ============================================================
    LandingPage.css — KS Live Welcome Page
    Premium dark theme with cinematic animations
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 
 /* ─── CSS Variables ─────────────────────────────────────────── */
 :root {
@@ -1227,3 +1315,5 @@
         padding: 1.5rem;
     }
 }
+
+

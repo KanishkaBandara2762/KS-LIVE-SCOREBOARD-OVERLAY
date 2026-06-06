@@ -1,0 +1,108 @@
+/* ═══════════════════════════════════════════════════════════════
+   NEON VAVUNIYA — "Neon Pulse" Custom Layout
+   Cyberpunk-inspired horizontal bar with neon green glow edges
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Make the main container completely transparent and resize */
+.theme-neon-pulse.scoreboard-open {
+    height: 110px !important;
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 40px !important;
+    gap: 16px !important;
+}
+
+/* Base style for all internal boxes */
+.theme-neon-pulse .content-reveal,
+.theme-neon-pulse .w-\[35\%\],
+.theme-neon-pulse .w-\[30\%\],
+.theme-neon-pulse .flex-1 {
+    height: 90px !important;
+    background: rgba(10, 10, 15, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(132, 204, 22, 0.3) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 20px rgba(132, 204, 22, 0.15), inset 0 0 10px rgba(132, 204, 22, 0.05) !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 20px !important;
+    position: relative !important;
+}
+
+/* Glow line top edge for all boxes */
+.theme-neon-pulse .content-reveal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #84cc16, transparent);
+    opacity: 0.8;
+}
+
+/* Left Box - Score area */
+.theme-neon-pulse .w-\[35\%\] {
+    flex: 0 0 350px !important;
+    border-left: 4px solid #84cc16 !important;
+}
+
+/* Middle Box - Batsmen */
+.theme-neon-pulse .w-\[30\%\] {
+    flex: 1 !important;
+    justify-content: space-around !important;
+}
+
+/* Right Box - Bowler */
+.theme-neon-pulse .flex-1 {
+    flex: 0 0 450px !important;
+    background: linear-gradient(90deg, rgba(10, 10, 15, 0.9), rgba(20, 25, 20, 0.85)) !important;
+    border-right: 4px solid #84cc16 !important;
+}
+
+/* Batsman Row overrides */
+.theme-neon-pulse .w-\[30\%\] > div {
+    background: rgba(132, 204, 22, 0.1) !important;
+    border: 1px solid rgba(132, 204, 22, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    margin-bottom: 0 !important;
+    height: 42px !important;
+}
+.theme-neon-pulse .w-\[30\%\] > div:not(:last-child) {
+    margin-bottom: 6px !important;
+}
+
+/* Override default Tailwind widths to let flex work */
+.theme-neon-pulse .w-\[35\%\] { width: auto !important; }
+.theme-neon-pulse .w-\[30\%\] { width: auto !important; }
+
+/* Neon Pulse Animation for Score */
+@keyframes neonPulseGlow {
+    0%, 100% { text-shadow: 0 0 10px rgba(132,204,22,0.5), 0 0 20px rgba(132,204,22,0.3); }
+    50% { text-shadow: 0 0 20px rgba(132,204,22,0.8), 0 0 40px rgba(132,204,22,0.5); }
+}
+
+.theme-neon-pulse .text-lime-400 {
+    animation: neonPulseGlow 3s infinite;
+}
+
+/* Ball dots styling */
+.theme-neon-pulse .w-8.h-8 {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(132, 204, 22, 0.4) !important;
+    box-shadow: inset 0 0 5px rgba(132, 204, 22, 0.2) !important;
+    color: #a3e635 !important;
+}
+.theme-neon-pulse .bg-lime-500.text-black {
+    background: #84cc16 !important;
+    box-shadow: 0 0 10px #84cc16 !important;
+    color: black !important;
+    font-weight: 900 !important;
+    border: none !important;
+}

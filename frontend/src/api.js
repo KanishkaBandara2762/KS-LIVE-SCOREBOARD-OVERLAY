@@ -1,12 +1,11 @@
 /**
- * KS Live — Frontend API Client v2.0
+ * KS Live — Frontend API Client v2.1
  * Uses MongoDB/JWT backend at VITE_API_URL
- * NO Firebase dependency here — auth is pure JWT
  */
 
 const BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 
-// ── Token helpers ─────────────────────────────────────────────────────────────
+// ── Token helpers ────────────────────────────────────────────────────────────
 export const getToken   = () => localStorage.getItem('ks_jwt');
 export const setToken   = (t) => localStorage.setItem('ks_jwt', t);
 export const clearToken = () => localStorage.removeItem('ks_jwt');
@@ -17,7 +16,7 @@ export const getStoredUser = () => {
 export const setStoredUser = (u) => localStorage.setItem('ks_user', JSON.stringify(u));
 export const clearStoredUser = () => localStorage.removeItem('ks_user');
 
-// ── Core fetch wrapper ────────────────────────────────────────────────────────
+// ── Core fetch wrapper ─────────────────────────────────────────────────────────
 async function apiRequest(path, options = {}) {
   const token = getToken();
   const headers = {
@@ -45,15 +44,36 @@ async function apiRequest(path, options = {}) {
   return data;
 }
 
-// ── Auth API ──────────────────────────────────────────────────────────────────
+// ── Multipart fetch (for file uploads) ───────────────────────────────────────
+async function apiUpload(path, formData) {
+  const token = getToken();
+  const headers = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    // Do NOT set Content-Type for FormData — browser sets it with boundary automatically
+  };
+
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { method: 'POST', headers, body: formData });
+  } catch (networkErr) {
+    throw new Error('Cannot reach server.');
+  }
+
+  const data = await res.json().catch(() => ({ success: false, error: 'Invalid server response.' }));
+  if (!res.ok) {
+    throw new Error(data.error || `Upload failed: ${res.status}`);
+  }
+  return data;
+}
+
+// ── Auth API ──────────────────────────────────────────────────────────────
 export const authApi = {
   register: (body) => apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   login:    (body) => apiRequest('/api/auth/login',    { method: 'POST', body: JSON.stringify(body) }),
   me:       ()     => apiRequest('/api/auth/me'),
 };
 
-// ── Matches API ───────────────────────────────────────────────────────────────
-// Matches all routes defined in backend/routes/matches.js
+// ── Matches API ──────────────────────────────────────────────────────────────
 export const matchesApi = {
   list:   ()              => apiRequest('/api/matches'),
   create: (body)          => apiRequest('/api/create-match', { method: 'POST', body: JSON.stringify(body) }),
@@ -64,13 +84,17 @@ export const matchesApi = {
   manualCorrection:(matchId, body) => apiRequest(`/api/manual-ball-correction/${matchId}`, { method: 'PUT', body: JSON.stringify(body) }),
   overlay: (matchId)      => apiRequest(`/api/overlay/${matchId}`),
   updateMatch: (matchId, body) => apiRequest(`/api/match/${matchId}`, { method: 'PUT', body: JSON.stringify(body) }),
-  // Alias for backward compat with Dashboard delete button
   delete: (matchId)       => apiRequest(`/api/match/${matchId}`, { method: 'DELETE' }),
   getPublicMatch: (idOrSlug) => apiRequest(`/api/public/match/${idOrSlug}`),
   getPublicMatches: () => apiRequest('/api/public/matches'),
+  // New v2.1 endpoints
+  undoLastBall: (matchId)  => apiRequest(`/api/undo/${matchId}`, { method: 'POST' }),
+  changeBowler: (matchId, body) => apiRequest(`/api/change-bowler/${matchId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  startSecondInnings: (matchId) => apiRequest(`/api/second-innings/${matchId}`, { method: 'POST' }),
+  uploadLogo: (matchId, formData) => apiUpload(`/api/upload-logo/${matchId}`, formData),
 };
 
-// ── Tournaments API ────────────────────────────────────────────────────────────
+// ── Tournaments API ───────────────────────────────────────────────────────────
 export const tournamentsApi = {
   list: () => apiRequest('/api/tournaments'),
   get: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}`),
@@ -79,7 +103,7 @@ export const tournamentsApi = {
   nextMatch: (tournamentId, body) => apiRequest(`/api/tournaments/${tournamentId}/next-match`, { method: 'POST', body: JSON.stringify(body) }),
 };
 
-// ── Admin API ─────────────────────────────────────────────────────────────────
+// ── Admin API ───────────────────────────────────────────────────────────────
 export const adminApi = {
   activateSession: (clientId, body) =>
     apiRequest(`/api/admin/activate-session/${clientId}`, {
@@ -88,3 +112,4 @@ export const adminApi = {
     }),
 };
 
+export const API_BASE_URL = BASE_URL;
