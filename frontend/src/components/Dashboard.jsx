@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, getToken } from '../api';
@@ -31,41 +31,62 @@ const STATUS_COLORS = {
 
 // ── Create Match Modal ────────────────────────────────────────────────────
 function CreateMatchModal({ onClose, onCreate }) {
-  const [form, setForm] = useState({
-    battingTeam: '',
-    bowlingTeam: '',
+  const [form, setForm] = React.useState({
+    team1Name: '',
+    team2Name: '',
     maxOvers: 20,
+    matchNumber: 1,
+    tossWinner: 'team1',
+    tossDecision: 'bat',
+    isTied: false,
     ballsPerOver: 6,
-    matchType: 'T20',
+    matchType: 'Group Stage',
     matchTitle: '',
     tournamentName: '',
     venueName: '',
     matchDate: new Date().toISOString().split('T')[0],
     themeID: 'IPL_GOLD',
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  const team1Label = form.team1Name.trim() || 'Team 1';
+  const team2Label = form.team2Name.trim() || 'Team 2';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const setRadio = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.battingTeam.trim() || !form.bowlingTeam.trim()) {
+    if (!form.team1Name.trim() || !form.team2Name.trim()) {
       setError('Both team names are required.');
       return;
     }
     setLoading(true);
     setError('');
     try {
+      const tossWinnerName = form.tossWinner === 'team1'
+        ? form.team1Name.trim().toUpperCase()
+        : form.team2Name.trim().toUpperCase();
       const result = await onCreate({
-        ...form,
-        battingTeam: form.battingTeam.toUpperCase(),
-        bowlingTeam: form.bowlingTeam.toUpperCase(),
+        team1Name: form.team1Name.trim().toUpperCase(),
+        team2Name: form.team2Name.trim().toUpperCase(),
         maxOvers: parseInt(form.maxOvers) || 20,
+        matchNumber: parseInt(form.matchNumber) || 1,
         ballsPerOver: parseInt(form.ballsPerOver) || 6,
+        matchType: form.matchType,
+        matchTitle: form.matchTitle || form.matchType,
+        tournamentName: form.tournamentName,
+        venueName: form.venueName,
+        matchDate: form.matchDate,
+        themeID: form.themeID,
+        isTied: form.isTied,
+        toss: { winner: tossWinnerName, decision: form.tossDecision, completed: true },
       });
       onClose(result.matchId);
     } catch (err) {
@@ -75,96 +96,94 @@ function CreateMatchModal({ onClose, onCreate }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card">
-        <div className="modal-header">
-          <h2 className="modal-title">🏏 Create New Match</h2>
-          <button className="modal-close" onClick={() => onClose()}>✕</button>
+    <div className="cm-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="cm-card">
+        <div className="cm-header">
+          <h2 className="cm-title">CREATE MATCH</h2>
         </div>
-        <form onSubmit={handleSubmit} className="modal-form">
-          {/* Teams Row */}
-          <div className="form-row-2">
-            <div className="form-group">
-              <label>Batting Team *</label>
-              <input name="battingTeam" value={form.battingTeam} onChange={handleChange}
-                placeholder="e.g. COLOMBIA XI" className="form-input" autoFocus />
+        <form onSubmit={handleSubmit} className="cm-form">
+          <div className="cm-field">
+            <label className="cm-label">Team 1 Name</label>
+            <input name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="Enter Team 1 Name" className="cm-input" autoFocus />
+          </div>
+          <div className="cm-field">
+            <label className="cm-label">Team 2 Name</label>
+            <input name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="Enter Team 2 Name" className="cm-input" />
+          </div>
+          <div className="cm-row-2">
+            <div className="cm-field">
+              <label className="cm-label">Overs</label>
+              <input name="maxOvers" type="number" min="1" max="100" value={form.maxOvers} onChange={handleChange} className="cm-input" />
             </div>
-            <div className="form-group">
-              <label>Bowling Team *</label>
-              <input name="bowlingTeam" value={form.bowlingTeam} onChange={handleChange}
-                placeholder="e.g. VAVUNIYA LIONS" className="form-input" />
+            <div className="cm-field">
+              <label className="cm-label">Match No.</label>
+              <input name="matchNumber" type="number" min="1" value={form.matchNumber} onChange={handleChange} className="cm-input" />
             </div>
           </div>
-
-          {/* Format Row */}
-          <div className="form-row-3">
-            <div className="form-group">
-              <label>Format</label>
-              <select name="matchType" value={form.matchType} onChange={handleChange} className="form-select">
-                {MATCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          <div className="cm-radio-row">
+            <span className="cm-radio-label">Toss won by?</span>
+            <label className="cm-radio-option"><input type="radio" checked={form.tossWinner === 'team1'} onChange={() => setRadio('tossWinner', 'team1')} /><span>{team1Label}</span></label>
+            <label className="cm-radio-option"><input type="radio" checked={form.tossWinner === 'team2'} onChange={() => setRadio('tossWinner', 'team2')} /><span>{team2Label}</span></label>
+          </div>
+          <div className="cm-radio-row">
+            <span className="cm-radio-label">Opted to?</span>
+            <label className="cm-radio-option"><input type="radio" checked={form.tossDecision === 'bat'} onChange={() => setRadio('tossDecision', 'bat')} /><span>Bat</span></label>
+            <label className="cm-radio-option"><input type="radio" checked={form.tossDecision === 'bowl'} onChange={() => setRadio('tossDecision', 'bowl')} /><span>Bowl</span></label>
+          </div>
+          <div className="cm-radio-row">
+            <span className="cm-radio-label">Match Tied?</span>
+            <label className="cm-radio-option"><input type="radio" checked={form.isTied === true} onChange={() => setRadio('isTied', true)} /><span>Yes</span></label>
+            <label className="cm-radio-option"><input type="radio" checked={form.isTied === false} onChange={() => setRadio('isTied', false)} /><span>No</span></label>
+          </div>
+          <div className="cm-row-2">
+            <div className="cm-field">
+              <label className="cm-label">Balls Per Over :</label>
+              <select name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} className="cm-select">
+                <option value={4}>4</option><option value={5}>5</option><option value={6}>6</option><option value={8}>8</option>
               </select>
             </div>
-            <div className="form-group">
-              <label>Max Overs</label>
-              <input name="maxOvers" type="number" min="1" max="50" value={form.maxOvers}
-                onChange={handleChange} className="form-input" />
-            </div>
-            <div className="form-group">
-              <label>Balls/Over</label>
-              <input name="ballsPerOver" type="number" min="4" max="8" value={form.ballsPerOver}
-                onChange={handleChange} className="form-input" />
-            </div>
-          </div>
-
-          {/* Info Row */}
-          <div className="form-row-2">
-            <div className="form-group">
-              <label>Stage / Title</label>
-              <input name="matchTitle" value={form.matchTitle} onChange={handleChange}
-                placeholder="e.g. GRAND FINAL" className="form-input" />
-            </div>
-            <div className="form-group">
-              <label>Tournament</label>
-              <input name="tournamentName" value={form.tournamentName} onChange={handleChange}
-                placeholder="e.g. KS Premier League" className="form-input" />
+            <div className="cm-field">
+              <label className="cm-label">Match Type :</label>
+              <select name="matchType" value={form.matchType} onChange={handleChange} className="cm-select">
+                <option>Group Stage</option><option>Quarter Final</option><option>Semi Final</option>
+                <option>Final</option><option>Super Final</option><option>T20</option>
+                <option>T10</option><option>ODI</option><option>Test</option>
+                <option>Friendly</option><option>Custom</option>
+              </select>
             </div>
           </div>
-          <div className="form-row-2">
-            <div className="form-group">
-              <label>Venue</label>
-              <input name="venueName" value={form.venueName} onChange={handleChange}
-                placeholder="Ground name" className="form-input" />
+          <button type="button" className="cm-advanced-toggle" onClick={() => setShowAdvanced(v => !v)}>
+            {showAdvanced ? 'Hide' : 'Advanced Options'} (Tournament, Venue, Theme, Date)
+          </button>
+          {showAdvanced && (
+            <div className="cm-advanced">
+              <div className="cm-row-2">
+                <div className="cm-field"><label className="cm-label">Tournament</label><input name="tournamentName" value={form.tournamentName} onChange={handleChange} placeholder="KS Premier League" className="cm-input" /></div>
+                <div className="cm-field"><label className="cm-label">Venue</label><input name="venueName" value={form.venueName} onChange={handleChange} placeholder="Ground name" className="cm-input" /></div>
+              </div>
+              <div className="cm-row-2">
+                <div className="cm-field"><label className="cm-label">Match Title</label><input name="matchTitle" value={form.matchTitle} onChange={handleChange} placeholder="e.g. GRAND FINAL" className="cm-input" /></div>
+                <div className="cm-field"><label className="cm-label">Date</label><input name="matchDate" type="date" value={form.matchDate} onChange={handleChange} className="cm-input" /></div>
+              </div>
+              <div className="cm-field">
+                <label className="cm-label">Overlay Theme</label>
+                <select name="themeID" value={form.themeID} onChange={handleChange} className="cm-select">
+                  {THEMES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Date</label>
-              <input name="matchDate" type="date" value={form.matchDate}
-                onChange={handleChange} className="form-input" />
-            </div>
+          )}
+          {error && <div className="cm-error">{error}</div>}
+          <div className="cm-actions">
+            <button type="submit" className="cm-btn-add" disabled={loading}>{loading ? 'Creating...' : 'Add'}</button>
+            <button type="button" className="cm-btn-cancel" onClick={() => onClose()}>Cancel</button>
           </div>
-
-          {/* Theme */}
-          <div className="form-group">
-            <label>Overlay Theme</label>
-            <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select">
-              {THEMES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-            </select>
-          </div>
-
-          {error && <div className="form-error">⚠ {error}</div>}
-
-          <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={() => onClose()}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? '⏳ Creating...' : '🚀 Create Match'}
-            </button>
-          </div>
+          <p className="cm-note">Note: Your data will be available on this device only</p>
         </form>
       </div>
     </div>
   );
 }
-
-// ── Create Tournament Modal ────────────────────────────────────────────────
 function CreateTournamentModal({ onClose, onCreate }) {
   const [form, setForm] = useState({
     name: '',
@@ -924,3 +943,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+﻿import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { matchesApi } from "../api";
 
@@ -626,19 +626,132 @@ export default function PublicMatchPreview() {
       {/* Tabs list */}
       <section className="max-w-6xl mx-auto px-6 mt-8">
         <div className="flex border-b border-white/10 gap-2 md:gap-4 overflow-x-auto pb-px">
-          {["live", "scorecard", "commentary", "info"].map((tab) => (
+          {["versus", "live", "scorecard", "commentary", "info"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-3 text-xs md:text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-all border-b-2 ${activeTab === tab ? "border-teal-400 text-teal-400 font-extrabold bg-teal-500/5 rounded-t-lg" : "border-transparent text-slate-400 hover:text-white"}`}
             >
-              {tab === "info" ? "Match Info" : tab}
+              {tab === "info" ? "Match Info" : tab === "versus" ? "VS" : tab}
             </button>
           ))}
         </div>
 
         {/* TAB CONTENTS */}
         <div className="py-8">
+
+          {/* 0. VERSUS TAB */}
+          {activeTab === "versus" && (
+            <div className="max-w-4xl mx-auto">
+              {/* Teams Versus Banner */}
+              <div className="versus-card">
+                <div className="versus-team">
+                  <div className="versus-team-initials">
+                    {(match.team1Name || match.battingTeam || 'TM1').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,3)}
+                  </div>
+                  <div className="versus-team-name">{match.team1Name || match.battingTeam}</div>
+                </div>
+                <div className="versus-center">
+                  <div className="versus-vs-text">VS</div>
+                  {match.matchNumber > 0 && (
+                    <div className="versus-match-no">Match #{match.matchNumber}</div>
+                  )}
+                </div>
+                <div className="versus-team">
+                  <div className="versus-team-initials team2">
+                    {(match.team2Name || match.bowlingTeam || 'TM2').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,3)}
+                  </div>
+                  <div className="versus-team-name">{match.team2Name || match.bowlingTeam}</div>
+                </div>
+              </div>
+
+              {/* Match Details Grid */}
+              <div className="versus-details-grid">
+                <div className="versus-detail-card">
+                  <div className="versus-detail-icon">🏏</div>
+                  <div className="versus-detail-label">Match Type</div>
+                  <div className="versus-detail-value">{match.matchType || 'T20'}</div>
+                </div>
+                <div className="versus-detail-card">
+                  <div className="versus-detail-icon">📋</div>
+                  <div className="versus-detail-label">Stage</div>
+                  <div className="versus-detail-value">{match.matchTitle || match.matchType || 'Group Stage'}</div>
+                </div>
+                <div className="versus-detail-card">
+                  <div className="versus-detail-icon">🎯</div>
+                  <div className="versus-detail-label">Overs</div>
+                  <div className="versus-detail-value">{match.maxOvers} Overs</div>
+                </div>
+                <div className="versus-detail-card">
+                  <div className="versus-detail-icon">⚾</div>
+                  <div className="versus-detail-label">Balls/Over</div>
+                  <div className="versus-detail-value">{match.ballsPerOver || 6}</div>
+                </div>
+                {match.tournamentName && (
+                  <div className="versus-detail-card wide">
+                    <div className="versus-detail-icon">🏆</div>
+                    <div className="versus-detail-label">Tournament</div>
+                    <div className="versus-detail-value">{match.tournamentName}</div>
+                  </div>
+                )}
+                {match.venueName && (
+                  <div className="versus-detail-card wide">
+                    <div className="versus-detail-icon">📍</div>
+                    <div className="versus-detail-label">Venue</div>
+                    <div className="versus-detail-value">{match.venueName}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Toss Info */}
+              {match.toss && match.toss.winner && (
+                <div className="versus-toss-box">
+                  <div className="versus-toss-icon">🪙</div>
+                  <div className="versus-toss-info">
+                    <div className="versus-toss-title">Toss</div>
+                    <div className="versus-toss-detail">
+                      {match.toss.winner} won the toss and elected to {match.toss.decision === 'bat' ? 'bat' : 'bowl'} first
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Auto-generated Match Summary */}
+              {match.matchSummary && (
+                <div className="versus-summary-box">
+                  <div className="versus-summary-label">Match Summary</div>
+                  <p className="versus-summary-text">{match.matchSummary}</p>
+                </div>
+              )}
+
+              {/* Innings Order */}
+              <div className="versus-innings-grid">
+                <div className="versus-innings-card batting">
+                  <div className="versus-innings-badge">1st Innings — Batting</div>
+                  <div className="versus-innings-team">{match.battingTeam}</div>
+                </div>
+                <div className="versus-innings-card bowling">
+                  <div className="versus-innings-badge">1st Innings — Bowling</div>
+                  <div className="versus-innings-team">{match.bowlingTeam}</div>
+                </div>
+              </div>
+
+              {/* Result Banner (if match completed) */}
+              {match.matchStatus === 'completed' && match.matchResult && (
+                <div className="versus-result-banner">
+                  <div className="versus-result-icon">🏆</div>
+                  <div className="versus-result-text">{match.matchResult}</div>
+                </div>
+              )}
+              {match.isTied && (
+                <div className="versus-result-banner tied">
+                  <div className="versus-result-icon">🤝</div>
+                  <div className="versus-result-text">Match Tied!</div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 1. LIVE TAB */}
           {activeTab === "live" && (
             <div className="space-y-8">
@@ -1154,12 +1267,40 @@ export default function PublicMatchPreview() {
                   </span>
                 </div>
 
+                {match.matchNumber > 0 && (
+                  <div className="grid grid-cols-3 gap-2 text-xs py-1">
+                    <span className="text-slate-500 font-bold uppercase">Match No.</span>
+                    <span className="col-span-2 text-slate-200 font-semibold">Match #{match.matchNumber}</span>
+                  </div>
+                )}
+
                 {match.toss && match.toss.winner && (
                   <div className="grid grid-cols-3 gap-2 text-xs py-1 border-t border-white/5 pt-3">
                     <span className="text-slate-500 font-bold uppercase">Toss Info</span>
                     <span className="col-span-2 text-teal-300 font-semibold">
                       {match.toss.winner} won the toss & elected to {match.toss.decision === "bat" ? "bat" : "bowl"}
                     </span>
+                  </div>
+                )}
+
+                {match.matchSummary && (
+                  <div className="grid grid-cols-3 gap-2 text-xs py-1">
+                    <span className="text-slate-500 font-bold uppercase">Summary</span>
+                    <span className="col-span-2 text-slate-300 font-semibold italic">{match.matchSummary}</span>
+                  </div>
+                )}
+
+                {match.matchResult && (
+                  <div className="grid grid-cols-3 gap-2 text-xs py-1 border-t border-white/5 pt-3">
+                    <span className="text-slate-500 font-bold uppercase">Result</span>
+                    <span className="col-span-2 text-amber-300 font-bold">{match.matchResult}</span>
+                  </div>
+                )}
+
+                {match.isTied && (
+                  <div className="grid grid-cols-3 gap-2 text-xs py-1">
+                    <span className="text-slate-500 font-bold uppercase">Tied?</span>
+                    <span className="col-span-2 text-blue-300 font-bold">Match Tied</span>
                   </div>
                 )}
               </div>
@@ -1220,3 +1361,6 @@ export default function PublicMatchPreview() {
     </div>
   );
 }
+
+
+

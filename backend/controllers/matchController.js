@@ -1,4 +1,4 @@
-/**
+﻿/**
  * KS Live — Match Controller
  * Handles all match lifecycle operations
  * Emits Socket.IO events on every state change for live OBS sync
@@ -781,9 +781,9 @@ const getPublicMatches = async (req, res, next) => {
     // We only want public matches
     const matches = await Match.find({ publicScorePreview: { $ne: false } })
       .select(
-        'matchId battingTeam bowlingTeam matchType matchStatus score wickets ' +
-        'legalBallCount maxOvers ballsPerOver createdAt matchTitle tournamentName ' +
-        'venueName matchDate overlaySettings isSecondInnings targetScore slug updatedAt'
+        'matchId battingTeam bowlingTeam team1Name team2Name matchType matchStatus score wickets ' +
+        'legalBallCount maxOvers ballsPerOver createdAt matchTitle matchNumber matchSummary isTied tournamentName ' +
+        'venueName matchDate overlaySettings isSecondInnings targetScore slug updatedAt toss matchResult'
       )
       .sort({ updatedAt: -1 })
       .limit(100);
@@ -1184,3 +1184,5 @@ module.exports = {
   uploadLogo,
   logoUploadMiddleware,
 };
+
+

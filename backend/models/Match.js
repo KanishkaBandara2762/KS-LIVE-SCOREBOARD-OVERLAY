@@ -1,4 +1,4 @@
-/**
+﻿/**
  * KS Live — Match Model v2.0
  * Complete cricket match state stored in MongoDB
  */
@@ -304,6 +304,9 @@ const matchSchema = new mongoose.Schema(
       enum: ['upcoming', 'live', 'innings_break', 'completed', 'abandoned'],
       default: 'live',
     },
+    matchNumber: { type: Number, default: 0 },
+    isTied: { type: Boolean, default: false },
+    matchSummary: { type: String, default: '' },
     matchResult: { type: String, default: '' },
 
     // ── Public Preview ─────────────────────────────────────────────────────
@@ -330,3 +333,4 @@ matchSchema.index({ matchStatus: 1 });
 matchSchema.index({ publicScorePreview: 1 });
 
 module.exports = mongoose.model('Match', matchSchema);
+
