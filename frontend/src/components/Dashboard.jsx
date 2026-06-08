@@ -328,19 +328,25 @@ function CreateTournamentModal({ onClose, onCreate }) {
 
 // ── Next Match Modal ───────────────────────────────────────────────────────
 function NextMatchModal({ tournament, onClose, onSubmit }) {
-  const [form, setForm] = useState({
-    battingTeam: '',
-    bowlingTeam: '',
+  const file1Ref = React.useRef(null);
+  const file2Ref = React.useRef(null);
+  const [logo1, setLogo1] = React.useState(null);
+  const [logo2, setLogo2] = React.useState(null);
+
+  const [form, setForm] = React.useState({
+    team1Name: '',
+    team2Name: '',
     maxOvers: 20,
     ballsPerOver: 6,
     matchType: 'T20',
+    tossWinner: 'team1',
+    tossDecision: 'bat',
     matchTitle: '',
     venueName: '',
-    matchDate: new Date().toISOString().split('T')[0],
     themeID: 'IPL_GOLD',
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -349,20 +355,48 @@ function NextMatchModal({ tournament, onClose, onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.battingTeam.trim() || !form.bowlingTeam.trim()) {
+    if (!form.team1Name.trim() || !form.team2Name.trim()) {
       setError('Both team names are required.');
       return;
     }
     setLoading(true);
     setError('');
     try {
+      const tossWinnerName = form.tossWinner === 'team1'
+        ? form.team1Name.trim().toUpperCase()
+        : form.team2Name.trim().toUpperCase();
+
       const result = await onSubmit(tournament.id || tournament._id, {
-        ...form,
-        battingTeam: form.battingTeam.toUpperCase(),
-        bowlingTeam: form.bowlingTeam.toUpperCase(),
+        team1Name: form.team1Name.trim().toUpperCase(),
+        team2Name: form.team2Name.trim().toUpperCase(),
         maxOvers: parseInt(form.maxOvers) || 20,
         ballsPerOver: parseInt(form.ballsPerOver) || 6,
+        matchType: form.matchType,
+        matchTitle: form.matchTitle || form.matchType,
+        venueName: form.venueName,
+        themeID: form.themeID,
+        toss: { winner: tossWinnerName, decision: form.tossDecision, completed: true },
       });
+
+      if (result && result.matchId && matchesApi.uploadLogo) {
+        const team1IsBatting = tossWinnerName === form.team1Name.trim().toUpperCase() 
+          ? form.tossDecision === 'bat' 
+          : form.tossDecision === 'bowl';
+        
+        if (logo1) {
+          const fd1 = new FormData();
+          fd1.append('logo', logo1);
+          fd1.append('side', team1IsBatting ? 'batting' : 'bowling');
+          await matchesApi.uploadLogo(result.matchId, fd1).catch(e => console.error(e));
+        }
+        if (logo2) {
+          const fd2 = new FormData();
+          fd2.append('logo', logo2);
+          fd2.append('side', team1IsBatting ? 'bowling' : 'batting');
+          await matchesApi.uploadLogo(result.matchId, fd2).catch(e => console.error(e));
+        }
+      }
+
       onClose(result.matchId);
     } catch (err) {
       setError(err.message || 'Failed to transition match.');
@@ -370,74 +404,136 @@ function NextMatchModal({ tournament, onClose, onSubmit }) {
     }
   };
 
+  const inkColor = '#1e3a8a';
+
   return (
-    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card">
-        <div className="modal-header">
-          <h2 className="modal-title">⚡ Start Next Match for {tournament.name}</h2>
-          <button className="modal-close" onClick={() => onClose()}>✕</button>
-        </div>
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-row-2">
-            <div className="form-group">
-              <label>Batting Team *</label>
-              <input name="battingTeam" value={form.battingTeam} onChange={handleChange}
-                placeholder="e.g. COLOMBIA XI" className="form-input" autoFocus />
-            </div>
-            <div className="form-group">
-              <label>Bowling Team *</label>
-              <input name="bowlingTeam" value={form.bowlingTeam} onChange={handleChange}
-                placeholder="e.g. VAVUNIYA LIONS" className="form-input" />
-            </div>
+    <div className="cm-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div 
+        style={{ 
+          background: '#fefdf8', 
+          color: inkColor, 
+          borderRadius: '2px', 
+          padding: '30px', 
+          maxWidth: '420px', 
+          width: '100%',
+          border: `3px solid ${inkColor}`,
+          boxShadow: '8px 8px 0px rgba(0,0,0,0.1)',
+          fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 style={{ textAlign: 'center', color: inkColor, fontWeight: 'bold', fontSize: '2rem', marginBottom: '30px', marginTop: 0 }}>
+          Create a New Match
+        </h2>
+        
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <input 
+              name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="A Team" 
+              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
+            <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: inkColor }}>Vs</span>
+            <button 
+              type="button" onClick={() => file1Ref.current?.click()} 
+              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
+            >
+              {logo1 ? 'Logo ✓' : 'Logo'}
+            </button>
+            <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
           </div>
 
-          <div className="form-row-3">
-            <div className="form-group">
-              <label>Format</label>
-              <select name="matchType" value={form.matchType} onChange={handleChange} className="form-select">
-                {MATCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Max Overs</label>
-              <input name="maxOvers" type="number" min="1" max="50" value={form.maxOvers}
-                onChange={handleChange} className="form-input" />
-            </div>
-            <div className="form-group">
-              <label>Balls/Over</label>
-              <input name="ballsPerOver" type="number" min="4" max="8" value={form.ballsPerOver}
-                onChange={handleChange} className="form-input" />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button 
+              type="button" onClick={() => file2Ref.current?.click()} 
+              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
+            >
+              {logo2 ? 'Logo ✓' : 'Logo'}
+            </button>
+            <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
+            <input 
+              name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="B Team" 
+              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
           </div>
 
-          <div className="form-row-2">
-            <div className="form-group">
-              <label>Stage / Title</label>
-              <input name="matchTitle" value={form.matchTitle} onChange={handleChange}
-                placeholder="e.g. Match 2" className="form-input" />
-            </div>
-            <div className="form-group">
-              <label>Venue</label>
-              <input name="venueName" value={form.venueName} onChange={handleChange}
-                placeholder="Ground name" className="form-input" />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
+            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Overs</span>
+            <input 
+              type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} 
+              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
           </div>
 
-          <div className="form-group">
-            <label>Overlay Theme</label>
-            <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select">
-              {THEMES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Balls Per Over</span>
+            <input 
+              type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} 
+              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px' }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Toss won By</span>
+            <button 
+              type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} 
+              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team1' ? inkColor : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              A
+            </button>
+            <button 
+              type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} 
+              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team2' ? inkColor : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              B
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Opted to</span>
+            <button 
+              type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} 
+              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bat' ? inkColor : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              Bat
+            </button>
+            <button 
+              type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} 
+              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bowl' ? inkColor : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              Bowl
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>Match Type</span>
+            <select 
+              name="matchType" value={form.matchType} onChange={handleChange} 
+              style={{ flex: 1, padding: '8px', border: `2px solid ${inkColor}`, fontSize: '1.3rem', color: inkColor, background: 'transparent', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              <option value="Group">Group</option>
+              <option value="Knockout">Knockout</option>
+              <option value="Final">Final</option>
+              <option value="T20">T20</option>
+              <option value="T10">T10</option>
             </select>
           </div>
 
-          {error && <div className="form-error">⚠ {error}</div>}
-
-          <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={() => onClose()}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? '⏳ Deploying Next Match...' : '🚀 Start Next Match'}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+            <button 
+              type="submit" disabled={loading} 
+              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {loading ? '...' : 'add'}
+            </button>
+            <button 
+              type="button" onClick={() => onClose()} 
+              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              cancel
             </button>
           </div>
+          {error && <div style={{ color: 'red', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold' }}>{error}</div>}
         </form>
       </div>
     </div>

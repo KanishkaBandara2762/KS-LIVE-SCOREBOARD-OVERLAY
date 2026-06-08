@@ -90,8 +90,11 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
   try {
     const { tournamentId } = req.params;
     const {
-      battingTeam = 'TEAM A',
-      bowlingTeam = 'TEAM B',
+      team1Name = 'TEAM A',
+      team2Name = 'TEAM B',
+      battingTeam,
+      bowlingTeam,
+      toss = {},
       maxOvers = 20,
       ballsPerOver = 6,
       matchType = 'T20',
@@ -137,14 +140,35 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       }
     }
 
+    // Auto-assign batting and bowling team based on Toss logic if battingTeam wasn't provided directly
+    let actualBattingTeam = battingTeam || team1Name;
+    let actualBowlingTeam = bowlingTeam || team2Name;
+    let matchSummary = '';
+
+    if (toss && toss.winner) {
+      if (toss.decision === 'bat') {
+        actualBattingTeam = toss.winner;
+        actualBowlingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        matchSummary = `${toss.winner} won the toss and elected to bat first.`;
+      } else {
+        actualBowlingTeam = toss.winner;
+        actualBattingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        matchSummary = `${toss.winner} won the toss and elected to bowl first, ${actualBattingTeam} will bat first.`;
+      }
+    }
+
     // Generate new match
     const matchId = `KS-${uuidv4().slice(0, 8).toUpperCase()}`;
     const newMatch = await Match.create({
       matchId,
       ownerUid: req.user.id,
       tournamentId: tournament._id,
-      battingTeam,
-      bowlingTeam,
+      team1Name,
+      team2Name,
+      toss,
+      matchSummary,
+      battingTeam: actualBattingTeam,
+      bowlingTeam: actualBowlingTeam,
       maxOvers,
       ballsPerOver,
       matchType,
