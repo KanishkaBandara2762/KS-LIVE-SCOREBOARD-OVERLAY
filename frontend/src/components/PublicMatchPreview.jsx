@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { matchesApi } from "../api";
 
@@ -368,27 +368,12 @@ export default function PublicMatchPreview() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const bannerInfo = {
-    title: match.matchTitle || match.bowlingPrefix || "Live Match",
-    tournament: match.tournamentName || "Cricket Scoreboard",
-    venue: match.venueName || "Venue TBA",
-    date: match.matchDate || "Date TBA",
-    battingTeam: match.battingTeam || "TEAM A",
-    bowlingTeam: match.bowlingTeam || "TEAM B",
-  };
-
   const getLogoUrl = (logoPath) => {
     if (!logoPath) return "";
     if (logoPath.startsWith('http')) return logoPath;
     if (logoPath.startsWith('/')) return `${API_URL}${logoPath}`;
     return `${API_URL}/${logoPath}`;
   };
-
-  const battingLogoPath = match.battingLogo || overlaySettings?.battingLogo || "";
-  const bowlingLogoPath = match.leagueLogo || overlaySettings?.leagueLogo || "";
-  
-  const battingLogoUrl = getLogoUrl(battingLogoPath);
-  const bowlingLogoUrl = getLogoUrl(bowlingLogoPath);
 
   const getShareText = () => {
     if (!match) return "";
@@ -449,6 +434,24 @@ export default function PublicMatchPreview() {
       </div>
     );
   }
+
+  // ── After all early-return guards, match is guaranteed to exist ─────────
+  const bannerInfo = {
+    title: match.matchTitle || match.bowlingPrefix || "Live Match",
+    tournament: match.tournamentName || "Cricket Scoreboard",
+    venue: match.venueName || "Venue TBA",
+    date: match.matchDate || "Date TBA",
+    battingTeam: match.battingTeam || "TEAM A",
+    bowlingTeam: match.bowlingTeam || "TEAM B",
+  };
+
+  const battingLogoPath = match.battingLogo || overlaySettings?.battingLogo || "";
+  const bowlingLogoPath = match.leagueLogo || overlaySettings?.leagueLogo || "";
+  
+  const battingLogoUrl = getLogoUrl(battingLogoPath);
+  const bowlingLogoUrl = getLogoUrl(bowlingLogoPath);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white font-sans selection:bg-teal-500 selection:text-black">
