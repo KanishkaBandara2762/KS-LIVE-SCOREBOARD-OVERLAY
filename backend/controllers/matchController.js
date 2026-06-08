@@ -30,8 +30,10 @@ const emitMatchUpdate = (req, matchId, event, payload) => {
 const createMatch = async (req, res, next) => {
   try {
     const {
-      battingTeam = 'TEAM A',
-      bowlingTeam = 'TEAM B',
+      team1Name = 'TEAM A',
+      team2Name = 'TEAM B',
+      matchNumber = 1,
+      isTied = false,
       maxOvers = 20,
       ballsPerOver = 6,
       matchType = 'T20',
@@ -46,9 +48,31 @@ const createMatch = async (req, res, next) => {
     // Generate unique human-readable match ID
     const matchId = `KS-${uuidv4().slice(0, 8).toUpperCase()}`;
 
+    // Auto-assign batting and bowling team based on Toss logic
+    let battingTeam = team1Name;
+    let bowlingTeam = team2Name;
+    let matchSummary = '';
+
+    if (toss && toss.winner) {
+      if (toss.decision === 'bat') {
+        battingTeam = toss.winner;
+        bowlingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        matchSummary = `${toss.winner} won the toss and elected to bat first.`;
+      } else {
+        bowlingTeam = toss.winner;
+        battingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        matchSummary = `${toss.winner} won the toss and elected to bowl first, ${battingTeam} will bat first.`;
+      }
+    }
+
     const match = await Match.create({
       matchId,
       ownerUid: req.user.id,
+      team1Name,
+      team2Name,
+      matchNumber,
+      isTied,
+      matchSummary,
       battingTeam,
       bowlingTeam,
       maxOvers,
@@ -1184,5 +1208,6 @@ module.exports = {
   uploadLogo,
   logoUploadMiddleware,
 };
+
 
 
