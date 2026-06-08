@@ -1226,12 +1226,12 @@ const MiniAdmin = () => {
                                     className="ma-inp"
                                     placeholder="Select bowler"
                                     value={match.bowler?.name || ''}
-                                    onChange={e => push({ bowler: { ...match.bowler, name: e.target.value } })}
+                                    onChange={e => handleChangeBowler({ name: e.target.value })}
                                 />
                             </div>
-                            <div className="ma-field-row">
+                            <div className="ma-field-row" style={{ opacity: 0.55 }}>
                                 <span className="ma-field-label" style={{ color: '#a78bfa' }}>Figures</span>
-                                <input className="ma-inp" placeholder="e.g. 2-24" value={match.bowler?.figures || ''} onChange={e => push({ bowler: { ...match.bowler, figures: e.target.value } })} />
+                                <input className="ma-inp" placeholder="auto (use Change Bowler)" readOnly value={match.bowler?.figures || '0-0 (0.0)'} style={{ cursor: 'not-allowed' }} />
                             </div>
                             <button className="ma-over-btn ma-over-wait" style={{ cursor:'pointer', color:'#60a5fa', borderColor:'rgba(96,165,250,0.2)' }} onClick={swapStrike}>↔ SWAP STRIKE</button>
                             <div className="ma-field-row">
@@ -1254,13 +1254,23 @@ const MiniAdmin = () => {
                                 <button className="ma-add-btn" onClick={() => addSquadPlayer('batting')}>ADD</button>
                             </div>
                             <div className="ma-squad-list">
-                                {battingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added</div>}
+                                {battingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added. Type name above and press ADD.</div>}
                                 {battingSquad.map((p, i) => (
                                     <div className="ma-squad-chip" key={`b-${i}`}>
                                         <span className="ma-chip-name">{i+1}. {p.name}</span>
                                         <div className="ma-chip-actions">
-                                            <button className="ma-chip-btn" onClick={() => setBatterSlot(strikerKey, p)}>ST</button>
-                                            <button className="ma-chip-btn" onClick={() => setBatterSlot(nonStrikerKey, p)}>NS</button>
+                                            <button
+                                                className="ma-chip-btn"
+                                                title="Set as Striker (on strike)"
+                                                style={{ color: '#facc15', borderColor: 'rgba(250,204,21,0.35)', background: 'rgba(234,179,8,0.15)' }}
+                                                onClick={() => setBatterSlot(strikerKey, p)}
+                                            >★ STR</button>
+                                            <button
+                                                className="ma-chip-btn"
+                                                title="Set as Non-Striker"
+                                                style={{ color: '#94a3b8', borderColor: 'rgba(148,163,184,0.25)', background: 'rgba(100,116,139,0.15)' }}
+                                                onClick={() => setBatterSlot(nonStrikerKey, p)}
+                                            >○ N-S</button>
                                             <button className="ma-chip-btn ma-chip-remove" onClick={() => removeSquadPlayer('batting', i)}>✕</button>
                                         </div>
                                     </div>
@@ -1282,12 +1292,23 @@ const MiniAdmin = () => {
                                 <button className="ma-add-btn" onClick={() => addSquadPlayer('bowling')}>ADD</button>
                             </div>
                             <div className="ma-squad-list">
-                                {bowlingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added</div>}
+                                {bowlingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added. Type name above and press ADD.</div>}
                                 {bowlingSquad.map((p, i) => (
                                     <div className="ma-squad-chip" key={`bwl-${i}`}>
                                         <span className="ma-chip-name">{i+1}. {p.name}</span>
+                                        {/* Show previous figures if bowler has history */}
+                                        {match.bowlerHistory?.find(b => b.name?.toUpperCase() === p.name?.toUpperCase()) && (
+                                            <span style={{ fontSize:'9px', color:'rgba(167,139,250,0.6)', marginLeft: 4 }}>
+                                                {match.bowlerHistory.find(b => b.name?.toUpperCase() === p.name?.toUpperCase())?.figures || ''}
+                                            </span>
+                                        )}
                                         <div className="ma-chip-actions">
-                                            <button className="ma-chip-btn" style={{ borderColor:'rgba(167,139,250,0.35)', color:'#a78bfa', background:'rgba(139,92,246,0.15)' }} onClick={() => handleChangeBowler(p)}>BOWL</button>
+                                            <button
+                                                className="ma-chip-btn"
+                                                title="Set as current bowler (figures reset to 0 if new, restored if returning)"
+                                                style={{ borderColor:'rgba(167,139,250,0.35)', color:'#a78bfa', background:'rgba(139,92,246,0.15)' }}
+                                                onClick={() => handleChangeBowler(p)}
+                                            >🎳 BOWL</button>
                                             <button className="ma-chip-btn ma-chip-remove" onClick={() => removeSquadPlayer('bowling', i)}>✕</button>
                                         </div>
                                     </div>
