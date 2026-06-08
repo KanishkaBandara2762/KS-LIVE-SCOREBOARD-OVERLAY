@@ -1,12 +1,24 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { matchesApi } from '../api';
 
 const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState(currentUrl || '');
+  
+  const getAbsoluteUrl = useCallback((url) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
+    const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+    return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+  }, []);
+
+  const [preview, setPreview] = useState(getAbsoluteUrl(currentUrl) || '');
   const [error, setError] = useState('');
   const fileRef = useRef();
+
+  useEffect(() => {
+    setPreview(getAbsoluteUrl(currentUrl));
+  }, [currentUrl, getAbsoluteUrl]);
 
   const handleFile = useCallback(async (file) => {
     if (!file) return;

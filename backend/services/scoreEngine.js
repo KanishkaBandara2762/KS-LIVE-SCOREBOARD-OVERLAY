@@ -118,6 +118,9 @@ const createStateSnapshot = (match) => {
     currentRunRate: match.currentRunRate,
     requiredRunRate: match.requiredRunRate,
     manualBallsValue: match.manualBallsValue,
+    manualTargetOverride: match.manualTargetOverride,
+    manualTargetValue: match.manualTargetValue,
+    targetScore: match.targetScore,
     player1: match.player1 ? {
       name: match.player1.name,
       runs: match.player1.runs,
@@ -168,7 +171,8 @@ const createStateSnapshot = (match) => {
  */
 const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
   const { legalBallCount, ballsPerOver, maxOvers, score, wickets, isSecondInnings,
-          targetScore, targetBalls, manualBallsOverride, manualBallsValue } = match;
+          targetScore, targetBalls, manualBallsOverride, manualBallsValue,
+          manualTargetOverride, manualTargetValue } = match;
 
   const legal = isLegalDelivery(deliveryType);
   const runsScored = getRunsFromDelivery(deliveryType, extraRuns);
@@ -188,7 +192,8 @@ const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
 
   let newRRR = 0;
   if (isSecondInnings) {
-    newRRR = calculateRRR(targetScore, newScore, newLegalBallCount, targetBalls, ballsPerOver);
+    const effectiveTarget = manualTargetOverride ? manualTargetValue : targetScore;
+    newRRR = calculateRRR(effectiveTarget, newScore, newLegalBallCount, targetBalls, ballsPerOver);
   }
 
   let newManualBallsValue = manualBallsValue;

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * KS Live — Match Model v2.0
  * Complete cricket match state stored in MongoDB
  */
@@ -78,6 +78,9 @@ const stateSnapshotSchema = new mongoose.Schema(
     currentRunRate: { type: Number },
     requiredRunRate: { type: Number },
     manualBallsValue: { type: Number },
+    manualTargetOverride: { type: Boolean },
+    manualTargetValue: { type: Number },
+    targetScore: { type: Number },
     player1: { type: Object },
     player2: { type: Object },
     bowler: { type: Object },
@@ -289,6 +292,8 @@ const matchSchema = new mongoose.Schema(
     manualBallsOverride: { type: Boolean, default: false },
     manualBallsValue: { type: Number, default: 0, min: 0 },
     autoDecreaseBalls: { type: Boolean, default: true },
+    manualTargetOverride: { type: Boolean, default: false },
+    manualTargetValue: { type: Number, default: 0, min: 0 },
     overLocked: { type: Boolean, default: false },
 
     // ── Overlay & Ticker ───────────────────────────────────────────────────

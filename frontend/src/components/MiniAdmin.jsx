@@ -17,6 +17,12 @@ const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostna
 // MongoDB matches have matchId like KS-XXXXXXXX
 const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
 
+const getAbsoluteUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
+    return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 /* ═══════════════════════════════════════════════════════════════
    MiniAdmin — Full-Control Compact Console
    ──────────────────────────────────────────────────────────────
@@ -1045,14 +1051,15 @@ const MiniAdmin = () => {
                                 <span className="ma-field-label">Bat Logo</span>
                                 <div style={{flex: 1, display: 'flex', gap: '8px', alignItems: 'center'}}>
                                     {match.overlaySettings?.battingLogo && (
-                                        <img src={match.overlaySettings.battingLogo.startsWith('http') || match.overlaySettings.battingLogo.startsWith('/') ? match.overlaySettings.battingLogo : `${API_URL}${match.overlaySettings.battingLogo}`} 
+                                        <img src={getAbsoluteUrl(match.overlaySettings.battingLogo)} 
                                              alt="Batting Team Logo" 
                                              className="ma-logo-preview" 
-                                        />
+                                         />
                                     )}
                                     <LogoUpload 
                                         matchId={matchId} 
                                         side="batting" 
+                                        currentUrl={match.overlaySettings?.battingLogo}
                                         isMongoDB={isMongoDB(matchId)}
                                         onUploaded={(url) => push({ overlaySettings: { ...match.overlaySettings, battingLogo: url } })} 
                                     />
@@ -1062,14 +1069,15 @@ const MiniAdmin = () => {
                                 <span className="ma-field-label">Bowl Logo</span>
                                 <div style={{flex: 1, display: 'flex', gap: '8px', alignItems: 'center'}}>
                                     {match.overlaySettings?.leagueLogo && (
-                                        <img src={match.overlaySettings.leagueLogo.startsWith('http') || match.overlaySettings.leagueLogo.startsWith('/') ? match.overlaySettings.leagueLogo : `${API_URL}${match.overlaySettings.leagueLogo}`} 
+                                        <img src={getAbsoluteUrl(match.overlaySettings.leagueLogo)} 
                                              alt="Bowling Team Logo" 
                                              className="ma-logo-preview" 
-                                        />
+                                         />
                                     )}
                                     <LogoUpload 
                                         matchId={matchId} 
                                         side="bowling" 
+                                        currentUrl={match.overlaySettings?.leagueLogo}
                                         isMongoDB={isMongoDB(matchId)}
                                         onUploaded={(url) => push({ overlaySettings: { ...match.overlaySettings, leagueLogo: url } })} 
                                     />
@@ -1447,6 +1455,25 @@ const MiniAdmin = () => {
                                 <button className="ma-ticker-btn" style={{ background:'rgba(255,255,255,0.04)', color:'rgba(255,255,255,0.4)', border:'1px solid rgba(255,255,255,0.08)' }} onClick={() => push({ manualBallsOverride: false, manualBallsValue: 0 })}>AUTO</button>
                             </div>
                         </div>
+
+                        {/* Manual target override (only in 2nd innings) */}
+                        {match.isSecondInnings && (
+                            <div className="ma-card">
+                                <div className="ma-card-title">Target Score (Manual)</div>
+                                <div className="ma-field-row">
+                                    <span className="ma-field-label">Target Runs</span>
+                                    <input id="ma-manual-target" type="number" className="ma-inp" placeholder="e.g. 145" defaultValue={match.manualTargetValue || ''} />
+                                </div>
+                                <div className="ma-grid-2">
+                                    <button className="ma-ticker-btn ma-sit-update" onClick={() => {
+                                        const val = parseInt(document.getElementById('ma-manual-target')?.value);
+                                        if (!isNaN(val) && val >= 0) push({ manualTargetOverride: true, manualTargetValue: val });
+                                        else alert('Enter a valid target score');
+                                    }}>SET</button>
+                                    <button className="ma-ticker-btn" style={{ background:'rgba(255,255,255,0.04)', color:'rgba(255,255,255,0.4)', border:'1px solid rgba(255,255,255,0.08)' }} onClick={() => push({ manualTargetOverride: false, manualTargetValue: 0 })}>AUTO</button>
+                                </div>
+                            </div>
+                        )}
 
                     </div>
                 )}

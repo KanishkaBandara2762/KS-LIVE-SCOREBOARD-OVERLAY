@@ -671,7 +671,8 @@ const updateMatch = async (req, res, next) => {
       'matchDate', 'maxOvers', 'ballsPerOver', 'isSecondInnings', 'targetScore', 'targetBalls',
       'isSuperOver', 'matchStatus', 'manualBallsOverride', 'manualBallsValue', 'autoDecreaseBalls', 'score', 'wickets', 'totalBalls', 'legalBallCount',
       'currentOver', 'overRuns', 'recentBalls', 'eventTrigger', 'firstInningsScore', 'firstInningsWickets', 'firstInningsOvers',
-      'overLocked', 'fallOfWickets', 'extrasConfig', 'publicScorePreview', 'slug'
+      'overLocked', 'fallOfWickets', 'extrasConfig', 'publicScorePreview', 'slug',
+      'manualTargetOverride', 'manualTargetValue'
     ];
     
     const overlayFields = ['themeID', 'overlayMode', 'showVersus', 'showSummary', 'showMatchSituation', 'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo'];
@@ -699,6 +700,35 @@ const updateMatch = async (req, res, next) => {
         updateData.$set.eventId = uuidv4();
     }
 
+    // Sync manual target score with targetScore
+    const isSecondInnings = updates.isSecondInnings !== undefined ? updates.isSecondInnings : match.isSecondInnings;
+    if (!isSecondInnings) {
+      updateData.$set.targetScore = 0;
+      updateData.$set.manualTargetOverride = false;
+      updateData.$set.manualTargetValue = 0;
+    } else {
+      const hasManualTargetOverride = updates.manualTargetOverride !== undefined ? updates.manualTargetOverride : match.manualTargetOverride;
+      let newManualTargetValue = updates.manualTargetValue !== undefined ? updates.manualTargetValue : match.manualTargetValue;
+      
+      if (updates.targetScore !== undefined && updates.manualTargetOverride === undefined && updates.manualTargetValue === undefined) {
+        // Direct targetScore update -> treat as manual override
+        updateData.$set.manualTargetOverride = true;
+        updateData.$set.manualTargetValue = updates.targetScore;
+        updateData.$set.targetScore = updates.targetScore;
+      } else if (hasManualTargetOverride) {
+        updateData.$set.manualTargetOverride = true;
+        updateData.$set.manualTargetValue = newManualTargetValue;
+        updateData.$set.targetScore = newManualTargetValue;
+      } else {
+        // Auto mode -> target is firstInningsScore + 1
+        const firstInningsScore = updates.firstInningsScore !== undefined ? updates.firstInningsScore : match.firstInningsScore;
+        const autoTarget = (firstInningsScore || 0) + 1;
+        updateData.$set.manualTargetOverride = false;
+        updateData.$set.manualTargetValue = autoTarget;
+        updateData.$set.targetScore = autoTarget;
+      }
+    }
+
     if (Object.keys(updateData.$set).length === 0) {
       return res.json({ success: true, match });
     }
@@ -709,8 +739,7 @@ const updateMatch = async (req, res, next) => {
       const defendingTeam = updates.bowlingTeam || match.bowlingTeam;
       const finalScore = updates.score !== undefined ? updates.score : match.score;
       const finalWickets = updates.wickets !== undefined ? updates.wickets : match.wickets;
-      const targetScore = updates.targetScore !== undefined ? updates.targetScore : match.targetScore;
-      const isSecondInnings = updates.isSecondInnings !== undefined ? updates.isSecondInnings : match.isSecondInnings;
+      const targetScore = updateData.$set.targetScore !== undefined ? updateData.$set.targetScore : match.targetScore;
 
       if (isSecondInnings && targetScore > 0) {
         if (finalScore >= targetScore) {
@@ -893,6 +922,9 @@ const undoLastBall = async (req, res, next) => {
       currentRunRate: previousState.currentRunRate,
       requiredRunRate: previousState.requiredRunRate,
       manualBallsValue: previousState.manualBallsValue,
+      manualTargetOverride: previousState.manualTargetOverride,
+      manualTargetValue: previousState.manualTargetValue,
+      targetScore: previousState.targetScore,
     };
 
     if (previousState.player1) restoreData.player1 = previousState.player1;
@@ -1070,6 +1102,8 @@ const startSecondInnings = async (req, res, next) => {
       firstInningsOvers,
       targetScore,
       targetBalls,
+      manualTargetOverride: false,
+      manualTargetValue: targetScore,
       firstInningsBattingScorecard: match.battingScorecard || [],
       firstInningsBowlerHistory: match.bowlerHistory || [],
 

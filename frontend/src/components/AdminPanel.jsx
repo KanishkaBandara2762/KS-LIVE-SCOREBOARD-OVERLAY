@@ -12,6 +12,12 @@ import { matchesApi, tournamentsApi } from "../api";
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
 
+const getAbsoluteUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
+  return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 const AdminPanel = () => {
   const { t } = useLanguage();
   const { matchId: urlMatchId } = useParams();
@@ -327,9 +333,33 @@ const AdminPanel = () => {
     prevMatchRef.current = match;
   }, [match, matchDbId, dbPath]);
 
-  const handleLogoUpload = (e, team) => {
+  const handleLogoUpload = async (e, team) => {
     const file = e.target.files[0];
-    if (file) {
+    if (!file) return;
+
+    if (isMongoDB(matchDbId)) {
+      try {
+        const formData = new FormData();
+        formData.append('logo', file);
+        const side = team === 'A' ? 'batting' : 'bowling';
+        formData.append('side', side);
+        const res = await matchesApi.uploadLogo(matchDbId, formData);
+        if (res.success && res.logoUrl) {
+          const fullUrl = getAbsoluteUrl(res.logoUrl);
+          setMatch(prev => ({
+            ...prev,
+            [team === 'A' ? 'battingLogo' : 'leagueLogo']: fullUrl,
+            overlaySettings: {
+              ...prev.overlaySettings,
+              [team === 'A' ? 'battingLogo' : 'leagueLogo']: fullUrl
+            }
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to upload logo:', err);
+        alert('Failed to upload logo');
+      }
+    } else {
       const reader = new FileReader();
       reader.onloadend = () => {
         setMatch(prev => ({
@@ -929,13 +959,13 @@ const legalBallCount = match.legalBallCount || 0;
             {/* TEAM LOGO ATTACHMENTS */}
             <div className="space-y-2 pt-2 border-t">
               <div className="flex items-center gap-2">
-                <img src={match.battingLogo} className="w-10 h-10 rounded border bg-white object-contain" alt="A" />
+                <img src={getAbsoluteUrl(match.battingLogo)} className="w-10 h-10 rounded border bg-white object-contain" alt="A" />
                 <input type="file" className="text-[8px] w-full" onChange={(e) => handleLogoUpload(e, 'A')} />
               </div>
               <input className="w-full border p-2 rounded font-bold bg-blue-50 text-sm" value={match.battingTeam} onChange={(e) => setMatch({ ...match, battingTeam: e.target.value.toUpperCase() })} />
 
               <div className="flex items-center gap-2 pt-2">
-                <img src={match.leagueLogo} className="w-10 h-10 rounded border bg-white object-contain" alt="B" />
+                <img src={getAbsoluteUrl(match.leagueLogo)} className="w-10 h-10 rounded border bg-white object-contain" alt="B" />
                 <input type="file" className="text-[8px] w-full" onChange={(e) => handleLogoUpload(e, 'B')} />
               </div>
               <input className="w-full border p-2 rounded font-bold bg-red-50 text-sm" value={match.bowlingTeam} onChange={(e) => setMatch({ ...match, bowlingTeam: e.target.value.toUpperCase() })} />
