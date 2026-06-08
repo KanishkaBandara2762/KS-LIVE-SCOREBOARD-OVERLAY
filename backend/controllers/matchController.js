@@ -203,21 +203,36 @@ const updateScore = async (req, res, next) => {
     const strikerKey = p1IsStriker ? 'player1' : 'player2';
     const nonStrikerKey = p1IsStriker ? 'player2' : 'player1';
 
-    // Runs credited to batter (not for wides, lb, byes)
-    const BATTER_CREDIT_TYPES = ['dot', '1', '2', '3', '4', '5', '6', 'wicket', 'runout', 'noball'];
-    const creditRunsToBatter = BATTER_CREDIT_TYPES.includes(delivery);
     // Legal ball increments batter's ball count (not wides, not noball)
     const incrementBatterBalls = result.isLegalDelivery && delivery !== 'noball';
 
-    const strikerRuns = (match[strikerKey].runs || 0) + (creditRunsToBatter ? result.runsScored : 0);
-    const strikerBalls = (match[strikerKey].balls || 0) + (incrementBatterBalls ? 1 : 0);
-    const strikerFours = (match[strikerKey].fours || 0) + (delivery === '4' ? 1 : 0);
-    const strikerSixes = (match[strikerKey].sixes || 0) + (delivery === '6' ? 1 : 0);
+    let batterRunsToAdd = 0;
+    let runsForStrikeRotation = 0;
 
-    // Rotate strike on odd runs (including run-outs with odd runs)
+    if (delivery === 'wide') {
+      runsForStrikeRotation = extraRuns;
+    } else if (delivery === 'noball') {
+      batterRunsToAdd = extraRuns;
+      runsForStrikeRotation = extraRuns;
+    } else if (delivery === 'lb' || delivery === 'byes') {
+      runsForStrikeRotation = extraRuns || 1;
+    } else if (delivery === 'runout') {
+      batterRunsToAdd = extraRuns;
+      runsForStrikeRotation = extraRuns;
+    } else {
+      batterRunsToAdd = result.runsScored;
+      runsForStrikeRotation = result.runsScored;
+    }
+
+    const strikerRuns = (match[strikerKey].runs || 0) + batterRunsToAdd;
+    const strikerBalls = (match[strikerKey].balls || 0) + (incrementBatterBalls ? 1 : 0);
+    const strikerFours = (match[strikerKey].fours || 0) + ((delivery === '4' || (delivery === 'noball' && extraRuns === 4)) ? 1 : 0);
+    const strikerSixes = (match[strikerKey].sixes || 0) + ((delivery === '6' || (delivery === 'noball' && extraRuns === 6)) ? 1 : 0);
+
+    // Rotate strike on odd runs physically run
     let p1StrikeAfter = match.player1.onStrike;
     let p2StrikeAfter = match.player2.onStrike;
-    if (result.runsScored % 2 !== 0 && !result.isWicket) {
+    if (runsForStrikeRotation % 2 !== 0 && !result.isWicket) {
       p1StrikeAfter = !p1StrikeAfter;
       p2StrikeAfter = !p2StrikeAfter;
     }
@@ -250,7 +265,10 @@ const updateScore = async (req, res, next) => {
     }
 
     // ── Update bowler stats ────────────────────────────────────────────────────
-    const bowlerRunsFromDelivery = result.runsScored; // All runs (including extras) go against bowler
+    let bowlerRunsFromDelivery = result.runsScored;
+    if (delivery === 'byes' || delivery === 'lb') {
+      bowlerRunsFromDelivery = 0; // Byes and Leg Byes do NOT count against the bowler
+    }
     const bowlerLegalBalls = result.isLegalDelivery ? (match.bowler.overs * match.ballsPerOver + (match.bowler.overs % 1 !== 0 ? 0 : 0)) : 0;
     // Simpler approach: track bowler legal balls with a separate counter
     // bowler.overs stores decimal like "2.4" but in DB it's stored as number
