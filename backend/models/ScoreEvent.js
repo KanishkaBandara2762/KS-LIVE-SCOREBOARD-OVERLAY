@@ -41,6 +41,9 @@ const scoreEventSchema = new mongoose.Schema(
     // Override / correction flag
     isCorrected: { type: Boolean, default: false },
     correctionNote: { type: String, default: '' },
+
+    // Innings tracker — 1 = first innings, 2 = second innings
+    innings: { type: Number, default: 1, enum: [1, 2] },
   },
   {
     timestamps: true,

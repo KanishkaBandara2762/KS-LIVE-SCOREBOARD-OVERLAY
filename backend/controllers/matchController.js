@@ -1,4 +1,4 @@
-﻿/**
+/**
  * KS Live — Match Controller
  * Handles all match lifecycle operations
  * Emits Socket.IO events on every state change for live OBS sync
@@ -384,6 +384,7 @@ const updateScore = async (req, res, next) => {
       snapshotOver: currentOverStr,
       batsmanName: batsmanName || match[strikerKey].name || '',
       bowlerName: bowlerName || match.bowler.name || '',
+      innings: match.isSecondInnings ? 2 : 1,
     });
 
     // ── Emit Socket.IO update ─────────────────────────────────────────────────
