@@ -265,10 +265,10 @@ const ScorecardDisplay = () => {
     } else if (isMongoDB(matchId)) {
       console.log('[ScorecardDisplay] Initializing MongoDB mode for matchId:', matchId);
       
-      // Initial full load from REST
-      matchesApi.get(matchId)
+      // Initial full load from public REST endpoint (no auth required — OBS browser source)
+      matchesApi.overlay(matchId)
         .then(res => {
-          if (res.match) handleIncomingData(res.match);
+          if (res.overlay) handleIncomingData({ ...res.overlay, overlaySettings: res.overlay.settings });
         })
         .catch(e => console.error('MongoDB initial fetch failed:', e));
 
@@ -277,9 +277,10 @@ const ScorecardDisplay = () => {
       let obsKeepaliveInterval;
       let obsPollInterval;
 
+      // Public polling endpoint — no auth needed, safe for OBS
       const fetchMatchSnapshot = () => {
-        matchesApi.get(matchId)
-          .then(res => { if (res.match) handleIncomingData(res.match); })
+        matchesApi.overlay(matchId)
+          .then(res => { if (res.overlay) handleIncomingData({ ...res.overlay, overlaySettings: res.overlay.settings }); })
           .catch(() => {});
       };
 

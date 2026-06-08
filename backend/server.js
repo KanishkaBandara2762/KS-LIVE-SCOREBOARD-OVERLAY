@@ -33,7 +33,14 @@ const PORT = process.env.PORT || 3001;
 // ── Socket.IO ─────────────────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: getAllowedOrigins(),
+    origin: (origin, callback) => {
+      // isTrustedOrigin defined at bottom of file — allows local IPs + ngrok
+      if (isTrustedOrigin(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked: ${origin}`));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -59,8 +66,8 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowed = getAllowedOrigins();
-      if (!origin || allowed.includes(origin) || process.env.NODE_ENV === 'development') {
+      // isTrustedOrigin defined at bottom of file — allows local IPs + ngrok
+      if (isTrustedOrigin(origin)) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked: ${origin}`));
@@ -187,12 +194,28 @@ boot();
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function getAllowedOrigins() {
-  return [
+  const base = [
     process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:4173',
     'http://localhost:3000',
   ];
+  return base;
+}
+
+// Override CORS to also allow any local network IP and ngrok tunnels
+// This replaces the static getAllowedOrigins check in cors() middleware
+function isTrustedOrigin(origin) {
+  if (!origin) return true; // Same-origin or non-browser (OBS)
+  if (process.env.NODE_ENV === 'development') return true; // Always allow in dev
+  const trusted = getAllowedOrigins();
+  if (trusted.includes(origin)) return true;
+  // Allow any local network IP (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+  if (/^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(origin)) return true;
+  // Allow ngrok tunnels
+  if (/^https?:\/\/[a-z0-9-]+\.ngrok(-free)?\.app$/.test(origin)) return true;
+  if (/^https?:\/\/[a-z0-9-]+\.ngrok\.io$/.test(origin)) return true;
+  return false;
 }
 
 // ── Graceful shutdown ──────────────────────────────────────────────────────

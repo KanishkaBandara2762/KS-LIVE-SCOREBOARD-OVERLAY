@@ -165,27 +165,67 @@ module.exports = function initSockets(io) {
 // ── Helper: build a minimal overlay snapshot ─────────────────────────────────
 function buildOverlaySnapshot(match) {
   return {
+    // Teams
+    battingTeam: match.battingTeam,
+    bowlingTeam: match.bowlingTeam,
+    team1Name: match.team1Name,
+    team2Name: match.team2Name,
+    // Score
     score: match.score,
     wickets: match.wickets,
     overDisplay: formatOvers(match.legalBallCount, match.ballsPerOver),
+    legalBallCount: match.legalBallCount,
+    totalBalls: match.totalBalls,
+    maxOvers: match.maxOvers,
+    ballsPerOver: match.ballsPerOver,
     currentRunRate: match.currentRunRate,
     requiredRunRate: match.requiredRunRate,
     recentBalls: match.recentBalls,
+    overRuns: match.overRuns,
+    // Players
     player1: match.player1,
     player2: match.player2,
     bowler: match.bowler,
+    // Innings
     isSecondInnings: match.isSecondInnings,
     targetScore: match.targetScore,
+    targetBalls: match.targetBalls,
+    firstInningsScore: match.firstInningsScore,
+    firstInningsWickets: match.firstInningsWickets,
+    firstInningsOvers: match.firstInningsOvers,
+    // Events
     eventTrigger: match.eventTrigger,
-    ticker: match.ticker,
+    eventTime: match.eventTime,
+    eventId: match.eventId,
+    lastWicketName: match.lastWicketName,
+    lastWicketRuns: match.lastWicketRuns,
+    lastWicketBalls: match.lastWicketBalls,
+    // Match info
     matchStatus: match.matchStatus,
+    matchType: match.matchType,
+    matchTitle: match.matchTitle,
+    tournamentName: match.tournamentName,
+    venueName: match.venueName,
+    matchDate: match.matchDate,
+    matchNumber: match.matchNumber,
+    matchSummary: match.matchSummary,
+    toss: match.toss,
+    isTied: match.isTied,
+    matchResult: match.matchResult,
+    // Overlay settings
+    ticker: match.ticker,
     overlaySettings: match.overlaySettings,
+    // Manual controls
     manualBallsOverride: match.manualBallsOverride,
     manualBallsValue: match.manualBallsValue,
-    overRuns: match.overRuns,
+    autoDecreaseBalls: match.autoDecreaseBalls,
+    // Extra stats
     partnership: match.partnership,
     extras: match.extras,
     powerplay: match.powerplay,
     fallOfWickets: match.fallOfWickets,
+    battingSquad: match.battingSquad,
+    bowlingSquad: match.bowlingSquad,
+    perOverRuns: match.perOverRuns,
   };
 }
