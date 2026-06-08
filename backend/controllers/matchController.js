@@ -1124,6 +1124,17 @@ const startSecondInnings = async (req, res, next) => {
       { new: true }
     );
 
+    // Swap logos in the dedicated OverlaySettings collection
+    await OverlaySettings.findOneAndUpdate(
+      { matchId: id },
+      { 
+        $set: {
+          battingLogo: match.overlaySettings?.leagueLogo || '',
+          leagueLogo: match.overlaySettings?.battingLogo || ''
+        }
+      }
+    );
+
     emitMatchUpdate(req, id, 'score:update', {
       matchId: id,
       ...updateData,
@@ -1195,6 +1206,13 @@ const uploadLogo = async (req, res, next) => {
       { matchId: id },
       { $set: { [fieldToUpdate]: logoUrl } },
       { new: true }
+    );
+
+    // Also update the dedicated OverlaySettings collection
+    const overlayField = side === 'bowling' ? 'leagueLogo' : 'battingLogo';
+    await OverlaySettings.findOneAndUpdate(
+      { matchId: id },
+      { $set: { [overlayField]: logoUrl } }
     );
 
     emitMatchUpdate(req, id, 'score:update', {
