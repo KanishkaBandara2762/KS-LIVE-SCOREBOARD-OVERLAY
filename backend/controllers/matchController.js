@@ -1114,7 +1114,13 @@ const startSecondInnings = async (req, res, next) => {
 
     const updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
-      { $set: updateData },
+      { 
+        $set: {
+          ...updateData,
+          'overlaySettings.battingLogo': match.overlaySettings?.leagueLogo || '',
+          'overlaySettings.leagueLogo': match.overlaySettings?.battingLogo || ''
+        }
+      },
       { new: true }
     );
 

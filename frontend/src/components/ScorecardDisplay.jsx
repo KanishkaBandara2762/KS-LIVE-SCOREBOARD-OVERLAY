@@ -17,6 +17,12 @@ import "./gold-championship.css";
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
 
+const getAbsoluteUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
+  return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 const ScorecardDisplay = () => {
   const { matchId, tournamentId } = useParams();
   const dbPath = matchId ? `matches/${matchId}/live_match` : 'live_match';
@@ -119,8 +125,8 @@ const ScorecardDisplay = () => {
           return {
             ...incoming,
             themeID: incoming.overlaySettings.themeID || 'IPL_GOLD',
-            battingLogo: incoming.overlaySettings.battingLogo || incoming.battingLogo || '',
-            leagueLogo: incoming.overlaySettings.leagueLogo || incoming.leagueLogo || '',
+            battingLogo: getAbsoluteUrl(incoming.overlaySettings.battingLogo || incoming.team1Logo || incoming.battingLogo || ''),
+            leagueLogo: getAbsoluteUrl(incoming.overlaySettings.leagueLogo || incoming.team2Logo || incoming.leagueLogo || ''),
             overlayMode: incoming.overlaySettings.overlayMode || 'full',
             showVersus: !!incoming.overlaySettings.showVersus,
             showSummary: !!incoming.overlaySettings.showSummary,
@@ -136,8 +142,8 @@ const ScorecardDisplay = () => {
       // If the update includes overlaySettings, always extract theme fields
       if (incoming.overlaySettings) {
         merged.themeID = incoming.overlaySettings.themeID || prev.themeID || 'IPL_GOLD';
-        merged.battingLogo = incoming.overlaySettings.battingLogo || prev.battingLogo || '';
-        merged.leagueLogo = incoming.overlaySettings.leagueLogo || prev.leagueLogo || '';
+        merged.battingLogo = getAbsoluteUrl(incoming.overlaySettings.battingLogo || prev.battingLogo || prev.team1Logo || '');
+        merged.leagueLogo = getAbsoluteUrl(incoming.overlaySettings.leagueLogo || prev.leagueLogo || prev.team2Logo || '');
         merged.overlayMode = incoming.overlaySettings.overlayMode || prev.overlayMode || 'full';
         merged.showVersus = incoming.overlaySettings.showVersus ?? prev.showVersus ?? false;
         merged.showSummary = incoming.overlaySettings.showSummary ?? prev.showSummary ?? false;
