@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, getToken } from '../api';
@@ -31,6 +31,11 @@ const STATUS_COLORS = {
 
 // ── Create Match Modal ────────────────────────────────────────────────────
 function CreateMatchModal({ onClose, onCreate }) {
+  const file1Ref = React.useRef(null);
+  const file2Ref = React.useRef(null);
+  const [logo1, setLogo1] = React.useState(null);
+  const [logo2, setLogo2] = React.useState(null);
+  
   const [form, setForm] = React.useState({
     team1Name: '',
     team2Name: '',
@@ -40,26 +45,20 @@ function CreateMatchModal({ onClose, onCreate }) {
     tossDecision: 'bat',
     isTied: false,
     ballsPerOver: 6,
-    matchType: 'Group Stage',
+    matchType: 'Group',
     matchTitle: '',
     tournamentName: '',
     venueName: '',
     matchDate: new Date().toISOString().split('T')[0],
     themeID: 'IPL_GOLD',
   });
-  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
-
-  const team1Label = form.team1Name.trim() || 'Team 1';
-  const team2Label = form.team2Name.trim() || 'Team 2';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-
-  const setRadio = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,6 +72,7 @@ function CreateMatchModal({ onClose, onCreate }) {
       const tossWinnerName = form.tossWinner === 'team1'
         ? form.team1Name.trim().toUpperCase()
         : form.team2Name.trim().toUpperCase();
+        
       const result = await onCreate({
         team1Name: form.team1Name.trim().toUpperCase(),
         team2Name: form.team2Name.trim().toUpperCase(),
@@ -88,6 +88,26 @@ function CreateMatchModal({ onClose, onCreate }) {
         isTied: form.isTied,
         toss: { winner: tossWinnerName, decision: form.tossDecision, completed: true },
       });
+
+      if (result && result.matchId && matchesApi.uploadLogo) {
+        const team1IsBatting = tossWinnerName === form.team1Name.trim().toUpperCase() 
+          ? form.tossDecision === 'bat' 
+          : form.tossDecision === 'bowl';
+        
+        if (logo1) {
+          const fd1 = new FormData();
+          fd1.append('logo', logo1);
+          fd1.append('side', team1IsBatting ? 'batting' : 'bowling');
+          await matchesApi.uploadLogo(result.matchId, fd1).catch(e => console.error(e));
+        }
+        if (logo2) {
+          const fd2 = new FormData();
+          fd2.append('logo', logo2);
+          fd2.append('side', team1IsBatting ? 'bowling' : 'batting');
+          await matchesApi.uploadLogo(result.matchId, fd2).catch(e => console.error(e));
+        }
+      }
+
       onClose(result.matchId);
     } catch (err) {
       setError(err.message || 'Failed to create match.');
@@ -95,90 +115,144 @@ function CreateMatchModal({ onClose, onCreate }) {
     }
   };
 
+  const inkColor = '#1e3a8a'; // Dark blue "ink" style
+
   return (
     <div className="cm-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="cm-card">
-        <div className="cm-header">
-          <h2 className="cm-title">CREATE MATCH</h2>
-        </div>
-        <form onSubmit={handleSubmit} className="cm-form">
-          <div className="cm-field">
-            <label className="cm-label">Team 1 Name</label>
-            <input name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="Enter Team 1 Name" className="cm-input" autoFocus />
+      <div 
+        style={{ 
+          background: '#fefdf8', 
+          color: inkColor, 
+          borderRadius: '2px', 
+          padding: '30px', 
+          maxWidth: '420px', 
+          width: '100%',
+          border: `3px solid ${inkColor}`,
+          boxShadow: '8px 8px 0px rgba(0,0,0,0.1)',
+          fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 style={{ textAlign: 'center', color: inkColor, fontWeight: 'bold', fontSize: '2rem', marginBottom: '30px', marginTop: 0 }}>
+          Creat a New Match
+        </h2>
+        
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* A Team vs Logo row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <input 
+              name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="A Team" 
+              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
+            <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: inkColor }}>Vs</span>
+            <button 
+              type="button" onClick={() => file1Ref.current?.click()} 
+              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
+            >
+              {logo1 ? 'Logo ✓' : 'Logo'}
+            </button>
+            <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
           </div>
-          <div className="cm-field">
-            <label className="cm-label">Team 2 Name</label>
-            <input name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="Enter Team 2 Name" className="cm-input" />
+
+          {/* Logo vs B Team row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button 
+              type="button" onClick={() => file2Ref.current?.click()} 
+              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
+            >
+              {logo2 ? 'Logo ✓' : 'Logo'}
+            </button>
+            <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
+            <input 
+              name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="B Team" 
+              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
           </div>
-          <div className="cm-row-2">
-            <div className="cm-field">
-              <label className="cm-label">Overs</label>
-              <input name="maxOvers" type="number" min="1" max="100" value={form.maxOvers} onChange={handleChange} className="cm-input" />
-            </div>
-            <div className="cm-field">
-              <label className="cm-label">Match No.</label>
-              <input name="matchNumber" type="number" min="1" value={form.matchNumber} onChange={handleChange} className="cm-input" />
-            </div>
+
+          {/* Overs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
+            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Overs</span>
+            <input 
+              type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} 
+              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
           </div>
-          <div className="cm-radio-row">
-            <span className="cm-radio-label">Toss won by?</span>
-            <label className="cm-radio-option"><input type="radio" checked={form.tossWinner === 'team1'} onChange={() => setRadio('tossWinner', 'team1')} /><span>{team1Label}</span></label>
-            <label className="cm-radio-option"><input type="radio" checked={form.tossWinner === 'team2'} onChange={() => setRadio('tossWinner', 'team2')} /><span>{team2Label}</span></label>
+
+          {/* Balls Per Over */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Balls Per Over</span>
+            <input 
+              type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} 
+              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
+            />
           </div>
-          <div className="cm-radio-row">
-            <span className="cm-radio-label">Opted to?</span>
-            <label className="cm-radio-option"><input type="radio" checked={form.tossDecision === 'bat'} onChange={() => setRadio('tossDecision', 'bat')} /><span>Bat</span></label>
-            <label className="cm-radio-option"><input type="radio" checked={form.tossDecision === 'bowl'} onChange={() => setRadio('tossDecision', 'bowl')} /><span>Bowl</span></label>
+
+          {/* Toss won By */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px' }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Toss won By</span>
+            <button 
+              type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} 
+              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team1' ? inkColor : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              A
+            </button>
+            <button 
+              type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} 
+              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team2' ? inkColor : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              B
+            </button>
           </div>
-          <div className="cm-radio-row">
-            <span className="cm-radio-label">Match Tied?</span>
-            <label className="cm-radio-option"><input type="radio" checked={form.isTied === true} onChange={() => setRadio('isTied', true)} /><span>Yes</span></label>
-            <label className="cm-radio-option"><input type="radio" checked={form.isTied === false} onChange={() => setRadio('isTied', false)} /><span>No</span></label>
+
+          {/* Opted to */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Opted to</span>
+            <button 
+              type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} 
+              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bat' ? inkColor : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              Bat
+            </button>
+            <button 
+              type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} 
+              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bowl' ? inkColor : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              Bowl
+            </button>
           </div>
-          <div className="cm-row-2">
-            <div className="cm-field">
-              <label className="cm-label">Balls Per Over :</label>
-              <select name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} className="cm-select">
-                <option value={4}>4</option><option value={5}>5</option><option value={6}>6</option><option value={8}>8</option>
-              </select>
-            </div>
-            <div className="cm-field">
-              <label className="cm-label">Match Type :</label>
-              <select name="matchType" value={form.matchType} onChange={handleChange} className="cm-select">
-                <option>Group Stage</option><option>Quarter Final</option><option>Semi Final</option>
-                <option>Final</option><option>Super Final</option><option>T20</option>
-                <option>T10</option><option>ODI</option><option>Test</option>
-                <option>Friendly</option><option>Custom</option>
-              </select>
-            </div>
+
+          {/* Match Type */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>Match Type</span>
+            <select 
+              name="matchType" value={form.matchType} onChange={handleChange} 
+              style={{ flex: 1, padding: '8px', border: `2px solid ${inkColor}`, fontSize: '1.3rem', color: inkColor, background: 'transparent', fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              <option value="Group">Group</option>
+              <option value="Knockout">Knockout</option>
+              <option value="Final">Final</option>
+              <option value="T20">T20</option>
+              <option value="T10">T10</option>
+            </select>
           </div>
-          <button type="button" className="cm-advanced-toggle" onClick={() => setShowAdvanced(v => !v)}>
-            {showAdvanced ? 'Hide' : 'Advanced Options'} (Tournament, Venue, Theme, Date)
-          </button>
-          {showAdvanced && (
-            <div className="cm-advanced">
-              <div className="cm-row-2">
-                <div className="cm-field"><label className="cm-label">Tournament</label><input name="tournamentName" value={form.tournamentName} onChange={handleChange} placeholder="KS Premier League" className="cm-input" /></div>
-                <div className="cm-field"><label className="cm-label">Venue</label><input name="venueName" value={form.venueName} onChange={handleChange} placeholder="Ground name" className="cm-input" /></div>
-              </div>
-              <div className="cm-row-2">
-                <div className="cm-field"><label className="cm-label">Match Title</label><input name="matchTitle" value={form.matchTitle} onChange={handleChange} placeholder="e.g. GRAND FINAL" className="cm-input" /></div>
-                <div className="cm-field"><label className="cm-label">Date</label><input name="matchDate" type="date" value={form.matchDate} onChange={handleChange} className="cm-input" /></div>
-              </div>
-              <div className="cm-field">
-                <label className="cm-label">Overlay Theme</label>
-                <select name="themeID" value={form.themeID} onChange={handleChange} className="cm-select">
-                  {THEMES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                </select>
-              </div>
-            </div>
-          )}
-          {error && <div className="cm-error">{error}</div>}
-          <div className="cm-actions">
-            <button type="submit" className="cm-btn-add" disabled={loading}>{loading ? 'Creating...' : 'Add'}</button>
-            <button type="button" className="cm-btn-cancel" onClick={() => onClose()}>Cancel</button>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+            <button 
+              type="submit" disabled={loading} 
+              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {loading ? '...' : 'add'}
+            </button>
+            <button 
+              type="button" onClick={() => onClose()} 
+              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              cancel
+            </button>
           </div>
-          <p className="cm-note">Note: Your data will be available on this device only</p>
+          {error && <div style={{ color: 'red', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold' }}>{error}</div>}
         </form>
       </div>
     </div>
