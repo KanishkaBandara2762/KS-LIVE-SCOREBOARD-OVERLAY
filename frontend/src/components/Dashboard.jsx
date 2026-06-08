@@ -115,121 +115,93 @@ function CreateMatchModal({ onClose, onCreate }) {
     }
   };
 
-  const inkColor = '#1e3a8a'; // Dark blue "ink" style
+  const logo1Preview = logo1 ? URL.createObjectURL(logo1) : null;
+  const logo2Preview = logo2 ? URL.createObjectURL(logo2) : null;
 
   return (
-    <div className="cm-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div 
-        style={{ 
-          background: '#fefdf8', 
-          color: inkColor, 
-          borderRadius: '2px', 
-          padding: '30px', 
-          maxWidth: '420px', 
-          width: '100%',
-          border: `3px solid ${inkColor}`,
-          boxShadow: '8px 8px 0px rgba(0,0,0,0.1)',
-          fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif'
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 style={{ textAlign: 'center', color: inkColor, fontWeight: 'bold', fontSize: '2rem', marginBottom: '30px', marginTop: 0 }}>
-          Creat a New Match
-        </h2>
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-card" style={{ maxWidth: '500px', padding: '32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em', margin: 0, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            CREATE A NEW MATCH
+          </h2>
+          <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', margin: '12px auto 0', borderRadius: '4px' }} />
+        </div>
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          {/* A Team vs Logo row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <input 
-              name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="A Team" 
-              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
-            <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: inkColor }}>Vs</span>
-            <button 
-              type="button" onClick={() => file1Ref.current?.click()} 
-              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
-            >
-              {logo1 ? 'Logo ✓' : 'Logo'}
-            </button>
-            <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Team A Name</label>
+              <input name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="e.g. COLOMBO KINGS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <div 
+                onClick={() => file1Ref.current?.click()} 
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(59,130,246,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(59,130,246,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+              >
+                {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+              </div>
+              <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
+            </div>
           </div>
 
-          {/* Logo vs B Team row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button 
-              type="button" onClick={() => file2Ref.current?.click()} 
-              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
-            >
-              {logo2 ? 'Logo ✓' : 'Logo'}
-            </button>
-            <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
-            <input 
-              name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="B Team" 
-              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
+          <div style={{ textAlign: 'center', margin: '-16px 0', position: 'relative', zIndex: 2 }}>
+            <span style={{ background: '#0d1b35', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: '#facc15', border: '1px solid rgba(234,179,8,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
           </div>
 
-          {/* Overs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
-            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Overs</span>
-            <input 
-              type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} 
-              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <div 
+                onClick={() => file2Ref.current?.click()} 
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(167,139,250,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(167,139,250,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+              >
+                {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+              </div>
+              <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em', textAlign: 'right' }}>Team B Name</label>
+              <input name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="e.g. KANDY TUSKERS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'right' }} />
+            </div>
           </div>
 
-          {/* Balls Per Over */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Balls Per Over</span>
-            <input 
-              type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} 
-              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
+              <input type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Balls/Over</label>
+              <input type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
+            </div>
           </div>
 
-          {/* Toss won By */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Toss won By</span>
-            <button 
-              type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} 
-              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team1' ? inkColor : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              A
-            </button>
-            <button 
-              type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} 
-              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team2' ? inkColor : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              B
-            </button>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Toss Won By</span>
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
+                <button type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team1' ? '#3b82f6' : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team A</button>
+                <button type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team2' ? '#8b5cf6' : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team B</button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opted To</span>
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bat' ? '#22c55e' : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bat</button>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bowl' ? '#ef4444' : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bowl</button>
+              </div>
+            </div>
           </div>
 
-          {/* Opted to */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Opted to</span>
-            <button 
-              type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} 
-              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bat' ? inkColor : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              Bat
-            </button>
-            <button 
-              type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} 
-              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bowl' ? inkColor : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              Bowl
-            </button>
-          </div>
-
-          {/* Match Type */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>Match Type</span>
-            <select 
-              name="matchType" value={form.matchType} onChange={handleChange} 
-              style={{ flex: 1, padding: '8px', border: `2px solid ${inkColor}`, fontSize: '1.3rem', color: inkColor, background: 'transparent', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              <option value="Group">Group</option>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Match Type</label>
+            <select name="matchType" value={form.matchType} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
+              <option value="Group">Group Stage</option>
               <option value="Knockout">Knockout</option>
               <option value="Final">Final</option>
               <option value="T20">T20</option>
@@ -237,22 +209,13 @@ function CreateMatchModal({ onClose, onCreate }) {
             </select>
           </div>
 
-          {/* Actions */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
-            <button 
-              type="submit" disabled={loading} 
-              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              {loading ? '...' : 'add'}
-            </button>
-            <button 
-              type="button" onClick={() => onClose()} 
-              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              cancel
+          <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+            <button type="button" onClick={() => onClose()} className="btn-secondary" style={{ flex: 1, padding: '14px', fontSize: '1rem' }}>Cancel</button>
+            <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 2, padding: '14px', fontSize: '1rem' }}>
+              {loading ? '⏳ Creating...' : '🚀 Create Match'}
             </button>
           </div>
-          {error && <div style={{ color: 'red', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold' }}>{error}</div>}
+          {error && <div className="form-error" style={{ textAlign: 'center' }}>{error}</div>}
         </form>
       </div>
     </div>
@@ -404,114 +367,94 @@ function NextMatchModal({ tournament, onClose, onSubmit }) {
     }
   };
 
-  const inkColor = '#1e3a8a';
+  const logo1Preview = logo1 ? URL.createObjectURL(logo1) : null;
+  const logo2Preview = logo2 ? URL.createObjectURL(logo2) : null;
 
   return (
-    <div className="cm-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div 
-        style={{ 
-          background: '#fefdf8', 
-          color: inkColor, 
-          borderRadius: '2px', 
-          padding: '30px', 
-          maxWidth: '420px', 
-          width: '100%',
-          border: `3px solid ${inkColor}`,
-          boxShadow: '8px 8px 0px rgba(0,0,0,0.1)',
-          fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif'
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 style={{ textAlign: 'center', color: inkColor, fontWeight: 'bold', fontSize: '2rem', marginBottom: '30px', marginTop: 0 }}>
-          Create a New Match
-        </h2>
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-card" style={{ maxWidth: '500px', padding: '32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em', margin: 0, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            START NEXT MATCH
+          </h2>
+          <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tournament.name}</div>
+          <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', margin: '12px auto 0', borderRadius: '4px' }} />
+        </div>
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <input 
-              name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="A Team" 
-              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
-            <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: inkColor }}>Vs</span>
-            <button 
-              type="button" onClick={() => file1Ref.current?.click()} 
-              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
-            >
-              {logo1 ? 'Logo ✓' : 'Logo'}
-            </button>
-            <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Team A Name</label>
+              <input name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="e.g. COLOMBO KINGS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <div 
+                onClick={() => file1Ref.current?.click()} 
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(59,130,246,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(59,130,246,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+              >
+                {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+              </div>
+              <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button 
-              type="button" onClick={() => file2Ref.current?.click()} 
-              style={{ padding: '10px 14px', border: `2px solid ${inkColor}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 'bold', color: inkColor, fontSize: '1.2rem' }}
-            >
-              {logo2 ? 'Logo ✓' : 'Logo'}
-            </button>
-            <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
-            <input 
-              name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="B Team" 
-              style={{ flex: 1, padding: '10px 14px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
+          <div style={{ textAlign: 'center', margin: '-16px 0', position: 'relative', zIndex: 2 }}>
+            <span style={{ background: '#0d1b35', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: '#facc15', border: '1px solid rgba(234,179,8,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
-            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Overs</span>
-            <input 
-              type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} 
-              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <div 
+                onClick={() => file2Ref.current?.click()} 
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(167,139,250,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(167,139,250,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+              >
+                {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+              </div>
+              <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em', textAlign: 'right' }}>Team B Name</label>
+              <input name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="e.g. KANDY TUSKERS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'right' }} />
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <span style={{ fontSize: '1.6rem', fontWeight: 'bold', flex: 1 }}>Balls Per Over</span>
-            <input 
-              type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} 
-              style={{ width: '70px', padding: '6px', border: `2px solid ${inkColor}`, fontSize: '1.4rem', textAlign: 'center', fontFamily: 'inherit', color: inkColor, background: 'transparent' }} 
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
+              <input type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Balls/Over</label>
+              <input type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Toss won By</span>
-            <button 
-              type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} 
-              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team1' ? inkColor : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              A
-            </button>
-            <button 
-              type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} 
-              style={{ padding: '6px 16px', border: `2px solid ${inkColor}`, background: form.tossWinner === 'team2' ? inkColor : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              B
-            </button>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Toss Won By</span>
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
+                <button type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team1' ? '#3b82f6' : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team A</button>
+                <button type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team2' ? '#8b5cf6' : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team B</button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opted To</span>
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bat' ? '#22c55e' : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bat</button>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bowl' ? '#ef4444' : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bowl</button>
+              </div>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 'bold', flex: 1 }}>Opted to</span>
-            <button 
-              type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} 
-              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bat' ? inkColor : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              Bat
-            </button>
-            <button 
-              type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} 
-              style={{ padding: '6px 12px', border: `2px solid ${inkColor}`, background: form.tossDecision === 'bowl' ? inkColor : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : inkColor, fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              Bowl
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '10px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>Match Type</span>
-            <select 
-              name="matchType" value={form.matchType} onChange={handleChange} 
-              style={{ flex: 1, padding: '8px', border: `2px solid ${inkColor}`, fontSize: '1.3rem', color: inkColor, background: 'transparent', fontFamily: 'inherit', cursor: 'pointer' }}
-            >
-              <option value="Group">Group</option>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Match Type</label>
+            <select name="matchType" value={form.matchType} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
+              <option value="Group">Group Stage</option>
               <option value="Knockout">Knockout</option>
               <option value="Final">Final</option>
               <option value="T20">T20</option>
@@ -519,21 +462,13 @@ function NextMatchModal({ tournament, onClose, onSubmit }) {
             </select>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
-            <button 
-              type="submit" disabled={loading} 
-              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              {loading ? '...' : 'add'}
-            </button>
-            <button 
-              type="button" onClick={() => onClose()} 
-              style={{ padding: '8px 30px', border: `2px solid ${inkColor}`, background: 'transparent', color: inkColor, fontWeight: 'bold', fontSize: '1.4rem', borderRadius: '24px', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              cancel
+          <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+            <button type="button" onClick={() => onClose()} className="btn-secondary" style={{ flex: 1, padding: '14px', fontSize: '1rem' }}>Cancel</button>
+            <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 2, padding: '14px', fontSize: '1rem' }}>
+              {loading ? '⏳ Deploying Match...' : '🚀 Start Next Match'}
             </button>
           </div>
-          {error && <div style={{ color: 'red', textAlign: 'center', fontSize: '1.1rem', fontWeight: 'bold' }}>{error}</div>}
+          {error && <div className="form-error" style={{ textAlign: 'center' }}>{error}</div>}
         </form>
       </div>
     </div>
