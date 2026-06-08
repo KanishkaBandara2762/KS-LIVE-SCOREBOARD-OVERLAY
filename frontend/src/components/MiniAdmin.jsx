@@ -885,6 +885,44 @@ const MiniAdmin = () => {
                             </div>
                         </div>
 
+                        {/* Extended Extras (all variants) */}
+                        <div className="ma-run-section" style={{ marginTop: '16px' }}>
+                            <div className="ma-section-label">EXTENDED EXTRAS</div>
+                            {match.extrasConfig?.wd !== false && (
+                                <>
+                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>WIDE + RUNS</div>
+                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
+                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', r))}>WD{r > 0 ? `+${r}` : ''}</button>)}
+                                    </div>
+                                </>
+                            )}
+                            {match.extrasConfig?.nb !== false && (
+                                <>
+                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>NO BALL + RUNS</div>
+                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
+                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', r))}>NB{r > 0 ? `+${r}` : ''}</button>)}
+                                    </div>
+                                </>
+                            )}
+                            {match.extrasConfig?.lb !== false && (
+                                <>
+                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>LEG BYES</div>
+                                    <div className="ma-extras-grid">
+                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(r))}>LB {r}</button>)}
+                                    </div>
+                                </>
+                            )}
+                            {match.extrasConfig?.b !== false && (
+                                <>
+                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>BYES</div>
+                                    <div className="ma-extras-grid">
+                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(r))}>B {r}</button>)}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+
                         {/* Control row */}
                         <div className="ma-control-row">
                             <button className="ma-ctrl-btn ma-btn-swap" onClick={swapStrike}>↔ SWAP (S)</button>
@@ -1376,42 +1414,6 @@ const MiniAdmin = () => {
                             </div>
                         </div>
 
-                        {/* Extended Extras (all variants) */}
-                        <div className="ma-card">
-                            <div className="ma-card-title">Extended Extras</div>
-                            {match.extrasConfig?.wd !== false && (
-                                <>
-                                    <div className="ma-section-label">WIDE +</div>
-                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
-                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', r))}>WD{r > 0 ? `+${r}` : ''}</button>)}
-                                    </div>
-                                </>
-                            )}
-                            {match.extrasConfig?.nb !== false && (
-                                <>
-                                    <div className="ma-section-label">NO BALL +</div>
-                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
-                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', r))}>NB{r > 0 ? `+${r}` : ''}</button>)}
-                                    </div>
-                                </>
-                            )}
-                            {match.extrasConfig?.lb !== false && (
-                                <>
-                                    <div className="ma-section-label">LEG BYE</div>
-                                    <div className="ma-extras-grid">
-                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(r))}>LB {r}</button>)}
-                                    </div>
-                                </>
-                            )}
-                            {match.extrasConfig?.b !== false && (
-                                <>
-                                    <div className="ma-section-label">BYE</div>
-                                    <div className="ma-extras-grid">
-                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(r))}>B {r}</button>)}
-                                    </div>
-                                </>
-                            )}
-                        </div>
 
                         {/* Match Situation */}
                         <div className="ma-card">
