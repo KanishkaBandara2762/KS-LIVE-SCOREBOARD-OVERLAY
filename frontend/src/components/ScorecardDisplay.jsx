@@ -107,8 +107,9 @@ const ScorecardDisplay = () => {
   const [winnerInfo, setWinnerInfo] = useState(null);
 
   // --- Animation Hooks ---
+  const isMatchFinishedCheck = ["finished", "match ended"].includes(String(match?.matchStatus || "").toLowerCase());
   const isTossMounted = !!(match?.showToss && !winnerInfo && !match?.showVersus);
-  const isScorecardMounted = !!(match && !winnerInfo && !match?.showSummary && !match?.showVersus);
+  const isScorecardMounted = !!(match && !winnerInfo && !(match?.showSummary || isMatchFinishedCheck) && !match?.showVersus);
   const renderToss = useDelayUnmount(isTossMounted, 500);
   const renderScorecard = useDelayUnmount(isScorecardMounted, 500);
 
