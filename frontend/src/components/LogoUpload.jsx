@@ -22,20 +22,31 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
 
   const handleFile = useCallback(async (file) => {
     if (!file) return;
+
+    // Reset the file input so the same file can be re-selected
+    if (fileRef.current) fileRef.current.value = '';
+
     const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
     if (!allowed.includes(file.type)) {
       setError('Only PNG, JPG, WebP, GIF, SVG files are allowed.');
       return;
     }
+
+    // Validate file size (3MB max, matching backend multer limit)
+    if (file.size > 3 * 1024 * 1024) {
+      setError('File too large. Maximum size is 3 MB.');
+      return;
+    }
+
     setError('');
 
     // Show local preview immediately
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
 
-    if (!isMongoDB || !matchId) {
-      // Non-MongoDB: just call onUploaded with the object URL
-      onUploaded && onUploaded(objectUrl, side);
+    if (!matchId) {
+      // No matchId yet (e.g. during match creation) — just show preview
+      onUploaded && onUploaded(file, side);
       return;
     }
 
@@ -47,17 +58,27 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
       formData.append('side', side);
       const res = await matchesApi.uploadLogo(matchId, formData);
       if (res.success && res.logoUrl) {
+        // Store the relative URL - getAbsoluteUrl() in the overlay will resolve it to the correct full URL
+        // This ensures logos work across different network IPs (OBS vs Admin panel)
+        const relativeUrl = res.logoUrl; // e.g. '/uploads/logos/filename.png'
         const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
-        const fullUrl = `${API_BASE}${res.logoUrl}`;
-        setPreview(fullUrl);
-        onUploaded && onUploaded(fullUrl, side);
+        const fullUrl = `${API_BASE}${relativeUrl.startsWith('/') ? '' : '/'}${relativeUrl}`;
+        setPreview(fullUrl); // Local preview uses full URL
+        onUploaded && onUploaded(relativeUrl, side); // Push relative URL to backend/state
+      } else {
+        setError(res.error || 'Upload failed. Please try again.');
+        // Revert to previous preview
+        setPreview(getAbsoluteUrl(currentUrl));
       }
     } catch (err) {
-      setError(err.message || 'Upload failed');
+      console.error('[LogoUpload] Upload error:', err);
+      setError(err.message || 'Upload failed. Check your connection and try again.');
+      // Revert to previous preview on error
+      setPreview(getAbsoluteUrl(currentUrl));
     } finally {
       setUploading(false);
     }
-  }, [matchId, side, isMongoDB, onUploaded]);
+  }, [matchId, side, onUploaded, currentUrl, getAbsoluteUrl]);
 
   const onDrop = useCallback((e) => {
     e.preventDefault();
@@ -65,6 +86,12 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
     const file = e.dataTransfer?.files?.[0];
     if (file) handleFile(file);
   }, [handleFile]);
+
+  const handleClick = useCallback((e) => {
+    // Prevent double-fire if clicking on the remove button
+    if (e.target.closest('button')) return;
+    fileRef.current?.click();
+  }, []);
 
   const label = side === 'bowling' ? 'Bowling Team' : 'Batting Team';
   const colorBadge = side === 'bowling' ? '#a78bfa' : '#4ade80';
@@ -79,7 +106,7 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        onClick={() => fileRef.current?.click()}
+        onClick={handleClick}
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '10px 12px',
@@ -112,7 +139,7 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
           <div style={{ color: '#fff', fontSize: 11, fontWeight: 600 }}>
             {uploading ? '⏳ Uploading...' : dragging ? 'Drop to upload' : 'Click or drag logo'}
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>PNG, JPG, WebP, SVG</div>
+          <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>PNG, JPG, WebP, SVG (max 3MB)</div>
         </div>
         {preview && (
           <button
@@ -132,7 +159,10 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
         type="file"
         accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
         style={{ display: 'none' }}
-        onChange={e => handleFile(e.target.files?.[0])}
+        onChange={e => {
+          const file = e.target.files?.[0];
+          handleFile(file);
+        }}
       />
     </div>
   );

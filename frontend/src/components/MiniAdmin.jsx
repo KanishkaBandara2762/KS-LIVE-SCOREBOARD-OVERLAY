@@ -73,6 +73,9 @@ const MiniAdmin = () => {
     const [newBatterSlot, setNewBatterSlot] = useState(null); // 'player1' | 'player2'
     const [outPlayerName, setOutPlayerName] = useState('');
     const [showBowlerHistory, setShowBowlerHistory] = useState(false);
+    const [showWicketPanel, setShowWicketPanel] = useState(false);
+    const [wicketDismissal, setWicketDismissal] = useState('Bowled');
+    const [wicketFielder, setWicketFielder] = useState('');
 
     // Always use the real hostname/IP — OBS blocks WebSockets to 'localhost'
     // so we replace it with the actual network IP the browser is currently using.
@@ -289,9 +292,9 @@ const MiniAdmin = () => {
     // All scoring fns are wrapped in debounce() at call-site to prevent double-click.
 
     // pushDelivery: for MongoDB uses updateScore REST API; for Firebase uses field update
-    const pushDelivery = useCallback((delivery, extraRuns = 0, firebaseChanges = {}) => {
+    const pushDelivery = useCallback((delivery, extraRuns = 0, firebaseChanges = {}, apiExtraPayload = {}) => {
         if (isMongoDB(matchId)) {
-            matchesApi.updateScore(matchId, { delivery, extraRuns })
+            matchesApi.updateScore(matchId, { delivery, extraRuns, ...apiExtraPayload })
                 .then(res => { if (res.match) setMatch(res.match); })
                 .catch(() => {});
         } else {
@@ -430,25 +433,27 @@ const MiniAdmin = () => {
         }
     };
 
-    const handleWicket = () => {
+    const handleWicket = (dismissalType = 'Bowled', fielderName = '') => {
         if (!match || match.overLocked) return;
         setHistory(h => [...h, match]);
         const outKey = match.player1.onStrike ? "player1" : "player2";
         const op = match[outKey];
         const { recentBalls, overRuns } = updateOverHistory("W", match, 0);
         if (isMongoDB(matchId)) {
-            pushDelivery('wicket', 0, {});
+            pushDelivery('wicket', 0, {}, { dismissalType, fielderName });
         } else {
             pushEvent({
                 wickets: match.wickets + 1, totalBalls: match.totalBalls + 1,
                 recentBalls, overRuns,
-                fallOfWickets: [...(match.fallOfWickets || []), { name: op.name, runs: op.runs, balls: op.balls, bowler: match.bowler?.name, fowScore: match.score, fowWicket: match.wickets + 1 }],
+                fallOfWickets: [...(match.fallOfWickets || []), { name: op.name, runs: op.runs, balls: op.balls, bowler: match.bowler?.name, fowScore: match.score, fowWicket: match.wickets + 1, dismissalType, fielderName }],
                 lastWicketName: op.name, lastWicketRuns: op.runs, lastWicketBalls: op.balls,
+                lastWicketDismissal: dismissalType, lastWicketFielder: fielderName,
                 [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: true },
                 legalBallCount: (match.legalBallCount || 0) + 1,
                 ...getManualBallsUpdate(),
             }, "WICKET");
         }
+        setShowWicketPanel(false);
         // Show new batter selection modal
         setOutPlayerName(op.name);
         setNewBatterSlot(outKey);
@@ -680,17 +685,25 @@ const MiniAdmin = () => {
 
     // ── Keyboard shortcuts ─────────────────────────────────────────────
     const handlerRef = useRef(null);
-    handlerRef.current = { addRun, addBoundary, handleWicket, swapStrike, handleUndo };
+    handlerRef.current = { addRun, addBoundary, handleWicket, swapStrike, handleUndo, setShowWicketPanel, showWicketPanel, wicketDismissal, wicketFielder };
 
     useEffect(() => {
         const handler = (e) => {
+            const h = handlerRef.current;
+            if (e.key === "Enter" && h.showWicketPanel) {
+                e.preventDefault();
+                h.handleWicket(h.wicketDismissal, h.wicketFielder);
+                return;
+            }
             if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
             const k = e.key.toLowerCase();
-            const h = handlerRef.current;
             if (["0", "1", "2", "3"].includes(k)) h.addRun(parseInt(k));
             if (k === "4") h.addBoundary(4);
             if (k === "6") h.addBoundary(6);
-            if (k === "w") h.handleWicket();
+            if (k === "w") {
+                if (h.showWicketPanel) h.handleWicket(h.wicketDismissal, h.wicketFielder);
+                else h.setShowWicketPanel(true);
+            }
             if (k === "s") h.swapStrike();
             if (k === "u") h.handleUndo();
         };
@@ -870,7 +883,7 @@ const MiniAdmin = () => {
                         </div>
 
                         {/* Wicket */}
-                        <button className="ma-wicket-btn" onClick={() => debounce(() => handleWicket())}>⚡ WICKET (W)</button>
+                        <button className="ma-wicket-btn" onClick={() => debounce(() => setShowWicketPanel(true))}>⚡ WICKET (W)</button>
 
                         {/* Extras */}
                         <div className="ma-run-section">
@@ -1161,10 +1174,13 @@ const MiniAdmin = () => {
                                 <option value="IPL_2026">🏏 IPL 2026</option>
                                 <option value="NEW_IPL">🆕 NEW IPL</option>
                                 <option value="KS_PREMIUM">💎 KS Premium</option>
+                                <option value="NEW_KS_COLOR">💎 Emerald Pro (New KS)</option>
                             </select>
                             <div className="ma-grid-2">
                                 <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
                                 <button className={`ma-status-btn ${match.showSummary ? 'active-break' : ''}`} onClick={() => push({ showSummary: !match.showSummary })}>Summary</button>
+                                <button className={`ma-status-btn ${match.showToss ? 'active-break' : ''}`} onClick={() => push({ showToss: !match.showToss })} style={match.showToss ? { background: 'rgba(245,158,11,0.3)', color: '#fcd34d', borderColor: 'rgba(252,211,77,0.25)' } : {}}>Toss Result</button>
+                                <button className={`ma-status-btn ${match.showMatchSituation ? 'active-break' : ''}`} onClick={() => push({ showMatchSituation: !match.showMatchSituation })}>Situation</button>
                             </div>
                             <button
                                 className="ma-over-btn ma-over-wait"
@@ -1514,6 +1530,54 @@ const MiniAdmin = () => {
 
             {/* keyboard hint */}
             <div className="ma-kb-hints">Keys: 0–4,6 = Runs &nbsp;|&nbsp; W = Wicket &nbsp;|&nbsp; S = Swap &nbsp;|&nbsp; U = Undo</div>
+
+            
+            {/* ══ WICKET DETAILS MODAL ════════════════════════════ */}
+            {showWicketPanel && (
+                <div className="ma-modal-overlay" style={{ zIndex: 100000 }}>
+                    <div className="ma-modal-card">
+                        <div className="ma-modal-header">
+                            <span className="ma-modal-title">🔥 WICKET DETAILS</span>
+                            <button className="ma-modal-close" onClick={() => setShowWicketPanel(false)}>✕</button>
+                        </div>
+                        <div className="ma-modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
+                            <div className="ma-modal-field">
+                                <label className="ma-modal-label">How Out?</label>
+                                <select className="ma-modal-inp" value={wicketDismissal} onChange={(e) => setWicketDismissal(e.target.value)}>
+                                    <option value="Bowled">Bowled</option>
+                                    <option value="Caught">Caught</option>
+                                    <option value="Stumped">Stumped</option>
+                                    <option value="LBW">LBW</option>
+                                    <option value="Hit Wicket">Hit Wicket</option>
+                                    <option value="Retired Hurt">Retired Hurt</option>
+                                </select>
+                            </div>
+                            {(wicketDismissal === 'Caught' || wicketDismissal === 'Stumped') && (
+                                <div className="ma-modal-field">
+                                    <label className="ma-modal-label">Fielder Name</label>
+                                    <input 
+                                        list="ma-bowling-squad-list"
+                                        type="text" 
+                                        placeholder="Type or select fielder..." 
+                                        className="ma-modal-inp" 
+                                        value={wicketFielder} 
+                                        onChange={(e) => setWicketFielder(e.target.value)} 
+                                    />
+                                    <datalist id="ma-bowling-squad-list">
+                                        {(match.bowlingSquad || []).map((player, idx) => (
+                                            <option key={idx} value={player.name} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                            )}
+                            <div className="ma-modal-footer">
+                                <button type="button" onClick={() => setShowWicketPanel(false)} style={{ background:'transparent', border:'1px solid #475569', color:'#cbd5e1', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}>Cancel</button>
+                                <button type="button" onClick={() => handleWicket(wicketDismissal, wicketFielder)} style={{ background:'#ef4444', border:'none', color:'#fff', borderRadius:6, padding:'8px 16px', fontWeight:900, cursor:'pointer' }}>🔥 Confirm Wicket</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ══ DEPLOY NEXT MATCH MODAL ════════════════════════════ */}
             {showNextMatch && (

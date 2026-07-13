@@ -114,6 +114,8 @@ const fowSchema = new mongoose.Schema(
     playerName: { type: String, default: '' },
     overAtFall: { type: String, default: '0.0' },
     bowlerName: { type: String, default: '' },
+    dismissalType: { type: String, default: 'Bowled' },
+    fielderName: { type: String, default: '' },
   },
   { _id: false }
 );
@@ -126,6 +128,7 @@ const overlaySettingsSchema = new mongoose.Schema(
     showVersus: { type: Boolean, default: false },
     showSummary: { type: Boolean, default: false },
     showMatchSituation: { type: Boolean, default: false },
+    showToss: { type: Boolean, default: false },
     sponsorText: { type: String, default: '' },
     autoShowBanner: { type: Boolean, default: true },
     battingLogo: { type: String, default: '' },
@@ -282,6 +285,8 @@ const matchSchema = new mongoose.Schema(
     lastWicketName: { type: String, default: '' },
     lastWicketRuns: { type: Number, default: 0 },
     lastWicketBalls: { type: Number, default: 0 },
+    lastWicketDismissal: { type: String, default: 'Bowled' },
+    lastWicketFielder: { type: String, default: '' },
 
     // ── Event Triggers ─────────────────────────────────────────────────────
     eventTrigger: { type: String, default: null },

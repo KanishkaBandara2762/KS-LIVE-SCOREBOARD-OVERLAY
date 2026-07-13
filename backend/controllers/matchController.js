@@ -15,14 +15,24 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 // ── Helper: emit to all overlay AND admin listeners for this match ─────────────
-const emitMatchUpdate = (req, matchId, event, payload) => {
+// Also emits to the tournament room if the match belongs to one,
+// so OBS sources connected via tournamentId receive all live updates.
+const emitMatchUpdate = async (req, matchId, event, payload) => {
   const io = req.app.get('io');
-  if (io) {
-    const room = `match:${matchId}`;
-    // Emit to both /overlay (OBS) and /admin (dashboard) namespaces
-    io.of('/overlay').to(room).emit(event, payload);
-    io.of('/admin').to(room).emit(event, payload);
-  }
+  if (!io) return;
+  const room = `match:${matchId}`;
+  // Emit to both /overlay (OBS) and /admin (dashboard) namespaces
+  io.of('/overlay').to(room).emit(event, payload);
+  io.of('/admin').to(room).emit(event, payload);
+  // Also emit to tournament room if this match belongs to a tournament
+  try {
+    const matchDoc = await Match.findOne({ matchId }, 'tournamentId').lean();
+    if (matchDoc?.tournamentId) {
+      const tournamentRoom = `tournament:${matchDoc.tournamentId}`;
+      io.of('/overlay').to(tournamentRoom).emit(event, payload);
+      io.of('/admin').to(tournamentRoom).emit(event, payload);
+    }
+  } catch (_) { /* non-critical — don't block the main response */ }
 };
 
 
@@ -172,7 +182,7 @@ const getMatches = async (req, res, next) => {
 const updateScore = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { delivery, extraRuns = 0, batsmanName, bowlerName } = req.body;
+    const { delivery, extraRuns = 0, batsmanName, bowlerName, dismissalType, fielderName } = req.body;
 
     const match = await Match.findOne({ matchId: id });
     if (!match) return res.status(404).json({ success: false, error: 'Match not found.' });
@@ -210,7 +220,9 @@ const updateScore = async (req, res, next) => {
     let runsForStrikeRotation = 0;
 
     if (delivery === 'wide') {
-      runsForStrikeRotation = extraRuns;
+      // Wide: batters NEVER rotate, regardless of extra runs
+      // Wide ball is a penalty - it does NOT count as runs between wickets
+      runsForStrikeRotation = 0;
     } else if (delivery === 'noball') {
       batterRunsToAdd = extraRuns;
       runsForStrikeRotation = extraRuns;
@@ -339,6 +351,8 @@ const updateScore = async (req, res, next) => {
       updateData.lastWicketName = strikerName;
       updateData.lastWicketRuns = strikerRunsAtOut;
       updateData.lastWicketBalls = strikerBallsAtOut;
+      updateData.lastWicketDismissal = dismissalType || 'Bowled';
+      updateData.lastWicketFielder = fielderName || '';
       updateData.eventTrigger = 'WICKET';
       updateData.eventTime = new Date();
       updateData.eventId = uuidv4();
@@ -349,6 +363,8 @@ const updateScore = async (req, res, next) => {
           wicket: result.newWickets,
           playerName: strikerName,
           overAtFall: currentOverStr,
+          dismissalType: dismissalType || 'Bowled',
+          fielderName: fielderName || '',
         },
       };
     }
@@ -612,15 +628,30 @@ const getOverlay = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Match not found.' });
     }
 
-    // Return a combined overlay payload optimised for OBS browser source
+    // Return a combined overlay payload optimised for OBS browser source.
+    // IMPORTANT: Always prefer Match.overlaySettings for logos — uploadLogo
+    // writes there directly. The separate OverlaySettings collection may lag.
+    const combinedSettings = {
+      ...(overlaySettings || {}),
+      ...(match.overlaySettings || {}),
+      // Logos always come from Match.overlaySettings (authoritative after upload)
+      battingLogo: match.overlaySettings?.battingLogo || overlaySettings?.battingLogo || '',
+      leagueLogo:  match.overlaySettings?.leagueLogo  || overlaySettings?.leagueLogo  || '',
+    };
+
     res.json({
       success: true,
       overlay: {
         matchId,
         battingTeam: match.battingTeam,
         bowlingTeam: match.bowlingTeam,
+        bowlingPrefix: match.bowlingPrefix,
         score: match.score,
         wickets: match.wickets,
+        totalBalls: match.totalBalls,
+        legalBallCount: match.legalBallCount,
+        ballsPerOver: match.ballsPerOver,
+        maxOvers: match.maxOvers,
         overDisplay: formatOvers(match.legalBallCount, match.ballsPerOver),
         currentRunRate: match.currentRunRate,
         requiredRunRate: match.requiredRunRate,
@@ -638,8 +669,12 @@ const getOverlay = async (req, res, next) => {
         matchType: match.matchType,
         matchTitle: match.matchTitle,
         tournamentName: match.tournamentName,
+        venueName: match.venueName,
+        matchDate: match.matchDate,
         ticker: match.ticker,
-        settings: overlaySettings || match.overlaySettings,
+        toss: match.toss,
+        settings: combinedSettings,
+        overlaySettings: combinedSettings,
         manualBallsOverride: match.manualBallsOverride,
         manualBallsValue: match.manualBallsValue,
         autoDecreaseBalls: match.autoDecreaseBalls,
@@ -647,6 +682,8 @@ const getOverlay = async (req, res, next) => {
         lastWicketName: match.lastWicketName,
         lastWicketRuns: match.lastWicketRuns,
         lastWicketBalls: match.lastWicketBalls,
+        lastWicketDismissal: match.lastWicketDismissal,
+        lastWicketFielder: match.lastWicketFielder,
       },
     });
   } catch (err) {
@@ -675,7 +712,7 @@ const updateMatch = async (req, res, next) => {
       'manualTargetOverride', 'manualTargetValue'
     ];
     
-    const overlayFields = ['themeID', 'overlayMode', 'showVersus', 'showSummary', 'showMatchSituation', 'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo'];
+    const overlayFields = ['themeID', 'overlayMode', 'showVersus', 'showSummary', 'showMatchSituation', 'showToss', 'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo'];
 
     const updateData = { $set: {} };
     for (const field of allowedFields) {
@@ -684,9 +721,19 @@ const updateMatch = async (req, res, next) => {
       }
     }
     
+    // Handle flat overlay fields (e.g. updates.battingLogo)
     for (const field of overlayFields) {
       if (updates[field] !== undefined) {
         updateData.$set[`overlaySettings.${field}`] = updates[field];
+      }
+    }
+
+    // Also handle nested overlaySettings object (e.g. { overlaySettings: { battingLogo: url, themeID: 'IPL_2026' } })
+    if (updates.overlaySettings && typeof updates.overlaySettings === 'object') {
+      for (const field of overlayFields) {
+        if (updates.overlaySettings[field] !== undefined) {
+          updateData.$set[`overlaySettings.${field}`] = updates.overlaySettings[field];
+        }
       }
     }
 
@@ -1119,9 +1166,11 @@ const startSecondInnings = async (req, res, next) => {
       requiredRunRate: 0,
       matchStateHistory: [],
 
-      // Swap teams
+      // Swap teams and logos
       battingTeam: newBattingTeam,
       bowlingTeam: newBowlingTeam,
+      battingLogo: match.leagueLogo,
+      leagueLogo: match.battingLogo,
 
       // Swap squads
       battingSquad: newBattingSquad,
@@ -1242,18 +1291,25 @@ const uploadLogo = async (req, res, next) => {
       { new: true }
     );
 
-    // Also update the dedicated OverlaySettings collection
+    // Also update the dedicated OverlaySettings collection (upsert in case doc missing)
     const overlayField = side === 'bowling' ? 'leagueLogo' : 'battingLogo';
     await OverlaySettings.findOneAndUpdate(
       { matchId: id },
-      { $set: { [overlayField]: logoUrl } }
+      { $set: { [overlayField]: logoUrl } },
+      { upsert: true, new: true }
     );
 
-    emitMatchUpdate(req, id, 'score:update', {
+    // Emit to overlay: include both overlaySettings (preferred) AND flat fields
+    // so all versions of ScorecardDisplay can pick up the new logo immediately.
+    const logoEmitPayload = {
       matchId: id,
       overlaySettings: updatedMatch.overlaySettings,
+      // Also send as flat fields for backward-compat with older overlay code paths
+      battingLogo: updatedMatch.overlaySettings?.battingLogo || '',
+      leagueLogo: updatedMatch.overlaySettings?.leagueLogo || '',
       timestamp: Date.now(),
-    });
+    };
+    await emitMatchUpdate(req, id, 'score:update', logoEmitPayload);
 
     res.json({
       success: true,

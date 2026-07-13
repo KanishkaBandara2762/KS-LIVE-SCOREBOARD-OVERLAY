@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
-import { ref, onValue, update } from "firebase/database";
 import "./BroadcastTicker.css";
 
 /**
  * BroadcastTicker
  * ─────────────────────────────────────────────────
  * Props:
- *   matchId     — if present, reads from matches/{matchId}/overlay_ticker (Firebase legacy)
- *   tickerData  — if present, use this object directly (MongoDB matches via Socket.IO)
+ *   matchId     — ID of the match
+ *   tickerData  — use this object directly (MongoDB matches via Socket.IO)
  *
  * Two modes:
  *   "breaking"  — red flash banner
@@ -19,21 +17,9 @@ import "./BroadcastTicker.css";
 const BroadcastTicker = React.memo(({ matchId, tickerData }) => {
     const [ticker, setTicker] = useState(tickerData || null);
 
-    // If tickerData prop is provided (MongoDB/Socket.IO mode), use it directly
     useEffect(() => {
-        if (tickerData !== undefined) {
-            setTicker(tickerData);
-            return;
-        }
-
-        // Legacy Firebase mode — read from Realtime Database
-        const tickerPath = matchId ? `matches/${matchId}/overlay_ticker` : "overlay_ticker";
-        const tickerRef = ref(db, tickerPath);
-        const unsubscribe = onValue(tickerRef, (snapshot) => {
-            setTicker(snapshot.val());
-        });
-        return () => unsubscribe();
-    }, [matchId, tickerData]);
+        setTicker(tickerData || null);
+    }, [tickerData]);
 
     // Don't render anything if hidden or empty
     if (!ticker || !ticker.visible || !ticker.message) return null;
@@ -57,16 +43,7 @@ const BroadcastTicker = React.memo(({ matchId, tickerData }) => {
     const animKey = ticker.timestamp || ticker.updatedAt || "ticker-default";
 
     const handleAnimationEnd = () => {
-        if (!autoRepeat) {
-            if (tickerData !== undefined) {
-                // MongoDB mode: can't write back to Firebase — ticker will hide on next socket update
-                // The admin panel will handle hiding via /api/toggle-ticker
-                return;
-            }
-            // Firebase legacy mode: write back to hide ticker
-            const tickerPath = matchId ? `matches/${matchId}/overlay_ticker` : "overlay_ticker";
-            update(ref(db, tickerPath), { visible: false });
-        }
+        // Ticker visibility changes are controlled via the Admin Panel REST APIs and Socket.IO
     };
 
     return (

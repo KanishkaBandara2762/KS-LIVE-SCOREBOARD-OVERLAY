@@ -59,6 +59,7 @@ initSockets(io);
 app.use(
   helmet({
     contentSecurityPolicy: false, // Disable CSP to allow OBS browser source
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow images to load across ports/origins
   })
 );
 

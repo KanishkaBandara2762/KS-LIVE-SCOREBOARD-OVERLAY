@@ -1,0 +1,324 @@
+/* ===========================
+   RESET
+=========================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* ===========================
+   MAIN SCOREBOARD
+=========================== */
+
+.scoreboard {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1650px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+}
+
+/* ===========================
+   TEAM NAME BOXES
+=========================== */
+
+.team {
+    width: 120px;
+    height: 74px;
+    background: #0f9645;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    z-index: 5;
+}
+
+.team-left {
+    border-right: 5px solid #00c7ff;
+}
+
+.team-right {
+    border-left: 5px solid #00c7ff;
+}
+
+/* ===========================
+   PLAYER PANEL
+=========================== */
+
+.player-panel {
+    width: 420px;
+    height: 78px;
+
+    background:
+        linear-gradient(180deg,
+            #d80000 0%,
+            #b10000 45%,
+            #8a0000 100%);
+
+    border-radius: 0 0 35px 35px;
+
+    border: 1px solid rgba(255, 255, 255, .25);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .3),
+        0 0 20px rgba(0, 0, 0, .5);
+
+    position: relative;
+}
+
+/* live triangle */
+
+.striker-indicator {
+    position: absolute;
+    left: 18px;
+    top: 10px;
+    width: 0;
+    height: 0;
+
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 14px solid #20ff4f;
+
+    filter: drop-shadow(0 0 4px #20ff4f);
+}
+
+/* player rows */
+
+.player-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    padding: 8px 20px;
+}
+
+.player-name {
+    font-size: 17px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.player-score {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.balls {
+    font-size: 14px;
+    opacity: .9;
+}
+
+/* ===========================
+   CENTER AREA
+=========================== */
+
+.center-section {
+    flex: 1;
+    height: 74px;
+
+    background:
+        repeating-linear-gradient(45deg,
+            rgba(255, 255, 255, .08) 0,
+            rgba(255, 255, 255, .08) 3px,
+            transparent 3px,
+            transparent 20px),
+        #0a8d2e;
+
+    position: relative;
+
+    border-left: 2px solid rgba(255, 255, 255, .15);
+    border-right: 2px solid rgba(255, 255, 255, .15);
+}
+
+/* ===========================
+   SCORE CAPSULE
+=========================== */
+
+.score-capsule {
+    position: absolute;
+    left: 50%;
+    top: -16px;
+
+    transform: translateX(-50%);
+
+    min-width: 250px;
+    height: 56px;
+
+    background:
+        linear-gradient(180deg,
+            #ff6400,
+            #cf2900);
+
+    border-radius: 30px;
+
+    border: 2px solid #f3c400;
+
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+
+    font-weight: 800;
+
+    box-shadow:
+        0 0 20px rgba(0, 200, 255, .35),
+        0 4px 10px rgba(0, 0, 0, .5);
+}
+
+.score-team {
+    font-size: 18px;
+}
+
+.score-main {
+    font-size: 26px;
+}
+
+.score-overs {
+    font-size: 18px;
+}
+
+/* ===========================
+   PROJECTED SCORE
+=========================== */
+
+.projected-score {
+    position: absolute;
+    bottom: 6px;
+    width: 100%;
+    text-align: center;
+
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+
+    text-shadow: 0 0 5px rgba(0, 0, 0, .7);
+}
+
+/* ===========================
+   BOWLER PANEL
+=========================== */
+
+.bowler-panel {
+    width: 400px;
+    height: 78px;
+
+    background:
+        linear-gradient(180deg,
+            #d70000,
+            #900000);
+
+    border-radius: 0 0 35px 35px;
+
+    border: 1px solid rgba(255, 255, 255, .25);
+
+    position: relative;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .3),
+        0 0 15px rgba(0, 0, 0, .5);
+}
+
+.bowler-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 8px 18px;
+
+    color: white;
+}
+
+.bowler-name {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.bowler-figures {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* ===========================
+   LAST BALLS
+=========================== */
+
+.last-balls {
+    display: flex;
+    gap: 8px;
+    padding-left: 20px;
+}
+
+.ball {
+    width: 38px;
+    height: 28px;
+
+    border: 2px solid rgba(255, 255, 255, .8);
+
+    border-radius: 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-weight: 700;
+}
+
+/* wicket */
+
+.ball.wicket {
+    background: #ff0000;
+}
+
+/* four */
+
+.ball.four {
+    background: #003cff;
+}
+
+/* six */
+
+.ball.six {
+    background: #00aa22;
+}
+
+
+/* ===========================
+   ANIMATIONS
+=========================== */
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px rgba(0, 255, 255, .2);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(0, 255, 255, .6);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(0, 255, 255, .2);
+    }
+}
+
+.score-capsule {
+    animation: glow 2s infinite;
+}

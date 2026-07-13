@@ -10,7 +10,7 @@ import { generateMatchKey } from "../utils/matchKey";
 import { matchesApi, tournamentsApi } from "../api";
 
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
-const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
+const isMongoDB = (id) => true;
 
 const getAbsoluteUrl = (url) => {
   if (!url) return '';
@@ -45,6 +45,7 @@ const AdminPanel = () => {
     ticker: "WELCOME TO THE KS LIVE BROADCAST",
     showVersus: false,
     showSummary: false,
+    showToss: false,
     themeID: "IPL_GOLD",
     eventTrigger: null,
     eventTime: null,
@@ -95,6 +96,18 @@ const AdminPanel = () => {
   const isFromFirebase = useRef(false);
   const prevMatchRef = useRef(null);
 
+  // ── OBS Overlay Refresh state ──────────────────────────────────
+  const [refreshStatus, setRefreshStatus] = useState('idle'); // 'idle' | 'success' | 'failed'
+  const [lastRefreshTime, setLastRefreshTime] = useState(null);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
+  const autoRefreshIntervalRef = useRef(null);
+
+  // ── Logo Upload state (isolated — never touches match events) ───
+  const [logoUploadStatus, setLogoUploadStatus] = useState({ A: 'idle', B: 'idle' }); // 'idle'|'uploading'|'success'|'error'
+  const [logoUploadError, setLogoUploadError] = useState({ A: null, B: null });
+  const fileInputA = useRef(null);
+  const fileInputB = useRef(null);
+
   // ── Multi-match: derive DB paths from URL matchId or stored match key ──
   const matchDbId = urlMatchId || match?.matchKey;
   const dbPath = matchDbId ? `matches/${matchDbId}/live_match` : 'live_match';
@@ -105,6 +118,10 @@ const AdminPanel = () => {
 
   // ── Local Match Info State ──────────────────────────────────────
   const [tourneyData, setTourneyData] = useState({ name: "", venue: "", date: "", sponsor: "" });
+
+  const [showWicketPanel, setShowWicketPanel] = useState(false);
+  const [wicketDismissal, setWicketDismissal] = useState('Bowled');
+  const [wicketFielder, setWicketFielder] = useState('');
 
   // ── Broadcast Ticker State (separate from match) ──────────────────────
   const [tickerMsg, setTickerMsg] = useState("");
@@ -210,7 +227,8 @@ const AdminPanel = () => {
               leagueLogo: res.match.overlaySettings?.leagueLogo || '',
               showVersus: res.match.overlaySettings?.showVersus || false,
               showSummary: res.match.overlaySettings?.showSummary || false,
-              showMatchSituation: res.match.overlaySettings?.showMatchSituation || false
+              showMatchSituation: res.match.overlaySettings?.showMatchSituation || false,
+              showToss: res.match.overlaySettings?.showToss || false,
             };
             setMatch(flattenedMatch);
             if (res.ticker) {
@@ -228,8 +246,40 @@ const AdminPanel = () => {
           query: { matchId: matchDbId },
           transports: ['websocket', 'polling'],
         });
-        socket.on('connection:ack', ({ snapshot }) => { if (snapshot) setMatch(prev => ({ ...prev, ...snapshot })); });
-        socket.on('score:update', (data) => { if (data) setMatch(prev => ({ ...prev, ...data })); });
+        socket.on('connection:ack', ({ snapshot }) => { 
+          if (snapshot) {
+            setMatch(prev => {
+              const updated = { ...prev, ...snapshot };
+              if (snapshot.overlaySettings) {
+                updated.themeID = snapshot.overlaySettings.themeID || prev.themeID || 'IPL_GOLD';
+                updated.battingLogo = snapshot.overlaySettings.battingLogo || prev.battingLogo || '';
+                updated.leagueLogo = snapshot.overlaySettings.leagueLogo || prev.leagueLogo || '';
+                updated.showVersus = snapshot.overlaySettings.showVersus ?? prev.showVersus ?? false;
+                updated.showSummary = snapshot.overlaySettings.showSummary ?? prev.showSummary ?? false;
+                updated.showMatchSituation = snapshot.overlaySettings.showMatchSituation ?? prev.showMatchSituation ?? false;
+                updated.showToss = snapshot.overlaySettings.showToss ?? prev.showToss ?? false;
+              }
+              return updated;
+            });
+          }
+        });
+        socket.on('score:update', (data) => { 
+          if (data) {
+            setMatch(prev => {
+              const updated = { ...prev, ...data };
+              if (data.overlaySettings) {
+                updated.themeID = data.overlaySettings.themeID || prev.themeID || 'IPL_GOLD';
+                updated.battingLogo = data.overlaySettings.battingLogo || prev.battingLogo || '';
+                updated.leagueLogo = data.overlaySettings.leagueLogo || prev.leagueLogo || '';
+                updated.showVersus = data.overlaySettings.showVersus ?? prev.showVersus ?? false;
+                updated.showSummary = data.overlaySettings.showSummary ?? prev.showSummary ?? false;
+                updated.showMatchSituation = data.overlaySettings.showMatchSituation ?? prev.showMatchSituation ?? false;
+                updated.showToss = data.overlaySettings.showToss ?? prev.showToss ?? false;
+              }
+              return updated;
+            });
+          }
+        });
         socket.on('score:correction', (data) => { if (data) setMatch(prev => ({ ...prev, ...data })); });
         socket.on('players:update', (data) => { if (data) setMatch(prev => ({ ...prev, ...data })); });
         socket.on('ticker:update', (data) => {
@@ -333,59 +383,130 @@ const AdminPanel = () => {
     prevMatchRef.current = match;
   }, [match, matchDbId, dbPath]);
 
-  const handleLogoUpload = async (e, team) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (isMongoDB(matchDbId)) {
-      try {
-        const formData = new FormData();
-        formData.append('logo', file);
-        const side = team === 'A' ? 'batting' : 'bowling';
-        formData.append('side', side);
-        const res = await matchesApi.uploadLogo(matchDbId, formData);
-        if (res.success && res.logoUrl) {
-          const fullUrl = getAbsoluteUrl(res.logoUrl);
-          setMatch(prev => ({
-            ...prev,
-            [team === 'A' ? 'battingLogo' : 'leagueLogo']: fullUrl,
-            overlaySettings: {
-              ...prev.overlaySettings,
-              [team === 'A' ? 'battingLogo' : 'leagueLogo']: fullUrl
-            }
-          }));
-        }
-      } catch (err) {
-        console.error('Failed to upload logo:', err);
-        alert('Failed to upload logo');
-      }
-    } else {
+  // ── Image compressor for Firebase storage (RTDB has field size limits) ──
+  // Resizes to max 300×300px and outputs as PNG (preserves transparency).
+  // Falls back to JPEG at 0.85 quality if PNG is still too large.
+  const compressImageForOverlay = (file) =>
+    new Promise((resolve, reject) => {
+      const MAX_DIM = 300;
+      const MAX_BYTES = 180000; // ~180 KB base64 safe for Firebase RTDB
       const reader = new FileReader();
+      reader.onerror = reject;
       reader.onloadend = () => {
-        setMatch(prev => ({
-          ...prev,
-          [team === 'A' ? 'battingLogo' : 'leagueLogo']: reader.result
-        }));
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          let { width: w, height: h } = img;
+          if (w > MAX_DIM || h > MAX_DIM) {
+            const ratio = Math.min(MAX_DIM / w, MAX_DIM / h);
+            w = Math.round(w * ratio);
+            h = Math.round(h * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          let dataUrl = canvas.toDataURL('image/png');
+          if (dataUrl.length > MAX_BYTES) {
+            // PNG too large — fall back to JPEG (loses transparency)
+            dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          }
+          resolve(dataUrl);
+        };
+        img.src = reader.result;
       };
       reader.readAsDataURL(file);
+    });
+
+  const handleLogoUpload = async (e, team) => {
+    const file = e.target.files[0];
+    // Reset input so the same file can be re-selected after a failed upload
+    if (e.target) e.target.value = '';
+    if (!file) return;
+
+    const logoField = team === 'A' ? 'battingLogo' : 'leagueLogo';
+    const uploadTs = Date.now();
+
+    // ── Validation (file type + size) ──────────────────────────────
+    const ACCEPTED = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+    if (!ACCEPTED.includes(file.type)) {
+      setLogoUploadError(prev => ({ ...prev, [team]: 'Unsupported format. Use PNG, JPG, WEBP, or SVG.' }));
+      setLogoUploadStatus(prev => ({ ...prev, [team]: 'error' }));
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setLogoUploadError(prev => ({ ...prev, [team]: 'File too large. Max 3 MB.' }));
+      setLogoUploadStatus(prev => ({ ...prev, [team]: 'error' }));
+      return;
+    }
+
+    setLogoUploadStatus(prev => ({ ...prev, [team]: 'uploading' }));
+    setLogoUploadError(prev => ({ ...prev, [team]: null }));
+
+    try {
+      // ── MongoDB: upload via REST, get back a hosted URL ──
+      const formData = new FormData();
+      formData.append('logo', file);
+      formData.append('side', team === 'A' ? 'batting' : 'bowling');
+      const res = await matchesApi.uploadLogo(matchDbId, formData);
+      if (!res.success || !res.logoUrl) throw new Error(res.error || 'Upload failed');
+      const fullUrl = res.logoUrl.startsWith('http') ? res.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${res.logoUrl.startsWith('/') ? '' : '/'}${res.logoUrl}`;
+
+      // Update local React state properly formatted
+      setMatch(prev => {
+        const updated = { ...prev, [logoField]: fullUrl, logoUpdatedAt: uploadTs };
+        if (res.match && res.match.overlaySettings) {
+            updated.themeID = res.match.overlaySettings.themeID || prev.themeID || 'IPL_GOLD';
+            updated.showVersus = res.match.overlaySettings.showVersus ?? prev.showVersus ?? false;
+            updated.showSummary = res.match.overlaySettings.showSummary ?? prev.showSummary ?? false;
+            updated.showMatchSituation = res.match.overlaySettings.showMatchSituation ?? prev.showMatchSituation ?? false;
+        }
+        return updated;
+      });
+
+      setLogoUploadStatus(prev => ({ ...prev, [team]: 'success' }));
+      setTimeout(() => setLogoUploadStatus(prev => ({ ...prev, [team]: 'idle' })), 3000);
+    } catch (err) {
+      console.error('[AdminPanel] Logo upload failed:', err);
+      setLogoUploadError(prev => ({
+        ...prev,
+        [team]: err.message || 'Upload failed. Please try again.',
+      }));
+      setLogoUploadStatus(prev => ({ ...prev, [team]: 'error' }));
     }
   };
 
+
+
+
   useEffect(() => {
     const handleKeyPress = (e) => {
+      if (e.key === 'Enter' && showWicketPanel) {
+        e.preventDefault();
+        handleWicket(wicketDismissal, wicketFielder);
+        return;
+      }
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
       const key = e.key.toLowerCase();
       if (['0', '1', '2', '3'].includes(key)) addRun(parseInt(key));
       if (key === '4') addBoundary(4);
       if (key === '6') addBoundary(6);
-      if (key === 'w') handleWicket();
+      if (key === 'w') {
+        if (showWicketPanel) {
+          handleWicket(wicketDismissal, wicketFielder);
+        } else {
+          setShowWicketPanel(true);
+        }
+      }
       if (key === 's') swapStrike();
       if (key === 'u') handleUndo();
       if (key === 'm') toggleSummary();
     };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [match, history]);
+  }, [match, history, showWicketPanel, wicketDismissal, wicketFielder]);
 
   const totalMatchBalls = (match.maxOvers || 5) * (match.ballsPerOver || 6);
   // Bug fix: use legalBallCount (legal deliveries only) for accurate remaining balls
@@ -422,6 +543,57 @@ const AdminPanel = () => {
   const handleRegenerateMatchKey = () => {
     setMatch((prev) => ({ ...prev, matchKey: generateMatchKey() }));
   };
+
+  // ── OBS Overlay Refresh ────────────────────────────────────────
+  // refreshType: 'main' | 'ballByBall'
+  const handleRefreshOverlay = async (refreshType = 'main') => {
+    const ts = Date.now();
+    const refreshPath = matchDbId
+      ? `matches/${matchDbId}/overlayControl/refresh`
+      : 'overlayControl/refresh';
+
+    try {
+      // For MongoDB matches, emit via Socket.IO so the overlay gets it instantly
+      import('socket.io-client').then(({ io }) => {
+        const sock = io(`${API_URL}/admin`, {
+          query: { matchId: matchDbId },
+          transports: ['websocket', 'polling'],
+        });
+        sock.emit('overlay:refresh', { matchId: matchDbId, type: refreshType, ts });
+        setTimeout(() => sock.disconnect(), 3000);
+      }).catch(() => {});
+
+      setRefreshStatus('success');
+      setLastRefreshTime(new Date());
+    } catch (err) {
+      console.error('[AdminPanel] Overlay refresh failed:', err);
+      setRefreshStatus('failed');
+      setLastRefreshTime(new Date());
+    }
+
+    // Reset status badge after 4 seconds
+    setTimeout(() => setRefreshStatus('idle'), 4000);
+  };
+
+  // ── Auto-refresh effect ────────────────────────────────────────
+  useEffect(() => {
+    if (autoRefreshEnabled) {
+      autoRefreshIntervalRef.current = setInterval(() => {
+        handleRefreshOverlay('main');
+      }, 30000);
+    } else {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+        autoRefreshIntervalRef.current = null;
+      }
+    }
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefreshEnabled]);
 
   const swapStrike = () => {
     setMatch(prev => ({
@@ -540,17 +712,18 @@ const AdminPanel = () => {
     }));
   };
 
-  const handleWicket = () => {
+  const handleWicket = (dismissalType = 'Bowled', fielderName = '') => {
     if (match.overLocked) return;
     setHistory([...history, match]);
     const outKey = match.player1.onStrike ? "player1" : "player2";
     const outPlayer = match[outKey];
     const { recentBalls, overRuns } = updateOverHistory("W", match, 0);
-    const fow = { name: outPlayer.name, runs: outPlayer.runs, balls: outPlayer.balls, bowler: match.bowler.name, fowScore: match.score, fowWicket: match.wickets + 1 };
+    const fow = { name: outPlayer.name, runs: outPlayer.runs, balls: outPlayer.balls, bowler: match.bowler.name, fowScore: match.score, fowWicket: match.wickets + 1, dismissalType, fielderName };
     setMatch(prev => ({
       ...prev, wickets: prev.wickets + 1, totalBalls: prev.totalBalls + 1, recentBalls, overRuns,
       fallOfWickets: [...prev.fallOfWickets, fow], ...createMatchEvent("WICKET"),
       lastWicketName: outPlayer.name, lastWicketRuns: outPlayer.runs, lastWicketBalls: outPlayer.balls,
+      lastWicketDismissal: dismissalType, lastWicketFielder: fielderName,
       [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, onStrike: true },
       legalBallCount: (prev.legalBallCount || 0) + 1
     }));
@@ -733,6 +906,74 @@ const legalBallCount = match.legalBallCount || 0;
               </div>
             </div>
 
+            {/* ── OBS OVERLAY REFRESH ──────────────────────────── */}
+            <div className="rounded border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 text-left shadow-sm">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="text-base">🔄</span>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-800">OBS Overlay Refresh</h3>
+                {refreshStatus === 'success' && (
+                  <span className="ml-auto text-[9px] font-black text-emerald-600 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full animate-pulse">✅ Success</span>
+                )}
+                {refreshStatus === 'failed' && (
+                  <span className="ml-auto text-[9px] font-black text-red-600 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full">❌ Failed</span>
+                )}
+              </div>
+
+              {/* Two refresh buttons */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <button
+                  type="button"
+                  id="refresh-main-overlay-btn"
+                  onClick={() => handleRefreshOverlay('main')}
+                  className="flex flex-col items-center justify-center gap-0.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded py-2 px-1 text-[9px] font-black uppercase tracking-wider shadow-md border-b-2 border-emerald-800 transition-all"
+                >
+                  <span className="text-base leading-none">📺</span>
+                  <span>Refresh Main</span>
+                  <span className="text-emerald-200 font-medium">Overlay</span>
+                </button>
+                <button
+                  type="button"
+                  id="refresh-ballbyball-overlay-btn"
+                  onClick={() => handleRefreshOverlay('ballByBall')}
+                  className="flex flex-col items-center justify-center gap-0.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white rounded py-2 px-1 text-[9px] font-black uppercase tracking-wider shadow-md border-b-2 border-teal-800 transition-all"
+                >
+                  <span className="text-base leading-none">🏏</span>
+                  <span>Refresh Ball</span>
+                  <span className="text-teal-200 font-medium">by Ball</span>
+                </button>
+              </div>
+
+              {/* Auto-refresh toggle */}
+              <div className="flex items-center justify-between bg-white/70 border border-emerald-200 rounded px-2 py-1.5 mb-2">
+                <div>
+                  <p className="text-[9px] font-black text-emerald-800 uppercase tracking-wider">Auto-Refresh</p>
+                  <p className="text-[8px] font-medium text-slate-500">Every 30 seconds</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="auto-refresh-toggle"
+                    checked={autoRefreshEnabled}
+                    onChange={(e) => setAutoRefreshEnabled(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              {/* Last refresh time */}
+              <div className="flex items-center justify-between text-[9px] font-bold text-slate-500">
+                <span>Last Refresh:</span>
+                <span className={`font-black ${
+                  lastRefreshTime ? 'text-emerald-700' : 'text-slate-400'
+                }`}>
+                  {lastRefreshTime
+                    ? lastRefreshTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                    : '—'}
+                </span>
+              </div>
+            </div>
+
             {/* Cricbuzz style Public Live Score Preview Settings */}
             {isMongoDB(matchDbId) && (
               <div className="rounded border border-indigo-200 bg-indigo-50/50 p-3 text-left space-y-3">
@@ -849,7 +1090,8 @@ const legalBallCount = match.legalBallCount || 0;
               <option value="DC_BLUE">🟦 DC Blue Bar</option>
               <option value="IPL_2026">🏏 IPL 2026</option>
               <option value="NEW_IPL">🆕 NEW IPL</option>
-              <option value="KS_PREMIUM">💎 KS Premium (Broadcast)</option>
+              <option value="KS_PREMIUM">⭐ KS Premium (Broadcast)</option>
+              <option value="NEW_KS_COLOR">💎 Emerald Pro (New KS)</option>
             </select>
 
             <div className={`p-3 rounded border transition ${match.isSecondInnings ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -876,6 +1118,14 @@ const legalBallCount = match.legalBallCount || 0;
               <button onClick={() => setMatch({ ...match, showVersus: !match.showVersus })} className={`py-2 rounded font-bold text-[10px] ${match.showVersus ? 'bg-blue-600 text-white' : 'bg-slate-200'}`}>Versus Tab</button>
               <button onClick={toggleSummary} className={`py-2 rounded font-bold text-[10px] ${match.showSummary ? 'bg-green-600 text-white' : 'bg-slate-200'}`}>Summary (M)</button>
             </div>
+            <button
+              onClick={() => setMatch({ ...match, showToss: !match.showToss })}
+              className={`w-full py-2 rounded font-bold text-[10px] transition ${
+                match.showToss ? 'bg-amber-500 text-white shadow-lg' : 'bg-slate-200'
+              }`}
+            >
+              {match.showToss ? '🪙 HIDE TOSS RESULT' : '🪙 SHOW TOSS RESULT'}
+            </button>
             <button onClick={() => setMatch({ ...match, showMatchSituation: !match.showMatchSituation })} className={`w-full py-2 rounded font-bold text-[10px] transition ${match.showMatchSituation ? 'bg-purple-600 text-white shadow-lg' : 'bg-slate-200'}`}>Show Match Situation</button>
             <button onClick={() => setMatch({ ...match, overlayMode: match.overlayMode === 'full' ? 'simple' : 'full' })} className={`w-full py-2 rounded font-bold text-[10px] transition ${match.overlayMode === 'simple' ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-200'}`}>Switch Overlay: {match.overlayMode === 'full' ? 'FULL' : 'SIMPLE'}</button>
 
@@ -956,19 +1206,117 @@ const legalBallCount = match.legalBallCount || 0;
               </div>
             </div>
 
-            {/* TEAM LOGO ATTACHMENTS */}
-            <div className="space-y-2 pt-2 border-t">
-              <div className="flex items-center gap-2">
-                <img src={getAbsoluteUrl(match.battingLogo)} className="w-10 h-10 rounded border bg-white object-contain" alt="A" />
-                <input type="file" className="text-[8px] w-full" onChange={(e) => handleLogoUpload(e, 'A')} />
-              </div>
-              <input className="w-full border p-2 rounded font-bold bg-blue-50 text-sm" value={match.battingTeam} onChange={(e) => setMatch({ ...match, battingTeam: e.target.value.toUpperCase() })} />
+            {/* ── TEAM LOGO UPLOAD ─────────────────────────────────────── */}
+            <div className="space-y-3 pt-2 border-t">
+              <h3 className="text-[9px] font-black text-slate-400 tracking-widest uppercase">🖼️ Team Logos</h3>
 
-              <div className="flex items-center gap-2 pt-2">
-                <img src={getAbsoluteUrl(match.leagueLogo)} className="w-10 h-10 rounded border bg-white object-contain" alt="B" />
-                <input type="file" className="text-[8px] w-full" onChange={(e) => handleLogoUpload(e, 'B')} />
+              {/* Hidden file inputs */}
+              <input ref={fileInputA} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onChange={(e) => handleLogoUpload(e, 'A')} />
+              <input ref={fileInputB} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onChange={(e) => handleLogoUpload(e, 'B')} />
+
+              {/* Team A Logo */}
+              <div className="bg-blue-50 rounded border border-blue-100 p-2 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  {/* Preview */}
+                  <div className="w-12 h-12 rounded-full border-2 border-blue-200 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                    {match.battingLogo
+                      ? <img src={getAbsoluteUrl(match.battingLogo)} className="w-full h-full object-contain" alt="A" onError={(e) => { e.target.style.display='none'; }} />
+                      : <span className="text-blue-300 text-[9px] font-black">LOGO A</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <input
+                      className="w-full border p-1.5 rounded font-bold bg-white text-sm border-blue-200 mb-1"
+                      value={match.battingTeam}
+                      onChange={(e) => setMatch({ ...match, battingTeam: e.target.value.toUpperCase() })}
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        id="upload-logo-a-btn"
+                        onClick={() => fileInputA.current?.click()}
+                        disabled={logoUploadStatus.A === 'uploading'}
+                        className={`flex-1 py-1 rounded text-[9px] font-black uppercase transition border ${
+                          logoUploadStatus.A === 'uploading' ? 'bg-blue-200 text-blue-400 border-blue-200 cursor-wait' :
+                          logoUploadStatus.A === 'success'   ? 'bg-green-500 text-white border-green-600' :
+                          logoUploadStatus.A === 'error'     ? 'bg-red-100 text-red-600 border-red-300' :
+                          'bg-blue-600 text-white border-blue-700 hover:bg-blue-700'
+                        }`}
+                      >
+                        {logoUploadStatus.A === 'uploading' ? '⏳ Uploading…' :
+                         logoUploadStatus.A === 'success'   ? '✅ Uploaded!' :
+                         logoUploadStatus.A === 'error'     ? '❌ Retry' :
+                         '📁 Upload Team A Logo'}
+                      </button>
+                      {match.battingLogo && (
+                        <button
+                          type="button"
+                          onClick={() => setMatch(prev => ({ ...prev, battingLogo: '' }))}
+                          className="px-2 py-1 rounded text-[9px] font-black bg-white border border-blue-200 text-blue-400 hover:text-red-500 hover:border-red-300 transition"
+                          title="Remove logo"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    {logoUploadStatus.A === 'error' && logoUploadError.A && (
+                      <p className="text-[8px] text-red-500 font-bold mt-0.5 leading-tight">{logoUploadError.A}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-              <input className="w-full border p-2 rounded font-bold bg-red-50 text-sm" value={match.bowlingTeam} onChange={(e) => setMatch({ ...match, bowlingTeam: e.target.value.toUpperCase() })} />
+
+              {/* Team B Logo */}
+              <div className="bg-red-50 rounded border border-red-100 p-2 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  {/* Preview */}
+                  <div className="w-12 h-12 rounded-full border-2 border-red-200 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                    {match.leagueLogo
+                      ? <img src={getAbsoluteUrl(match.leagueLogo)} className="w-full h-full object-contain" alt="B" onError={(e) => { e.target.style.display='none'; }} />
+                      : <span className="text-red-300 text-[9px] font-black">LOGO B</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <input
+                      className="w-full border p-1.5 rounded font-bold bg-white text-sm border-red-200 mb-1"
+                      value={match.bowlingTeam}
+                      onChange={(e) => setMatch({ ...match, bowlingTeam: e.target.value.toUpperCase() })}
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        id="upload-logo-b-btn"
+                        onClick={() => fileInputB.current?.click()}
+                        disabled={logoUploadStatus.B === 'uploading'}
+                        className={`flex-1 py-1 rounded text-[9px] font-black uppercase transition border ${
+                          logoUploadStatus.B === 'uploading' ? 'bg-red-200 text-red-400 border-red-200 cursor-wait' :
+                          logoUploadStatus.B === 'success'   ? 'bg-green-500 text-white border-green-600' :
+                          logoUploadStatus.B === 'error'     ? 'bg-red-100 text-red-600 border-red-300' :
+                          'bg-red-600 text-white border-red-700 hover:bg-red-700'
+                        }`}
+                      >
+                        {logoUploadStatus.B === 'uploading' ? '⏳ Uploading…' :
+                         logoUploadStatus.B === 'success'   ? '✅ Uploaded!' :
+                         logoUploadStatus.B === 'error'     ? '❌ Retry' :
+                         '📁 Upload Team B Logo'}
+                      </button>
+                      {match.leagueLogo && (
+                        <button
+                          type="button"
+                          onClick={() => setMatch(prev => ({ ...prev, leagueLogo: '', eventTrigger: prev.eventTrigger, eventTime: prev.eventTime }))}
+                          className="px-2 py-1 rounded text-[9px] font-black bg-white border border-red-200 text-red-400 hover:text-red-600 hover:border-red-400 transition"
+                          title="Remove logo"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    {logoUploadStatus.B === 'error' && logoUploadError.B && (
+                      <p className="text-[8px] text-red-500 font-bold mt-0.5 leading-tight">{logoUploadError.B}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[8px] text-slate-400 font-medium leading-tight">PNG / JPG / WEBP · Max 5 MB · Auto-compressed for OBS</p>
             </div>
           </div>
 
@@ -1063,9 +1411,49 @@ const legalBallCount = match.legalBallCount || 0;
                   <button onClick={handleRunOut} className="flex-1 bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-2 border-red-800 active:translate-y-px">Confirm Run Out</button>
                 </div>
               </div>
+            ) : showWicketPanel ? (
+              <div className="p-3 bg-red-50 border border-red-200 rounded text-center">
+                <p className="text-[9px] font-bold text-red-700 uppercase mb-2 tracking-widest">Wicket Details</p>
+                <div className="flex flex-col gap-2 mb-3">
+                  <div className="flex flex-col text-left">
+                    <label className="text-[10px] font-bold text-red-600">How Out?</label>
+                    <select className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" value={wicketDismissal} onChange={(e) => setWicketDismissal(e.target.value)}>
+                      <option value="Bowled">Bowled</option>
+                      <option value="Caught">Caught</option>
+                      <option value="Stumped">Stumped</option>
+                      <option value="LBW">LBW</option>
+                      <option value="Hit Wicket">Hit Wicket</option>
+                      <option value="Retired Hurt">Retired Hurt</option>
+                      <option value="Run Out">Run Out (use Run Out panel for run tracking)</option>
+                    </select>
+                  </div>
+                  {(wicketDismissal === 'Caught' || wicketDismissal === 'Stumped') && (
+                    <div className="flex flex-col text-left">
+                      <label className="text-[10px] font-bold text-red-600">Fielder Name</label>
+                      <input 
+                        list="bowling-squad-list"
+                        type="text" 
+                        placeholder="Type or select fielder..." 
+                        className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" 
+                        value={wicketFielder} 
+                        onChange={(e) => setWicketFielder(e.target.value)} 
+                      />
+                      <datalist id="bowling-squad-list">
+                        {(match.bowlingSquad || []).map((player, idx) => (
+                          <option key={idx} value={player.name} />
+                        ))}
+                      </datalist>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowWicketPanel(false)} className="flex-1 bg-white text-red-600 border border-red-200 py-2 rounded font-black text-[10px] uppercase shadow-sm">Cancel</button>
+                  <button onClick={() => handleWicket(wicketDismissal, wicketFielder)} className="flex-1 bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-2 border-red-800 active:translate-y-px">Confirm Wicket</button>
+                </div>
+              </div>
             ) : (
               <div className="flex gap-2">
-                <button onClick={handleWicket} className="flex-2 bg-red-600 text-white py-3 rounded font-black shadow-md border-b-4 border-red-800 active:translate-y-1 text-lg uppercase w-full">WKT (W)</button>
+                <button onClick={() => setShowWicketPanel(true)} className="flex-2 bg-red-600 text-white py-3 rounded font-black shadow-md border-b-4 border-red-800 active:translate-y-1 text-lg uppercase w-full">WKT (W)</button>
                 <button onClick={() => setShowRunOutPanel(true)} className="flex-1 bg-red-800 text-white py-3 rounded font-black shadow-md border-b-4 border-red-950 active:translate-y-1 text-sm uppercase whitespace-nowrap px-2 flex flex-col justify-center items-center leading-none">
                   <span>RUN</span><span>OUT</span>
                 </button>

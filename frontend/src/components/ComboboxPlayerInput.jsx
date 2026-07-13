@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ref, onValue, set } from 'firebase/database';
-import { db } from '../firebase';
 import { useLanguage } from '../i18n/LanguageContext';
 
 const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, className = "" }) => {
@@ -40,12 +38,18 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onValue(ref(db, "player_database"), (snapshot) => {
-      const data = snapshot.val();
-      const next = data ? Object.values(data).map((player) => player.name).filter(Boolean) : [];
-      setDbPlayers(next);
-    });
-    return () => unsubscribe();
+    const loadDbPlayers = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("player_database") || "[]");
+        const next = Array.isArray(stored) ? stored.map((player) => player.name).filter(Boolean) : [];
+        setDbPlayers(next);
+      } catch {
+        setDbPlayers([]);
+      }
+    };
+    loadDbPlayers();
+    window.addEventListener('ks_players_updated', loadDbPlayers);
+    return () => window.removeEventListener('ks_players_updated', loadDbPlayers);
   }, []);
 
   useEffect(() => {
@@ -116,7 +120,11 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
 
     try {
       const playerId = Date.now();
-      await set(ref(db, `player_database/${playerId}`), { id: playerId, name: normalizedInput, photo: "" });
+      const stored = JSON.parse(localStorage.getItem("player_database") || "[]");
+      const updated = [...stored, { id: playerId, name: normalizedInput, photo: "" }];
+      localStorage.setItem("player_database", JSON.stringify(updated));
+      window.dispatchEvent(new Event('ks_players_updated'));
+
       persistCustomPlayer(normalizedInput);
       setSaveStatus(t("common.playerSaved"));
       handleCommit(normalizedInput);

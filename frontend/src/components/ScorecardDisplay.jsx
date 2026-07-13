@@ -7,6 +7,7 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 import BroadcastTicker from "./BroadcastTicker";
 import "./BroadcastScreens.css";
 import "./ks-premium.css";
+import "./ThemeNewKSColor.css";
 import "./newipl.css";
 import "./IPL2026Theme.css";
 import "./neon-vavuniya.css";
@@ -15,13 +16,87 @@ import "./sl-broadcast.css";
 import "./gold-championship.css";
 
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
-const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
+const isMongoDB = (id) => true;
 
-const getAbsoluteUrl = (url) => {
+const getAbsoluteUrl = (url, cacheBuster) => {
   if (!url) return '';
-  if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
-  return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  let finalUrl = url;
+  if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('data:')) {
+    const baseUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+    finalUrl = `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+  return cacheBuster && !url.startsWith('data:') && !url.startsWith('blob:') ? `${finalUrl}?cb=${cacheBuster}` : finalUrl;
 };
+
+// ── TeamLogo: Shared logo component with fallback placeholder ─────────────
+// Shows team initials on a translucent circle when the logo src is missing
+// or fails to load. Resets automatically when src changes (live logo swap).
+const TeamLogo = React.memo(function TeamLogo({ src, teamName, className, size = 64, style }) {
+  const [failed, setFailed] = React.useState(false);
+  React.useEffect(() => { setFailed(false); }, [src]);
+
+  const initials = React.useMemo(() => {
+    if (!teamName) return '?';
+    const words = teamName.trim().split(/\s+/);
+    if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
+    return words.map(w => w[0]).join('').slice(0, 3).toUpperCase();
+  }, [teamName]);
+
+  if (!src || failed) {
+    return (
+      <div
+        className={className}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(255,255,255,0.15)',
+          borderRadius: '50%',
+          width: size,
+          height: size,
+          minWidth: size,
+          fontSize: Math.round(size * 0.28),
+          fontWeight: 900,
+          color: '#fff',
+          flexShrink: 0,
+          letterSpacing: '0.5px',
+          fontStyle: 'normal',
+          textShadow: 'none',
+          border: '2px solid rgba(255,255,255,0.25)',
+          boxSizing: 'border-box',
+          ...style,
+        }}
+      >
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      className={className}
+      alt={teamName || 'Team Logo'}
+      style={style}
+      onError={() => setFailed(true)}
+    />
+  );
+});
+
+
+function useDelayUnmount(isMounted, delayTime) {
+  const [shouldRender, setShouldRender] = React.useState(false);
+  React.useEffect(() => {
+    let timeoutId;
+    if (isMounted && !shouldRender) {
+      setShouldRender(true);
+    } else if (!isMounted && shouldRender) {
+      timeoutId = setTimeout(() => setShouldRender(false), delayTime);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [isMounted, delayTime, shouldRender]);
+  return shouldRender;
+}
 
 const ScorecardDisplay = () => {
   const { matchId, tournamentId } = useParams();
@@ -30,6 +105,18 @@ const ScorecardDisplay = () => {
   const [showEvent, setShowEvent] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
   const [winnerInfo, setWinnerInfo] = useState(null);
+
+  // --- Animation Hooks ---
+  const isTossMounted = !!(match?.showToss && !winnerInfo && !match?.showVersus);
+  const isScorecardMounted = !!(match && !winnerInfo && !match?.showSummary && !match?.showVersus);
+  const renderToss = useDelayUnmount(isTossMounted, 500);
+  const renderScorecard = useDelayUnmount(isScorecardMounted, 500);
+
+  // ── OBS Overlay Refresh state ──────────────────────────────────
+  // refreshKey increments each time Admin Panel fires a refresh signal.
+  // The useEffect below watches it and re-fetches the latest snapshot.
+  const [refreshKey, setRefreshKey] = useState(0);
+  const lastRefreshTs = useRef({ main: 0, ballByBall: 0 });
 
   // ── Animation state ───────────────────────────────────────────
   const [scoreAnimClass, setScoreAnimClass] = useState("");
@@ -41,6 +128,11 @@ const ScorecardDisplay = () => {
   const prevWickets = useRef(null);
   const prevEventTime = useRef(null);
   const prevBannerEventTime = useRef(null);
+  // firstLoadDoneRef: prevents stale eventTrigger in Firebase from replaying
+  // animations after a page load/OBS refresh. On the very first snapshot we
+  // seed prevBannerEventTime with whatever eventTime is already in the DB so
+  // only NEW events (changed eventTime) will trigger animations.
+  const firstLoadDoneRef = useRef(false);
   const eventQueueRef = useRef([]);
   const eventPlayingRef = useRef(false);
   const currentEventRef = useRef(null);
@@ -69,6 +161,7 @@ const ScorecardDisplay = () => {
     T20_NEON: { main: "theme-t20-blitz", accent: "theme-t20-neon-accent", text: "text-cyan-300", batsman: "theme-t20-neon-bat", bowler: "from-purple-900 to-fuchsia-950", border: "border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]", chase: "bg-fuchsia-900", animClass: "anim-t20-neon" },
     WC_BLUE_PURPLE: { main: "theme-wc-bp", accent: "theme-wc-bp-accent", text: "text-blue-300", batsman: "theme-wc-bp-bat", bowler: "from-indigo-900 to-purple-950", border: "border-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.4)]", chase: "bg-indigo-900", animClass: "anim-wc-bp" },
     GOLD_CHAMPIONSHIP: { main: "theme-gold-championship", accent: "theme-gold-champ-accent", text: "text-amber-300", batsman: "theme-gold-champ-bat", bowler: "from-amber-900 to-yellow-950", border: "border-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.3)]", chase: "bg-amber-950", animClass: "anim-gold-champ" },
+    NEW_KS_COLOR: { animClass: "anim-ksp" },
     KS_SPECIAL: { main: "theme-ks-special", accent: "theme-ks-special-accent", text: "text-teal-300", batsman: "theme-ks-special-bat", bowler: "from-gray-800 to-gray-900", border: "border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.35)]", chase: "theme-ks-special-chase", animClass: "anim-ks-special" },
     WC2026: { main: "theme-wc2026", accent: "theme-wc2026-accent", text: "theme-wc2026-score", batsman: "theme-wc2026-bat", bowler: "theme-wc2026-bowler", border: "theme-wc2026-border", chase: "theme-wc2026-chase", isWC2026: true, animClass: "anim-wc2026" },
     SL_BROADCAST: { main: "theme-sl-broadcast2", accent: "theme-sl-broadcast-accent", text: "theme-sl-broadcast-score", batsman: "theme-sl-broadcast-bat", bowler: "theme-sl-broadcast-bowler", border: "theme-sl-broadcast-border", chase: "theme-sl-broadcast-chase", animClass: "anim-sl-broadcast" },
@@ -125,8 +218,8 @@ const ScorecardDisplay = () => {
           return {
             ...incoming,
             themeID: incoming.overlaySettings.themeID || 'IPL_GOLD',
-            battingLogo: getAbsoluteUrl(incoming.overlaySettings.battingLogo || incoming.team1Logo || incoming.battingLogo || ''),
-            leagueLogo: getAbsoluteUrl(incoming.overlaySettings.leagueLogo || incoming.team2Logo || incoming.leagueLogo || ''),
+            battingLogo: getAbsoluteUrl(incoming.overlaySettings.battingLogo || incoming.team1Logo || incoming.battingLogo || '', refreshKey),
+            leagueLogo: getAbsoluteUrl(incoming.overlaySettings.leagueLogo || incoming.team2Logo || incoming.leagueLogo || '', refreshKey),
             overlayMode: incoming.overlaySettings.overlayMode || 'full',
             showVersus: !!incoming.overlaySettings.showVersus,
             showSummary: !!incoming.overlaySettings.showSummary,
@@ -142,12 +235,24 @@ const ScorecardDisplay = () => {
       // If the update includes overlaySettings, always extract theme fields
       if (incoming.overlaySettings) {
         merged.themeID = incoming.overlaySettings.themeID || prev.themeID || 'IPL_GOLD';
-        merged.battingLogo = getAbsoluteUrl(incoming.overlaySettings.battingLogo || prev.battingLogo || prev.team1Logo || '');
-        merged.leagueLogo = getAbsoluteUrl(incoming.overlaySettings.leagueLogo || prev.leagueLogo || prev.team2Logo || '');
+        merged.battingLogo = getAbsoluteUrl(incoming.overlaySettings.battingLogo || prev.battingLogo || prev.team1Logo || '', refreshKey);
+        merged.leagueLogo = getAbsoluteUrl(incoming.overlaySettings.leagueLogo || prev.leagueLogo || prev.team2Logo || '', refreshKey);
         merged.overlayMode = incoming.overlaySettings.overlayMode || prev.overlayMode || 'full';
         merged.showVersus = incoming.overlaySettings.showVersus ?? prev.showVersus ?? false;
         merged.showSummary = incoming.overlaySettings.showSummary ?? prev.showSummary ?? false;
         merged.showMatchSituation = incoming.overlaySettings.showMatchSituation ?? prev.showMatchSituation ?? false;
+        merged.showToss = incoming.overlaySettings.showToss ?? prev.showToss ?? false;
+      }
+
+      // Fallback: if flat logo fields came in (relative URL from older code paths),
+      // convert them to absolute URLs so the overlay img src works correctly.
+      if (!incoming.overlaySettings) {
+        if (incoming.battingLogo !== undefined) {
+          merged.battingLogo = getAbsoluteUrl(incoming.battingLogo || prev.battingLogo || '', refreshKey);
+        }
+        if (incoming.leagueLogo !== undefined) {
+          merged.leagueLogo = getAbsoluteUrl(incoming.leagueLogo || prev.leagueLogo || '', refreshKey);
+        }
       }
 
       // If themeID was sent directly (from updateMatch broadcasting raw updates)
@@ -169,6 +274,13 @@ const ScorecardDisplay = () => {
           setWinnerInfo(null);
         }
 
+        // On first data arrival, seed prevBannerEventTime with the existing
+        // eventTime so stale DB events don’t replay as animations.
+        if (!firstLoadDoneRef.current) {
+          firstLoadDoneRef.current = true;
+          if (merged.eventTime) prevBannerEventTime.current = merged.eventTime;
+        }
+
         if (['FOUR', 'SIX', 'WICKET'].includes(merged.eventTrigger) &&
             merged.eventTime && merged.eventTime !== prevBannerEventTime.current) {
           prevBannerEventTime.current = merged.eventTime;
@@ -179,6 +291,8 @@ const ScorecardDisplay = () => {
             lastWicketName: merged.lastWicketName,
             lastWicketRuns: merged.lastWicketRuns,
             lastWicketBalls: merged.lastWicketBalls,
+            lastWicketDismissal: merged.lastWicketDismissal,
+            lastWicketFielder: merged.lastWicketFielder,
           });
         }
 
@@ -242,6 +356,16 @@ const ScorecardDisplay = () => {
         socket.on('players:update', (data) => handleIncomingData(data));
         socket.on('ticker:update', (data) => handleIncomingData(data));
         socket.on('match:status', (data) => handleIncomingData(data));
+
+        // OBS Overlay Refresh — re-fetch snapshot without hard reload
+        socket.on('overlay:refresh', ({ type, ts } = {}) => {
+          const field = type === 'ballByBall' ? 'ballByBall' : 'main';
+          if (ts && ts <= lastRefreshTs.current[field]) return; // dedupe
+          lastRefreshTs.current[field] = ts || Date.now();
+          console.log('[ScorecardDisplay] overlay:refresh (tournament) received — re-syncing...');
+          fetchTournamentAndMatch();
+          setRefreshKey(k => k + 1);
+        });
 
         socket.on('connect_error', (err) => {
           console.warn('[ScorecardDisplay] Socket connect error:', err.message);
@@ -319,6 +443,16 @@ const ScorecardDisplay = () => {
         socket.on('ticker:update', (data) => handleIncomingData(data));
         socket.on('match:status', (data) => handleIncomingData(data));
 
+        // OBS Overlay Refresh — re-fetch snapshot without hard reload
+        socket.on('overlay:refresh', ({ type, ts } = {}) => {
+          const field = type === 'ballByBall' ? 'ballByBall' : 'main';
+          if (ts && ts <= lastRefreshTs.current[field]) return; // dedupe
+          lastRefreshTs.current[field] = ts || Date.now();
+          console.log('[ScorecardDisplay] overlay:refresh received — re-syncing...');
+          fetchMatchSnapshot();
+          setRefreshKey(k => k + 1);
+        });
+
         socket.on('connect_error', (err) => {
           console.warn('[ScorecardDisplay] Socket connect error:', err.message);
         });
@@ -350,6 +484,13 @@ const ScorecardDisplay = () => {
       const unsubscribe = onValue(ref(db, dbPath), (snapshot) => {
         const val = snapshot.val();
         if (val) {
+          // On first Firebase snapshot, seed prevBannerEventTime to suppress
+          // stale events already in the DB (e.g. after OBS refresh or logo upload).
+          if (!firstLoadDoneRef.current) {
+            firstLoadDoneRef.current = true;
+            if (val.eventTime) prevBannerEventTime.current = val.eventTime;
+          }
+
           if (['FOUR', 'SIX', 'WICKET'].includes(val.eventTrigger) &&
               val.eventTime && val.eventTime !== prevBannerEventTime.current) {
             prevBannerEventTime.current = val.eventTime;
@@ -360,17 +501,43 @@ const ScorecardDisplay = () => {
               lastWicketName: val.lastWicketName,
               lastWicketRuns: val.lastWicketRuns,
               lastWicketBalls: val.lastWicketBalls,
+              lastWicketDismissal: val.lastWicketDismissal,
+              lastWicketFielder: val.lastWicketFielder,
             });
           }
           setMatch(val);
         }
       });
+
+      // OBS Overlay Refresh listener for Firebase (legacy) mode
+      const refreshControlPath = matchId
+        ? `matches/${matchId}/overlayControl/refresh`
+        : 'overlayControl/refresh';
+      const unsubRefresh = onValue(ref(db, refreshControlPath), (snap) => {
+        const data = snap.val();
+        if (!data) return;
+        const mainTs = data.main || 0;
+        const bbTs = data.ballByBall || 0;
+        const latest = Math.max(mainTs, bbTs);
+        const prevLatest = Math.max(lastRefreshTs.current.main, lastRefreshTs.current.ballByBall);
+        if (latest > prevLatest) {
+          lastRefreshTs.current.main = mainTs;
+          lastRefreshTs.current.ballByBall = bbTs;
+          console.log('[ScorecardDisplay] Firebase overlayControl/refresh fired — re-syncing...');
+          // Re-fetch from Firebase by bumping key; onValue already streams live,
+          // so a key bump is enough to trigger any dependent effects.
+          setRefreshKey(k => k + 1);
+        }
+      });
+
       return () => {
         unsubscribe();
+        unsubRefresh();
         if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
       };
     }
   }, [matchId, dbPath, tournamentId, queueEvent]);
+
 
   // ── Animation detection: score / event / over changes ─────────
   useEffect(() => {
@@ -492,6 +659,7 @@ const ScorecardDisplay = () => {
     return {
       ...base,
       isKsPremium: match?.themeID === 'KS_PREMIUM',
+      isNewKSColor: match?.themeID === 'NEW_KS_COLOR',
       isNewIpl: match?.themeID === 'NEW_IPL',
       isIpl2026: match?.themeID === 'IPL_2026',
       isApogee: match?.themeID === 'APOGEE',
@@ -510,9 +678,25 @@ const ScorecardDisplay = () => {
   const eventWicketName = currentEvent?.lastWicketName || match.lastWicketName;
   const eventWicketRuns = currentEvent?.lastWicketRuns ?? match.lastWicketRuns;
   const eventWicketBalls = currentEvent?.lastWicketBalls ?? match.lastWicketBalls;
+  const eventWicketDismissal = currentEvent?.lastWicketDismissal || match.lastWicketDismissal || "Bowled";
+  const eventWicketFielder = currentEvent?.lastWicketFielder || match.lastWicketFielder || "";
+  
+  const getHowOutText = () => {
+    const bowler = match.bowler?.name || "Bowler";
+    switch (eventWicketDismissal) {
+      case 'Caught': return `c ${eventWicketFielder || 'Sub'} b ${bowler}`;
+      case 'Stumped': return `st ${eventWicketFielder || 'Sub'} b ${bowler}`;
+      case 'Run Out': return `Run Out (${eventWicketFielder || 'Direct Hit'})`;
+      case 'LBW': return `lbw b ${bowler}`;
+      case 'Hit Wicket': return `hit wicket b ${bowler}`;
+      case 'Retired Hurt': return 'Retired Hurt';
+      default: return `b ${bowler}`;
+    }
+  };
   const totalMatchBalls = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
   const remainingBalls = totalMatchBalls - (match.legalBallCount ?? match.totalBalls ?? 0);
-  const isMatchFinished = ["finished", "match ended"].includes(String(match.matchStatus || "").toLowerCase());
+  const isMatchFinished = ["finished", "match ended"].includes(String(match?.matchStatus || "").toLowerCase());
+
   const bannerInfo = {
     title: match.matchTitle || match.bowlingPrefix || "Live Match",
     tournament: match.tournamentName || "Cricket Scoreboard",
@@ -525,7 +709,7 @@ const ScorecardDisplay = () => {
   const finalWinnerTeam = winnerInfo?.team || (match.isSecondInnings ? (match.score >= (match.targetScore || 0) ? match.battingTeam : match.bowlingTeam) : match.battingTeam);
 
   return (
-    <div className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic">
+    <div key={refreshKey} className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic">
 
       {/* 1. NAVIGATION OVERLAY (Admin only, visible on hover) */}
       <div className="fixed top-4 left-4 z-[200] flex gap-2 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity">
@@ -565,7 +749,11 @@ const ScorecardDisplay = () => {
             {/* Teams + VS */}
             <div className="vs-content">
               <div className="vs-team-a">
-                <img src={match.battingLogo} className="vs-logo vs-logo-a" alt="Team A" />
+                {match.battingLogo ? (
+                  <img src={getAbsoluteUrl(match.battingLogo)} className="vs-logo vs-logo-a" alt="Team A" />
+                ) : (
+                  <div className="vs-logo vs-logo-a vs-logo-placeholder" />
+                )}
                 <h2 className="vs-team-name">{match.battingTeam}</h2>
               </div>
 
@@ -575,7 +763,11 @@ const ScorecardDisplay = () => {
               </div>
 
               <div className="vs-team-b">
-                <img src={match.leagueLogo} className="vs-logo vs-logo-b" alt="Team B" />
+                {match.leagueLogo ? (
+                  <img src={getAbsoluteUrl(match.leagueLogo)} className="vs-logo vs-logo-b" alt="Team B" />
+                ) : (
+                  <div className="vs-logo vs-logo-b vs-logo-placeholder" />
+                )}
                 <h2 className="vs-team-name">{match.bowlingTeam}</h2>
               </div>
             </div>
@@ -588,13 +780,97 @@ const ScorecardDisplay = () => {
         );
       })()}
 
+      {/* 2b. TOSS RESULT OVERLAY — Cinematic Broadcast Style */}
+      {renderToss && (() => {
+        const tossVisible = isTossMounted;
+        const toss = match.toss || {};
+        const tossWinner = toss.winner || match.battingTeam || 'TEAM A';
+        const tossDecision = toss.decision === 'bowl' ? 'BOWL' : 'BAT';
+        const tossDecisionFull = toss.decision === 'bowl' ? 'ELECTED TO BOWL FIRST' : 'ELECTED TO BAT FIRST';
+        // Figure out which logo belongs to toss winner
+        const isBattingTossWinner = tossWinner === match.battingTeam;
+        const tossWinnerLogo = isBattingTossWinner ? match.battingLogo : match.leagueLogo;
+        const tossLoserName = isBattingTossWinner ? match.bowlingTeam : match.battingTeam;
+        const tossLoserLogo = isBattingTossWinner ? match.leagueLogo : match.battingLogo;
+        return (
+          <div className={`toss-screen ${tossVisible ? '' : 'hide'}`}>
+            {/* Ambient background layers */}
+            <div className="toss-bg-radial" />
+            <div className="toss-bg-grid" />
+            <div className="toss-shimmer" />
+
+            {/* Floating particles */}
+            <div className="toss-particles">
+              {Array.from({ length: 16 }).map((_, i) => <div key={i} className="toss-particle" />)}
+            </div>
+
+            {/* Top label */}
+            <div className="toss-label-top">TOSS RESULT</div>
+
+            {/* Main content */}
+            <div className="toss-main">
+
+              {/* Loser team (left, muted) */}
+              <div className="toss-team toss-team-loser">
+                {tossLoserLogo
+                  ? <img src={getAbsoluteUrl(tossLoserLogo)} className="toss-logo toss-logo-loser" alt={tossLoserName} />
+                  : <div className="toss-logo toss-logo-loser toss-logo-placeholder">{(tossLoserName || '').slice(0, 2).toUpperCase()}</div>
+                }
+                <div className="toss-team-name-loser">{tossLoserName}</div>
+              </div>
+
+              {/* Center: coin + announcement */}
+              <div className="toss-center">
+                <div className="toss-coin-wrap">
+                  <div className="toss-coin">
+                    <div className="toss-coin-face toss-coin-front">
+                      <span className="toss-coin-icon">🪙</span>
+                    </div>
+                    <div className="toss-coin-face toss-coin-back">
+                      <span className="toss-coin-icon">★</span>
+                    </div>
+                  </div>
+                  <div className="toss-coin-glow" />
+                </div>
+                <div className="toss-won-text">WON THE TOSS</div>
+                <div className="toss-decision-badge">
+                  <span className="toss-decision-icon">{tossDecision === 'BAT' ? '🏏' : '⚾'}</span>
+                  <span>{tossDecisionFull}</span>
+                </div>
+              </div>
+
+              {/* Winner team (right, highlighted) */}
+              <div className="toss-team toss-team-winner">
+                <div className="toss-winner-ring">
+                  {tossWinnerLogo
+                    ? <img src={getAbsoluteUrl(tossWinnerLogo)} className="toss-logo toss-logo-winner" alt={tossWinner} />
+                    : <div className="toss-logo toss-logo-winner toss-logo-placeholder">{(tossWinner || '').slice(0, 2).toUpperCase()}</div>
+                  }
+                </div>
+                <div className="toss-team-name-winner">{tossWinner}</div>
+                <div className="toss-winner-badge">WINNER</div>
+              </div>
+
+            </div>
+
+            {/* Bottom bar */}
+            <div className="toss-bottom-bar">
+              <span className="toss-match-info">
+                {match.matchTitle || match.tournamentName || `${match.maxOvers || 20} OVERS MATCH`}
+              </span>
+              {match.venueName && <span className="toss-venue">📍 {match.venueName}</span>}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* 3. MATCH WINNER OVERLAY (Cinematic Broadcast Style) */}
       {!isMatchFinished && showWinner && winnerInfo && (
         <div className="winner-cinematic-strip">
           <div className="winner-cinematic-bg"></div>
           <div className="winner-cinematic-glow"></div>
           <div className="winner-cinematic-content">
-            <img src={winnerInfo.logo} className="winner-cinematic-logo" alt="Winner" />
+            <img src={getAbsoluteUrl(winnerInfo.logo)} className="winner-cinematic-logo" alt="Winner" />
             <div className="winner-cinematic-text-wrap">
               <h1 className="winner-cinematic-team">{winnerInfo.team}</h1>
               <h2 className="winner-cinematic-text">{winnerInfo.text}</h2>
@@ -632,7 +908,7 @@ const ScorecardDisplay = () => {
               {/* Header */}
               <div className="summary-header">
                 <div className="summary-team-info">
-                  <img src={match.battingLogo} className="summary-team-logo" alt="Logo" />
+                  <img src={getAbsoluteUrl(match.battingLogo)} className="summary-team-logo" alt="Logo" />
                   <div>
                     <h1 className="summary-team-name">{match.battingTeam}</h1>
                     <p className="summary-label">{isMatchFinished ? `${bannerInfo.title} • ${bannerInfo.venue} • ${bannerInfo.date}` : "Match Summary"}</p>
@@ -711,7 +987,7 @@ const ScorecardDisplay = () => {
               <p className="text-white/50 font-black text-[11px] uppercase tracking-[0.5em] mb-4">Chasing Target</p>
               <div className="flex items-center justify-center gap-3 mb-5">
                 <div className="h-px w-12 bg-gradient-to-r from-transparent to-yellow-500/50"></div>
-                <img src={match.battingLogo} className="w-14 h-14 rounded-full bg-white p-1 object-cover shadow-lg border-2 border-yellow-500/40" alt="Team" />
+                <img src={getAbsoluteUrl(match.battingLogo)} className="w-14 h-14 rounded-full bg-white p-1 object-cover shadow-lg border-2 border-yellow-500/40" alt="Team" />
                 <div className="h-px w-12 bg-gradient-to-l from-transparent to-yellow-500/50"></div>
               </div>
               <h1 className="text-white font-black text-3xl italic uppercase tracking-wide mb-2">
@@ -727,7 +1003,7 @@ const ScorecardDisplay = () => {
       )}
 
       {/* 6. MAIN BOTTOM SCOREBOARD */}
-      {!winnerInfo && !(match.showSummary || isMatchFinished) && !match.showVersus && (
+      {renderScorecard && (
         <div className={`absolute bottom-0 left-0 w-full flex flex-col pointer-events-none ${animThemeClass}`}>
           {/* TOURNAMENT INFO STRIP — slides in above the ticker */}
           {showInfoStrip && (
@@ -746,7 +1022,109 @@ const ScorecardDisplay = () => {
           {/* ═══════════════════════════════════════════════════════════
                KS PREMIUM THEME (Inspired by Broadcast Scoreboard)
           ═══════════════════════════════════════════════════════════ */}
-          {active.isKsPremium ? (() => {
+          
+          {/* NEW KS COLOR THEME (Emerald Pro) */}
+          {active.isNewKSColor ? (() => {
+            const bpo = match.ballsPerOver || 6;
+            const balls = match.recentBalls || [];
+            const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
+            const overStr = `${Math.floor(legalDeliveries / bpo)}.${legalDeliveries % bpo}`;
+            const maxOvers = match.maxOvers || 20;
+            const totalMatchBallsKSP = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
+            const remainKSP = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
+            const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
+
+            const b1 = match.player1;
+            const b2 = match.player2;
+            const bb = match.bowler;
+            const team1Name = match.battingTeam || "TEAM 1";
+
+            return (
+                <div className="kse-wrapper" style={{ zIndex: 10 }}>
+                    <div className="kse-bg-pattern"></div>
+                    
+                    {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+                        <div className={`kse-event-banner kse-event-${eventType.toLowerCase()}`}>
+                            <div className="kse-event-text">
+                                {eventType === "WICKET" 
+                                    ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '32px', marginBottom: '-5px' }}>{eventWicketName} OUT!</span>
+                                        <span style={{ fontSize: '14px', color: '#ffcc00' }}>{getHowOutText()}</span>
+                                      </div>
+                                    : eventType}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="kse-board">
+
+                        <div className="kse-top-bar">
+                            <div className="kse-live-dot"></div>
+                            <span>LIVE • {match.tournamentName || "UNIVERSITY PREMIER LEAGUE 2026"} | CRR: {(match.score / Math.max(1, (legalDeliveries / bpo))).toFixed(2)} {match.isSecondInnings && match.targetScore ? ` | TARGET: ${match.targetScore}` : ''}</span>
+                        </div>
+
+                        <div className="kse-left">
+                            <TeamLogo src={getAbsoluteUrl(match.battingLogo)} teamName={match.battingTeam} className="kse-logo" size={56} />
+                            <div className="kse-team-info">
+                                <div className="kse-team-name">{team1Name}</div>
+                                <div className="kse-tournament">{match.tournamentName || "KS LIVE BROADCASTING"}</div>
+                            </div>
+                        </div>
+
+                        <div className="kse-center">
+                            <div className="kse-score-wrapper">
+                                <div className={`kse-score ${scoreAnimClass ? 'kse-score-update' : ''}`}>{match.score}/{match.wickets}</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <div className="kse-overs-max" style={{ marginBottom: '-4px' }}>{maxOvers} OVERS</div>
+                                    <div className="kse-overs">{overStr}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="kse-right">
+                            {match.isSecondInnings && (runsNeeded > 0) && (remainKSP <= 30) ? (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                    <div style={{ fontSize: '18px', fontWeight: '800', textAlign: 'center', color: '#fff' }}>
+                                        {match.battingTeam} NEED <span style={{ color: '#FFD54F', fontSize: '24px' }}>{runsNeeded}</span> MORE FROM <span style={{ color: '#FFD54F', fontSize: '24px' }}>{remainKSP}</span> BALLS
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <div style={{ color: b1?.onStrike ? '#fff' : '#aaa' }}><strong>{b1?.onStrike ? '★ ' : ''}{b1?.name || 'Batter 1'}</strong> <span className="kse-batter-runs">{b1?.runs || 0} ({b1?.balls || 0})</span></div>
+                                        <div style={{ color: b2?.onStrike ? '#fff' : '#aaa' }}><strong>{b2?.onStrike ? '★ ' : ''}{b2?.name || 'Batter 2'}</strong> <span className="kse-batter-runs">{b2?.runs || 0} ({b2?.balls || 0})</span></div>
+                                    </div>
+
+                                    <div>
+                                        <div className="kse-bowler-title">CURRENT BOWLER</div>
+                                        <div><strong>{bb?.name || 'Bowler'}</strong> <span className="kse-bowler-figs">{bb?.wickets || 0}/{bb?.runs || 0}</span></div>
+                                    </div>
+                                    <div style={{ paddingLeft: '20px', borderLeft: '1px solid rgba(255,255,255,0.1)', marginLeft: '10px' }}>
+                                        <TeamLogo src={getAbsoluteUrl(match.leagueLogo)} teamName={match.bowlingTeam} className="kse-logo" size={56} style={{ margin: 0 }} />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        
+                    </div> {/* Closes kse-board */}
+
+                    <div className="kse-ball-tracker">
+                            {Array.from({ length: Math.min(6, Math.max(bpo, balls.length)) }).map((_, i) => {
+                                const b = balls[balls.length - 1 - i] || '';
+                                if (!b) return null;
+                                let c = '';
+                                if (b === '4') c = 'four';
+                                if (b === '6') c = 'six';
+                                if (b.includes('W')) c = 'wicket';
+                                if (b.includes('wd') || b.includes('nb')) c = 'extra';
+                                return <div key={i} className={`kse-ball ${c}`}>{b === '0' ? '.' : b}</div>;
+                            }).reverse()}
+                        </div>
+                </div>
+            );
+          })() : 
+          active.isKsPremium ? (() => {
             const bpo = match.ballsPerOver || 6;
             const balls = match.recentBalls || [];
             const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
@@ -767,14 +1145,7 @@ const ScorecardDisplay = () => {
 
                   {/* Left Block: Logo, Team, Score */}
                   <div className="ksp-left">
-                    {match.battingLogo ? (
-                      <img 
-                        src={match.battingLogo} 
-                        alt="Team" 
-                        className="ksp-logo" 
-                        onError={(e) => { e.target.style.display = 'none'; }} 
-                      />
-                    ) : null}
+                    <TeamLogo src={getAbsoluteUrl(match.battingLogo)} teamName={match.battingTeam} className="ksp-logo" size={56} />
                     <div className="ksp-team-info">
                       <div className="ksp-team-name">{match.battingTeam}</div>
                       <div className="ksp-tournament">{match.tournamentName || "PREMIER LEAGUE"}</div>
@@ -792,7 +1163,12 @@ const ScorecardDisplay = () => {
                       <div className={`ksp-event-banner ksp-event-${eventType.toLowerCase()}`}>
                         <div className="ksp-sweep" />
                         <div className="ksp-event-text">
-                          {eventType === "WICKET" ? "WICKET!" : eventType === "FOUR" ? "FOUR!" : "SIX!"}
+                          {eventType === "WICKET" 
+                            ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <span style={{ fontSize: '32px', marginBottom: '-5px' }}>{eventWicketName} OUT!</span>
+                                <span style={{ fontSize: '14px', color: '#ffcc00' }}>{getHowOutText()}</span>
+                              </div>
+                            : eventType === "FOUR" ? "FOUR!" : "SIX!"}
                         </div>
                       </div>
                     )}
@@ -848,14 +1224,7 @@ const ScorecardDisplay = () => {
 
                   {/* Right Block: Bowling Logo */}
                   <div className="ksp-right">
-                    {match.leagueLogo ? (
-                      <img 
-                        src={match.leagueLogo} 
-                        alt="Bowling Logo" 
-                        className="ksp-bowling-logo" 
-                        onError={(e) => { e.target.style.display = 'none'; }} 
-                      />
-                    ) : null}
+                    <TeamLogo src={getAbsoluteUrl(match.leagueLogo)} teamName={match.bowlingTeam} className="ksp-bowling-logo" size={56} />
                   </div>
                 </div>
 
@@ -895,7 +1264,14 @@ const ScorecardDisplay = () => {
                   {/* Event triggers (animated overlays) */}
                   {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
                     <div className={`newipl-event-trigger newipl-event-${eventType.toLowerCase()}`}>
-                      <div className="newipl-event-text">{eventType === "WICKET" ? "WICKET" : eventType}</div>
+                      <div className="newipl-event-text">
+                        {eventType === "WICKET" 
+                          ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: '1.2' }}>
+                              <span style={{ fontSize: '20px' }}>{eventWicketName} OUT!</span>
+                              <span style={{ fontSize: '10px', color: '#ffcc00' }}>{getHowOutText()}</span>
+                            </div>
+                          : eventType}
+                      </div>
                     </div>
                   )}
 
@@ -911,7 +1287,7 @@ const ScorecardDisplay = () => {
                   <div className="newipl-middle">
                     {/* Team & Score */}
                     <div className="newipl-team-block">
-                      <img src={match.battingLogo} alt="Team" className="newipl-team-logo" />
+                      <TeamLogo src={getAbsoluteUrl(match.battingLogo)} teamName={match.battingTeam} className="newipl-team-logo" size={58} />
                       <div className="newipl-team-name">{match.battingTeam}</div>
                       <div className={`newipl-score ${scoreAnimClass ? 'newipl-score-update' : ''}`}>
                         {match.score}-{match.wickets} <span className="newipl-overs">({getOvers(match.legalBallCount ?? match.totalBalls)})</span>
@@ -943,7 +1319,7 @@ const ScorecardDisplay = () => {
                       )}
                     </div>
 
-                    {/* Bowler */}
+                    {/* Bowler + Bowling Team Logo */}
                     <div className="newipl-bowler-block">
                       <div className="newipl-bowler-label">BOWLER</div>
                       <div className="newipl-bowler-name">{match.bowler?.name || 'SELECT BOWLER'}</div>
@@ -955,6 +1331,11 @@ const ScorecardDisplay = () => {
                             : '—'
                         }
                       </div>
+                    </div>
+                    {/* Bowling Team Logo */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', marginLeft: '10px', paddingLeft: '10px', borderLeft: '1px solid rgba(255,255,255,0.12)' }}>
+                      <TeamLogo src={getAbsoluteUrl(match.leagueLogo)} teamName={match.bowlingTeam} className="newipl-team-logo" size={44} style={{ width: 44, height: 44, minWidth: 44 }} />
+                      <div style={{ fontSize: '9px', fontWeight: 800, color: 'rgba(255,255,255,0.5)', letterSpacing: '1px', textAlign: 'center', maxWidth: '50px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.bowlingTeam}</div>
                     </div>
 
                     {/* Partnership */}
@@ -1006,110 +1387,105 @@ const ScorecardDisplay = () => {
             const totalMatchBallsKSP = (match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6));
             const remainIPL = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, totalMatchBallsKSP - legalDeliveries);
             const runsNeeded = match.isSecondInnings ? Math.max(0, match.targetScore - match.score) : 0;
-            const bannerInfo = {
-              title: match.matchTitle || match.bowlingPrefix || "Live Match",
-              tournament: match.tournamentName || "Cricket Scoreboard",
-            };
+            
+            const striker = match.player1?.onStrike ? match.player1 : match.player2;
+            const nonStriker = match.player1?.onStrike ? match.player2 : match.player1;
 
             return (
-              <div className="ipl26-wrapper anim-ipl2026">
-                {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
-                  <div className={`ipl26-event-banner ipl26-event-${eventType.toLowerCase()}`}>
-                    <h1 className="ipl26-event-title">{eventType}</h1>
-                  </div>
-                )}
-                <div className="ipl26-ticker">
-                  <div className="ipl26-ticker-text">
-                    {(typeof match.ticker === 'object' ? match.ticker?.message : match.ticker) || bannerInfo.tournament}
-                  </div>
-                </div>
+              <div className="scoreboard anim-ipl2026-entrance">
                 
-                <div className="ipl26-scoreboard ipl26-glass">
-                  <div className="ipl26-glow-line" />
-                  <div className="ipl26-glow-line-soft" />
-                  
-                  <div className="ipl26-team-section">
-                    <img src={match.battingLogo} className="ipl26-logo" />
-                    <div className="ipl26-team-info">
-                      <div className="ipl26-team-name">{match.battingTeam}</div>
-                      <div className="ipl26-team-sub">{match.matchTitle || match.bowlingPrefix}</div>
-                    </div>
-                    <div className="ipl26-score-block">
-                      <div className="ipl26-score-glow" />
-                      <span className="ipl26-score">{match.score}-{match.wickets}</span>
-                      <span className="ipl26-overs">({getOvers(match.legalBallCount ?? match.totalBalls)})</span>
-                    </div>
-                  </div>
-                  
-                  <div className="ipl26-divider" />
-                  
-                  <div className="ipl26-right-area">
-                    <div className="ipl26-batsmen">
-                      {[match.player1, match.player2].map((p, i) => p?.name ? (
-                        <div key={i} className={`ipl26-batsman-row ${!p.onStrike ? 'non-striker' : ''}`}>
-                          {p.onStrike ? <div className="ipl26-striker-dot" /> : <div className="ipl26-non-striker-placeholder" />}
-                          <div className="ipl26-batsman-name">{p.name}</div>
-                          <div className="ipl26-batsman-stats">{p.runs} <span className="ipl26-batsman-balls">({p.balls})</span></div>
+                {/* LEFT TEAM — Batting Logo + Abbreviation */}
+                <div className="team team-left" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', padding: '4px 8px' }}>
+                  <TeamLogo src={getAbsoluteUrl(match.battingLogo)} teamName={match.battingTeam} size={44} style={{ border: '2px solid rgba(255,255,255,0.3)', boxShadow: '0 0 10px rgba(255,255,255,0.15)' }} />
+                  <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '1px', color: '#fff' }}>{match.battingTeam ? match.battingTeam.substring(0, 3).toUpperCase() : 'BAT'}</span>
+                </div>
+
+                {/* BATSMAN PANEL */}
+                <div className="player-panel anim-ipl2026-panel-left">
+
+                    <div className="striker-indicator"></div>
+
+                    <div className="player-row">
+                        <div className="player-name">
+                            {striker?.name || 'STRIKER'}
                         </div>
-                      ) : null)}
+                        <div className="player-score">
+                            {striker?.runs || 0} <span className="balls">({striker?.balls || 0})</span>
+                        </div>
                     </div>
-                    
-                    <div className="ipl26-bowler">
-                      <div className="ipl26-bowler-name">{match.bowler?.name || 'SELECT BOWLER'}</div>
-                      <div className="ipl26-bowler-figures">
-                        {match.bowler?.figures && match.bowler.figures !== '0-0 (0.0)'
-                          ? match.bowler.figures
-                          : match.bowler?.name
-                            ? `${match.bowler.wickets || 0}-${match.bowler.runs || 0} (${getOvers(Math.round((match.bowler.overs||0)*(match.ballsPerOver||6)))})`
-                            : '—'
-                        }
-                      </div>
-                      <div className="ipl26-balls-row">
-                        {Array.from({ length: Math.max(bpo, balls.length) }).map((_, i) => {
-                          const b = balls[i] || '';
-                          let cls = 'empty';
-                          if (b === '4') cls = 'boundary';
-                          else if (b === '6') cls = 'six';
-                          else if (b.includes('W')) cls = 'wicket';
-                          else if (b && !b.includes('W') && b !== '•') cls = 'single';
-                          else if (b.includes('WD') || b.includes('NB') || b.includes('LB') || b.includes('B')) cls = 'extra';
-                          return <div key={i} className={`ipl26-ball ${cls}`}>{b === '•' ? '0' : b}</div>;
-                        })}
-                      </div>
+
+                    <div className="player-row">
+                        <div className="player-name">
+                            {nonStriker?.name || 'NON-STRIKER'}
+                        </div>
+                        <div className="player-score">
+                            {nonStriker?.runs || 0} <span className="balls">({nonStriker?.balls || 0})</span>
+                        </div>
                     </div>
-                    
-                    {match.isSecondInnings ? (
-                      <div className="ipl26-target">
-                        <div className="ipl26-target-label">TARGET</div>
-                        <div className="ipl26-target-value">{match.targetScore}</div>
-                      </div>
-                    ) : (
-                      <div className="ipl26-this-over">
-                        <div className="ipl26-this-over-label">THIS OVER</div>
-                        <div className="ipl26-this-over-value">{match.overRuns || 0}</div>
-                      </div>
-                    )}
-                    
-                    <div className="ipl26-right-logo-wrap">
-                      <img src={match.leagueLogo} className="ipl26-right-logo" />
-                    </div>
-                  </div>
+
                 </div>
-                
-                {match.isSecondInnings ? (
-                  <div className="ipl26-chase-strip">
-                    <div className="ipl26-chase-rates">
-                      <span className="ipl26-crr">CRR <span className="ipl26-crr-value">{match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}</span></span>
-                      <span className="ipl26-rrr">RRR <span className="ipl26-rrr-value">{remainIPL > 0 ? (runsNeeded / (remainIPL / 6)).toFixed(2) : "--"}</span></span>
+
+                {/* CENTER PANEL */}
+                <div className="center-section anim-ipl2026-center">
+
+                    <div className="score-capsule anim-ipl2026-pop">
+                        <span className="score-team">{match.battingTeam ? match.battingTeam.substring(0, 3).toUpperCase() : 'BAT'}</span>
+                        <span className="score-main">
+                            {match.score}-{match.wickets}
+                        </span>
+                        <span className="score-overs">
+                            {getOvers(legalDeliveries)} / {match.maxOvers || 5}
+                        </span>
                     </div>
-                    <div className="ipl26-chase-need">NEED {runsNeeded} RUNS IN {remainIPL} BALLS TO WIN</div>
-                  </div>
-                ) : (
-                  <div className="ipl26-bottom-strip">
-                    <span className="ipl26-crr">CURRENT RUN RATE <span className="ipl26-crr-value">{match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}</span></span>
-                    <div className="ipl26-welcome">{match.tournamentName || "LIVE"}</div>
-                  </div>
-                )}
+
+                    <div className="projected-score">
+                        {match.isSecondInnings && remainIPL > 0
+                            ? `NEED ${runsNeeded} RUNS IN ${remainIPL} BALLS`
+                            : `EXTRAS: ${match.extras?.total || 0} | PROJ: ${Math.floor((match.score / Math.max(1, (legalDeliveries / 6))) * (match.maxOvers || 20))}`}
+                    </div>
+
+                </div>
+
+                {/* BOWLER PANEL */}
+                <div className="bowler-panel anim-ipl2026-panel-right">
+
+                    <div className="branding anim-ipl2026-drop">
+                        {match.tournamentName ? match.tournamentName.toUpperCase() : "LIVE MATCH"}
+                    </div>
+
+                    <div className="bowler-header">
+                        <div className="bowler-name">
+                            {match.bowler?.name || 'BOWLER'}
+                        </div>
+                        <div className="bowler-figures">
+                            {match.bowler?.wickets || 0}-{match.bowler?.runs || 0} ({getOvers(Math.round((match.bowler?.overs||0)*(match.ballsPerOver||6)))})
+                        </div>
+                    </div>
+
+                    <div className="last-balls">
+                        {Array.from({ length: Math.min(6, Math.max(bpo, balls.length)) }).map((_, i) => {
+                            const b = balls[balls.length - 1 - i] || '';
+                            if (!b) return null;
+                            let bClass = "ball";
+                            if (b === '4') bClass += " four";
+                            else if (b === '6') bClass += " six";
+                            else if (b.includes('W')) bClass += " wicket";
+                            return (
+                                <div key={i} className={bClass}>
+                                    {b === '•' ? '0' : b}
+                                </div>
+                            );
+                        }).reverse()}
+                    </div>
+
+                </div>
+
+                {/* RIGHT TEAM — Bowling Logo + Abbreviation */}
+                <div className="team team-right" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', padding: '4px 8px' }}>
+                  <TeamLogo src={getAbsoluteUrl(match.leagueLogo)} teamName={match.bowlingTeam} size={44} style={{ border: '2px solid rgba(255,255,255,0.3)', boxShadow: '0 0 10px rgba(255,255,255,0.15)' }} />
+                  <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '1px', color: '#fff' }}>{match.bowlingTeam ? match.bowlingTeam.substring(0, 3).toUpperCase() : 'BOWL'}</span>
+                </div>
+
               </div>
             );
           })() : active.isApogee ? (() => {
@@ -1124,14 +1500,19 @@ const ScorecardDisplay = () => {
               <div className="apogee-bar anim-apogee apogee-open">
                 {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
                   <div className={`apogee-event-banner apogee-event-${eventType.toLowerCase()}`}>
-                    <h1 className="apogee-event-title">{eventType}</h1>
+                    <h1 className="apogee-event-title" style={eventType === "WICKET" ? { marginBottom: '0px' } : {}}>{eventType}</h1>
+                    {eventType === "WICKET" && (
+                      <div style={{ fontSize: '16px', fontWeight: 800, marginTop: '-5px', letterSpacing: '2px', color: '#fff', textAlign: 'center' }}>
+                        {eventWicketName} - <span style={{ color: '#ffcc00' }}>{getHowOutText()}</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="apogee-bar-glow" />
                 <div className="apogee-bar-glow-soft" />
                 
                 <div className="apogee-panel apogee-panel-left">
-                  <img src={match.battingLogo} className="apogee-logo" />
+                  <TeamLogo src={getAbsoluteUrl(match.battingLogo)} teamName={match.battingTeam} className="apogee-logo" size={52} />
                   <div className="apogee-team-block">
                     <div className="apogee-team-name">{match.battingTeam}</div>
                     <div className="apogee-team-sub">{match.matchTitle || "LIVE"} <span className="apogee-live-dot" /></div>
@@ -1180,16 +1561,16 @@ const ScorecardDisplay = () => {
                   </div>
                 </div>
 
-                {match.isSecondInnings ? (
-                  <div className="apogee-panel apogee-panel-target">
-                    <div className="apogee-target-label">NEED {runsNeeded} RUNS IN</div>
-                    <div className="apogee-target-num">{remainApogee} BALLS</div>
-                  </div>
-                ) : (
-                  <div className="apogee-panel apogee-panel-logo-right">
-                    <img src={match.leagueLogo} className="apogee-logo-right" />
-                  </div>
-                )}
+                {/* Bowling team logo — always visible; stacked with target in 2nd innings */}
+                <div className="apogee-panel apogee-panel-logo-right" style={{ flexDirection: 'column', gap: '4px' }}>
+                  <TeamLogo src={getAbsoluteUrl(match.leagueLogo)} teamName={match.bowlingTeam} className="apogee-logo-right" size={48} />
+                  {match.isSecondInnings && runsNeeded > 0 && (
+                    <div style={{ textAlign: 'center', marginTop: '2px' }}>
+                      <div className="apogee-target-label" style={{ fontSize: '9px' }}>NEED</div>
+                      <div className="apogee-target-num" style={{ fontSize: '16px' }}>{runsNeeded}/{remainApogee}b</div>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })() : ( <>
@@ -1199,7 +1580,7 @@ const ScorecardDisplay = () => {
           <div className={`flex h-28 ${active.main} items-stretch relative overflow-hidden ${active.isWC2026 ? `${active.border} wc2026-open` : `border-t-2 ${active.border} scoreboard-open`} shadow-2xl ${boardAnimClass}`}>
 
             {/* INLINE EVENT BANNER — contained within scoreboard */}
-            {showEvent && !active.isNewIpl && !active.isKsPremium && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+            {showEvent && !active.isNewKSColor && !active.isNewIpl && !active.isKsPremium && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
               <div className={`event-banner event-banner-${eventType.toLowerCase()}`}>
                 {/* Particles — lightweight, clipped to scoreboard */}
                 <div className="event-banner-particles">
@@ -1220,11 +1601,16 @@ const ScorecardDisplay = () => {
                   <p className="event-banner-label">
                     {eventType === "WICKET" ? "WICKET" : "BOUNDARY"}
                   </p>
-                  <h1 className="event-banner-title">
+                  <h1 className="event-banner-title" style={eventType === "WICKET" ? { marginBottom: '-5px' } : {}}>
                     {eventType === "WICKET"
                       ? <>{eventWicketName} <span className="event-banner-stat">{eventWicketRuns}({eventWicketBalls})</span> OUT!</>
                       : eventType === "FOUR" ? "IT'S A FOUR!" : "MASSIVE SIX!"}
                   </h1>
+                  {eventType === "WICKET" && (
+                    <p className="event-banner-subtitle" style={{ fontSize: '20px', marginTop: '5px', color: '#ffcc00', letterSpacing: '0.1em', fontWeight: 800 }}>
+                      {getHowOutText()}
+                    </p>
+                  )}
                   <div className="event-banner-accent" />
                 </div>
               </div>
@@ -1232,7 +1618,7 @@ const ScorecardDisplay = () => {
 
             {/* TEAM & LOGO SECTION */}
             <div className={`flex items-center w-[35%] pl-4 gap-4 ${active.main} ${active.isWC2026 ? 'wc2026-content-reveal' : 'content-reveal'}`}>
-              <img src={match.battingLogo} className="h-16 w-16 rounded-full bg-white p-1 object-cover shadow-lg" alt="Team Logo" />
+              <TeamLogo src={getAbsoluteUrl(match.battingLogo)} teamName={match.battingTeam} className="h-16 w-16 rounded-full object-contain shadow-lg" size={64} style={{ background: 'rgba(255,255,255,0.12)', padding: '4px' }} />
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">
@@ -1313,8 +1699,8 @@ const ScorecardDisplay = () => {
               </div>
             </div>
 
-            <div className="w-24 bg-black flex items-center justify-center p-2 border-l border-gray-800">
-              <img src={match.leagueLogo} className="h-16 w-16 object-contain" alt="Opponent Logo" />
+            <div className="w-24 bg-black flex flex-col items-center justify-center p-2 border-l border-gray-800 gap-1">
+              <TeamLogo src={getAbsoluteUrl(match.leagueLogo)} teamName={match.bowlingTeam} className="h-16 w-16 object-contain" size={64} />
             </div>
           </div>
 
@@ -1368,4 +1754,5 @@ const ScorecardDisplay = () => {
 };
 
 export default ScorecardDisplay;
+
 

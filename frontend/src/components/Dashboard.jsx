@@ -290,7 +290,7 @@ function CreateTournamentModal({ onClose, onCreate }) {
 }
 
 // ── Next Match Modal ───────────────────────────────────────────────────────
-function NextMatchModal({ tournament, onClose, onSubmit }) {
+export function NextMatchModal({ tournament, onClose, onSubmit }) {
   const file1Ref = React.useRef(null);
   const file2Ref = React.useRef(null);
   const [logo1, setLogo1] = React.useState(null);
@@ -697,14 +697,10 @@ const Dashboard = () => {
     return res;
   };
 
-  const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
+  const isMongoDB = (id) => true;
 
   const handleOpen = (matchId) => {
-    if (isMongoDB(matchId)) {
-      navigate(`/mini-admin/${matchId}`);
-    } else {
-      navigate(`/admin/${matchId}`);
-    }
+    navigate(`/admin/${matchId}`);
   };
 
   const handleDelete = async (matchId) => {

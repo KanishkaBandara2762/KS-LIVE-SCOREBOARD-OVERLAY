@@ -173,151 +173,123 @@ const SCREENSHOTS = [
    ================================================================ */
 
 const THEMES = [
-
     {
-
         id: "ks-premium",
-
         name: "KS Premium (Broadcast)",
-
-        image: "/images/portfolio/theme-gold-champ.png",
-
+        image: "/themes/ks premium.png",
         desc: "Our flagship high-end television broadcast style theme. Sleek, premium, and fully featured.",
-
         tags: ["Broadcast", "Premium", "Championship"],
-
         ribbon: "premium",
-
         category: ["all", "tournament", "t20"],
-
     },
-
     {
-
-        id: "wc2026",
-
-        name: "🏆 T20 WC 2026",
-
-        image: "/images/portfolio/theme-wc2026.png",
-
-        desc: "Official T20 World Cup style layout. Vibrant electric blue, navy, magenta accents, and custom icons.",
-
-        tags: ["World Cup", "Tournament", "T20"],
-
-        ribbon: "new",
-
-        category: ["all", "t20", "tournament"],
-
-    },
-
-    {
-
-        id: "ipl-gold",
-
-        name: "IPL Classic / IPL 2026",
-
-        image: "/images/portfolio/live-scoreboard.png",
-
+        id: "ipl-classic",
+        name: "IPL Classic",
+        image: "/themes/Ipl classic.png",
         desc: "The gold-standard Indian Premier League overlay format. Glowing amber highlights and sleek batting boxes.",
-
         tags: ["IPL", "T20", "Franchise"],
-
-        ribbon: "new",
-
+        ribbon: "popular",
         category: ["all", "t20"],
-
     },
-
     {
-
-        id: "sky-pro",
-
-        name: "Sky Sports Pro",
-
-        image: "/images/portfolio/theme-t20-neon.png",
-
-        desc: "Modern television broadcast look with striking white and red accents. Extremely readable and iconic.",
-
-        tags: ["TV Style", "Clean", "ODI"],
-
-        ribbon: null,
-
-        category: ["all", "odi", "t20"],
-
+        id: "new-ipl",
+        name: "IPL 2026 (Modern)",
+        image: "/themes/new ipl.png",
+        desc: "A modernized take on the classic franchise cricket overlay. Sharp angles and high contrast.",
+        tags: ["IPL", "Modern", "Franchise"],
+        ribbon: "new",
+        category: ["all", "t20"],
     },
-
     {
-
-        id: "classic-dark",
-
-        name: "Classic Dark",
-
-        image: "/images/portfolio/theme-classic-dark.png",
-
-        desc: "Timeless deep slate gradient layout. Clean, professional, minimal distraction — perfect for all formats.",
-
-        tags: ["Universal", "ODI", "T20"],
-
-        ribbon: null,
-
-        category: ["all", "odi", "t20", "school"],
-
+        id: "t20-world-cup",
+        name: "T20 World Cup",
+        image: "/themes/t20 world cup.png",
+        desc: "Official T20 World Cup style layout. Vibrant electric blue, magenta accents, and custom icons.",
+        tags: ["World Cup", "Tournament", "T20"],
+        ribbon: "new",
+        category: ["all", "t20", "tournament"],
     },
-
     {
-
-        id: "sl-broadcast",
-
-        name: "📺 SL Broadcast",
-
-        image: "/images/portfolio/versus-screen.png",
-
-        desc: "Traditional Sri Lankan stream style graphics layout with beautiful custom team colors and branding.",
-
-        tags: ["Broadcast", "Signature", "T20"],
-
-        ribbon: null,
-
-        category: ["all", "t20", "school"],
-
-    },
-
-    {
-
         id: "gold-champ",
-
         name: "Gold Championship",
-
-        image: "/images/portfolio/theme-gold-champ.png",
-
+        image: "/themes/gold championship.png",
         desc: "Luxurious black carbon-fiber with gold framing. Perfect for grand finals and premier league championships.",
-
         tags: ["Premium", "Championship", "Tournament"],
-
         ribbon: "premium",
-
         category: ["all", "tournament"],
-
     },
-
     {
-
-        id: "apogee",
-
-        name: "🔮 APOGEE ARENA",
-
-        image: "/images/portfolio/special-animations.png",
-
-        desc: "Futuristic layout with glowing purple elements, custom font styles, and high-impact visual design.",
-
-        tags: ["Futuristic", "Arena", "T20"],
-
-        ribbon: "new",
-
-        category: ["all", "t20"],
-
+        id: "sky-sports",
+        name: "Sky Sports Pro",
+        image: "/themes/sky sports.png",
+        desc: "Modern television broadcast look with striking white and red accents. Extremely readable and iconic.",
+        tags: ["TV Style", "Clean", "ODI"],
+        ribbon: null,
+        category: ["all", "odi", "t20"],
     },
-
+    {
+        id: "sl-broadcast",
+        name: "SL Broadcast",
+        image: "/themes/sl broacast.png",
+        desc: "Traditional Sri Lankan stream style graphics layout with beautiful custom team colors and branding.",
+        tags: ["Broadcast", "Signature", "T20"],
+        ribbon: null,
+        category: ["all", "t20", "school"],
+    },
+    {
+        id: "classic-dark",
+        name: "Classic Dark",
+        image: "/themes/classic dark.png",
+        desc: "Timeless deep slate gradient layout. Clean, professional, minimal distraction — perfect for all formats.",
+        tags: ["Universal", "ODI", "T20"],
+        ribbon: null,
+        category: ["all", "odi", "t20", "school"],
+    },
+    {
+        id: "dc-blue",
+        name: "DC Blue Bar",
+        image: "/themes/dc blue bar.png",
+        desc: "A cool blue corporate-style overlay, excellent for franchise cricket and university matches.",
+        tags: ["T20", "Franchise", "Clean"],
+        ribbon: null,
+        category: ["all", "t20", "school"],
+    },
+    {
+        id: "ks-special",
+        name: "KS Special",
+        image: "/themes/ks special.png",
+        desc: "An exclusive custom-designed layout with sharp edges and premium broadcast animations.",
+        tags: ["Signature", "Premium", "Custom"],
+        ribbon: "premium",
+        category: ["all", "tournament"],
+    },
+    {
+        id: "neon-green",
+        name: "Neon Green",
+        image: "/themes/neon green.png",
+        desc: "High-contrast neon green theme designed to stand out on bright mobile displays.",
+        tags: ["Vibrant", "T20", "Modern"],
+        ribbon: null,
+        category: ["all", "t20"],
+    },
+    {
+        id: "t20-neon",
+        name: "T20 Neon",
+        image: "/themes/t20 neon.png",
+        desc: "A futuristic electric neon design that gives your night matches a stadium-ready feel.",
+        tags: ["Vibrant", "Tournament", "T20"],
+        ribbon: null,
+        category: ["all", "t20", "tournament"],
+    },
+    {
+        id: "wc-blue-purple",
+        name: "WC Blue Purple",
+        image: "/themes/wc blue purple.png",
+        desc: "A beautiful blend of deep blues and purples, heavily inspired by major global tournaments.",
+        tags: ["World Cup", "T20", "Modern"],
+        ribbon: null,
+        category: ["all", "t20", "tournament"],
+    }
 ];
 
 

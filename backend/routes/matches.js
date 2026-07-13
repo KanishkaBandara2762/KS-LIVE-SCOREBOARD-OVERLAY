@@ -119,6 +119,20 @@ router.put('/change-bowler/:id', changeBowler);
 router.post('/second-innings/:id', startSecondInnings);
 
 // ── POST /upload-logo/:id — Upload team logo ─────────────────────────────────
-router.post('/upload-logo/:id', logoUploadMiddleware.single('logo'), uploadLogo);
+router.post('/upload-logo/:id', (req, res, next) => {
+  logoUploadMiddleware.single('logo')(req, res, (err) => {
+    if (err) {
+      // Handle multer-specific errors with proper status codes
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, error: 'File too large. Maximum size is 3 MB.' });
+      }
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({ success: false, error: 'Unexpected file field. Use "logo" as the field name.' });
+      }
+      return res.status(400).json({ success: false, error: err.message || 'File upload failed.' });
+    }
+    next();
+  });
+}, uploadLogo);
 
 module.exports = router;

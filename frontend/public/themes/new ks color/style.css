@@ -1,0 +1,264 @@
+/* ==========================================================
+   KS LIVE - Emerald Cricket Pro Theme
+   Replace your existing color styles with this theme.
+   (Generated template)
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;800&display=swap');
+
+.ksp-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 140px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    font-family: 'Montserrat', sans-serif;
+    color: #b2afaf;
+    pointer-events: none;
+    overflow: hidden;
+    text-transform: uppercase;
+}
+
+.ksp-bg-pattern {
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, .02) 0 3px, transparent 3px 18px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, .015) 0 2px, transparent 2px 16px);
+    opacity: .35;
+}
+
+.ksp-board {
+    display: flex;
+    height: 80px;
+    width: 95%;
+    max-width: 1800px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #16361D 0%, #102A18 45%, #06110A 100%);
+    border: 2px solid rgba(139, 195, 74, .35);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .7), inset 0 0 20px rgba(124, 255, 0, .08);
+    position: relative;
+}
+
+.ksp-top-bar {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #1B5E20, #43A047);
+    padding: 2px 20px;
+    border-radius: 5px 5px 0 0;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.ksp-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff3b30;
+    animation: ksp-pulse 1.5s infinite;
+}
+
+.ksp-left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    border-right: 5px solid #FFD54F;
+    position: relative;
+    overflow: hidden;
+}
+
+.ksp-left:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -80%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .18), transparent);
+    transform: skewX(-25deg);
+    animation: stadiumLight 6s linear infinite;
+}
+
+.ksp-logo {
+    height: 60px;
+    width: 60px;
+    object-fit: contain;
+    margin-right: 15px;
+    z-index: 2;
+}
+
+.ksp-team-info {
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+}
+
+.ksp-team-name {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.ksp-tournament {
+    font-size: 11px;
+    color: #FFD54F;
+    font-weight: 700;
+}
+
+.ksp-center {
+    min-width: 285px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(180deg, #0B1C0E, #071109);
+}
+
+.ksp-score-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+}
+
+.ksp-score {
+    font-family: 'Bebas Neue';
+    font-size: 64px;
+    color: #7CFF00;
+    text-shadow: 0 0 18px rgba(124, 255, 0, .5);
+}
+
+.ksp-overs {
+    font-family: 'Bebas Neue';
+    font-size: 32px;
+    color: #fff;
+}
+
+.ksp-overs-max {
+    font-size: 14px;
+    color: #FFD54F;
+}
+
+.ksp-right {
+    flex: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    background: linear-gradient(135deg, #0D1A10, #071109);
+}
+
+.ksp-batter-runs,
+.ksp-bowler-figs {
+    color: #7CFF00;
+    font-family: 'Bebas Neue';
+    font-size: 22px;
+}
+
+.ksp-bowler-title {
+    color: #FFD54F;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.ksp-ball-tracker {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    padding: 4px 12px;
+    background: rgba(6, 17, 10, .95);
+    border: 1px solid rgba(139, 195, 74, .3);
+    border-bottom: none;
+    border-radius: 0px 0px 5px 5px;
+}
+
+.ksp-ball {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #112015;
+    color: #fff;
+}
+
+.ksp-ball.four {
+    background: #29B6F6;
+    color: #000;
+}
+
+.ksp-ball.six {
+    background: #FFD54F;
+    color: #000;
+}
+
+.ksp-ball.wicket {
+    background: #D32F2F;
+}
+
+.ksp-ball.extra {
+    background: #66BB6A;
+    color: #000;
+}
+
+.ksp-event-four {
+    background: linear-gradient(90deg, #1565C0, #29B6F6);
+}
+
+.ksp-event-six {
+    background: linear-gradient(90deg, #F57C00, #FFD54F);
+}
+
+.ksp-event-wicket {
+    background: linear-gradient(90deg, #8B0000, #D32F2F);
+}
+
+.ksp-event-text {
+    font-family: 'Bebas Neue';
+    font-size: 64px;
+    letter-spacing: 4px;
+    color: #fff;
+}
+
+@keyframes stadiumLight {
+    0% {
+        left: -80%;
+    }
+
+    100% {
+        left: 180%;
+    }
+}
+
+@keyframes ksp-pulse {
+    0% {
+        opacity: .4;
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, .6);
+    }
+
+    70% {
+        opacity: 1;
+        box-shadow: 0 0 0 6px rgba(255, 0, 0, 0);
+    }
+
+    100% {
+        opacity: .4;
+    }
+}
+
+/* Keep the remaining layout/animation rules from your original CSS.
+Only colors and backgrounds are changed in this theme. */

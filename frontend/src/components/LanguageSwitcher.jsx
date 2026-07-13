@@ -6,7 +6,7 @@ const LanguageSwitcher = ({ className = "", compact = false }) => {
 
   return (
     <label className={className} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: compact ? 10 : 11, fontWeight: 800, textTransform: "uppercase", opacity: 0.75 }}>
+      <span style={{ fontSize: compact ? 10 : 11, fontWeight: 800, textTransform: "uppercase", color: "#94a3b8" }}>
         {t("language.label")}
       </span>
       <select
@@ -16,11 +16,16 @@ const LanguageSwitcher = ({ className = "", compact = false }) => {
           borderRadius: 8,
           padding: compact ? "6px 10px" : "8px 12px",
           fontSize: compact ? 11 : 12,
-          fontWeight: 700
+          fontWeight: 700,
+          background: "#1e293b",
+          color: "#f8fafc",
+          border: "1px solid #334155",
+          outline: "none",
+          cursor: "pointer"
         }}
       >
         {languages.map((item) => (
-          <option key={item.code} value={item.code}>
+          <option key={item.code} value={item.code} style={{ background: "#1e293b", color: "#f8fafc" }}>
             {item.label}
           </option>
         ))}

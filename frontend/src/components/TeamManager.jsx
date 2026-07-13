@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { db } from "../firebase";
-import { ref, set, onValue, remove } from "firebase/database";
+import { matchesApi } from "../api";
 
 const TeamManager = () => {
   const { matchId } = useParams();
-  const liveMatchPath = matchId ? `matches/${matchId}/live_match` : 'live_match';
   const [players, setPlayers] = useState([]);
   const [newPlayer, setNewPlayer] = useState({ name: "", photo: "" });
   const [selectedBatting, setSelectedBatting] = useState([]);
@@ -15,55 +13,76 @@ const TeamManager = () => {
   const miniAdminPath = matchId ? `/mini-admin/${matchId}` : "/mini-admin";
   const overlayPath = matchId ? `/overlay/${matchId}` : "/overlay";
 
-  // Load master player list from Firebase
-  useEffect(() => {
-    const playersRef = ref(db, "player_database");
-    const unsubscribe = onValue(playersRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setPlayers(Object.values(data));
-      } else {
-        setPlayers([]);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+  // Load master player list from localStorage
+  const loadMasterPlayers = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("player_database") || "[]");
+      setPlayers(stored);
+    } catch {
+      setPlayers([]);
+    }
+  };
 
   useEffect(() => {
-    const matchRef = ref(db, liveMatchPath);
-    const unsubscribe = onValue(matchRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
-      setSelectedBatting(data.battingSquad || []);
-      setSelectedBowling(data.bowlingSquad || []);
-      setTeamNames({
-        teamA: data.battingTeam || "TEAM A",
-        teamB: data.bowlingTeam || "TEAM B",
-      });
-    });
-    return () => unsubscribe();
-  }, [liveMatchPath]);
+    loadMasterPlayers();
+    window.addEventListener('ks_players_updated', loadMasterPlayers);
+    return () => window.removeEventListener('ks_players_updated', loadMasterPlayers);
+  }, []);
+
+  // Load live match squad from MongoDB
+  useEffect(() => {
+    if (!matchId) return;
+    matchesApi.get(matchId)
+      .then(res => {
+        if (res.match) {
+          setSelectedBatting(res.match.battingSquad || []);
+          setSelectedBowling(res.match.bowlingSquad || []);
+          setTeamNames({
+            teamA: res.match.battingTeam || "TEAM A",
+            teamB: res.match.bowlingTeam || "TEAM B",
+          });
+        }
+      })
+      .catch(e => console.error("Failed to load match squad from MongoDB:", e));
+  }, [matchId]);
 
   const addPlayerToDB = () => {
     if (!newPlayer.name) return;
     const id = Date.now();
-    set(ref(db, `player_database/${id}`), { ...newPlayer, id });
+    const updated = [...players, { ...newPlayer, id }];
+    localStorage.setItem("player_database", JSON.stringify(updated));
+    setPlayers(updated);
+    window.dispatchEvent(new Event('ks_players_updated'));
     setNewPlayer({ name: "", photo: "" });
   };
 
   // DELETE player from the master database
   const deleteFromMaster = (id) => {
     if (window.confirm("Delete this player from the database?")) {
-      remove(ref(db, `player_database/${id}`));
+      const updated = players.filter(p => p.id !== id);
+      localStorage.setItem("player_database", JSON.stringify(updated));
+      setPlayers(updated);
+      window.dispatchEvent(new Event('ks_players_updated'));
     }
   };
 
-  const pushToLiveMatch = () => {
-    set(ref(db, `${liveMatchPath}/battingSquad`), selectedBatting);
-    set(ref(db, `${liveMatchPath}/bowlingSquad`), selectedBowling);
-    set(ref(db, `${liveMatchPath}/battingTeam`), teamNames.teamA.toUpperCase());
-    set(ref(db, `${liveMatchPath}/bowlingTeam`), teamNames.teamB.toUpperCase());
-    alert("Match configurations successfully pushed!");
+  const pushToLiveMatch = async () => {
+    try {
+      // 1. Sync squads with MongoDB
+      await matchesApi.updatePlayers(matchId, {
+        battingSquad: selectedBatting,
+        bowlingSquad: selectedBowling,
+      });
+      // 2. Sync team names with MongoDB
+      await matchesApi.updateMatch(matchId, {
+        battingTeam: teamNames.teamA.toUpperCase(),
+        bowlingTeam: teamNames.teamB.toUpperCase(),
+      });
+      alert("Match configurations successfully pushed to MongoDB!");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to sync match data with MongoDB.");
+    }
   };
 
   return (
