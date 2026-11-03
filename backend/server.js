@@ -136,7 +136,16 @@ app.use('/api', apiLimiter, requireDB, matchRoutes);
 app.use('/api/tournaments', apiLimiter, requireDB, tournamentRoutes);
 app.use('/api/admin', apiLimiter, requireDB, require('./routes/admin'));
 
-// ── Health check ───────────────────────────────────────────────────────────
+// ── Root & Health check ────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'KS Live API Server',
+    version: '2.0.0',
+    health: '/health',
+  });
+});
+
 app.get('/health', (req, res) => {
   const dbReady = isDBConnected();
   res.status(dbReady ? 200 : 503).json({
@@ -211,6 +220,9 @@ function isTrustedOrigin(origin) {
   if (process.env.NODE_ENV === 'development') return true; // Always allow in dev
   const trusted = getAllowedOrigins();
   if (trusted.includes(origin)) return true;
+  // Allow production custom domain and vercel previews
+  if (/^https?:\/\/([a-z0-9-]+\.)?kslivebroadcasting\.com$/.test(origin)) return true;
+  if (/^https?:\/\/([a-z0-9-]+\.)?vercel\.app$/.test(origin)) return true;
   // Allow any local network IP (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
   if (/^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(origin)) return true;
   // Allow ngrok tunnels
