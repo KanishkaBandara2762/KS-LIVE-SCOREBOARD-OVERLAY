@@ -125,6 +125,8 @@ const ScorecardDisplay = () => {
   const [bowlerAnimClass, setBowlerAnimClass] = useState("");
   const [newOverAnim, setNewOverAnim] = useState(false);
   const [showInfoStrip, setShowInfoStrip] = useState(false);
+  // FIX 5: KS Premium over-break chase display state
+  const [showOverBreakChase, setShowOverBreakChase] = useState(false);
   const prevScore = useRef(null);
   const prevWickets = useRef(null);
   const prevEventTime = useRef(null);
@@ -615,6 +617,29 @@ const ScorecardDisplay = () => {
     };
   }, [match?.autoShowBanner]);
 
+  // FIX 5: Detect over-break for KS Premium chase display
+  // Show "X Runs from Y Balls" between overs in 2nd innings.
+  // Trigger: recentBalls empty AND legalBallCount is a multiple of ballsPerOver AND > 0.
+  // Hide: as soon as the first ball of the next over is recorded (recentBalls non-empty).
+  const prevRecentBallsLen = useRef(0);
+  useEffect(() => {
+    if (!match) return;
+    const bpoLen = match.ballsPerOver || 6;
+    const lbc = match.legalBallCount || 0;
+    const ballsLen = (match.recentBalls || []).length;
+    const isOverBreak = ballsLen === 0 && lbc > 0 && lbc % bpoLen === 0;
+    const wasNonEmpty = prevRecentBallsLen.current > 0;
+
+    if (isOverBreak && wasNonEmpty && match.isSecondInnings) {
+      // Over just completed — show chase display
+      const runsNeeded = Math.max(0, (match.targetScore || 0) - (match.score || 0));
+      if (runsNeeded > 0) setShowOverBreakChase(true);
+    } else if (ballsLen > 0) {
+      // First ball of new over — hide immediately
+      setShowOverBreakChase(false);
+    }
+    prevRecentBallsLen.current = ballsLen;
+  }, [match?.recentBalls, match?.legalBallCount, match?.isSecondInnings, match?.score, match?.targetScore, match?.ballsPerOver]);
   const prevWinnerTrigger = useRef(false);
   const [showWinner, setShowWinner] = useState(false);
 
@@ -1111,6 +1136,39 @@ const ScorecardDisplay = () => {
                     </div> {/* Closes kse-board */}
 
                     <div className="kse-ball-tracker">
+                            {showOverBreakChase && match.isSecondInnings && (() => {
+                                const kseBpo = match.ballsPerOver || 6;
+                                const kseLbd = match.legalBallCount ?? 0;
+                                const kseTotalBalls = match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * kseBpo;
+                                const kseRemain = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, kseTotalBalls - kseLbd);
+                                const kseRuns = Math.max(0, (match.targetScore || 0) - (match.score || 0));
+                                return kseRuns > 0 ? (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '100%',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        background: 'linear-gradient(90deg, #10b981, #047857)', // Emerald green to match New KS Color
+                                        border: '1px solid #34d399',
+                                        borderRadius: '6px 6px 0 0',
+                                        padding: '4px 20px',
+                                        fontSize: '13px',
+                                        fontWeight: 800,
+                                        letterSpacing: '1px',
+                                        color: '#fff',
+                                        whiteSpace: 'nowrap',
+                                        animation: 'ksp-slide-up 0.4s ease',
+                                        zIndex: 20,
+                                        boxShadow: '0 -4px 10px rgba(0,0,0,0.3)'
+                                    }}>
+                                        {match.battingTeam} NEED{' '}
+                                        <span style={{ color: '#fff', fontSize: '16px', textShadow: '0 0 5px rgba(255,255,255,0.5)' }}>{kseRuns}</span>
+                                        {' '}FROM{' '}
+                                        <span style={{ color: '#fff', fontSize: '16px', textShadow: '0 0 5px rgba(255,255,255,0.5)' }}>{kseRemain}</span>
+                                        {' '}BALLS
+                                    </div>
+                                ) : null;
+                            })()}
                             {Array.from({ length: Math.min(6, Math.max(bpo, balls.length)) }).map((_, i) => {
                                 const b = balls[balls.length - 1 - i] || '';
                                 if (!b) return null;
@@ -1205,12 +1263,7 @@ const ScorecardDisplay = () => {
                           <div className="ksp-bowler-row">
                             <div className="ksp-bowler-name">{match.bowler?.name || 'SELECT BOWLER'}</div>
                             <div className="ksp-bowler-figs">
-                              {match.bowler?.figures && match.bowler.figures !== '0-0 (0.0)'
-                                ? match.bowler.figures
-                                : match.bowler?.name
-                                  ? `${match.bowler.wickets || 0}-${match.bowler.runs || 0} (${match.bowler.overs > 0 ? (()=>{ const b = Math.round((match.bowler.overs||0)*( match.ballsPerOver||6)); return `${Math.floor(b/(match.ballsPerOver||6))}.${b%(match.ballsPerOver||6)}`; })() : '0.0'})`
-                                  : '—'
-                              }
+                              {match.bowler?.figures || '0-0 (0.0)'}
                             </div>
                           </div>
                           {match.partnership && match.partnership.runs > 0 && (
@@ -1231,6 +1284,39 @@ const ScorecardDisplay = () => {
 
                 {/* Bottom Ball Tracker */}
                 <div className="ksp-ball-tracker">
+                  {/* FIX 5: Over-break chase display for 2nd innings */}
+                  {showOverBreakChase && match.isSecondInnings && (() => {
+                    const kspBpo = match.ballsPerOver || 6;
+                    const kspLbd = match.legalBallCount ?? 0;
+                    const kspTotalBalls = match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * kspBpo;
+                    const kspRemain = match.manualBallsOverride ? (match.manualBallsValue || 0) : Math.max(0, kspTotalBalls - kspLbd);
+                    const kspRuns = Math.max(0, (match.targetScore || 0) - (match.score || 0));
+                    return kspRuns > 0 ? (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'linear-gradient(90deg, #0D47A1, #082963)',
+                        border: '1px solid #FFC107',
+                        borderRadius: '6px 6px 0 0',
+                        padding: '4px 20px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        letterSpacing: '1px',
+                        color: '#fff',
+                        whiteSpace: 'nowrap',
+                        animation: 'ksp-slide-up 0.4s ease',
+                        zIndex: 20,
+                      }}>
+                        {match.battingTeam} NEED{' '}
+                        <span style={{ color: '#FFC107', fontSize: '16px' }}>{kspRuns}</span>
+                        {' '}FROM{' '}
+                        <span style={{ color: '#FFC107', fontSize: '16px' }}>{kspRemain}</span>
+                        {' '}BALLS
+                      </div>
+                    ) : null;
+                  })()}
                   {Array.from({ length: Math.max(bpo, balls.length) }).map((_, i) => {
                     const b = balls[i] || '';
                     let ballClass = '';

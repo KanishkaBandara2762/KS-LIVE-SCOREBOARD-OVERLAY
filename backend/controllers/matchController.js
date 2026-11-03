@@ -374,6 +374,31 @@ const updateScore = async (req, res, next) => {
         ...(updateData.$push || {}),
         perOverRuns: currentOverRunsFinal,
       };
+
+      // ── Auto-save current bowler to bowlerHistory at end of over ──────────────
+      // This ensures bowler figures are tracked over-by-over correctly
+      if (updatedBowler.name && updatedBowler.name !== 'SELECT BOWLER' && updatedBowler.name !== 'BOWLER') {
+        const existingHistory = [...(match.bowlerHistory || [])].map(b => ({ ...b }));
+        const existingIdx = existingHistory.findIndex(
+          b => b.name && b.name.toUpperCase() === updatedBowler.name.toUpperCase()
+        );
+        const bowlerRecord = {
+          name: updatedBowler.name,
+          legalBalls: updatedBowler.legalBalls,
+          overs: updatedBowler.overs,
+          maidens: updatedBowler.maidens || 0,
+          runs: updatedBowler.runs,
+          wickets: updatedBowler.wickets,
+          economy: updatedBowler.economy,
+          figures: updatedBowler.figures,
+        };
+        if (existingIdx >= 0) {
+          existingHistory[existingIdx] = bowlerRecord;
+        } else {
+          existingHistory.push(bowlerRecord);
+        }
+        updateData.bowlerHistory = existingHistory;
+      }
     }
 
     // ── Boundary events ───────────────────────────────────────────────────────
@@ -436,6 +461,7 @@ const updateScore = async (req, res, next) => {
       player1: updatedPlayer1,
       player2: updatedPlayer2,
       bowler: updatedBowler,
+      bowlerHistory: result.overCompleted ? updateData.bowlerHistory : undefined,
       extras: extrasUpdate,
       partnership: partnershipUpdate,
       eventTrigger: updateData.eventTrigger || null,
@@ -1022,15 +1048,27 @@ const changeBowler = async (req, res, next) => {
 
     // 1. Save current bowler to bowlerHistory (update or insert)
     const currentBowler = match.bowler;
-    let bowlerHistoryUpdate = [...(match.bowlerHistory || [])].map(b => ({ ...b }));
+    // Deduplicate existing bowlerHistory
+    const uniqueHistoryMap = new Map();
+    const rawHistory = match.bowlerHistory || [];
+    for (const b of rawHistory) {
+      if (!b?.name) continue;
+      const key = b.name.trim().toUpperCase();
+      const existing = uniqueHistoryMap.get(key);
+      if (!existing || (b.legalBalls || 0) > (existing.legalBalls || 0)) {
+        uniqueHistoryMap.set(key, { ...b });
+      }
+    }
+    let bowlerHistoryUpdate = Array.from(uniqueHistoryMap.values());
 
     if (currentBowler && currentBowler.name && currentBowler.name !== 'SELECT BOWLER') {
       const existingIdx = bowlerHistoryUpdate.findIndex(
-        b => b.name.toUpperCase() === currentBowler.name.toUpperCase()
+        b => b?.name?.toUpperCase() === currentBowler.name.toUpperCase()
       );
+      const incomingLegalBalls = currentBowler.legalBalls || 0;
       const bowlerData = {
         name: currentBowler.name,
-        legalBalls: currentBowler.legalBalls || 0,
+        legalBalls: incomingLegalBalls,
         overs: currentBowler.overs || 0,
         maidens: currentBowler.maidens || 0,
         runs: currentBowler.runs || 0,
@@ -1039,7 +1077,14 @@ const changeBowler = async (req, res, next) => {
         figures: currentBowler.figures || '0-0 (0.0)',
       };
       if (existingIdx >= 0) {
-        bowlerHistoryUpdate[existingIdx] = bowlerData;
+        // FIX: Only overwrite if new data is at least as complete as existing.
+        // This prevents a mid-over partial stat (fewer legalBalls) from wiping
+        // a previously completed over's accumulated figures stored in history.
+        const existingLegalBalls = bowlerHistoryUpdate[existingIdx].legalBalls || 0;
+        if (incomingLegalBalls >= existingLegalBalls) {
+          bowlerHistoryUpdate[existingIdx] = bowlerData;
+        }
+        // If incoming has fewer balls (stale), keep the history record untouched.
       } else {
         bowlerHistoryUpdate.push(bowlerData);
       }
@@ -1048,7 +1093,7 @@ const changeBowler = async (req, res, next) => {
     // 2. Check if new bowler has bowled before — load their previous stats
     const newBowlerNameUpper = bowlerName.trim().toUpperCase();
     const existingRecord = bowlerHistoryUpdate.find(
-      b => b.name.toUpperCase() === newBowlerNameUpper
+      b => b?.name?.toUpperCase() === newBowlerNameUpper
     );
 
     let newBowlerData;

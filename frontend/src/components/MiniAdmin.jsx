@@ -11,11 +11,12 @@ import { matchesApi, tournamentsApi, getToken } from '../api';
 import TossModal from './TossModal';
 import LogoUpload from './LogoUpload';
 import NewBatterModal from './NewBatterModal';
+import NewBowlerModal from './NewBowlerModal';
 
 
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 // MongoDB matches have matchId like KS-XXXXXXXX
-const isMongoDB = (id) => id && (/^KS-/i.test(id) || /^MATCH-/i.test(id));
+const isMongoDB = (id) => true;
 
 const getAbsoluteUrl = (url) => {
     if (!url) return '';
@@ -70,6 +71,7 @@ const MiniAdmin = () => {
     // ── v2.1 NEW STATE ────────────────────────────────────────────────────
     const [showTossModal, setShowTossModal] = useState(false);
     const [showNewBatterModal, setShowNewBatterModal] = useState(false);
+    const [showNewBowlerModal, setShowNewBowlerModal] = useState(false);
     const [newBatterSlot, setNewBatterSlot] = useState(null); // 'player1' | 'player2'
     const [outPlayerName, setOutPlayerName] = useState('');
     const [showBowlerHistory, setShowBowlerHistory] = useState(false);
@@ -476,6 +478,11 @@ const MiniAdmin = () => {
         });
     };
 
+    const handleNewBowlerConfirm = (playerName) => {
+        setShowNewBowlerModal(false);
+        handleChangeBowler({ name: playerName });
+    };
+
     const handleRunOut = () => {
         if (!match || match.overLocked) return;
         setHistory(h => [...h, match]);
@@ -663,13 +670,17 @@ const MiniAdmin = () => {
         setHistory(h => [...h, match]);
 
         if (isMongoDB(matchId)) {
+            // FIX: For MongoDB, the backend updateScore already flips the striker/non-striker
+            // when the 6th legal delivery completes the over (result.overCompleted = true).
+            // Do NOT flip here again — that would double-flip and cancel the correct swap.
+            // Only increment currentOver, unlock the over, and reset the bowler slot.
             push({
-                player1: { ...match.player1, onStrike: !match.player1.onStrike },
-                player2: { ...match.player2, onStrike: !match.player2.onStrike },
                 currentOver: (match.currentOver || 0) + 1,
                 overLocked: false,
+                bowler: { name: 'SELECT BOWLER', figures: '0-0 (0.0)' },
                 eventTrigger: "NEW_OVER",
             });
+            setShowNewBowlerModal(true); // FIX: Prompt for next bowler
         } else {
             pushEvent({
                 recentBalls: [],
@@ -677,9 +688,11 @@ const MiniAdmin = () => {
                 legalBallCount: 0,
                 currentOver: (match.currentOver || 0) + 1,
                 overLocked: false,
+                bowler: { name: 'SELECT BOWLER', figures: '0-0 (0.0)' },
                 player1: { ...match.player1, onStrike: !match.player1.onStrike },
                 player2: { ...match.player2, onStrike: !match.player2.onStrike },
             }, "NEW_OVER");
+            setShowNewBowlerModal(true);
         }
     };
 
@@ -780,6 +793,14 @@ const MiniAdmin = () => {
                     slot={newBatterSlot}
                     onConfirm={handleNewBatterConfirm}
                     onClose={() => setShowNewBatterModal(false)}
+                />
+            )}
+            {showNewBowlerModal && (
+                <NewBowlerModal 
+                    squad={match?.bowlingSquad || []}
+                    history={match?.bowlerHistory || []}
+                    onConfirm={handleNewBowlerConfirm}
+                    onClose={() => setShowNewBowlerModal(false)}
                 />
             )}
 
@@ -1269,6 +1290,7 @@ const MiniAdmin = () => {
                                     placeholder="Select striker"
                                     value={striker?.name || ''}
                                     onChange={e => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })}
+                                    squadOnly
                                 />
                             </div>
                             <div className="ma-field-row">
@@ -1279,6 +1301,7 @@ const MiniAdmin = () => {
                                     placeholder="Select non-striker"
                                     value={nonStriker?.name || ''}
                                     onChange={e => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })}
+                                    squadOnly
                                 />
                             </div>
                             <div className="ma-field-row">
@@ -1289,6 +1312,7 @@ const MiniAdmin = () => {
                                     placeholder="Select bowler"
                                     value={match.bowler?.name || ''}
                                     onChange={e => handleChangeBowler({ name: e.target.value })}
+                                    squadOnly
                                 />
                             </div>
                             <div className="ma-field-row" style={{ opacity: 0.55 }}>
@@ -1358,10 +1382,14 @@ const MiniAdmin = () => {
                                 {bowlingSquad.map((p, i) => (
                                     <div className="ma-squad-chip" key={`bwl-${i}`}>
                                         <span className="ma-chip-name">{i+1}. {p.name}</span>
-                                        {/* Show previous figures if bowler has history */}
-                                        {match.bowlerHistory?.find(b => b.name?.toUpperCase() === p.name?.toUpperCase()) && (
-                                            <span style={{ fontSize:'9px', color:'rgba(167,139,250,0.6)', marginLeft: 4 }}>
-                                                {match.bowlerHistory.find(b => b.name?.toUpperCase() === p.name?.toUpperCase())?.figures || ''}
+                                        {/* Show live figures ONLY for the currently bowling player.
+                                            All other bowlers show no figures here — their accumulated
+                                            stats from previous spells are restored by changeBowler when
+                                            they are selected via the BOWL button. */}
+                                        {match.bowler?.name?.toUpperCase() === p.name?.toUpperCase() &&
+                                         match.bowler?.figures && match.bowler.figures !== '0-0 (0.0)' && (
+                                            <span style={{ fontSize:'9px', color:'rgba(167,139,250,0.8)', marginLeft: 4, fontWeight: 700 }}>
+                                                {match.bowler.figures}
                                             </span>
                                         )}
                                         <div className="ma-chip-actions">

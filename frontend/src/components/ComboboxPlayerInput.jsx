@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 
-const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, className = "" }) => {
+const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, className = "", squadOnly = false }) => {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value || "");
@@ -18,6 +18,10 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
   }, [value]);
 
   useEffect(() => {
+    // FIX (Fix 3 & 4): When squadOnly=true, skip localStorage caches entirely.
+    // This ensures the current match's squad players are shown exclusively,
+    // without names leaking in from previous matches or tournaments.
+    if (squadOnly) return;
     const loadCustom = () => {
       try {
         const stored = JSON.parse(localStorage.getItem('ks_custom_players') || "[]");
@@ -35,9 +39,10 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
       window.removeEventListener('storage', loadCustom);
       window.removeEventListener('ks_players_updated', loadCustom);
     };
-  }, []);
+  }, [squadOnly]);
 
   useEffect(() => {
+    if (squadOnly) return; // FIX: skip db players when squadOnly
     const loadDbPlayers = () => {
       try {
         const stored = JSON.parse(localStorage.getItem("player_database") || "[]");
@@ -50,7 +55,7 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
     loadDbPlayers();
     window.addEventListener('ks_players_updated', loadDbPlayers);
     return () => window.removeEventListener('ks_players_updated', loadDbPlayers);
-  }, []);
+  }, [squadOnly]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -181,6 +186,7 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          onBlur={() => { if (inputValue.trim()) handleCommit(inputValue); }}
           onClick={() => setIsOpen(true)}
           style={{ paddingRight: '24px' }}
         />

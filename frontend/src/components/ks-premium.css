@@ -348,6 +348,7 @@
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
   margin-top: -1px; /* Pulls it flush with the board */
   animation: ksp-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: relative; /* FIX 5: allows over-break chase banner to position above */
 }
 
 .ksp-ball {
