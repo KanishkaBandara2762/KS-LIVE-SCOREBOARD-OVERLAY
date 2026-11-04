@@ -468,12 +468,21 @@ const MiniAdmin = () => {
         // Update squad status
         const updatedSquad = (match.battingSquad || []).map(p => {
             const name = p.name || p;
-            if (name === outPlayerName) return { ...p, status: 'out' };
+            if (name === outPlayerName && outPlayerName !== playerName) return { ...p, status: 'out' };
             if (name === playerName) return { ...p, status: 'batting' };
             return p;
         });
+        const currentSlotBatter = match[newBatterSlot];
+        const isFresh = !currentSlotBatter?.runs && !currentSlotBatter?.balls;
         push({
-            [newBatterSlot]: { name: playerName, runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: match[newBatterSlot]?.onStrike ?? true },
+            [newBatterSlot]: {
+                name: playerName,
+                runs: isFresh ? 0 : (currentSlotBatter?.runs || 0),
+                balls: isFresh ? 0 : (currentSlotBatter?.balls || 0),
+                fours: isFresh ? 0 : (currentSlotBatter?.fours || 0),
+                sixes: isFresh ? 0 : (currentSlotBatter?.sixes || 0),
+                onStrike: currentSlotBatter?.onStrike ?? true
+            },
             battingSquad: updatedSquad,
         });
     };
@@ -789,8 +798,9 @@ const MiniAdmin = () => {
             )}
             {showNewBatterModal && (
                 <NewBatterModal 
-                    match={match}
-                    slot={newBatterSlot}
+                    squad={match?.battingSquad || []}
+                    outPlayerName={outPlayerName}
+                    slotLabel={newBatterSlot === 'player1' ? (match?.player1?.onStrike ? 'Striker' : 'Non-Striker') : (match?.player2?.onStrike ? 'Striker' : 'Non-Striker')}
                     onConfirm={handleNewBatterConfirm}
                     onClose={() => setShowNewBatterModal(false)}
                 />
@@ -853,26 +863,52 @@ const MiniAdmin = () => {
 
                         {/* Players at crease */}
                         <div className="ma-players-card">
-                            <div className="ma-player-row ma-striker-row">
+                            <div 
+                                className="ma-player-row ma-striker-row" 
+                                style={{ cursor: 'pointer' }}
+                                title="Click to choose or change striker"
+                                onClick={() => {
+                                    setOutPlayerName(striker?.name || '');
+                                    setNewBatterSlot(match.player1.onStrike ? 'player1' : 'player2');
+                                    setShowNewBatterModal(true);
+                                }}
+                            >
                                 <div className="ma-player-info">
                                     <span className="ma-player-icon">🏏</span>
                                     <span className="ma-player-name">{striker?.name || 'SELECT STRIKER'}</span>
+                                    <span style={{ fontSize: '10px', color: '#facc15', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
                                 </div>
                                 <span className="ma-player-stat">{striker?.runs ?? 0}({striker?.balls ?? 0})</span>
                             </div>
                             <div className="ma-divider" />
-                            <div className="ma-player-row">
+                            <div 
+                                className="ma-player-row" 
+                                style={{ cursor: 'pointer' }}
+                                title="Click to choose or change non-striker"
+                                onClick={() => {
+                                    setOutPlayerName(nonStriker?.name || '');
+                                    setNewBatterSlot(match.player1.onStrike ? 'player2' : 'player1');
+                                    setShowNewBatterModal(true);
+                                }}
+                            >
                                 <div className="ma-player-info">
                                     <span className="ma-player-icon" style={{ opacity: 0.5 }}>🏏</span>
-                                    <span className="ma-player-name" style={{ color: 'rgba(255,255,255,0.6)' }}>{nonStriker?.name || 'SELECT NON-STRIKER'}</span>
+                                    <span className="ma-player-name" style={{ color: 'rgba(255,255,255,0.7)' }}>{nonStriker?.name || 'SELECT NON-STRIKER'}</span>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
                                 </div>
                                 <span className="ma-player-stat">{nonStriker?.runs ?? 0}({nonStriker?.balls ?? 0})</span>
                             </div>
                             <div className="ma-divider" />
-                            <div className="ma-player-row">
+                            <div 
+                                className="ma-player-row" 
+                                style={{ cursor: 'pointer' }}
+                                title="Click to choose or change bowler"
+                                onClick={() => setShowNewBowlerModal(true)}
+                            >
                                 <div className="ma-player-info">
                                     <span className="ma-player-icon">🎳</span>
                                     <span className="ma-player-name" style={{ color: '#a78bfa' }}>{match.bowler?.name || 'SELECT BOWLER'}</span>
+                                    <span style={{ fontSize: '10px', color: '#a78bfa', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
                                 </div>
                                 <span className="ma-player-stat" style={{ color: '#c4b5fd' }}>{match.bowler?.figures || ''}</span>
                             </div>

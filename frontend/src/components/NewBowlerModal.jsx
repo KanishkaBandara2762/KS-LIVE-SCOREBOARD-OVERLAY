@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 
-const NewBowlerModal = ({ squad, history, onConfirm }) => {
+const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
   const [customName, setCustomName] = useState('');
+
+  // Extract squad list (handle objects or strings)
+  const squadList = Array.isArray(squad) ? squad : [];
 
   // Extract previous bowlers from history and deduplicate them
   const rawHistory = history || [];
@@ -21,8 +24,8 @@ const NewBowlerModal = ({ squad, history, onConfirm }) => {
     onConfirm(customName.trim().toUpperCase());
   };
 
-  const handleSelectPrevious = (name) => {
-    onConfirm(name);
+  const handleSelect = (name) => {
+    onConfirm(name.trim().toUpperCase());
   };
 
   return (
@@ -36,57 +39,114 @@ const NewBowlerModal = ({ squad, history, onConfirm }) => {
         background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
         border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: 20,
-        padding: '36px 32px',
+        padding: '30px 26px',
         width: '100%', maxWidth: 420,
+        maxHeight: '90vh',
+        overflowY: 'auto',
         boxShadow: '0 40px 80px rgba(0,0,0,0.6)',
         color: '#fff',
         fontFamily: 'sans-serif'
       }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>🎯</div>
-          <h2 style={{
-            color: '#fff', fontSize: 20, fontWeight: 800,
-            letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0,
-          }}>NEW BOWLER</h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>
-            Select the bowler for the next over
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontSize: 32, marginBottom: 4 }}>🎯</div>
+            <h2 style={{
+              color: '#fff', fontSize: 18, fontWeight: 800,
+              letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0,
+            }}>CHOOSE BOWLER</h2>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4 }}>
+              Tap from squad, continue spell, or type name
+            </p>
+          </div>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', padding: 4 }}
+            >✕</button>
+          )}
         </div>
 
-        {/* Previous Bowlers Section */}
-        {previousBowlers.length > 0 && (
-          <div style={{ marginBottom: 24 }}>
+        {/* Team Squad Bowlers (Quick Select) */}
+        {squadList.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
             <div style={{
-              color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 700,
-              letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12,
-            }}>CONTINUE SPELL</div>
+              color: '#a78bfa', fontSize: 10, fontWeight: 800,
+              letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10,
+            }}>⚡ TEAM SQUAD BOWLERS ({squadList.length})</div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, maxHeight: 150, overflowY: 'auto' }}>
+              {squadList.map((p, i) => {
+                const name = typeof p === 'string' ? p : (p.name || '');
+                if (!name) return null;
+                const isSelected = customName.toUpperCase() === name.toUpperCase();
+                return (
+                  <button 
+                    key={i} 
+                    type="button"
+                    onClick={() => handleSelect(name)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '10px 12px', borderRadius: 10,
+                      border: isSelected ? '1.5px solid #a78bfa' : '1px solid rgba(167, 139, 250, 0.25)',
+                      background: isSelected ? 'rgba(167, 139, 250, 0.25)' : 'rgba(167, 139, 250, 0.08)',
+                      color: '#fff', fontSize: 12, fontWeight: 700,
+                      cursor: 'pointer', transition: 'all 0.15s',
+                      textAlign: 'left'
+                    }}
+                    onMouseOver={e => {
+                      e.currentTarget.style.background = 'rgba(167, 139, 250, 0.2)';
+                      e.currentTarget.style.borderColor = '#a78bfa';
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.background = isSelected ? 'rgba(167, 139, 250, 0.25)' : 'rgba(167, 139, 250, 0.08)';
+                      e.currentTarget.style.borderColor = isSelected ? '#a78bfa' : 'rgba(167, 139, 250, 0.25)';
+                    }}
+                  >
+                    <span style={{ fontSize: 11 }}>🏏</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Previous Bowlers Section (Spell History) */}
+        {previousBowlers.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{
+              color: '#facc15', fontSize: 10, fontWeight: 800,
+              letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10,
+            }}>🔄 RECENT BOWLERS (CONTINUE SPELL)</div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, maxHeight: 130, overflowY: 'auto' }}>
               {previousBowlers.map((b, i) => (
                 <button 
                   key={i} 
-                  onClick={() => handleSelectPrevious(b.name)}
+                  type="button"
+                  onClick={() => handleSelect(b.name)}
                   style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '12px 16px', borderRadius: 12,
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    background: 'rgba(255,255,255,0.03)',
-                    color: '#fff', fontSize: 14, fontWeight: 600,
-                    cursor: 'pointer', transition: 'all 0.2s',
+                    padding: '9px 14px', borderRadius: 10,
+                    border: '1px solid rgba(250,204,21,0.2)',
+                    background: 'rgba(250,204,21,0.06)',
+                    color: '#fff', fontSize: 13, fontWeight: 700,
+                    cursor: 'pointer', transition: 'all 0.15s',
                   }}
                   onMouseOver={e => {
-                    e.currentTarget.style.background = 'rgba(250,204,21,0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(250,204,21,0.3)';
+                    e.currentTarget.style.background = 'rgba(250,204,21,0.15)';
+                    e.currentTarget.style.borderColor = '#facc15';
                   }}
                   onMouseOut={e => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                    e.currentTarget.style.background = 'rgba(250,204,21,0.06)';
+                    e.currentTarget.style.borderColor = 'rgba(250,204,21,0.2)';
                   }}
                 >
-                  <span style={{ color: '#facc15' }}>{b.name}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 500 }}>
-                    {b.figures}
+                  <span style={{ color: '#facc15', textTransform: 'uppercase' }}>{b.name}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 600 }}>
+                    {b.figures || ''}
                   </span>
                 </button>
               ))}
@@ -94,78 +154,70 @@ const NewBowlerModal = ({ squad, history, onConfirm }) => {
           </div>
         )}
 
-        {/* OR Divider (only if previous bowlers exist) */}
-        {previousBowlers.length > 0 && (
-          <div style={{ 
-            display: 'flex', alignItems: 'center', margin: '20px 0',
-            color: 'rgba(255,255,255,0.2)', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em'
-          }}>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }}></div>
-            <div style={{ padding: '0 12px' }}>OR NEW BOWLER</div>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }}></div>
-          </div>
-        )}
-
         {/* Custom Input */}
         <div>
-           <div style={{
-              color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 700,
-              letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12,
-            }}>ENTER NAME OR SELECT FROM SQUAD</div>
+          <div style={{
+            color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8,
+          }}>OR TYPE CUSTOM BOWLER NAME</div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input
               type="text"
               value={customName}
-              placeholder="e.g. RASHID KHAN"
-              onChange={e => setCustomName(e.target.value)}
+              placeholder="e.g. LASITH MALINGA"
+              onChange={e => setCustomName(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && handleConfirmCustom()}
               autoFocus
-              list="squad-list"
               style={{
                 width: '100%',
                 background: 'rgba(0,0,0,0.3)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                padding: '14px 16px',
+                border: '1px solid rgba(255,255,255,0.15)',
+                padding: '12px 14px',
                 color: '#fff',
-                fontSize: 16,
-                fontWeight: 600,
-                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                borderRadius: 10,
                 outline: 'none',
                 boxSizing: 'border-box',
                 textTransform: 'uppercase'
               }}
-              onFocus={e => e.target.style.borderColor = '#3b82f6'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
             />
-            
-            {/* Datalist for squad auto-complete */}
-            <datalist id="squad-list">
-              {squad && squad.map((p, i) => (
-                 <option key={i} value={p.name || p} />
-              ))}
-            </datalist>
 
-            <button 
-              onClick={handleConfirmCustom}
-              disabled={!customName.trim()}
-              style={{
-                background: customName.trim() ? 'linear-gradient(to right, #3b82f6, #2563eb)' : 'rgba(255,255,255,0.05)',
-                color: customName.trim() ? '#fff' : 'rgba(255,255,255,0.2)',
-                border: 'none', 
-                padding: '14px', 
-                cursor: customName.trim() ? 'pointer' : 'not-allowed', 
-                fontSize: 14, 
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                borderRadius: 12,
-                marginTop: 8,
-                transition: 'all 0.2s',
-                boxShadow: customName.trim() ? '0 4px 12px rgba(37,99,235,0.4)' : 'none'
-              }}
-            >
-              CONFIRM BOWLER
-            </button>
+            <div style={{ display: 'grid', gridTemplateColumns: onClose ? '1fr 1fr' : '1fr', gap: 8, marginTop: 4 }}>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  style={{
+                    padding: '12px',
+                    background: 'rgba(255,255,255,0.05)',
+                    color: 'rgba(255,255,255,0.6)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 10, fontWeight: 700, fontSize: 12, cursor: 'pointer',
+                  }}
+                >CANCEL</button>
+              )}
+              <button 
+                type="button"
+                onClick={handleConfirmCustom}
+                disabled={!customName.trim()}
+                style={{
+                  background: customName.trim() ? 'linear-gradient(to right, #8b5cf6, #7c3aed)' : 'rgba(255,255,255,0.06)',
+                  color: customName.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+                  border: 'none', 
+                  padding: '12px', 
+                  cursor: customName.trim() ? 'pointer' : 'not-allowed', 
+                  fontSize: 13, 
+                  fontWeight: 800,
+                  letterSpacing: '0.05em',
+                  borderRadius: 10,
+                  transition: 'all 0.15s',
+                }}
+              >
+                ✅ CONFIRM BOWLER
+              </button>
+            </div>
           </div>
         </div>
 
