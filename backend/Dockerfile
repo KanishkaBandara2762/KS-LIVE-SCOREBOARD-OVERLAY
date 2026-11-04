@@ -1,4 +1,4 @@
-﻿FROM node:20-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -7,12 +7,9 @@ RUN npm ci --only=production
 
 COPY . .
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+# Ensure uploads directory exists and is writable
+RUN mkdir -p uploads/logos && chmod -R 777 uploads
 
 EXPOSE 3001
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget -qO- http://localhost:3001/health || exit 1
 
 CMD ["node", "server.js"]
