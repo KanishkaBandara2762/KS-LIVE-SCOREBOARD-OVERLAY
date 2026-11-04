@@ -339,7 +339,6 @@ const matchSchema = new mongoose.Schema(
 
 // ── Performance Indexes ─────────────────────────────────────────────────────
 matchSchema.index({ ownerUid: 1, createdAt: -1 });
-matchSchema.index({ slug: 1 }, { unique: true, sparse: true });
 matchSchema.index({ matchStatus: 1 });
 matchSchema.index({ publicScorePreview: 1 });
 

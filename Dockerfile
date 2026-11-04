@@ -12,3 +12,4 @@ RUN mkdir -p uploads/logos && chmod -R 777 uploads
 EXPOSE 3001
 
 CMD ["node", "server.js"]
+
