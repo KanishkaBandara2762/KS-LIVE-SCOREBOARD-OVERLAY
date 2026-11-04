@@ -45,7 +45,7 @@ async function apiRequest(path, options = {}) {
 }
 
 // ── Multipart fetch (for file uploads) ───────────────────────────────────────
-async function apiUpload(path, formData) {
+async function apiUpload(path, formData, method = 'POST') {
   const token = getToken();
   const headers = {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -54,9 +54,9 @@ async function apiUpload(path, formData) {
 
   let res;
   try {
-    res = await fetch(`${BASE_URL}${path}`, { method: 'POST', headers, body: formData });
+    res = await fetch(`${BASE_URL}${path}`, { method, headers, body: formData });
   } catch (networkErr) {
-    throw new Error('Cannot reach server.');
+    throw new Error('Cannot reach server. Make sure the backend is running.');
   }
 
   const data = await res.json().catch(() => ({ success: false, error: 'Invalid server response.' }));
@@ -103,8 +103,20 @@ export const tournamentsApi = {
   delete: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}`, { method: 'DELETE' }),
   nextMatch: (tournamentId, body) => apiRequest(`/api/tournaments/${tournamentId}/next-match`, { method: 'POST', body: JSON.stringify(body) }),
   // Teams & Players
-  addTeam: (tournamentId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams`, { method: 'POST', body: JSON.stringify(body) }),
-  updateTeam: (tournamentId, teamId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  addTeam: (tournamentId, data) => {
+    if (typeof FormData !== 'undefined' && data instanceof FormData) {
+      return apiUpload(`/api/tournaments/${tournamentId}/teams`, data, 'POST');
+    }
+    return apiRequest(`/api/tournaments/${tournamentId}/teams`, { method: 'POST', body: JSON.stringify(data) });
+  },
+  updateTeam: (tournamentId, teamId, data) => {
+    if (typeof FormData !== 'undefined' && data instanceof FormData) {
+      return apiUpload(`/api/tournaments/${tournamentId}/teams/${teamId}`, data, 'PUT');
+    }
+    return apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
+  uploadTeamLogo: (tournamentId, teamId, formData) =>
+    apiUpload(`/api/tournaments/${tournamentId}/teams/${teamId}/logo`, formData, 'POST'),
   deleteTeam: (tournamentId, teamId) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}`, { method: 'DELETE' }),
   addPlayer: (tournamentId, teamId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players`, { method: 'POST', body: JSON.stringify(body) }),
   updatePlayer: (tournamentId, teamId, playerId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`, { method: 'PUT', body: JSON.stringify(body) }),

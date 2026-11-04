@@ -24,6 +24,13 @@ const THEMES = [
   { id: 'KS_PREMIUM', label: '💎 KS Premium (Broadcast)' },
 ];
 
+const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const getAbsoluteUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) return url;
+  return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 const STATUS_COLORS = {
   live: { bg: '#22c55e', text: '#fff', label: '🔴 LIVE' },
   ended: { bg: '#6b7280', text: '#fff', label: '🏁 ENDED' },
@@ -116,8 +123,12 @@ function CreateMatchModal({ onClose, onCreate }) {
     }
   };
 
-  const logo1Preview = logo1 ? URL.createObjectURL(logo1) : null;
-  const logo2Preview = logo2 ? URL.createObjectURL(logo2) : null;
+  const logo1Preview = logo1
+    ? URL.createObjectURL(logo1)
+    : (useTournamentTeams && selectedTeam1?.logo ? getAbsoluteUrl(selectedTeam1.logo) : null);
+  const logo2Preview = logo2
+    ? URL.createObjectURL(logo2)
+    : (useTournamentTeams && selectedTeam2?.logo ? getAbsoluteUrl(selectedTeam2.logo) : null);
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>

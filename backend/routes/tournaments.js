@@ -7,6 +7,38 @@ const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
 const checkSessionValidity = require('../middleware/checkSessionValidity');
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// ── Team Logo Storage Setup ───────────────────────────────────────────
+const uploadDir = path.join(__dirname, '../uploads/logos');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const teamLogoStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const teamId = req.params.teamId || 'team';
+    cb(null, `team-${teamId}-${Date.now()}${ext}`);
+  },
+});
+
+const teamLogoUpload = multer({
+  storage: teamLogoStorage,
+  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PNG, JPG, WebP, GIF, SVG images are allowed (max 3MB)'));
+    }
+  },
+});
 
 // ── Public: Tournament details for OBS overlay ──────────────────────
 router.get('/public/:tournamentId', async (req, res, next) => {
@@ -107,9 +139,14 @@ router.delete('/:tournamentId', async (req, res, next) => {
 // ── TEAMS MANAGEMENT ──────────────────────────────────────────────────
 
 // ── POST /:tournamentId/teams (Add a team) ────────────────────────────
-router.post('/:tournamentId/teams', async (req, res, next) => {
+router.post('/:tournamentId/teams', teamLogoUpload.single('logo'), async (req, res, next) => {
   try {
-    const { name, shortName = '', logo = '', players = [] } = req.body;
+    const { name, shortName = '' } = req.body;
+    let logo = req.body.logo || '';
+    if (req.file) {
+      logo = `/uploads/logos/${req.file.filename}`;
+    }
+
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, error: 'Team name is required.' });
     }
@@ -129,8 +166,13 @@ router.post('/:tournamentId/teams', async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'A team with this name already exists in this tournament.' });
     }
 
-    // Format initial players if provided
-    const formattedPlayers = Array.isArray(players) ? players.map(p => ({
+    // Parse players if passed as JSON string (from FormData) or array
+    let rawPlayers = req.body.players || [];
+    if (typeof rawPlayers === 'string') {
+      try { rawPlayers = JSON.parse(rawPlayers); } catch { rawPlayers = []; }
+    }
+
+    const formattedPlayers = Array.isArray(rawPlayers) ? rawPlayers.map(p => ({
       name: typeof p === 'string' ? p.trim() : (p.name || '').trim(),
       role: typeof p === 'object' && p.role ? p.role : 'All-Rounder',
       jerseyNumber: typeof p === 'object' && p.jerseyNumber ? parseInt(p.jerseyNumber) : null,
@@ -161,7 +203,7 @@ router.post('/:tournamentId/teams', async (req, res, next) => {
 });
 
 // ── PUT /:tournamentId/teams/:teamId (Update a team) ──────────────────
-router.put('/:tournamentId/teams/:teamId', async (req, res, next) => {
+router.put('/:tournamentId/teams/:teamId', teamLogoUpload.single('logo'), async (req, res, next) => {
   try {
     const { name, shortName, logo } = req.body;
     const tournament = await Tournament.findOne({
@@ -180,7 +222,11 @@ router.put('/:tournamentId/teams/:teamId', async (req, res, next) => {
 
     if (name && name.trim()) team.name = name.trim();
     if (shortName !== undefined) team.shortName = shortName.trim().toUpperCase();
-    if (logo !== undefined) team.logo = logo.trim();
+    if (req.file) {
+      team.logo = `/uploads/logos/${req.file.filename}`;
+    } else if (logo !== undefined) {
+      team.logo = logo.trim();
+    }
 
     await tournament.save();
 
@@ -189,6 +235,43 @@ router.put('/:tournamentId/teams/:teamId', async (req, res, next) => {
       teams: tournament.teams,
       team,
       message: 'Team updated successfully.',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /:tournamentId/teams/:teamId/logo (Dedicated team logo upload) ──
+router.post('/:tournamentId/teams/:teamId/logo', teamLogoUpload.single('logo'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No logo image file provided.' });
+    }
+
+    const tournament = await Tournament.findOne({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    const team = tournament.teams.id(req.params.teamId);
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found.' });
+    }
+
+    const logoUrl = `/uploads/logos/${req.file.filename}`;
+    team.logo = logoUrl;
+    await tournament.save();
+
+    res.json({
+      success: true,
+      logoUrl,
+      team,
+      teams: tournament.teams,
+      message: 'Team logo updated successfully.',
     });
   } catch (err) {
     next(err);

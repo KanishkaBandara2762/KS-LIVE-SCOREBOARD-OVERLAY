@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { tournamentsApi } from '../api';
+
+const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const getAbsoluteUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) return url;
+  return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 const ROLE_OPTIONS = [
   { value: 'All-Rounder', label: '⭐ All-Rounder', color: '#facc15', bg: 'rgba(250, 204, 21, 0.12)' },
@@ -18,6 +25,13 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
   const [showAddTeam, setShowAddTeam] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamShortName, setTeamShortName] = useState('');
+  const [teamLogoFile, setTeamLogoFile] = useState(null);
+  const [teamLogoPreview, setTeamLogoPreview] = useState(null);
+  const teamLogoInputRef = useRef(null);
+
+  // Edit team logo for existing team
+  const editLogoInputRef = useRef(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   // Single player form state
   const [playerName, setPlayerName] = useState('');
@@ -40,6 +54,59 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
     setTimeout(() => setSuccessMsg(''), 3000);
   };
 
+  const handleLogoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Only image files (PNG, JPG, SVG, WebP) are allowed.');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setError('Logo file size must be under 3MB.');
+      return;
+    }
+    setTeamLogoFile(file);
+    setTeamLogoPreview(URL.createObjectURL(file));
+  };
+
+  const handleClearLogo = () => {
+    setTeamLogoFile(null);
+    setTeamLogoPreview(null);
+    if (teamLogoInputRef.current) teamLogoInputRef.current.value = '';
+  };
+
+  const handleEditTeamLogo = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedTeam) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Only image files (PNG, JPG, SVG, WebP) are allowed.');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setError('Logo file size must be under 3MB.');
+      return;
+    }
+
+    setUploadingLogo(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
+      const teamId = selectedTeam._id || selectedTeam.id;
+      const res = await tournamentsApi.uploadTeamLogo(currentTournament._id || currentTournament.id, teamId, formData);
+      const updatedTeams = res.teams || currentTournament.teams.map(t => ((t._id || t.id) === teamId ? res.team : t));
+      const updatedTourney = { ...currentTournament, teams: updatedTeams };
+      setCurrentTournament(updatedTourney);
+      showNotification(`Updated logo for "${selectedTeam.name}"!`);
+      if (onUpdated) onUpdated(updatedTourney);
+    } catch (err) {
+      setError(err.message || 'Failed to upload team logo.');
+    } finally {
+      setUploadingLogo(false);
+      if (editLogoInputRef.current) editLogoInputRef.current.value = '';
+    }
+  };
+
   // ── Team Handlers ──────────────────────────────────────────────────────────
   const handleAddTeam = async (e) => {
     e.preventDefault();
@@ -51,10 +118,19 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
     setLoading(true);
     setError('');
     try {
-      const res = await tournamentsApi.addTeam(currentTournament._id || currentTournament.id, {
-        name: teamName.trim(),
-        shortName: teamShortName.trim().toUpperCase(),
-      });
+      let res;
+      if (teamLogoFile) {
+        const formData = new FormData();
+        formData.append('name', teamName.trim());
+        formData.append('shortName', teamShortName.trim().toUpperCase());
+        formData.append('logo', teamLogoFile);
+        res = await tournamentsApi.addTeam(currentTournament._id || currentTournament.id, formData);
+      } else {
+        res = await tournamentsApi.addTeam(currentTournament._id || currentTournament.id, {
+          name: teamName.trim(),
+          shortName: teamShortName.trim().toUpperCase(),
+        });
+      }
 
       const updatedTeams = res.teams || [];
       const updatedTourney = { ...currentTournament, teams: updatedTeams };
@@ -64,6 +140,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
       }
       setTeamName('');
       setTeamShortName('');
+      handleClearLogo();
       setShowAddTeam(false);
       showNotification(`Team "${teamName.trim()}" created!`);
       if (onUpdated) onUpdated(updatedTourney);
@@ -253,22 +330,94 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
             {/* Add Team Inline Form */}
             {showAddTeam && (
               <form onSubmit={handleAddTeam} style={{ background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.25)', borderRadius: '10px', padding: '12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input
-                  type="text"
-                  placeholder="Team Name (e.g. Titans)"
-                  value={teamName}
-                  onChange={e => setTeamName(e.target.value)}
-                  autoFocus
-                  style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '0.85rem' }}
-                />
-                <input
-                  type="text"
-                  placeholder="Short Code (e.g. TTN)"
-                  maxLength={5}
-                  value={teamShortName}
-                  onChange={e => setTeamShortName(e.target.value)}
-                  style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '0.85rem' }}
-                />
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  {/* Logo Picker */}
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <div
+                      onClick={() => teamLogoInputRef.current?.click()}
+                      title="Upload Team Logo"
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '8px',
+                        background: teamLogoPreview ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.06)',
+                        border: `1px dashed ${teamLogoPreview ? '#3b82f6' : 'rgba(255,255,255,0.25)'}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        overflow: 'hidden',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {teamLogoPreview ? (
+                        <img src={teamLogoPreview} alt="Logo Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      ) : (
+                        <>
+                          <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🛡️</span>
+                          <span style={{ fontSize: '0.55rem', color: '#94a3b8', fontWeight: 700, marginTop: '2px' }}>+ Logo</span>
+                        </>
+                      )}
+                    </div>
+
+                    {teamLogoPreview && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleClearLogo(); }}
+                        style={{
+                          position: 'absolute',
+                          top: '-6px',
+                          right: '-6px',
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '50%',
+                          background: '#ef4444',
+                          color: '#fff',
+                          border: 'none',
+                          fontSize: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          fontWeight: 800,
+                        }}
+                        title="Remove Logo"
+                      >
+                        ✕
+                      </button>
+                    )}
+
+                    <input
+                      type="file"
+                      ref={teamLogoInputRef}
+                      style={{ display: 'none' }}
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      onChange={handleLogoChange}
+                    />
+                  </div>
+
+                  {/* Name and Short code */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                    <input
+                      type="text"
+                      placeholder="Team Name (e.g. Titans)"
+                      value={teamName}
+                      onChange={e => setTeamName(e.target.value)}
+                      autoFocus
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '0.85rem' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Short Code (e.g. TTN)"
+                      maxLength={5}
+                      value={teamShortName}
+                      onChange={e => setTeamShortName(e.target.value)}
+                      style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -303,13 +452,29 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                        <span style={{
-                          background: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.1)',
-                          color: '#fff', fontWeight: 800, fontSize: '0.7rem', padding: '2px 6px',
-                          borderRadius: '4px', letterSpacing: '0.05em'
-                        }}>
-                          {t.shortName || t.name.slice(0, 3).toUpperCase()}
-                        </span>
+                        {t.logo ? (
+                          <img
+                            src={getAbsoluteUrl(t.logo)}
+                            alt={t.name}
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              objectFit: 'contain',
+                              background: 'rgba(0,0,0,0.3)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              flexShrink: 0,
+                            }}
+                          />
+                        ) : (
+                          <span style={{
+                            background: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.1)',
+                            color: '#fff', fontWeight: 800, fontSize: '0.7rem', padding: '2px 6px',
+                            borderRadius: '4px', letterSpacing: '0.05em', flexShrink: 0
+                          }}>
+                            {t.shortName || t.name.slice(0, 3).toUpperCase()}
+                          </span>
+                        )}
                         <div style={{ overflow: 'hidden' }}>
                           <div style={{ color: isSelected ? '#fff' : '#cbd5e1', fontWeight: 700, fontSize: '0.85rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                             {t.name}
@@ -344,16 +509,73 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
               <>
                 {/* Team Info Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px', marginBottom: '16px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#facc15' }}>{selectedTeam.name}</span>
-                      <span style={{ background: 'rgba(250,204,21,0.15)', color: '#facc15', border: '1px solid rgba(250,204,21,0.3)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 800 }}>
-                        {selectedTeam.shortName || selectedTeam.name.slice(0, 3).toUpperCase()}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    {/* Team Logo with click-to-change */}
+                    <div style={{ position: 'relative' }}>
+                      <div
+                        onClick={() => editLogoInputRef.current?.click()}
+                        title="Click to change team logo"
+                        style={{
+                          width: '46px',
+                          height: '46px',
+                          borderRadius: '10px',
+                          background: 'rgba(0,0,0,0.4)',
+                          border: '1px solid rgba(255,255,255,0.15)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          overflow: 'hidden',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        {selectedTeam.logo ? (
+                          <img
+                            src={getAbsoluteUrl(selectedTeam.logo)}
+                            alt={selectedTeam.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '1.4rem' }}>🏏</span>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        ref={editLogoInputRef}
+                        style={{ display: 'none' }}
+                        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                        onChange={handleEditTeamLogo}
+                      />
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#facc15' }}>{selectedTeam.name}</span>
+                        <span style={{ background: 'rgba(250,204,21,0.15)', color: '#facc15', border: '1px solid rgba(250,204,21,0.3)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 800 }}>
+                          {selectedTeam.shortName || selectedTeam.name.slice(0, 3).toUpperCase()}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => editLogoInputRef.current?.click()}
+                          disabled={uploadingLogo}
+                          style={{
+                            background: 'rgba(255,255,255,0.07)',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            color: '#cbd5e1',
+                            borderRadius: '6px',
+                            padding: '2px 8px',
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {uploadingLogo ? 'Uploading...' : (selectedTeam.logo ? 'Change Logo' : '+ Add Logo')}
+                        </button>
+                      </div>
+                      <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                        Roster: {selectedTeam.players?.length || 0} players registered
                       </span>
                     </div>
-                    <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
-                      Roster: {selectedTeam.players?.length || 0} players registered
-                    </span>
                   </div>
 
                   {/* Bulk Add Toggle */}
@@ -508,3 +730,4 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
     </div>
   );
 }
+
