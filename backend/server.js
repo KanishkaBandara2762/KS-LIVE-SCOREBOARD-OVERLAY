@@ -132,9 +132,9 @@ const apiLimiter = rateLimit({
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, requireDB, authRoutes);
-app.use('/api', apiLimiter, requireDB, matchRoutes);
 app.use('/api/tournaments', apiLimiter, requireDB, tournamentRoutes);
 app.use('/api/admin', apiLimiter, requireDB, require('./routes/admin'));
+app.use('/api', apiLimiter, requireDB, matchRoutes);
 
 // ── Root & Health check ────────────────────────────────────────────────────
 app.get('/', (req, res) => {
