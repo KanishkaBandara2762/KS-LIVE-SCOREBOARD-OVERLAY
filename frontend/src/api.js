@@ -100,7 +100,15 @@ export const tournamentsApi = {
   get: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}`),
   publicGet: (tournamentId) => apiRequest(`/api/tournaments/public/${tournamentId}`),
   create: (body) => apiRequest('/api/tournaments/create', { method: 'POST', body: JSON.stringify(body) }),
+  delete: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}`, { method: 'DELETE' }),
   nextMatch: (tournamentId, body) => apiRequest(`/api/tournaments/${tournamentId}/next-match`, { method: 'POST', body: JSON.stringify(body) }),
+  // Teams & Players
+  addTeam: (tournamentId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams`, { method: 'POST', body: JSON.stringify(body) }),
+  updateTeam: (tournamentId, teamId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteTeam: (tournamentId, teamId) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}`, { method: 'DELETE' }),
+  addPlayer: (tournamentId, teamId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players`, { method: 'POST', body: JSON.stringify(body) }),
+  updatePlayer: (tournamentId, teamId, playerId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deletePlayer: (tournamentId, teamId, playerId) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`, { method: 'DELETE' }),
 };
 
 // ── Admin API ───────────────────────────────────────────────────────────────

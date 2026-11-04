@@ -186,6 +186,7 @@ const squadPlayerSchema = new mongoose.Schema(
   {
     id: { type: String, default: () => uuidv4() },
     name: { type: String, required: true },
+    role: { type: String, default: 'All-Rounder' },
     photo: { type: String, default: '' },
     status: { type: String, enum: ['available', 'batting', 'out', 'retired'], default: 'available' },
     battingOrder: { type: Number, default: 0 },

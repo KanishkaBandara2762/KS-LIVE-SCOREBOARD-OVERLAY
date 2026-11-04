@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, getToken } from '../api';
 import SubscriptionCountdownWidget from './SubscriptionCountdownWidget';
+import TournamentTeamsModal from './TournamentTeamsModal';
 import './Dashboard.css';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
@@ -296,9 +297,23 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
   const [logo1, setLogo1] = React.useState(null);
   const [logo2, setLogo2] = React.useState(null);
 
+  const tournamentTeams = tournament.teams || [];
+  const hasTeams = tournamentTeams.length >= 2;
+
+  const [useTournamentTeams, setUseTournamentTeams] = React.useState(hasTeams);
+  const [selectedTeam1Id, setSelectedTeam1Id] = React.useState(
+    hasTeams ? (tournamentTeams[0]._id || tournamentTeams[0].id) : ''
+  );
+  const [selectedTeam2Id, setSelectedTeam2Id] = React.useState(
+    hasTeams ? (tournamentTeams[1]._id || tournamentTeams[1].id) : ''
+  );
+
+  const selectedTeam1 = tournamentTeams.find(t => (t._id || t.id) === selectedTeam1Id) || null;
+  const selectedTeam2 = tournamentTeams.find(t => (t._id || t.id) === selectedTeam2Id) || null;
+
   const [form, setForm] = React.useState({
-    team1Name: '',
-    team2Name: '',
+    team1Name: hasTeams ? (tournamentTeams[0]?.name || '') : '',
+    team2Name: hasTeams ? (tournamentTeams[1]?.name || '') : '',
     maxOvers: 20,
     ballsPerOver: 6,
     matchType: 'T20',
@@ -316,22 +331,60 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSelectTeam1 = (id) => {
+    setSelectedTeam1Id(id);
+    const t1 = tournamentTeams.find(t => (t._id || t.id) === id);
+    if (t1) {
+      setForm(prev => ({ ...prev, team1Name: t1.name }));
+    }
+    if (selectedTeam2Id === id) {
+      const other = tournamentTeams.find(t => (t._id || t.id) !== id);
+      if (other) {
+        setSelectedTeam2Id(other._id || other.id);
+        setForm(prev => ({ ...prev, team2Name: other.name }));
+      }
+    }
+  };
+
+  const handleSelectTeam2 = (id) => {
+    setSelectedTeam2Id(id);
+    const t2 = tournamentTeams.find(t => (t._id || t.id) === id);
+    if (t2) {
+      setForm(prev => ({ ...prev, team2Name: t2.name }));
+    }
+  };
+
+  const currentTeam1Name = useTournamentTeams && selectedTeam1 ? selectedTeam1.name : (form.team1Name || 'Team A');
+  const currentTeam2Name = useTournamentTeams && selectedTeam2 ? selectedTeam2.name : (form.team2Name || 'Team B');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.team1Name.trim() || !form.team2Name.trim()) {
+    const finalTeam1Name = (useTournamentTeams && selectedTeam1 ? selectedTeam1.name : form.team1Name).trim();
+    const finalTeam2Name = (useTournamentTeams && selectedTeam2 ? selectedTeam2.name : form.team2Name).trim();
+
+    if (!finalTeam1Name || !finalTeam2Name) {
       setError('Both team names are required.');
       return;
     }
+    if (finalTeam1Name.toUpperCase() === finalTeam2Name.toUpperCase()) {
+      setError('Team 1 and Team 2 cannot be the same team.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
       const tossWinnerName = form.tossWinner === 'team1'
-        ? form.team1Name.trim().toUpperCase()
-        : form.team2Name.trim().toUpperCase();
+        ? finalTeam1Name.toUpperCase()
+        : finalTeam2Name.toUpperCase();
 
-      const result = await onSubmit(tournament.id || tournament._id, {
-        team1Name: form.team1Name.trim().toUpperCase(),
-        team2Name: form.team2Name.trim().toUpperCase(),
+      const payload = {
+        team1Name: finalTeam1Name.toUpperCase(),
+        team2Name: finalTeam2Name.toUpperCase(),
+        team1Id: useTournamentTeams && selectedTeam1 ? (selectedTeam1._id || selectedTeam1.id) : null,
+        team2Id: useTournamentTeams && selectedTeam2 ? (selectedTeam2._id || selectedTeam2.id) : null,
+        team1Squad: useTournamentTeams && selectedTeam1 ? (selectedTeam1.players || []) : [],
+        team2Squad: useTournamentTeams && selectedTeam2 ? (selectedTeam2.players || []) : [],
         maxOvers: parseInt(form.maxOvers) || 20,
         ballsPerOver: parseInt(form.ballsPerOver) || 6,
         matchType: form.matchType,
@@ -339,10 +392,12 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
         venueName: form.venueName,
         themeID: form.themeID,
         toss: { winner: tossWinnerName, decision: form.tossDecision, completed: true },
-      });
+      };
+
+      const result = await onSubmit(tournament.id || tournament._id, payload);
 
       if (result && result.matchId && matchesApi.uploadLogo) {
-        const team1IsBatting = tossWinnerName === form.team1Name.trim().toUpperCase() 
+        const team1IsBatting = tossWinnerName === finalTeam1Name.toUpperCase() 
           ? form.tossDecision === 'bat' 
           : form.tossDecision === 'bowl';
         
@@ -362,7 +417,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 
       onClose(result.matchId);
     } catch (err) {
-      setError(err.message || 'Failed to transition match.');
+      setError(err.message || 'Failed to start match.');
       setLoading(false);
     }
   };
@@ -372,22 +427,88 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card" style={{ maxWidth: '500px', padding: '32px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+      <div className="modal-card" style={{ maxWidth: '540px', padding: '32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em', margin: 0, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             START NEXT MATCH
           </h2>
-          <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tournament.name}</div>
+          <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tournament.name}</div>
           <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', margin: '12px auto 0', borderRadius: '4px' }} />
         </div>
+
+        {/* Team Selection Mode Toggle (if tournament has teams) */}
+        {hasTeams ? (
+          <div style={{ display: 'flex', background: 'rgba(0,0,0,0.35)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '20px' }}>
+            <button
+              type="button"
+              onClick={() => setUseTournamentTeams(true)}
+              style={{
+                flex: 1, padding: '8px 12px', border: 'none', borderRadius: '8px',
+                background: useTournamentTeams ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
+                color: useTournamentTeams ? '#fff' : '#94a3b8',
+                fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              🏆 Choose Tournament Teams ({tournamentTeams.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setUseTournamentTeams(false)}
+              style={{
+                flex: 1, padding: '8px 12px', border: 'none', borderRadius: '8px',
+                background: !useTournamentTeams ? 'rgba(255,255,255,0.1)' : 'transparent',
+                color: !useTournamentTeams ? '#fff' : '#94a3b8',
+                fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              ✏️ Custom Names
+            </button>
+          </div>
+        ) : (
+          <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.8rem', color: '#93c5fd', marginBottom: '20px' }}>
+            💡 <strong>Tip:</strong> Click <strong>Teams & Squads</strong> on the tournament card to add teams and players for 1-click squad selection!
+          </div>
+        )}
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
+          {/* Team A Box */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Team A Name</label>
-              <input name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="e.g. COLOMBO KINGS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Team A (Home)</label>
+                {useTournamentTeams && selectedTeam1 && (
+                  <span style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: 700, background: 'rgba(59,130,246,0.12)', padding: '1px 6px', borderRadius: '4px' }}>
+                    {selectedTeam1.players?.length || 0} players loaded
+                  </span>
+                )}
+              </div>
+
+              {useTournamentTeams && hasTeams ? (
+                <select
+                  value={selectedTeam1Id}
+                  onChange={(e) => handleSelectTeam1(e.target.value)}
+                  className="form-select"
+                  style={{ width: '100%', fontSize: '1rem', fontWeight: 700, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '10px' }}
+                >
+                  {tournamentTeams.map((t) => (
+                    <option key={t._id || t.id} value={t._id || t.id}>
+                      {t.name} ({t.players?.length || 0} players)
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  name="team1Name"
+                  value={form.team1Name}
+                  onChange={handleChange}
+                  placeholder="e.g. COLOMBO KINGS"
+                  className="form-input"
+                  style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}
+                />
+              )}
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
               <div 
@@ -400,10 +521,12 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', margin: '-16px 0', position: 'relative', zIndex: 2 }}>
-            <span style={{ background: '#0d1b35', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: '#facc15', border: '1px solid rgba(234,179,8,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
+          {/* VS Divider */}
+          <div style={{ textAlign: 'center', margin: '-14px 0', position: 'relative', zIndex: 2 }}>
+            <span style={{ background: '#0d1b35', padding: '4px 14px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: '#facc15', border: '1px solid rgba(234,179,8,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
           </div>
 
+          {/* Team B Box */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
@@ -415,12 +538,44 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
               </div>
               <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
             </div>
+
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em', textAlign: 'right' }}>Team B Name</label>
-              <input name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="e.g. KANDY TUSKERS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'right' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                {useTournamentTeams && selectedTeam2 && (
+                  <span style={{ fontSize: '0.7rem', color: '#a78bfa', fontWeight: 700, background: 'rgba(167,139,250,0.12)', padding: '1px 6px', borderRadius: '4px' }}>
+                    {selectedTeam2.players?.length || 0} players loaded
+                  </span>
+                )}
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginLeft: 'auto' }}>Team B (Away)</label>
+              </div>
+
+              {useTournamentTeams && hasTeams ? (
+                <select
+                  value={selectedTeam2Id}
+                  onChange={(e) => handleSelectTeam2(e.target.value)}
+                  className="form-select"
+                  style={{ width: '100%', fontSize: '1rem', fontWeight: 700, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '10px' }}
+                >
+                  {tournamentTeams.map((t) => (
+                    <option key={t._id || t.id} value={t._id || t.id} disabled={(t._id || t.id) === selectedTeam1Id}>
+                      {t.name} ({t.players?.length || 0} players)
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  name="team2Name"
+                  value={form.team2Name}
+                  onChange={handleChange}
+                  placeholder="e.g. KANDY TUSKERS"
+                  className="form-input"
+                  style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'right' }}
+                />
+              )}
             </div>
           </div>
 
+          {/* Overs & Balls */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
@@ -433,12 +588,39 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
             </div>
           </div>
 
+          {/* Toss Box */}
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Toss Won By</span>
-              <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
-                <button type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team1' ? '#3b82f6' : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team A</button>
-                <button type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team2' ? '#8b5cf6' : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team B</button>
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px', maxWidth: '65%' }}>
+                <button
+                  type="button"
+                  onClick={() => setForm({...form, tossWinner: 'team1'})}
+                  style={{
+                    padding: '8px 16px', borderRadius: '8px', border: 'none',
+                    background: form.tossWinner === 'team1' ? '#3b82f6' : 'transparent',
+                    color: form.tossWinner === 'team1' ? '#fff' : '#94a3b8',
+                    fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                  }}
+                  title={currentTeam1Name}
+                >
+                  {currentTeam1Name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({...form, tossWinner: 'team2'})}
+                  style={{
+                    padding: '8px 16px', borderRadius: '8px', border: 'none',
+                    background: form.tossWinner === 'team2' ? '#8b5cf6' : 'transparent',
+                    color: form.tossWinner === 'team2' ? '#fff' : '#94a3b8',
+                    fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                  }}
+                  title={currentTeam2Name}
+                >
+                  {currentTeam2Name}
+                </button>
               </div>
             </div>
 
@@ -458,17 +640,28 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
               <option value="Knockout">Knockout</option>
               <option value="Final">Final</option>
               <option value="T20">T20</option>
-              <option value="T10">T10</option>
+              <option value="ODI">ODI</option>
+              <option value="Custom">Custom</option>
             </select>
           </div>
 
-          <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
-            <button type="button" onClick={() => onClose()} className="btn-secondary" style={{ flex: 1, padding: '14px', fontSize: '1rem' }}>Cancel</button>
-            <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 2, padding: '14px', fontSize: '1rem' }}>
-              {loading ? '⏳ Deploying Match...' : '🚀 Start Next Match'}
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Theme</label>
+            <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
+              {THEMES.map(t => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {error && <div className="form-error" style={{ margin: 0, padding: '12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' }}>⚠ {error}</div>}
+
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+            <button type="button" className="btn-secondary" style={{ flex: 1, padding: '14px', borderRadius: '12px', fontWeight: 700 }} onClick={() => onClose()}>Cancel</button>
+            <button type="submit" className="btn-primary" disabled={loading} style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 800, background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', boxShadow: '0 4px 15px rgba(59,130,246,0.4)' }}>
+              {loading ? '⏳ Starting Match...' : '🚀 Start Next Match'}
             </button>
           </div>
-          {error && <div className="form-error" style={{ textAlign: 'center' }}>{error}</div>}
         </form>
       </div>
     </div>
@@ -561,7 +754,7 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl }) {
 }
 
 // ── Tournament Card ───────────────────────────────────────────────────────
-function TournamentCard({ tournament, onOpenMatch, onStartNextMatch }) {
+function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams }) {
   const [copied, setCopied] = useState(false);
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
 
@@ -588,6 +781,10 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch }) {
         <div className="meta-row">
           <span>Created:</span>
           <strong>{new Date(tournament.createdAt).toLocaleDateString()}</strong>
+        </div>
+        <div className="meta-row">
+          <span>Teams:</span>
+          <strong style={{ color: tournament.teams?.length ? "#60a5fa" : "#94a3b8" }}>{tournament.teams?.length || 0} teams</strong>
         </div>
         <div className="meta-row">
           <span>Total Matches:</span>
@@ -620,6 +817,9 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch }) {
         ) : (
           <span style={{ fontSize: '0.85rem', color: '#64748b', alignSelf: 'center', flex: 1, textAlign: 'center' }}>No live match active.</span>
         )}
+        <button className="btn-secondary" style={{ padding: "8px 12px", fontSize: "0.8rem", fontWeight: 800, background: "rgba(59,130,246,0.15)", borderColor: "rgba(59,130,246,0.3)", color: "#60a5fa" }} onClick={() => onManageTeams(tournament)}>
+          👥 Teams & Squads ({tournament.teams?.length || 0})
+        </button>
         <button className="btn-mini" onClick={() => onStartNextMatch(tournament)}>
           ⚡ Next Match
         </button>
@@ -646,6 +846,8 @@ const Dashboard = () => {
   const [showCreateTournament, setShowCreateTournament] = useState(false);
   const [showNextMatch, setShowNextMatch] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
+  const [showTournamentTeams, setShowTournamentTeams] = useState(false);
+  const [teamsModalTournament, setTeamsModalTournament] = useState(null);
 
   const fetchMatches = useCallback(async () => {
     if (!getToken()) { setLoading(false); return; }
@@ -951,6 +1153,10 @@ const Dashboard = () => {
                     key={t.id || t._id}
                     tournament={t}
                     onOpenMatch={handleOpen}
+                    onManageTeams={(tourney) => {
+                      setTeamsModalTournament(tourney);
+                      setShowTournamentTeams(true);
+                    }}
                     onStartNextMatch={(tourney) => {
                       setSelectedTournament(tourney);
                       setShowNextMatch(true);
@@ -1029,6 +1235,23 @@ const Dashboard = () => {
       {/* Create Tournament Modal */}
       {showCreateTournament && (
         <CreateTournamentModal onClose={() => setShowCreateTournament(false)} onCreate={handleCreateTournament} />
+      )}
+
+      {/* Tournament Teams & Squads Modal */}
+      {showTournamentTeams && teamsModalTournament && (
+        <TournamentTeamsModal
+          tournament={teamsModalTournament}
+          onClose={() => setShowTournamentTeams(false)}
+          onUpdated={(updated) => {
+            setTournaments((prev) =>
+              prev.map((t) => ((t.id || t._id) === (updated.id || updated._id) ? updated : t))
+            );
+            setTeamsModalTournament(updated);
+            if (selectedTournament && (selectedTournament.id || selectedTournament._id) === (updated.id || updated._id)) {
+              setSelectedTournament(updated);
+            }
+          }}
+        />
       )}
 
       {/* Start Next Match Modal */}

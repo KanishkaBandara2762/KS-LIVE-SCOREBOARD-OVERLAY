@@ -73,12 +73,309 @@ router.post('/create', async (req, res, next) => {
       name,
       type,
       clientId: req.user.id,
+      teams: [],
     });
 
     res.status(201).json({
       success: true,
       tournament,
       message: 'Tournament created successfully.',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── DELETE /:tournamentId ─────────────────────────────────────────────
+router.delete('/:tournamentId', async (req, res, next) => {
+  try {
+    const tournament = await Tournament.findOneAndDelete({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    res.json({ success: true, message: 'Tournament deleted successfully.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── TEAMS MANAGEMENT ──────────────────────────────────────────────────
+
+// ── POST /:tournamentId/teams (Add a team) ────────────────────────────
+router.post('/:tournamentId/teams', async (req, res, next) => {
+  try {
+    const { name, shortName = '', logo = '', players = [] } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Team name is required.' });
+    }
+
+    const tournament = await Tournament.findOne({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    // Check duplicate team name in this tournament
+    const normalizedName = name.trim().toUpperCase();
+    if (tournament.teams.some(t => t.name.toUpperCase() === normalizedName)) {
+      return res.status(400).json({ success: false, error: 'A team with this name already exists in this tournament.' });
+    }
+
+    // Format initial players if provided
+    const formattedPlayers = Array.isArray(players) ? players.map(p => ({
+      name: typeof p === 'string' ? p.trim() : (p.name || '').trim(),
+      role: typeof p === 'object' && p.role ? p.role : 'All-Rounder',
+      jerseyNumber: typeof p === 'object' && p.jerseyNumber ? parseInt(p.jerseyNumber) : null,
+      battingOrder: typeof p === 'object' && p.battingOrder ? parseInt(p.battingOrder) : 0,
+    })).filter(p => p.name) : [];
+
+    const newTeam = {
+      name: name.trim(),
+      shortName: shortName.trim().toUpperCase() || name.trim().slice(0, 3).toUpperCase(),
+      logo: logo.trim(),
+      players: formattedPlayers,
+    };
+
+    tournament.teams.push(newTeam);
+    await tournament.save();
+
+    const createdTeam = tournament.teams[tournament.teams.length - 1];
+
+    res.status(201).json({
+      success: true,
+      teams: tournament.teams,
+      team: createdTeam,
+      message: 'Team added successfully.',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── PUT /:tournamentId/teams/:teamId (Update a team) ──────────────────
+router.put('/:tournamentId/teams/:teamId', async (req, res, next) => {
+  try {
+    const { name, shortName, logo } = req.body;
+    const tournament = await Tournament.findOne({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    const team = tournament.teams.id(req.params.teamId);
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found in this tournament.' });
+    }
+
+    if (name && name.trim()) team.name = name.trim();
+    if (shortName !== undefined) team.shortName = shortName.trim().toUpperCase();
+    if (logo !== undefined) team.logo = logo.trim();
+
+    await tournament.save();
+
+    res.json({
+      success: true,
+      teams: tournament.teams,
+      team,
+      message: 'Team updated successfully.',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── DELETE /:tournamentId/teams/:teamId (Delete a team) ───────────────
+router.delete('/:tournamentId/teams/:teamId', async (req, res, next) => {
+  try {
+    const tournament = await Tournament.findOne({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    const team = tournament.teams.id(req.params.teamId);
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found.' });
+    }
+
+    team.deleteOne();
+    await tournament.save();
+
+    res.json({
+      success: true,
+      teams: tournament.teams,
+      message: 'Team deleted successfully.',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── PLAYERS MANAGEMENT ────────────────────────────────────────────────
+
+// ── POST /:tournamentId/teams/:teamId/players (Add player or bulk players) ──
+router.post('/:tournamentId/teams/:teamId/players', async (req, res, next) => {
+  try {
+    const { name, role = 'All-Rounder', jerseyNumber = null, players } = req.body;
+    const tournament = await Tournament.findOne({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    const team = tournament.teams.id(req.params.teamId);
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found.' });
+    }
+
+    // Support bulk add (array)
+    if (Array.isArray(players) && players.length > 0) {
+      const added = [];
+      for (const p of players) {
+        const pName = typeof p === 'string' ? p.trim() : (p.name || '').trim();
+        if (!pName) continue;
+        // Avoid duplicate within team
+        if (team.players.some(tp => tp.name.toUpperCase() === pName.toUpperCase())) continue;
+
+        const newPlayer = {
+          name: pName,
+          role: (typeof p === 'object' && p.role) ? p.role : 'All-Rounder',
+          jerseyNumber: (typeof p === 'object' && p.jerseyNumber) ? parseInt(p.jerseyNumber) : null,
+          battingOrder: team.players.length + added.length + 1,
+        };
+        team.players.push(newPlayer);
+        added.push(newPlayer);
+      }
+      await tournament.save();
+      return res.status(201).json({
+        success: true,
+        team,
+        players: team.players,
+        addedCount: added.length,
+        message: `${added.length} players added to ${team.name}.`,
+      });
+    }
+
+    // Single player add
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Player name is required.' });
+    }
+
+    const playerName = name.trim();
+    if (team.players.some(p => p.name.toUpperCase() === playerName.toUpperCase())) {
+      return res.status(400).json({ success: false, error: 'Player already exists in this team.' });
+    }
+
+    const newPlayer = {
+      name: playerName,
+      role,
+      jerseyNumber: jerseyNumber ? parseInt(jerseyNumber) : null,
+      battingOrder: team.players.length + 1,
+    };
+
+    team.players.push(newPlayer);
+    await tournament.save();
+
+    res.status(201).json({
+      success: true,
+      team,
+      players: team.players,
+      player: team.players[team.players.length - 1],
+      message: `Player ${playerName} added to ${team.name}.`,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── PUT /:tournamentId/teams/:teamId/players/:playerId (Update player) ──
+router.put('/:tournamentId/teams/:teamId/players/:playerId', async (req, res, next) => {
+  try {
+    const { name, role, jerseyNumber, battingOrder } = req.body;
+    const tournament = await Tournament.findOne({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    const team = tournament.teams.id(req.params.teamId);
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found.' });
+    }
+
+    const player = team.players.id(req.params.playerId);
+    if (!player) {
+      return res.status(404).json({ success: false, error: 'Player not found.' });
+    }
+
+    if (name && name.trim()) player.name = name.trim();
+    if (role) player.role = role;
+    if (jerseyNumber !== undefined) player.jerseyNumber = jerseyNumber ? parseInt(jerseyNumber) : null;
+    if (battingOrder !== undefined) player.battingOrder = parseInt(battingOrder) || 0;
+
+    await tournament.save();
+
+    res.json({
+      success: true,
+      team,
+      player,
+      message: 'Player updated successfully.',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── DELETE /:tournamentId/teams/:teamId/players/:playerId (Delete player) ──
+router.delete('/:tournamentId/teams/:teamId/players/:playerId', async (req, res, next) => {
+  try {
+    const tournament = await Tournament.findOne({
+      _id: req.params.tournamentId,
+      clientId: req.user.id,
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    const team = tournament.teams.id(req.params.teamId);
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found.' });
+    }
+
+    const player = team.players.id(req.params.playerId);
+    if (!player) {
+      return res.status(404).json({ success: false, error: 'Player not found.' });
+    }
+
+    player.deleteOne();
+    await tournament.save();
+
+    res.json({
+      success: true,
+      team,
+      players: team.players,
+      message: 'Player removed successfully.',
     });
   } catch (err) {
     next(err);
@@ -92,6 +389,8 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
     const {
       team1Name = 'TEAM A',
       team2Name = 'TEAM B',
+      team1Id = null,
+      team2Id = null,
       battingTeam,
       bowlingTeam,
       toss = {},
@@ -102,6 +401,8 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       venueName = '',
       matchDate = '',
       themeID = 'IPL_GOLD',
+      team1Squad: customTeam1Squad = null,
+      team2Squad: customTeam2Squad = null,
     } = req.body;
 
     const tournament = await Tournament.findOne({ _id: tournamentId, clientId: req.user.id });
@@ -140,22 +441,90 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       }
     }
 
+    // Resolve Tournament Teams (if configured)
+    let team1Obj = null;
+    let team2Obj = null;
+
+    if (team1Id) {
+      team1Obj = tournament.teams.id(team1Id);
+    } else {
+      team1Obj = tournament.teams.find(t => t.name.toUpperCase() === team1Name.trim().toUpperCase());
+    }
+
+    if (team2Id) {
+      team2Obj = tournament.teams.id(team2Id);
+    } else {
+      team2Obj = tournament.teams.find(t => t.name.toUpperCase() === team2Name.trim().toUpperCase());
+    }
+
+    const actualTeam1Name = team1Obj ? team1Obj.name : team1Name.trim();
+    const actualTeam2Name = team2Obj ? team2Obj.name : team2Name.trim();
+
+    // Prepare squads
+    let resolvedTeam1Squad = [];
+    if (Array.isArray(customTeam1Squad) && customTeam1Squad.length > 0) {
+      resolvedTeam1Squad = customTeam1Squad.map(p => ({
+        id: uuidv4(),
+        name: typeof p === 'string' ? p : (p.name || ''),
+        role: typeof p === 'object' && p.role ? p.role : 'All-Rounder',
+        status: 'available',
+        battingOrder: 0,
+      }));
+    } else if (team1Obj && team1Obj.players && team1Obj.players.length > 0) {
+      resolvedTeam1Squad = team1Obj.players.map((p, idx) => ({
+        id: uuidv4(),
+        name: p.name,
+        role: p.role || 'All-Rounder',
+        status: 'available',
+        battingOrder: idx + 1,
+      }));
+    }
+
+    let resolvedTeam2Squad = [];
+    if (Array.isArray(customTeam2Squad) && customTeam2Squad.length > 0) {
+      resolvedTeam2Squad = customTeam2Squad.map(p => ({
+        id: uuidv4(),
+        name: typeof p === 'string' ? p : (p.name || ''),
+        role: typeof p === 'object' && p.role ? p.role : 'All-Rounder',
+        status: 'available',
+        battingOrder: 0,
+      }));
+    } else if (team2Obj && team2Obj.players && team2Obj.players.length > 0) {
+      resolvedTeam2Squad = team2Obj.players.map((p, idx) => ({
+        id: uuidv4(),
+        name: p.name,
+        role: p.role || 'All-Rounder',
+        status: 'available',
+        battingOrder: idx + 1,
+      }));
+    }
+
     // Auto-assign batting and bowling team based on Toss logic if battingTeam wasn't provided directly
-    let actualBattingTeam = battingTeam || team1Name;
-    let actualBowlingTeam = bowlingTeam || team2Name;
+    let actualBattingTeam = battingTeam || actualTeam1Name;
+    let actualBowlingTeam = bowlingTeam || actualTeam2Name;
     let matchSummary = '';
 
     if (toss && toss.winner) {
       if (toss.decision === 'bat') {
         actualBattingTeam = toss.winner;
-        actualBowlingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        actualBowlingTeam = (toss.winner === actualTeam1Name) ? actualTeam2Name : actualTeam1Name;
         matchSummary = `${toss.winner} won the toss and elected to bat first.`;
       } else {
         actualBowlingTeam = toss.winner;
-        actualBattingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        actualBattingTeam = (toss.winner === actualTeam1Name) ? actualTeam2Name : actualTeam1Name;
         matchSummary = `${toss.winner} won the toss and elected to bowl first, ${actualBattingTeam} will bat first.`;
       }
     }
+
+    // Assign batting and bowling squads based on who is batting first
+    const isTeam1Batting = (actualBattingTeam === actualTeam1Name);
+    const initialBattingSquad = isTeam1Batting ? resolvedTeam1Squad : resolvedTeam2Squad;
+    const initialBowlingSquad = isTeam1Batting ? resolvedTeam2Squad : resolvedTeam1Squad;
+
+    const team1Logo = team1Obj?.logo || '';
+    const team2Logo = team2Obj?.logo || '';
+    const battingLogo = isTeam1Batting ? team1Logo : team2Logo;
+    const bowlingLogo = isTeam1Batting ? team2Logo : team1Logo;
 
     // Generate new match
     const matchId = `KS-${uuidv4().slice(0, 8).toUpperCase()}`;
@@ -163,8 +532,14 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       matchId,
       ownerUid: req.user.id,
       tournamentId: tournament._id,
-      team1Name,
-      team2Name,
+      team1Name: actualTeam1Name,
+      team2Name: actualTeam2Name,
+      team1Logo,
+      team2Logo,
+      team1Squad: resolvedTeam1Squad,
+      team2Squad: resolvedTeam2Squad,
+      battingSquad: initialBattingSquad,
+      bowlingSquad: initialBowlingSquad,
       toss,
       matchSummary,
       battingTeam: actualBattingTeam,
@@ -176,7 +551,11 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       tournamentName: tournament.name,
       venueName,
       matchDate,
-      overlaySettings: { themeID },
+      overlaySettings: {
+        themeID,
+        battingLogo,
+        leagueLogo: bowlingLogo,
+      },
     });
 
     // Create Overlay Settings doc for it
@@ -184,6 +563,8 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       matchId,
       ownerUid: req.user.id,
       themeID,
+      battingLogo,
+      leagueLogo: bowlingLogo,
     });
 
     // Push match into tournament

@@ -1,5 +1,53 @@
 const mongoose = require('mongoose');
 
+const playerSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Player name is required.'],
+      trim: true,
+    },
+    role: {
+      type: String,
+      enum: ['Batsman', 'Bowler', 'All-Rounder', 'Wicket-Keeper'],
+      default: 'All-Rounder',
+    },
+    jerseyNumber: {
+      type: Number,
+      default: null,
+    },
+    battingOrder: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { _id: true, timestamps: true }
+);
+
+const teamSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Team name is required.'],
+      trim: true,
+    },
+    shortName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    logo: {
+      type: String,
+      default: '',
+    },
+    players: {
+      type: [playerSchema],
+      default: [],
+    },
+  },
+  { _id: true, timestamps: true }
+);
+
 const tournamentSchema = new mongoose.Schema(
   {
     name: {
@@ -17,6 +65,10 @@ const tournamentSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
       index: true,
+    },
+    teams: {
+      type: [teamSchema],
+      default: [],
     },
     matches: [
       {
