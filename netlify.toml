@@ -11,7 +11,10 @@
 # Socket.IO is not available on Netlify Functions, so the client polls REST.
 
 [build]
-  command = "npm install && npm install --prefix backend && cd frontend && npm install && npm run build"
+  # NODE_ENV=production is set for the Functions, which makes npm skip
+  # devDependencies by default. Vite lives in devDependencies, so force their
+  # installation explicitly.
+  command = "npm install --include=dev && npm install --prefix backend --include=dev && cd frontend && npm install --include=dev && npm run build"
   publish = "frontend/dist"
   functions = "netlify/functions"
 
