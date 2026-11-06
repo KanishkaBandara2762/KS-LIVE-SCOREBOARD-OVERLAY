@@ -14,7 +14,11 @@ Browser
 No Render, no Vercel, no separate backend host.
 
 **Current live deployment:**
-<https://elaborate-lamington-04f8db.netlify.app>
+<https://kslivescore.netlify.app>
+
+The site is connected to
+[`KanishkaBandara2762/KS-LIVE-SCOREBOARD-OVERLAY`](https://github.com/KanishkaBandara2762/KS-LIVE-SCOREBOARD-OVERLAY).
+Every push to `main` triggers an automatic Netlify build and deploy.
 
 The production site uses the `ks-live-prod` database on the same free Atlas
 cluster, kept separate from local development (`ks-live`). Both databases are
