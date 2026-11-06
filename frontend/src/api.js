@@ -3,7 +3,15 @@
  * Uses MongoDB/JWT backend at VITE_API_URL
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+// In production the frontend and API share the Netlify origin: requests go to
+// `/api/...` and Netlify redirects them to the API function (no CORS, no
+// VITE_API_URL required). In local development the Express API runs on :3001.
+// Set VITE_API_URL only when the API is hosted somewhere else.
+const RAW_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
+
+export const BASE_URL = String(RAW_BASE_URL).replace(/\/+$/, '');
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 export const getToken   = () => localStorage.getItem('ks_jwt');
@@ -29,7 +37,7 @@ async function apiRequest(path, options = {}) {
   try {
     res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
   } catch (networkErr) {
-    throw new Error('Cannot reach server. Make sure the backend is running on port 3001.');
+    throw new Error('Cannot reach the server. Check your connection and the API URL.');
   }
 
   const data = await res.json().catch(() => ({ success: false, error: 'Invalid server response.' }));
@@ -130,6 +138,44 @@ export const adminApi = {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
+};
+
+// ── Auction API ─────────────────────────────────────────────────────────────
+export const auctionApi = {
+  list: () => apiRequest('/api/auctions'),
+  get: (auctionId) => apiRequest(`/api/auctions/${auctionId}`),
+  publicGet: (slug) => apiRequest(`/api/auctions/public/${slug}`),
+  create: (body) => apiRequest('/api/auctions', { method: 'POST', body: JSON.stringify(body) }),
+  update: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  remove: (auctionId) => apiRequest(`/api/auctions/${auctionId}`, { method: 'DELETE' }),
+
+  start: (auctionId) => apiRequest(`/api/auctions/${auctionId}/start`, { method: 'POST' }),
+  pause: (auctionId) => apiRequest(`/api/auctions/${auctionId}/pause`, { method: 'POST' }),
+  resume: (auctionId) => apiRequest(`/api/auctions/${auctionId}/resume`, { method: 'POST' }),
+  complete: (auctionId) => apiRequest(`/api/auctions/${auctionId}/complete`, { method: 'POST' }),
+
+  addTeam: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/teams`, { method: 'POST', body: JSON.stringify(body) }),
+  updateTeam: (auctionId, teamId, body) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteTeam: (auctionId, teamId) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}`, { method: 'DELETE' }),
+  invite: (auctionId, teamId, body = {}) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}/invite`, { method: 'POST', body: JSON.stringify(body) }),
+  join: (token) => apiRequest(`/api/auctions/join/${token}`, { method: 'POST' }),
+
+  addPlayer: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/players`, { method: 'POST', body: JSON.stringify(body) }),
+  importPlayers: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/players/import`, { method: 'POST', body: JSON.stringify(body) }),
+  updatePlayer: (auctionId, playerId, body) => apiRequest(`/api/auctions/${auctionId}/players/${playerId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deletePlayer: (auctionId, playerId) => apiRequest(`/api/auctions/${auctionId}/players/${playerId}`, { method: 'DELETE' }),
+  reorderPlayers: (auctionId, orderedIds) => apiRequest(`/api/auctions/${auctionId}/players/reorder`, { method: 'POST', body: JSON.stringify({ orderedIds }) }),
+
+  openNextLot: (auctionId) => apiRequest(`/api/auctions/${auctionId}/lots/next`, { method: 'POST' }),
+  openLot: (auctionId, playerId) => apiRequest(`/api/auctions/${auctionId}/lots/open`, { method: 'POST', body: JSON.stringify({ playerId }) }),
+  closeLot: (auctionId, playerId, expectedVersion) => apiRequest(`/api/auctions/${auctionId}/lots/${playerId}/close`, { method: 'POST', body: JSON.stringify({ expectedVersion }) }),
+  withdrawLot: (auctionId, playerId, reason = '') => apiRequest(`/api/auctions/${auctionId}/lots/${playerId}/withdraw`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  reauction: (auctionId, playerId) => apiRequest(`/api/auctions/${auctionId}/players/${playerId}/reauction`, { method: 'POST' }),
+
+  placeBid: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/bids`, { method: 'POST', body: JSON.stringify(body) }),
+  bids: (auctionId, playerId) => apiRequest(`/api/auctions/${auctionId}/bids${playerId ? `?playerId=${encodeURIComponent(playerId)}` : ''}`),
+  results: (auctionId) => apiRequest(`/api/auctions/${auctionId}/results`),
+  squad: (auctionId, teamId) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}/squad`),
 };
 
 export const API_BASE_URL = BASE_URL;

@@ -7,6 +7,7 @@ const MODULES = [
         items: [
             { icon: "⚡", title: "Live Scoring", desc: "Real-time ball-by-ball updates with zero latency." },
             { icon: "📺", title: "Real-Time Overlays", desc: "Broadcast-quality graphics for live streams." },
+            { icon: "🔨", title: "Live Player Auctions", desc: "Real-time IPL-style bidding rooms with projector displays." },
             { icon: "🖥️", title: "OBS Integration", desc: "One-click URL import for OBS Studio and vMix." }
         ]
     },

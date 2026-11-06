@@ -9,7 +9,11 @@ import { createMatchEvent } from "../utils/matchEvent";
 import { generateMatchKey } from "../utils/matchKey";
 import { matchesApi, tournamentsApi } from "../api";
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
+// Netlify Functions cannot host persistent Socket.IO connections.
+const USE_SOCKET =
+  import.meta.env.VITE_REALTIME_MODE === 'socket' ||
+  (!import.meta.env.PROD && import.meta.env.VITE_REALTIME_MODE !== 'polling');
 const isMongoDB = (id) => true;
 
 const getAbsoluteUrl = (url) => {
@@ -46,7 +50,7 @@ const AdminPanel = () => {
     showVersus: false,
     showSummary: false,
     showToss: false,
-    themeID: "IPL_GOLD",
+    themeID: "ICC_GLOBAL",
     eventTrigger: null,
     eventTime: null,
     eventId: null,
@@ -241,7 +245,7 @@ const AdminPanel = () => {
         .catch(() => {});
 
       let socket;
-      import('socket.io-client').then(({ io }) => {
+      if (USE_SOCKET) import('socket.io-client').then(({ io }) => {
         socket = io(`${API_URL}/admin`, {
           query: { matchId: matchDbId },
           transports: ['websocket', 'polling'],
@@ -452,7 +456,7 @@ const AdminPanel = () => {
       formData.append('side', team === 'A' ? 'batting' : 'bowling');
       const res = await matchesApi.uploadLogo(matchDbId, formData);
       if (!res.success || !res.logoUrl) throw new Error(res.error || 'Upload failed');
-      const fullUrl = res.logoUrl.startsWith('http') ? res.logoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${res.logoUrl.startsWith('/') ? '' : '/'}${res.logoUrl}`;
+      const fullUrl = res.logoUrl.startsWith('http') ? res.logoUrl : `${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001')}${res.logoUrl.startsWith('/') ? '' : '/'}${res.logoUrl}`;
 
       // Update local React state properly formatted
       setMatch(prev => {
@@ -553,15 +557,18 @@ const AdminPanel = () => {
       : 'overlayControl/refresh';
 
     try {
-      // For MongoDB matches, emit via Socket.IO so the overlay gets it instantly
-      import('socket.io-client').then(({ io }) => {
-        const sock = io(`${API_URL}/admin`, {
-          query: { matchId: matchDbId },
-          transports: ['websocket', 'polling'],
-        });
-        sock.emit('overlay:refresh', { matchId: matchDbId, type: refreshType, ts });
-        setTimeout(() => sock.disconnect(), 3000);
-      }).catch(() => {});
+      // For MongoDB matches, emit via Socket.IO so the overlay gets it instantly.
+      // On Netlify Functions the overlay polls REST, so the emit is skipped.
+      if (USE_SOCKET) {
+        import('socket.io-client').then(({ io }) => {
+          const sock = io(`${API_URL}/admin`, {
+            query: { matchId: matchDbId },
+            transports: ['websocket', 'polling'],
+          });
+          sock.emit('overlay:refresh', { matchId: matchDbId, type: refreshType, ts });
+          setTimeout(() => sock.disconnect(), 3000);
+        }).catch(() => {});
+      }
 
       setRefreshStatus('success');
       setLastRefreshTime(new Date());
@@ -1081,17 +1088,22 @@ const legalBallCount = match.legalBallCount || 0;
             </div>
 
             <select className="w-full border p-2 rounded text-xs font-black bg-white uppercase shadow-sm" value={match.themeID} onChange={(e) => setMatch({ ...match, themeID: e.target.value })}>
-              <option value="IPL_GOLD">IPL Classic</option><option value="SKY_PRO">Sky Sports</option><option value="NEON_VAVUNIYA">Neon Green</option>
-              <option value="CLASSIC_DARK">Classic Dark</option><option value="T20_NEON">T20 Neon</option><option value="WC_BLUE_PURPLE">World Cup Blue-Purple</option><option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
-              <option value="WC2026">🏆 T20 World Cup 2026</option>
-              <option value="KS_SPECIAL">☆ KS SPECIAL</option>
-              <option value="SL_BROADCAST">📺 SL Broadcast</option>
-              <option value="APOGEE">🔮 APOGEE ARENA</option>
-              <option value="DC_BLUE">🟦 DC Blue Bar</option>
-              <option value="IPL_2026">🏏 IPL 2026</option>
-              <option value="NEW_IPL">🆕 NEW IPL</option>
-              <option value="KS_PREMIUM">⭐ KS Premium (Broadcast)</option>
-              <option value="NEW_KS_COLOR">💎 Emerald Pro (New KS)</option>
+              <optgroup label="🌟 International Broadcast Flagships">
+                <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex (World Cup)</option>
+                <option value="SKY_HYPERION">⚡ Sky Sports Hyperion Pro (UK)</option>
+                <option value="JIO_TITAN">👑 Jio Premier Titan (IPL 4K)</option>
+                <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike (Action)</option>
+                <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass (Modern)</option>
+              </optgroup>
+              <optgroup label="✨ Premier Modern Themes">
+                <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro (KS Signature)</option>
+                <option value="NEW_IPL">🏏 Tata IPL Modern (Franchise)</option>
+                <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
+                <option value="KS_PREMIUM">⭐ KS Premium (Broadcast Flagship)</option>
+                <option value="WC2026">🌐 T20 World Cup 2026 Electric</option>
+                <option value="APOGEE">🔮 Apogee Arena Pro (Cyber HUD)</option>
+                <option value="GOLD_CHAMPIONSHIP">🥇 Gold Championship (Grand Finals)</option>
+              </optgroup>
             </select>
 
             <div className={`p-3 rounded border transition ${match.isSecondInnings ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -1592,11 +1604,18 @@ const legalBallCount = match.legalBallCount || 0;
               <div className="flex flex-col text-left">
                 <label className="text-[10px] font-bold text-slate-400 mb-1">OVERLAY THEME</label>
                 <select name="themeID" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white">
-                  <option value="IPL_GOLD">IPL Classic</option>
-                  <option value="IPL_2026">🏏 IPL 2026</option>
-                  <option value="NEW_IPL">🆕 NEW IPL</option>
-                  <option value="WC2026">🏆 T20 WC 2026</option>
-                  <option value="SKY_PRO">Sky Sports</option>
+                  <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex</option>
+                  <option value="SKY_HYPERION">⚡ Sky Sports Hyperion Pro</option>
+                  <option value="JIO_TITAN">👑 Jio Premier Titan (IPL 4K)</option>
+                  <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
+                  <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
+                  <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
+                  <option value="NEW_IPL">🏏 Tata IPL Modern</option>
+                  <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
+                  <option value="KS_PREMIUM">⭐ KS Premium (Broadcast)</option>
+                  <option value="WC2026">🌐 T20 World Cup 2026</option>
+                  <option value="APOGEE">🔮 Apogee Arena Pro</option>
+                  <option value="GOLD_CHAMPIONSHIP">🥇 Gold Championship</option>
                 </select>
               </div>
 

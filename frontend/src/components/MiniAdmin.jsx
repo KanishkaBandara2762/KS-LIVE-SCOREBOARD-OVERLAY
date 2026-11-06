@@ -14,7 +14,7 @@ import NewBatterModal from './NewBatterModal';
 import NewBowlerModal from './NewBowlerModal';
 
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 // MongoDB matches have matchId like KS-XXXXXXXX
 const isMongoDB = (id) => true;
 
@@ -83,7 +83,9 @@ const MiniAdmin = () => {
     // so we replace it with the actual network IP the browser is currently using.
     const overlayUrl = typeof window !== "undefined" ? `${window.location.origin}/overlay/${matchId}` : `/overlay/${matchId}`;
     const obsUrl = typeof window !== "undefined"
-        ? `${window.location.protocol}//${window.location.hostname}:${window.location.port || 5173}/overlay/${matchId}`
+        ? (import.meta.env.PROD
+            ? `${window.location.origin}/overlay/${matchId}`
+            : `${window.location.protocol}//${window.location.hostname}:${window.location.port || 5173}/overlay/${matchId}`)
         : `/overlay/${matchId}`;
 
     const copyOBSLink = () => {
@@ -122,45 +124,61 @@ const MiniAdmin = () => {
     // Legacy matches: Firebase Realtime Database
     useEffect(() => {
         if (isMongoDB(matchId)) {
-            // Initial load from REST
-            matchesApi.get(matchId)
-                .then(res => {
-                    if (res.match) {
-                        // Flatten overlay settings for backward compatibility
-                        const flattenedMatch = {
-                            ...res.match,
-                            themeID: res.match.overlaySettings?.themeID || 'IPL_GOLD',
-                            battingLogo: res.match.overlaySettings?.battingLogo || '',
-                            leagueLogo: res.match.overlaySettings?.leagueLogo || '',
-                            showVersus: res.match.overlaySettings?.showVersus || false,
-                            showSummary: res.match.overlaySettings?.showSummary || false,
-                            showMatchSituation: res.match.overlaySettings?.showMatchSituation || false
-                        };
-                        setMatch(flattenedMatch);
-                    }
-                })
-                .catch(() => {});
-            // Socket.IO live updates
+            // Initial and periodic load from REST
+            const loadMatch = () => {
+                matchesApi.get(matchId)
+                    .then(res => {
+                        if (res.match) {
+                            // Flatten overlay settings for backward compatibility
+                            const flattenedMatch = {
+                                ...res.match,
+                                themeID: res.match.overlaySettings?.themeID || 'ICC_GLOBAL',
+                                battingLogo: res.match.overlaySettings?.battingLogo || '',
+                                leagueLogo: res.match.overlaySettings?.leagueLogo || '',
+                                showVersus: res.match.overlaySettings?.showVersus || false,
+                                showSummary: res.match.overlaySettings?.showSummary || false,
+                                showMatchSituation: res.match.overlaySettings?.showMatchSituation || false
+                            };
+                            setMatch(flattenedMatch);
+                        }
+                    })
+                    .catch(() => {});
+            };
+            loadMatch();
+
+            // Socket.IO is unavailable on Netlify Functions — poll instead.
+            const useSocket =
+                import.meta.env.VITE_REALTIME_MODE === 'socket' ||
+                (!import.meta.env.PROD && import.meta.env.VITE_REALTIME_MODE !== 'polling');
             let socket;
-            import('socket.io-client').then(({ io }) => {
-                socket = io(`${API_URL}/admin`, {
-                    query: { matchId },
-                    transports: ['websocket', 'polling'],
-                });
-                socket.on('connection:ack', ({ snapshot }) => { if (snapshot) setMatch(prev => prev ? { ...prev, ...snapshot } : snapshot); });
-                socket.on('score:update', (data) => setMatch(prev => prev ? { ...prev, ...data } : data));
-                socket.on('score:correction', (data) => setMatch(prev => prev ? { ...prev, ...data } : data));
-                socket.on('players:update', (data) => setMatch(prev => prev ? { ...prev, ...data } : data));
-                socket.on('ticker:update', (data) => {
-                    if (data.ticker) {
-                        setTickerMsg(data.ticker.message || '');
-                        setTickerMode(data.ticker.mode || 'banner');
-                        setTickerVisible(!!data.ticker.visible);
-                        setTickerAutoRepeat(data.ticker.autoRepeat || false);
-                    }
-                });
-            }).catch(() => {});
-            return () => { if (socket) socket.disconnect(); };
+            if (useSocket) {
+                import('socket.io-client').then(({ io }) => {
+                    socket = io(`${API_URL}/admin`, {
+                        query: { matchId },
+                        transports: ['websocket', 'polling'],
+                    });
+                    socket.on('connection:ack', ({ snapshot }) => { if (snapshot) setMatch(prev => prev ? { ...prev, ...snapshot } : snapshot); });
+                    socket.on('score:update', (data) => setMatch(prev => prev ? { ...prev, ...data } : data));
+                    socket.on('score:correction', (data) => setMatch(prev => prev ? { ...prev, ...data } : data));
+                    socket.on('players:update', (data) => setMatch(prev => prev ? { ...prev, ...data } : data));
+                    socket.on('ticker:update', (data) => {
+                        if (data.ticker) {
+                            setTickerMsg(data.ticker.message || '');
+                            setTickerMode(data.ticker.mode || 'banner');
+                            setTickerVisible(!!data.ticker.visible);
+                            setTickerAutoRepeat(data.ticker.autoRepeat || false);
+                        }
+                    });
+                }).catch(() => {});
+            }
+
+            const pollMs = Number(import.meta.env.VITE_LIVE_POLL_MS) || (import.meta.env.PROD ? 3000 : 30000);
+            const poll = useSocket ? null : setInterval(loadMatch, pollMs);
+
+            return () => {
+                if (socket) socket.disconnect();
+                if (poll) clearInterval(poll);
+            };
         } else {
             // Legacy Firebase
             const unsub = onValue(ref(db, dbPath), (snap) => {
@@ -1215,23 +1233,23 @@ const MiniAdmin = () => {
                         {/* Theme & Overlay */}
                         <div className="ma-card">
                             <div className="ma-card-title">Overlay Theme</div>
-                            <select className="ma-sel" value={match.themeID || 'IPL_GOLD'} onChange={e => push({ themeID: e.target.value })}>
-                                <option value="IPL_GOLD">IPL Classic</option>
-                                <option value="SKY_PRO">Sky Sports</option>
-                                <option value="NEON_VAVUNIYA">Neon Green</option>
-                                <option value="CLASSIC_DARK">Classic Dark</option>
-                                <option value="T20_NEON">T20 Neon</option>
-                                <option value="WC_BLUE_PURPLE">WC Blue-Purple</option>
-                                <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
-                                <option value="WC2026">🏆 T20 WC 2026</option>
-                                <option value="KS_SPECIAL">☆ KS Special</option>
-                                <option value="SL_BROADCAST">📺 SL Broadcast</option>
-                                <option value="APOGEE">🔮 APOGEE ARENA</option>
-                                <option value="DC_BLUE">🟦 DC Blue Bar</option>
-                                <option value="IPL_2026">🏏 IPL 2026</option>
-                                <option value="NEW_IPL">🆕 NEW IPL</option>
-                                <option value="KS_PREMIUM">💎 KS Premium</option>
-                                <option value="NEW_KS_COLOR">💎 Emerald Pro (New KS)</option>
+                            <select className="ma-sel" value={match.themeID || 'ICC_GLOBAL'} onChange={e => push({ themeID: e.target.value })}>
+                                <optgroup label="🌟 International Broadcast">
+                                    <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex</option>
+                                    <option value="SKY_HYPERION">⚡ Sky Sports Hyperion</option>
+                                    <option value="JIO_TITAN">👑 Jio Premier Titan</option>
+                                    <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
+                                    <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
+                                </optgroup>
+                                <optgroup label="✨ Premier Modern Themes">
+                                    <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
+                                    <option value="NEW_IPL">🏏 Tata IPL Modern</option>
+                                    <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
+                                    <option value="KS_PREMIUM">⭐ KS Premium Broadcast</option>
+                                    <option value="WC2026">🌐 T20 World Cup 2026</option>
+                                    <option value="APOGEE">🔮 Apogee Arena Pro</option>
+                                    <option value="GOLD_CHAMPIONSHIP">🥇 Gold Championship</option>
+                                </optgroup>
                             </select>
                             <div className="ma-grid-2">
                                 <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
@@ -1683,7 +1701,16 @@ const MiniAdmin = () => {
                             <div className="ma-modal-field"><label className="ma-modal-label">Stage / Title</label><input name="matchTitle" className="ma-modal-inp" placeholder="GRAND FINAL" /></div>
                             <div className="ma-modal-field"><label className="ma-modal-label">Theme</label>
                                 <select name="themeID" className="ma-modal-inp">
-                                    <option value="IPL_GOLD">IPL Classic</option><option value="IPL_2026">IPL 2026</option><option value="WC2026">T20 WC 2026</option><option value="SKY_PRO">Sky Sports</option>
+                                    <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex</option>
+                                    <option value="SKY_HYPERION">⚡ Sky Sports Hyperion</option>
+                                    <option value="JIO_TITAN">👑 Jio Premier Titan</option>
+                                    <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
+                                    <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
+                                    <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
+                                    <option value="NEW_IPL">🏏 Tata IPL Modern</option>
+                                    <option value="IPL_2026">🏟️ IPL 2026 Stadium</option>
+                                    <option value="KS_PREMIUM">⭐ KS Premium</option>
+                                    <option value="WC2026">🌐 T20 World Cup 2026</option>
                                 </select>
                             </div>
                             <div className="ma-modal-footer">

@@ -334,6 +334,23 @@
     text-decoration: underline;
 }
 
+/* secondary link (footer / pill) — fades on hover for affordance */
+.auth-link-secondary {
+    color: rgba(0, 210, 190, 0.62);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.32rem 0.7rem;
+    border-radius: 999px;
+    transition: color 0.2s, background 0.2s;
+    cursor: pointer;
+}
+
+.auth-link-secondary:hover {
+    color: #aee8d8;
+    background: rgba(0, 210, 190, 0.08);
+    text-decoration: none;
+}
+
 /* ─── Alert messages ───────────────────────────────────────── */
 .auth-alert {
     display: flex;

@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const Auction = require('../models/Auction');
+const AuctionEntitlement = require('../models/AuctionEntitlement');
+const { grantEntitlement } = require('../services/auctionEntitlement');
 const authMiddleware = require('../middleware/auth');
 const { formatUserSessionFields } = require('../utils/sessionHelper');
 
@@ -141,6 +144,86 @@ router.put('/activate-session/:clientId', async (req, res, next) => {
       message,
       user: formatUserSessionFields(user),
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/auctions', async (req, res, next) => {
+  try {
+    const auctions = await Auction.find()
+      .populate('ownerId', 'email displayName')
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+    res.json({ success: true, auctions: auctions.map((a) => ({ ...a, id: String(a._id) })) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/auction-entitlements', async (req, res, next) => {
+  try {
+    const entitlements = await AuctionEntitlement.find()
+      .populate('userId', 'email displayName')
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .lean();
+    res.json({
+      success: true,
+      entitlements: entitlements.map((e) => ({ ...e, id: String(e._id) })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/auction-entitlements', async (req, res, next) => {
+  try {
+    const { userId, days, maxActiveAuctions, maxTeamsPerAuction, notes } = req.body;
+    if (!userId) return res.status(400).json({ success: false, error: 'userId is required.' });
+    const user = await User.findById(userId).select('email displayName');
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+
+    const entitlement = await grantEntitlement({
+      userId: user._id,
+      days: days || 30,
+      source: 'manual',
+      maxActiveAuctions: maxActiveAuctions || 1,
+      maxTeamsPerAuction: maxTeamsPerAuction || 20,
+      activatedByUserId: req.user.id,
+      notes: notes || '',
+    });
+
+    res.status(201).json({ success: true, entitlement: entitlement.toJSON() });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/auction-entitlements/:id', async (req, res, next) => {
+  try {
+    const entitlement = await AuctionEntitlement.findById(req.params.id);
+    if (!entitlement) return res.status(404).json({ success: false, error: 'Entitlement not found.' });
+
+    if (req.body.status && ['active', 'expired', 'revoked'].includes(req.body.status)) {
+      entitlement.status = req.body.status;
+    }
+    if (req.body.days) {
+      const base = new Date(Math.max(Date.now(), new Date(entitlement.expiresAt).getTime()));
+      entitlement.expiresAt = new Date(base.getTime() + (parseInt(req.body.days, 10) || 30) * 24 * 60 * 60 * 1000);
+      entitlement.status = 'active';
+    }
+    if (req.body.maxActiveAuctions) {
+      entitlement.maxActiveAuctions = Math.max(1, parseInt(req.body.maxActiveAuctions, 10) || 1);
+    }
+    if (req.body.maxTeamsPerAuction) {
+      entitlement.maxTeamsPerAuction = Math.max(1, parseInt(req.body.maxTeamsPerAuction, 10) || 20);
+    }
+    if (req.body.notes !== undefined) entitlement.notes = String(req.body.notes).slice(0, 1000);
+
+    await entitlement.save();
+    res.json({ success: true, entitlement: entitlement.toJSON() });
   } catch (err) {
     next(err);
   }

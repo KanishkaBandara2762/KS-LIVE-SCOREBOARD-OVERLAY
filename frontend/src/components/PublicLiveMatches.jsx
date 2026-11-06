@@ -28,15 +28,20 @@ export default function PublicLiveMatches() {
 
   useEffect(() => {
     fetchPublicMatches();
-    // Poll for match listing updates every 30 seconds
-    const interval = setInterval(fetchPublicMatches, 30000);
+    // On Netlify Functions REST polling is the primary update channel.
+    const pollMs = Number(import.meta.env.VITE_LIVE_POLL_MS) || (import.meta.env.PROD ? 3000 : 30000);
+    const interval = setInterval(fetchPublicMatches, pollMs);
     return () => clearInterval(interval);
   }, []);
 
-  // Real-time socket updates for live matches
+  // Real-time socket updates for live matches (unavailable on Netlify Functions)
   useEffect(() => {
     if (!matches.live || matches.live.length === 0) return;
-    const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+    const useSocket =
+      import.meta.env.VITE_REALTIME_MODE === 'socket' ||
+      (!import.meta.env.PROD && import.meta.env.VITE_REALTIME_MODE !== 'polling');
+    if (!useSocket) return undefined;
+    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
     let sockets = [];
 
     import("socket.io-client").then(({ io }) => {

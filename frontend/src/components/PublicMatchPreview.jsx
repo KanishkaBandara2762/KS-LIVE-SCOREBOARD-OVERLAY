@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { matchesApi } from "../api";
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 
 export default function PublicMatchPreview() {
   const { idOrSlug } = useParams();
@@ -59,9 +59,32 @@ export default function PublicMatchPreview() {
     fetchMatchDetails();
   }, [idOrSlug]);
 
-  // Real-time Socket.IO sync
+  // Netlify Functions cannot hold a persistent Socket.IO connection, so the
+  // production build polls the public REST endpoint instead.
+  useEffect(() => {
+    if (!import.meta.env.PROD || import.meta.env.VITE_REALTIME_MODE === 'socket') return undefined;
+    const interval = setInterval(() => {
+      matchesApi.getPublicMatch(idOrSlug)
+        .then((res) => {
+          if (res.success && !res.isPrivate) {
+            setMatch(res.match);
+            setOverlaySettings(res.overlaySettings);
+            setCommentary(res.commentary || []);
+          }
+        })
+        .catch(() => {});
+    }, Number(import.meta.env.VITE_LIVE_POLL_MS) || 3000);
+    return () => clearInterval(interval);
+  }, [idOrSlug]);
+
+  // Real-time Socket.IO sync (disabled on Netlify Functions)
   useEffect(() => {
     if (!match || !match.matchId || isPrivate) return;
+
+    const useSocket =
+      import.meta.env.VITE_REALTIME_MODE === 'socket' ||
+      (!import.meta.env.PROD && import.meta.env.VITE_REALTIME_MODE !== 'polling');
+    if (!useSocket) return undefined;
 
     let socket;
     import("socket.io-client").then(({ io }) => {
