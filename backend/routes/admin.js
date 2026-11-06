@@ -7,13 +7,14 @@ const AuctionEntitlement = require('../models/AuctionEntitlement');
 const { grantEntitlement } = require('../services/auctionEntitlement');
 const authMiddleware = require('../middleware/auth');
 const { formatUserSessionFields } = require('../utils/sessionHelper');
+const { isAdminRole } = require('../utils/roles');
 
 const VALID_SESSION_TYPES = ['2-hour-trial', '6-hour-trial', '1-day', 'monthly', 'custom'];
 
 const requireAdmin = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    if (!user || user.role !== 'admin') {
+    if (!user || !isAdminRole(user.role)) {
       return res.status(403).json({ success: false, error: 'Admin access required.' });
     }
     next();

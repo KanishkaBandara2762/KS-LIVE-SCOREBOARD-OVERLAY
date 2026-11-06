@@ -250,12 +250,33 @@ If it says `localhost`, `FRONTEND_URL` is wrong — fix it and redeploy.
 
 ## Step 6 — Optional: make yourself an admin
 
-Admin access is only needed to manage auction entitlements when you start
-selling the add-on.
+Admin access is only needed to manage auction entitlements and customers when
+you start selling the add-on.
+
+Two privileged roles exist:
+
+| Role | Access |
+| --- | --- |
+| `admin` | Admin panel, customers, subscriptions, entitlements |
+| `superadmin` | Everything an admin can do |
 
 1. Atlas → **Browse Collections** → `ks-live-prod` → `users` (use `ks-live` for local).
-2. Find your user and edit `role` to `"admin"` → **Update**.
+2. Find your user and edit `role` to `"admin"` or `"superadmin"` → **Update**.
 3. You can then call `POST /api/admin/auction-entitlements` with your JWT.
+
+To create or reset the superadmin from the command line instead:
+
+```powershell
+cd backend
+$env:ADMIN_EMAIL = "admin@kslive.com"
+$env:ADMIN_PASSWORD = "<strong password>"
+$env:MONGODB_URI = "mongodb+srv://.../ks-live-prod?retryWrites=true&w=majority"
+node createAdmin.js
+```
+
+The script is idempotent: if the account exists, it resets the password,
+promotes it to `superadmin`, sets the enterprise plan, and marks the session
+active. It never stores the password in the repository.
 
 For the first launch, leave `AUCTION_REQUIRE_ENTITLEMENT=false` so everyone can
 create auctions. Later set it to `true` and grant entitlements per account.
