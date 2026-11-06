@@ -1,0 +1,57 @@
+# KS Live — full-stack Netlify deployment
+#
+# IMPORTANT: leave the Netlify "Base directory" field EMPTY. This file lives at
+# the repository root, where the Express backend and the Netlify Function also
+# live. The React app is built from frontend/ and published from frontend/dist.
+#
+#   Netlify static site  → frontend/dist
+#   Netlify Function     → netlify/functions/api.js  (Express API)
+#   MongoDB Atlas        → MONGODB_URI environment variable
+#
+# Socket.IO is not available on Netlify Functions, so the client polls REST.
+
+[build]
+  command = "npm install && npm install --prefix backend && cd frontend && npm install && npm run build"
+  publish = "frontend/dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--no-audit --no-fund"
+
+[functions]
+  # zisi traces CommonJS requires and handles mongoose's optional native
+  # drivers more reliably than esbuild.
+  node_bundler = "zisi"
+
+# ── API → Netlify Function ─────────────────────────────────────────────────
+# Same-origin requests, so no CORS and no VITE_API_URL are needed.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health/ready"
+  to = "/.netlify/functions/api/health/ready"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/api/health"
+  status = 200
+  force = true
+
+# ── SPA fallback ───────────────────────────────────────────────────────────
+# Client routes such as /auctions/..., /auction/display/... and /dashboard.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

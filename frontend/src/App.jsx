@@ -33,6 +33,15 @@ import Pricing from "./components/Pricing";
 import PublicLiveMatches from "./components/PublicLiveMatches";
 import PublicMatchPreview from "./components/PublicMatchPreview";
 
+// ── Auction module ───────────────────────────────────────────────────────
+import AuctionListPage from "./components/auction/AuctionListPage";
+import AuctionSetupPage from "./components/auction/AuctionSetupPage";
+import AuctionControlPage from "./components/auction/AuctionControlPage";
+import AuctionLivePage from "./components/auction/AuctionLivePage";
+import AuctionResultsPage from "./components/auction/AuctionResultsPage";
+import AuctionDisplayPage from "./components/auction/AuctionDisplayPage";
+import AuctionJoinPage from "./components/auction/AuctionJoinPage";
+
 function App() {
   return (
     <AuthProvider>
@@ -58,6 +67,9 @@ function App() {
 
             {/* Pricing page */}
             <Route path="/pricing" element={<Pricing />} />
+
+            {/* Public auction display — safe for OBS/projector */}
+            <Route path="/auction/display/:slug" element={<AuctionDisplayPage />} />
 
             {/* Auth pages */}
             <Route path="/login" element={<LoginPage />} />
@@ -99,6 +111,26 @@ function App() {
             } />
             <Route path="/mini-admin" element={
               <PrivateRoute><Navigate to="/dashboard" replace /></PrivateRoute>
+            } />
+
+            {/* ── AUCTION MODULE ─────────────────────────────────────────── */}
+            <Route path="/auctions" element={
+              <PrivateRoute><AuctionListPage /></PrivateRoute>
+            } />
+            <Route path="/auctions/:id/setup" element={
+              <PrivateRoute><AuctionSetupPage /></PrivateRoute>
+            } />
+            <Route path="/auctions/:id/control" element={
+              <PrivateRoute><AuctionControlPage /></PrivateRoute>
+            } />
+            <Route path="/auctions/:id/live" element={
+              <PrivateRoute><AuctionLivePage /></PrivateRoute>
+            } />
+            <Route path="/auctions/:id/results" element={
+              <PrivateRoute><AuctionResultsPage /></PrivateRoute>
+            } />
+            <Route path="/auction/join/:token" element={
+              <PrivateRoute><AuctionJoinPage /></PrivateRoute>
             } />
 
 

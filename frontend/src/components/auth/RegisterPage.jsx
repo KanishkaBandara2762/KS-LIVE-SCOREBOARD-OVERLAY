@@ -161,6 +161,8 @@ export default function RegisterPage() {
         <div className="auth-footer" style={{ marginTop: '1.2rem' }}>
           Already have an account?{' '}
           <Link to="/login" className="auth-link">Sign In</Link>
+          <span className="auth-footer-divider">·</span>
+          <Link to="/auctions" className="auth-link auth-link-secondary">🔨 Explore Auctions</Link>
         </div>
       </div>
     </div>

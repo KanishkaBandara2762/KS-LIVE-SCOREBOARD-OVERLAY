@@ -8,7 +8,7 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
   const getAbsoluteUrl = useCallback((url) => {
     if (!url) return '';
     if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
-    const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+    const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
     return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
   }, []);
 
@@ -61,7 +61,7 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
         // Store the relative URL - getAbsoluteUrl() in the overlay will resolve it to the correct full URL
         // This ensures logos work across different network IPs (OBS vs Admin panel)
         const relativeUrl = res.logoUrl; // e.g. '/uploads/logos/filename.png'
-        const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+        const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
         const fullUrl = `${API_BASE}${relativeUrl.startsWith('/') ? '' : '/'}${relativeUrl}`;
         setPreview(fullUrl); // Local preview uses full URL
         onUploaded && onUploaded(relativeUrl, side); // Push relative URL to backend/state

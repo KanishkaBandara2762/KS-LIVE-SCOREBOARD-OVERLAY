@@ -8,5 +8,8 @@
     "preview": "npm --prefix frontend run preview",
     "backend": "npm --prefix backend start",
     "backend-dev": "npm --prefix backend run dev"
+  },
+  "dependencies": {
+    "serverless-http": "^3.2.0"
   }
 }

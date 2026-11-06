@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 220" width="100%" height="100%">
+  <defs>
+    <linearGradient id="jioBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05132d" />
+      <stop offset="45%" stop-color="#0b2454" />
+      <stop offset="100%" stop-color="#040d21" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffe066" />
+      <stop offset="50%" stop-color="#ffc83b" />
+      <stop offset="100%" stop-color="#c49619" />
+    </linearGradient>
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="220" fill="#020612" />
+
+  <!-- Main Capsule Board -->
+  <rect x="40" y="45" width="1120" height="130" rx="65" fill="url(#jioBg)" stroke="url(#goldGrad)" stroke-width="2.5" />
+
+  <!-- Team Pill Left -->
+  <circle cx="105" cy="110" r="36" fill="#08183a" stroke="url(#goldGrad)" stroke-width="3" filter="url(#goldGlow)" />
+  <text x="105" y="118" fill="#ffd700" font-family="'Outfit', sans-serif" font-weight="900" font-size="20" text-anchor="middle">CSK</text>
+
+  <text x="158" y="102" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="900" font-size="28" letter-spacing="1">CHENNAI</text>
+  <text x="158" y="125" fill="#ffd700" font-family="'Outfit', sans-serif" font-weight="800" font-size="12" letter-spacing="1.5">TATA IPL 2026 • JIO LIVE 4K</text>
+
+  <!-- Big Gold Score -->
+  <text x="375" y="118" fill="#ffd700" font-family="'Outfit', sans-serif" font-weight="900" font-size="52" filter="url(#goldGlow)">196/2</text>
+  <text x="375" y="142" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="800" font-size="13" letter-spacing="1">18.2 / 20 OVERS</text>
+
+  <!-- Divider -->
+  <line x1="510" y1="65" x2="510" y2="155" stroke="rgba(229,184,66,0.3)" stroke-width="1.5" />
+
+  <!-- Batsmen Section -->
+  <text x="535" y="96" fill="#ffd700" font-size="16">★</text>
+  <text x="555" y="96" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="900" font-size="16">R. GAIKWAD</text>
+  <text x="715" y="96" fill="#ffd700" font-family="'Outfit', sans-serif" font-weight="900" font-size="18">82* <tspan fill="#9ca3af" font-size="13">(48)</tspan></text>
+
+  <text x="555" y="136" fill="#d1d5db" font-family="'Outfit', sans-serif" font-weight="700" font-size="16">S. DUBE</text>
+  <text x="715" y="136" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="800" font-size="18">54* <tspan fill="#9ca3af" font-size="13">(22)</tspan></text>
+
+  <!-- Divider -->
+  <line x1="810" y1="65" x2="810" y2="155" stroke="rgba(229,184,66,0.3)" stroke-width="1.5" />
+
+  <!-- Bowler Section -->
+  <text x="830" y="85" fill="#ffd700" font-family="'Outfit', sans-serif" font-weight="900" font-size="10" letter-spacing="1.5">CURRENT BOWLER</text>
+  <text x="830" y="108" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="900" font-size="17">J. BUMRAH</text>
+  <text x="830" y="134" fill="#ffd700" font-family="'Outfit', sans-serif" font-weight="800" font-size="14">1-24 (3.2)</text>
+
+  <!-- Jio Balls Track -->
+  <g transform="translate(950, 95)">
+    <circle cx="15" cy="15" r="14" fill="#030b1c" stroke="rgba(229,184,66,0.4)" stroke-width="1" />
+    <text x="15" y="20" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">1</text>
+
+    <circle cx="48" cy="15" r="14" fill="#0284c7" stroke="#fff" stroke-width="1" />
+    <text x="48" y="20" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">4</text>
+
+    <circle cx="81" cy="15" r="14" fill="#7c3aed" stroke="#fff" stroke-width="1" />
+    <text x="81" y="20" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">6</text>
+
+    <circle cx="114" cy="15" r="14" fill="#b91c1c" stroke="#fff" stroke-width="1" />
+    <text x="114" y="20" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">W</text>
+
+    <circle cx="147" cy="15" r="14" fill="#030b1c" stroke="rgba(229,184,66,0.4)" stroke-width="1" />
+    <text x="147" y="20" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">2</text>
+  </g>
+
+  <!-- Opponent Logo -->
+  <circle cx="1125" cy="110" r="28" fill="#08183a" stroke="url(#goldGrad)" stroke-width="2" />
+  <text x="1125" y="117" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="900" font-size="16" text-anchor="middle">MI</text>
+</svg>
+

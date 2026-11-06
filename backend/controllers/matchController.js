@@ -51,7 +51,7 @@ const createMatch = async (req, res, next) => {
       tournamentName = '',
       venueName = '',
       matchDate = '',
-      themeID = 'IPL_GOLD',
+      themeID = 'ICC_GLOBAL',
       toss = {},
     } = req.body;
 
@@ -167,7 +167,7 @@ const getMatches = async (req, res, next) => {
         abandoned: 'ended',
       };
       obj.status = statusMap[obj.matchStatus] || 'live';
-      obj.themeID = obj.overlaySettings?.themeID || 'IPL_GOLD';
+      obj.themeID = obj.overlaySettings?.themeID || 'ICC_GLOBAL';
       return obj;
     });
 
@@ -940,7 +940,7 @@ const getPublicMatches = async (req, res, next) => {
     // Categorize
     for (const m of matches) {
       const obj = m.toJSON();
-      obj.themeID = obj.overlaySettings?.themeID || 'IPL_GOLD';
+      obj.themeID = obj.overlaySettings?.themeID || 'ICC_GLOBAL';
       
       const status = (obj.matchStatus || '').toLowerCase();
       if (['live', 'innings_break', 'break', 'rain delay'].includes(status)) {
@@ -1283,10 +1283,7 @@ const startSecondInnings = async (req, res, next) => {
 
 // ── POST /upload-logo/:id ─────────────────────────────────────────────────────
 // Set up multer for logo uploads
-const uploadDir = path.join(__dirname, '../uploads/logos');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const uploadDir = require('../utils/uploadDir').resolveUploadDir('logos');
 
 const logoStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),

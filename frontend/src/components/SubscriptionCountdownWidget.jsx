@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getToken } from '../api';
 import './SubscriptionCountdownWidget.css';
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 
 const SubscriptionCountdownWidget = () => {
   const navigate = useNavigate();

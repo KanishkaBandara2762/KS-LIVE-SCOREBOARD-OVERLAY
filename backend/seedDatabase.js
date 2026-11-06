@@ -90,8 +90,8 @@ async function seedDatabase() {
         player1: { name: 'V. Kohli', runs: 74, balls: 48, fours: 6, sixes: 2, onStrike: true },
         player2: { name: 'H. Pandya', runs: 22, balls: 12, fours: 1, sixes: 2, onStrike: false },
         bowler: { name: 'M. Starc', overs: 3.2, maidens: 0, runs: 32, wickets: 2 },
-        battingSquad: ['R. Sharma', 'S. Gill', 'V. Kohli', 'S. Yadav', 'H. Pandya', 'R. Pant', 'R. Jadeja'],
-        bowlingSquad: ['M. Starc', 'P. Cummins', 'J. Hazlewood', 'A. Zampa', 'M. Marsh', 'T. Head'],
+        battingSquad: ['R. Sharma', 'S. Gill', 'V. Kohli', 'S. Yadav', 'H. Pandya', 'R. Pant', 'R. Jadeja'].map((name) => ({ name })),
+        bowlingSquad: ['M. Starc', 'P. Cummins', 'J. Hazlewood', 'A. Zampa', 'M. Marsh', 'T. Head'].map((name) => ({ name })),
         matchStatus: 'live',
       },
       {
