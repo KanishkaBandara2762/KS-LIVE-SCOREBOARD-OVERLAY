@@ -1,0 +1,34 @@
+# Dependencies (විශාල token ප්‍රමාණයක් වැයවන folders)
+node_modules/
+vendor/
+
+# Build & Output files
+dist/
+build/
+out/
+.next/
+
+# Git & Cache
+.git/
+.cache/
+
+# Lock files (දහස් ගණනක් tokens අඩංගු අනවශ්‍ය files)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs & temp files
+*.log
+logs/
+
+# Media & static assets
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.mp4
+*.pdf
+
+# Environment & Keys
+.env
+.env.*
