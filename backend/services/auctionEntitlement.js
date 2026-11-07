@@ -8,6 +8,7 @@
 
 const AuctionEntitlement = require('../models/AuctionEntitlement');
 const User = require('../models/User');
+const { isAdminRole } = require('../utils/roles');
 
 function auctionAccessOpenInDev() {
   // Explicit test mode. This lets a fresh deployment be tested without a paid
@@ -21,7 +22,7 @@ function auctionAccessOpenInDev() {
 async function isAdmin(userId) {
   if (!userId) return false;
   const user = await User.findById(userId).select('role').lean();
-  return user?.role === 'admin';
+  return isAdminRole(user?.role);
 }
 
 async function getActiveEntitlement(userId, now = new Date()) {

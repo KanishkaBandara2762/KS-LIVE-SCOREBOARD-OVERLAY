@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { isAdminRole } = require('../utils/roles');
 
 const checkSubscription = async (req, res, next) => {
   try {
@@ -7,8 +8,8 @@ const checkSubscription = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Admins bypass subscription checks
-    if (user.role === 'admin') {
+    // Admins and superadmins bypass subscription checks
+    if (isAdminRole(user.role)) {
       return next();
     }
 

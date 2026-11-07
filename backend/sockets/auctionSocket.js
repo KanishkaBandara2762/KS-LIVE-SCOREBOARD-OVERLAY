@@ -12,6 +12,7 @@ const AuctionTeam = require('../models/AuctionTeam');
 const User = require('../models/User');
 const { verifyToken } = require('../services/jwtService');
 const engine = require('../services/auctionEngine');
+const { isAdminRole } = require('../utils/roles');
 
 const { AuctionError } = engine;
 
@@ -74,7 +75,7 @@ module.exports = function initAuctionSocket(io) {
       if (user) {
         if (String(auction.ownerId) === String(user._id)) {
           role = 'auctioneer';
-        } else if (user.role === 'admin') {
+        } else if (isAdminRole(user.role)) {
           role = 'admin';
         } else {
           const team = await AuctionTeam.findOne({

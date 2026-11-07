@@ -5,6 +5,7 @@ import { matchesApi, tournamentsApi, getToken } from '../api';
 import SubscriptionCountdownWidget from './SubscriptionCountdownWidget';
 import TournamentTeamsModal from './TournamentTeamsModal';
 import AuctionDashboardPanel from './auction/AuctionDashboardPanel';
+import { isAdminRole } from '../utils/roles';
 import './Dashboard.css';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
@@ -951,7 +952,7 @@ const Dashboard = () => {
   };
 
   // Paywall interceptor
-  if (currentUser && currentUser.role !== 'admin' && !currentUser.isSessionActive) {
+  if (currentUser && !isAdminRole(currentUser.role) && !currentUser.isSessionActive) {
     return (
       <div className="paywall-overlay">
         <div className="paywall-card">
@@ -1057,7 +1058,7 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="dash-header-right">
-          {currentUser?.role === 'admin' && (
+          {isAdminRole(currentUser?.role) && (
             <button className="btn-create-match" onClick={() => navigate('/admin/customers')} style={{ marginRight: '10px', background: '#38bdf8', color: '#000' }}>
               Super Admin
             </button>
