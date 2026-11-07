@@ -64,6 +64,13 @@ The workflow needs three repository secrets
 Runs are visible at
 <https://github.com/KanishkaBandara2762/KS-LIVE-SCOREBOARD-OVERLAY/actions>.
 
+Only pushes to `main` of
+`KanishkaBandara2762/KS-LIVE-SCOREBOARD-OVERLAY` deploy. The fork
+`IsurangaHerath/KS-LIVE-SCOREBOARD-OVERLAY` is a separate repository: commits
+pushed only there are not deployed until they are merged (or pushed) into the
+canonical repo's `main`. The workflow also checks `github.repository`, so a copy
+running in the fork skips instead of failing on missing secrets.
+
 > Render's own "Auto-Deploy" toggle does nothing for these services because the
 > repo was added by URL rather than through the Render GitHub App. The workflow
 > is what deploys Render; keep it enabled.

@@ -16,6 +16,9 @@ permissions:
 jobs:
   cloudflare-pages:
     name: Cloudflare Pages (frontend)
+    # Only the canonical repository may deploy. If this workflow is ever synced
+    # into a fork, runs there are skipped instead of failing on missing secrets.
+    if: github.repository == 'KanishkaBandara2762/KS-LIVE-SCOREBOARD-OVERLAY'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,6 +59,7 @@ jobs:
   render:
     name: Render (API + static site)
     needs: cloudflare-pages
+    if: github.repository == 'KanishkaBandara2762/KS-LIVE-SCOREBOARD-OVERLAY'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger kslivescore-api deploy
