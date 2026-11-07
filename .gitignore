@@ -21,4 +21,7 @@ nginx/certs/
 .DS_Store
 Thumbs.db
 
+# Local AI context filter (personal, never commit)
+.claudeignore
+
 backend/uploads/
