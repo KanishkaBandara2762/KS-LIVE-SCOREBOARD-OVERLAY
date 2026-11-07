@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { isAdminRole } = require('../utils/roles');
 
 module.exports = async function checkSessionValidity(req, res, next) {
   try {
@@ -7,8 +8,8 @@ module.exports = async function checkSessionValidity(req, res, next) {
       return res.status(404).json({ success: false, error: 'User not found.' });
     }
 
-    // Bypass check for super admins
-    if (user.role === 'admin') {
+    // Bypass check for admins and superadmins
+    if (isAdminRole(user.role)) {
       return next();
     }
 

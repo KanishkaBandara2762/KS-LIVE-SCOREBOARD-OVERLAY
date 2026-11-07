@@ -388,6 +388,30 @@
     background: rgba(0, 210, 190, 0.08);
 }
 
+.landing-nav-auction {
+    padding: 0.5rem 1.1rem;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.18), rgba(249, 115, 22, 0.18));
+    border: 1px solid rgba(234, 179, 8, 0.45);
+    color: #facc15 !important;
+    border-radius: 8px;
+    font-weight: 700 !important;
+    font-size: 0.88rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.15);
+}
+
+.landing-nav-auction:hover {
+    background: linear-gradient(135deg, #eab308, #f97316) !important;
+    color: #0f172a !important;
+    border-color: #facc15;
+    box-shadow: 0 4px 18px rgba(234, 179, 8, 0.45);
+    transform: translateY(-1px);
+}
+
 .landing-nav-cta {
     padding: 0.55rem 1.4rem;
     background: linear-gradient(135deg, #00d2be, #0096ff);

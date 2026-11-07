@@ -4,27 +4,27 @@ import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, getToken } from '../api';
 import SubscriptionCountdownWidget from './SubscriptionCountdownWidget';
 import TournamentTeamsModal from './TournamentTeamsModal';
+import AuctionDashboardPanel from './auction/AuctionDashboardPanel';
+import { isAdminRole } from '../utils/roles';
 import './Dashboard.css';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
 const THEMES = [
-  { id: 'IPL_GOLD', label: 'IPL Classic' },
-  { id: 'IPL_2026', label: '🏏 IPL 2026' },
-  { id: 'NEW_IPL', label: '🆕 NEW IPL' },
-  { id: 'WC2026', label: '🏆 T20 WC 2026' },
-  { id: 'SKY_PRO', label: 'Sky Sports' },
-  { id: 'NEON_VAVUNIYA', label: 'Neon Green' },
-  { id: 'CLASSIC_DARK', label: 'Classic Dark' },
-  { id: 'T20_NEON', label: 'T20 Neon' },
-  { id: 'WC_BLUE_PURPLE', label: 'WC Blue-Purple' },
-  { id: 'GOLD_CHAMPIONSHIP', label: 'Gold Championship' },
-  { id: 'KS_SPECIAL', label: '☆ KS Special' },
-  { id: 'SL_BROADCAST', label: '📺 SL Broadcast' },
-  { id: 'DC_BLUE', label: '🟦 DC Blue' },
-  { id: 'KS_PREMIUM', label: '💎 KS Premium (Broadcast)' },
+  { id: 'ICC_GLOBAL', label: '🏆 ICC T20 Global Apex (World Cup)' },
+  { id: 'SKY_HYPERION', label: '⚡ Sky Sports Hyperion Pro (UK)' },
+  { id: 'JIO_TITAN', label: '👑 Jio Premier Titan (IPL Gold 4K)' },
+  { id: 'FOX_STRIKE', label: '🔥 Fox Cricket BBL Strike (Action)' },
+  { id: 'SUPERSPORT_AURA', label: '💎 SuperSport Aura Glass (Modern)' },
+  { id: 'NEW_KS_COLOR', label: '🌿 Emerald Cricket Pro (KS Signature)' },
+  { id: 'NEW_IPL', label: '🏏 Tata IPL Modern (Franchise)' },
+  { id: 'IPL_2026', label: '🏟️ IPL 2026 Stadium Capsule' },
+  { id: 'KS_PREMIUM', label: '⭐ KS Premium (Television Broadcast)' },
+  { id: 'WC2026', label: '🌐 T20 World Cup 2026 Electric' },
+  { id: 'APOGEE', label: '🔮 Apogee Arena Pro (Cyber Stadium)' },
+  { id: 'GOLD_CHAMPIONSHIP', label: '🥇 Gold Championship (Grand Finals)' },
 ];
 
-const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 const getAbsoluteUrl = (url) => {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) return url;
@@ -58,7 +58,7 @@ function CreateMatchModal({ onClose, onCreate }) {
     tournamentName: '',
     venueName: '',
     matchDate: new Date().toISOString().split('T')[0],
-    themeID: 'IPL_GOLD',
+    themeID: 'ICC_GLOBAL',
   });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -332,7 +332,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
     tossDecision: 'bat',
     matchTitle: '',
     venueName: '',
-    themeID: 'IPL_GOLD',
+    themeID: 'ICC_GLOBAL',
   });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -952,7 +952,7 @@ const Dashboard = () => {
   };
 
   // Paywall interceptor
-  if (currentUser && currentUser.role !== 'admin' && !currentUser.isSessionActive) {
+  if (currentUser && !isAdminRole(currentUser.role) && !currentUser.isSessionActive) {
     return (
       <div className="paywall-overlay">
         <div className="paywall-card">
@@ -1058,7 +1058,7 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="dash-header-right">
-          {currentUser?.role === 'admin' && (
+          {isAdminRole(currentUser?.role) && (
             <button className="btn-create-match" onClick={() => navigate('/admin/customers')} style={{ marginRight: '10px', background: '#38bdf8', color: '#000' }}>
               Super Admin
             </button>
@@ -1104,9 +1104,13 @@ const Dashboard = () => {
         <button className={`btn-tab ${activeTab === 'matches' ? 'active' : ''}`} onClick={() => setActiveTab('matches')}>
           🏏 Individual Matches
         </button>
+        <button className={`btn-tab ${activeTab === 'auctions' ? 'active' : ''}`} onClick={() => setActiveTab('auctions')}>
+          🔨 Auctions
+        </button>
       </div>
 
       {/* Filters */}
+      {activeTab !== 'auctions' ? (
       <div className="dash-filters">
         <input
           type="text"
@@ -1129,6 +1133,7 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+      ) : null}
 
       {/* Content */}
       <main className="dash-main">
@@ -1177,6 +1182,8 @@ const Dashboard = () => {
               </div>
             )}
           </>
+        ) : activeTab === 'auctions' ? (
+          <AuctionDashboardPanel />
         ) : (
           <>
             {loading && (

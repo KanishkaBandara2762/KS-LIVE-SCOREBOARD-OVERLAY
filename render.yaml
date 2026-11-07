@@ -1,0 +1,72 @@
+# Render Blueprint — second deployment target.
+#
+# Netlify remains the primary deployment (netlify.toml). This file only affects
+# Render. It creates:
+#   • kslivescore-api — Express + Socket.IO backend (free web service)
+#   • kslivescore-web — React frontend (free static site)
+#
+# Both services use the same MongoDB Atlas database as the Netlify deployment.
+# MONGODB_URI and JWT_SECRET are prompted for on first sync (sync: false) so no
+# secret is stored in the repository.
+
+services:
+  - type: web
+    name: kslivescore-api
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: NODE_ENV
+        value: production
+      - key: AUCTION_REQUIRE_ENTITLEMENT
+        value: "false"
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: kslivescore-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: FRONTEND_ORIGIN
+        fromService:
+          type: web
+          name: kslivescore-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NODE_VERSION
+        value: "20"
+
+  - type: web
+    name: kslivescore-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install --include=dev && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: commit
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: kslivescore-api
+          envVarKey: RENDER_EXTERNAL_URL
+      # Render runs an always-on Node process, so native Socket.IO is available.
+      - key: VITE_REALTIME_MODE
+        value: socket
+      - key: VITE_AUCTION_POLL_MS
+        value: "3000"
+      - key: VITE_LIVE_POLL_MS
+        value: "30000"
+      - key: NODE_VERSION
+        value: "20"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

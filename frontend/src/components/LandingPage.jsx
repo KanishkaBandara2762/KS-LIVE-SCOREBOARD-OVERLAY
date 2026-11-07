@@ -298,6 +298,7 @@ export default function LandingPage() {
 
                 <ul className={`landing-nav-links ${mobileMenuOpen ? "open" : ""}`}>
                     <li><Link to="/live" onClick={() => setMobileMenuOpen(false)} style={{ color: '#2dd4bf', fontWeight: 'bold' }}>{t("landing.nav.liveScores")}</Link></li>
+                    <li><Link to="/auctions" onClick={() => setMobileMenuOpen(false)} className="landing-nav-auction">🔨 Explore Auctions</Link></li>
                     <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.features")}</a></li>
                     <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.showcase")}</a></li>
                     <li><a href="#themes" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.themes")}</a></li>
@@ -314,6 +315,38 @@ export default function LandingPage() {
             </nav>
 
             <HeroCarousel />
+
+            {/* AUCTION SPOTLIGHT BANNER */}
+            <section className="max-w-7xl mx-auto px-6 py-4 relative z-10">
+                <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-5">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl shadow-lg shadow-amber-500/30 flex-shrink-0">
+                            🔨
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-amber-500/20 text-amber-300 text-[11px] font-black uppercase px-2 py-0.5 rounded border border-amber-500/30">
+                                    LIVE AUCTION ENGINE
+                                </span>
+                                <span className="text-slate-400 text-xs font-semibold">Real-Time Team Bidding</span>
+                            </div>
+                            <h3 className="text-xl md:text-2xl font-black text-white tracking-wide">
+                                Cricket Player Auction System
+                            </h3>
+                            <p className="text-slate-300 text-sm max-w-2xl mt-1">
+                                Host professional IPL-style player auctions with live bidder sync, purse management, team limits, and dedicated OBS projector displays.
+                            </p>
+                        </div>
+                    </div>
+                    <Link
+                        to="/auctions"
+                        className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black px-7 py-3.5 rounded-xl shadow-lg shadow-amber-500/30 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center gap-2.5 whitespace-nowrap text-sm tracking-wide uppercase"
+                    >
+                        <span>🔨 Explore Auctions</span>
+                        <span className="text-base font-bold">→</span>
+                    </Link>
+                </div>
+            </section>
 
             {liveMatches.length > 0 && (
                 <section className="max-w-7xl mx-auto px-6 py-8 -mt-16 relative z-10">

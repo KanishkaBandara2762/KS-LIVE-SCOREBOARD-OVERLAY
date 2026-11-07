@@ -1,0 +1,1183 @@
+/* ==========================================================================
+   KS LIVE — MODERN INTERNATIONAL BROADCAST OVERLAY THEMES
+   Official Styles:
+   1. ICC_GLOBAL       - ICC T20 Global Apex (World Cup / International)
+   2. SKY_HYPERION     - Sky Sports Hyperion Pro (UK Broadcast / The Hundred)
+   3. JIO_TITAN        - Jio Premier League Titan (IPL Gold & Navy 4K)
+   4. FOX_STRIKE       - Fox Cricket BBL Strike (Australia Action Slant)
+   5. SUPERSPORT_AURA  - SuperSport Aura Glass (International Glassmorphism)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Montserrat:wght@400;600;700;800;900&family=Bebas+Neue&family=Inter:wght@400;600;700;800;900&display=swap');
+
+/* ==========================================================================
+   SHARED OVERLAY UTILITIES & ANIMATIONS
+   ========================================================================== */
+.mbo-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  font-family: 'Outfit', 'Montserrat', sans-serif;
+  z-index: 20;
+  padding-bottom: 12px;
+  box-sizing: border-box;
+}
+
+@keyframes mboSlideUp {
+  0% { transform: translateY(120%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes mboPulseGlow {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes mboSweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes mboScoreBounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); color: #fff; }
+  100% { transform: scale(1); }
+}
+
+.mbo-score-pop {
+  animation: mboScoreBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   UNIVERSAL BROADCAST EVENT BANNER (FOUR, SIX, WICKET, 50, 100)
+   ────────────────────────────────────────────────────────────────────────── */
+.mbo-event-banner {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  width: 90%;
+  max-width: 1100px;
+  padding: 10px 30px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.7);
+  animation: mboSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.mbo-event-banner::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: mboSweep 1.8s infinite linear;
+}
+
+.mbo-event-four {
+  background: linear-gradient(90deg, #0052d4, #4364f7, #6fb1fc);
+  border: 2px solid #6fb1fc;
+}
+
+.mbo-event-six {
+  background: linear-gradient(90deg, #8a2387, #e94057, #f27121);
+  border: 2px solid #ff7b00;
+}
+
+.mbo-event-wicket {
+  background: linear-gradient(90deg, #cb2d3e, #ef473a, #b21f1f);
+  border: 2px solid #ff4757;
+}
+
+.mbo-event-milestone {
+  background: linear-gradient(90deg, #f7971e, #ffd200);
+  border: 2px solid #fff;
+  color: #000 !important;
+}
+
+.mbo-event-title {
+  font-family: 'Bebas Neue', 'Outfit', sans-serif;
+  font-size: 42px;
+  letter-spacing: 3px;
+  font-style: italic;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.6);
+  line-height: 1;
+  margin: 0;
+}
+
+.mbo-event-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+}
+
+.mbo-event-player {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.mbo-event-sub {
+  font-size: 13px;
+  color: #ffeb3b;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   THEME 1: ICC T20 GLOBAL APEX (ICC_GLOBAL)
+   Inspired by ICC Men's & Women's T20 World Cup, Champions Trophy Official
+   ========================================================================== */
+.icc-wrapper {
+  animation: mboSlideUp 0.5s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+}
+
+.icc-top-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 95%;
+  max-width: 1720px;
+  padding: 4px 18px;
+  margin-bottom: -4px;
+  background: linear-gradient(90deg, rgba(8, 12, 26, 0.94), rgba(15, 23, 42, 0.94));
+  border: 1px solid rgba(0, 245, 255, 0.35);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  box-shadow: 0 -4px 20px rgba(0, 245, 255, 0.15);
+  position: relative;
+  z-index: 5;
+}
+
+.icc-top-ribbon::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #ff007a, #00f5ff, #ff007a);
+  background-size: 200% 100%;
+  animation: niBorderSlide 4s linear infinite;
+}
+
+.icc-live-beacon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ff3366;
+  font-weight: 900;
+}
+
+.icc-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff0055;
+  box-shadow: 0 0 10px #ff0055;
+  animation: mboPulseGlow 1.2s infinite;
+}
+
+.icc-board {
+  display: flex;
+  width: 95%;
+  max-width: 1720px;
+  height: 84px;
+  background: linear-gradient(135deg, rgba(8, 12, 26, 0.97) 0%, rgba(14, 21, 43, 0.96) 50%, rgba(6, 9, 20, 0.98) 100%);
+  border: 1.5px solid rgba(0, 245, 255, 0.4);
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(0, 245, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Left Batting Segment */
+.icc-team-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+  background: linear-gradient(90deg, rgba(0, 245, 255, 0.12), transparent);
+  border-right: 1px solid rgba(0, 245, 255, 0.25);
+  min-width: 380px;
+}
+
+.icc-logo-box {
+  position: relative;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, #00f5ff, #ff007a);
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.4);
+}
+
+.icc-team-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.icc-team-name {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #fff;
+  text-transform: uppercase;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+}
+
+.icc-sub-meta {
+  font-size: 11px;
+  font-weight: 700;
+  color: #00f5ff;
+  letter-spacing: 1.5px;
+  margin-top: 3px;
+}
+
+.icc-score-capsule {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.icc-score-main {
+  font-family: 'Outfit', sans-serif;
+  font-size: 46px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+  letter-spacing: -1px;
+}
+
+.icc-overs-main {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ff007a;
+  letter-spacing: 1px;
+}
+
+/* Batsmen Section */
+.icc-batsmen-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 24px;
+  flex: 1.1;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+  gap: 5px;
+}
+
+.icc-bat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.icc-bat-row.striker {
+  color: #fff;
+  font-weight: 900;
+}
+
+.icc-bat-name-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icc-striker-arrow {
+  color: #00f5ff;
+  font-size: 12px;
+  animation: mboPulseGlow 1s infinite alternate;
+}
+
+.icc-bat-stats {
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.icc-bat-balls {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.icc-bat-sr {
+  font-size: 11px;
+  color: #00f5ff;
+  font-weight: 800;
+  margin-left: 8px;
+}
+
+/* Bowler & Over Tracker Section */
+.icc-bowler-section {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  flex: 1.2;
+  gap: 20px;
+}
+
+.icc-bowler-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+}
+
+.icc-bowler-tag {
+  font-size: 10px;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+.icc-bowler-name {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.icc-bowler-figs {
+  font-size: 14px;
+  font-weight: 800;
+  color: #00f5ff;
+}
+
+.icc-ball-track {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icc-ball-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+}
+
+.icc-ball-dot.is-four {
+  background: #00f5ff;
+  color: #000;
+  border-color: #fff;
+  box-shadow: 0 0 10px #00f5ff;
+}
+
+.icc-ball-dot.is-six {
+  background: #ff007a;
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 12px #ff007a;
+}
+
+.icc-ball-dot.is-wicket {
+  background: #ff1744;
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 12px #ff1744;
+  animation: mboPulseGlow 0.8s infinite;
+}
+
+.icc-ball-dot.is-extra {
+  background: #ffb700;
+  color: #000;
+}
+
+/* Opponent Crest / Right Segment */
+.icc-right-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border-left: 1px solid rgba(0, 245, 255, 0.25);
+  background: linear-gradient(270deg, rgba(255, 0, 122, 0.12), transparent);
+}
+
+/* Chase Bar Strip */
+.icc-chase-strip {
+  width: 95%;
+  max-width: 1720px;
+  background: linear-gradient(90deg, #ff007a, #00f5ff);
+  padding: 3px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #000;
+  border-radius: 0 0 8px 8px;
+  margin-top: -2px;
+}
+
+/* ==========================================================================
+   THEME 2: SKY SPORTS HYPERION PRO (SKY_HYPERION)
+   Inspired by Sky Sports Cricket, The Hundred & ECB Broadcasts
+   ========================================================================== */
+.skyh-wrapper {
+  animation: mboSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.skyh-board {
+  display: flex;
+  width: 95%;
+  max-width: 1720px;
+  height: 80px;
+  background: #111317;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.85);
+  overflow: hidden;
+  position: relative;
+}
+
+.skyh-board::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0; width: 5px;
+  background: #e6ff00;
+}
+
+.skyh-team-col {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 0 24px 0 20px;
+  background: #191c23;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  min-width: 360px;
+}
+
+.skyh-team-name {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.skyh-score-wrap {
+  margin-left: auto;
+  text-align: right;
+}
+
+.skyh-score {
+  font-size: 42px;
+  font-weight: 900;
+  color: #e6ff00;
+  line-height: 1;
+  font-family: 'Outfit', sans-serif;
+}
+
+.skyh-overs {
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.skyh-batsmen-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 20px;
+  flex: 1.1;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  gap: 4px;
+}
+
+.skyh-bat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.skyh-bat-row.active {
+  color: #fff;
+  font-weight: 900;
+}
+
+.skyh-tag-strike {
+  background: #e6ff00;
+  color: #000;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 6px;
+  letter-spacing: 0.5px;
+}
+
+.skyh-bat-nums {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.skyh-bowler-col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+  flex: 1.2;
+}
+
+.skyh-bowler-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.skyh-bowler-lbl {
+  font-size: 9px;
+  font-weight: 900;
+  color: #e6ff00;
+  letter-spacing: 1.5px;
+}
+
+.skyh-bowler-name {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.skyh-bowler-figs {
+  font-size: 13px;
+  font-weight: 800;
+  color: #9ca3af;
+}
+
+.skyh-delivery-track {
+  display: flex;
+  gap: 5px;
+}
+
+.skyh-ball-pill {
+  width: 24px;
+  height: 28px;
+  border-radius: 4px;
+  background: #1f232b;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #cbd5e1;
+}
+
+.skyh-ball-pill.b-four {
+  background: #e6ff00;
+  color: #000;
+  font-weight: 900;
+}
+
+.skyh-ball-pill.b-six {
+  background: #ff0055;
+  color: #fff;
+  font-weight: 900;
+}
+
+.skyh-ball-pill.b-wicket {
+  background: #dc2626;
+  color: #fff;
+  border-color: #fca5a5;
+}
+
+/* ==========================================================================
+   THEME 3: JIO PREMIER LEAGUE TITAN (JIO_TITAN)
+   Inspired by JioCinema 4K Broadcast & Star Sports Premier League
+   ========================================================================== */
+.jio-wrapper {
+  animation: mboSlideUp 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+.jio-board {
+  display: flex;
+  width: 95%;
+  max-width: 1720px;
+  height: 86px;
+  background: linear-gradient(135deg, #05132d 0%, #0a214d 45%, #051026 100%);
+  border-radius: 43px;
+  border: 2px solid #e5b842;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.85), inset 0 0 20px rgba(229,184,66,0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.jio-board::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(229,184,66,0.18), transparent);
+  animation: mboSweep 3.5s infinite ease-in-out;
+}
+
+.jio-team-pill {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px 0 18px;
+  background: linear-gradient(90deg, rgba(229, 184, 66, 0.22), transparent);
+  border-right: 1.5px solid rgba(229, 184, 66, 0.3);
+  min-width: 370px;
+}
+
+.jio-logo-halo {
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #ffd700, #ff9900);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.jio-team-name {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.jio-score-badge {
+  margin-left: auto;
+  text-align: right;
+}
+
+.jio-score {
+  font-family: 'Outfit', sans-serif;
+  font-size: 46px;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 2px 12px rgba(255,215,0,0.4);
+  line-height: 1;
+}
+
+.jio-overs {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.jio-bat-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 24px;
+  flex: 1.1;
+  border-right: 1.5px solid rgba(229, 184, 66, 0.2);
+  gap: 4px;
+}
+
+.jio-bat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 700;
+  color: #d1d5db;
+}
+
+.jio-bat-row.striker {
+  color: #fff;
+  font-weight: 900;
+}
+
+.jio-star-icon {
+  color: #ffd700;
+  margin-right: 5px;
+  font-size: 13px;
+}
+
+.jio-bowl-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex: 1.2;
+}
+
+.jio-bowl-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.jio-bowl-title {
+  font-size: 9px;
+  font-weight: 900;
+  color: #ffd700;
+  letter-spacing: 1.5px;
+}
+
+.jio-bowl-name {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.jio-bowl-figs {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffd700;
+}
+
+.jio-balls-track {
+  display: flex;
+  gap: 6px;
+}
+
+.jio-ball {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(229, 184, 66, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.jio-ball.j-four {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  border-color: #fff;
+  box-shadow: 0 0 10px #38bdf8;
+}
+
+.jio-ball.j-six {
+  background: linear-gradient(135deg, #7c3aed, #c084fc);
+  border-color: #fff;
+  box-shadow: 0 0 12px #c084fc;
+}
+
+.jio-ball.j-w {
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+  border-color: #fff;
+  box-shadow: 0 0 12px #ef4444;
+}
+
+/* ==========================================================================
+   THEME 4: FOX CRICKET BBL STRIKE (FOX_STRIKE)
+   Inspired by Fox Sports Australia & Big Bash League Action Slant
+   ========================================================================== */
+.fox-wrapper {
+  animation: mboSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fox-board {
+  display: flex;
+  width: 95%;
+  max-width: 1720px;
+  height: 82px;
+  background: linear-gradient(105deg, #18191d 0%, #101014 100%);
+  border: 2px solid #ff4500;
+  box-shadow: 0 15px 45px rgba(0,0,0,0.8), 0 0 25px rgba(255,69,0,0.25);
+  transform: skewX(-10deg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Inner elements are counter-slanted so text and logos stand upright */
+.fox-board > * {
+  transform: skewX(10deg);
+}
+
+.fox-team-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 24px;
+  background: linear-gradient(90deg, rgba(255, 69, 0, 0.25), transparent);
+  border-right: 2px solid #ff4500;
+  min-width: 380px;
+}
+
+.fox-team-name {
+  font-size: 26px;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.fox-score-wrap {
+  margin-left: auto;
+  text-align: right;
+}
+
+.fox-score {
+  font-size: 46px;
+  font-weight: 900;
+  font-style: italic;
+  color: #ff5722;
+  text-shadow: 0 0 15px rgba(255, 87, 34, 0.6);
+  line-height: 1;
+}
+
+.fox-overs {
+  font-size: 13px;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.fox-bat-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 24px;
+  flex: 1.1;
+  border-right: 1px solid rgba(255,255,255,0.15);
+  gap: 4px;
+}
+
+.fox-bat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 800;
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.fox-bat-row.striker {
+  color: #fff;
+  font-weight: 900;
+}
+
+.fox-fire-arrow {
+  color: #ff4500;
+  margin-right: 6px;
+  font-size: 13px;
+  filter: drop-shadow(0 0 6px #ff4500);
+}
+
+.fox-bowl-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex: 1.2;
+}
+
+.fox-bowl-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.fox-bowl-title {
+  font-size: 10px;
+  font-weight: 900;
+  font-style: italic;
+  color: #ff9800;
+  letter-spacing: 1.5px;
+}
+
+.fox-bowl-name {
+  font-size: 16px;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+}
+
+.fox-bowl-figs {
+  font-size: 14px;
+  font-weight: 900;
+  font-style: italic;
+  color: #ff5722;
+}
+
+.fox-ball-track {
+  display: flex;
+  gap: 6px;
+}
+
+.fox-ball {
+  width: 26px;
+  height: 26px;
+  background: #25262c;
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+}
+
+.fox-ball.f-four {
+  background: #ff9800;
+  color: #000;
+  font-weight: 900;
+  box-shadow: 0 0 10px #ff9800;
+}
+
+.fox-ball.f-six {
+  background: #ff1744;
+  color: #fff;
+  font-weight: 900;
+  box-shadow: 0 0 12px #ff1744;
+}
+
+.fox-ball.f-w {
+  background: #fff;
+  color: #d50000;
+  border-color: #d50000;
+  font-weight: 900;
+}
+
+/* ==========================================================================
+   THEME 5: SUPERSPORT AURA GLASS (SUPERSPORT_AURA)
+   Inspired by SuperSport International, Willow TV & Modern Glassmorphism
+   ========================================================================== */
+.ss-wrapper {
+  animation: mboSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ss-board {
+  display: flex;
+  width: 95%;
+  max-width: 1720px;
+  height: 82px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 30px rgba(16, 185, 129, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.ss-board::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #10b981, #06b6d4, #10b981);
+}
+
+.ss-team-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 26px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 370px;
+}
+
+.ss-team-name {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.ss-score-box {
+  margin-left: auto;
+  text-align: right;
+}
+
+.ss-score {
+  font-family: 'Outfit', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #34d399;
+  line-height: 1;
+  text-shadow: 0 0 15px rgba(52, 211, 153, 0.4);
+}
+
+.ss-overs {
+  font-size: 12px;
+  font-weight: 800;
+  color: #e2e8f0;
+  letter-spacing: 1px;
+}
+
+.ss-bat-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 24px;
+  flex: 1.1;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 4px;
+}
+
+.ss-bat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.ss-bat-row.striker {
+  color: #fff;
+  font-weight: 900;
+}
+
+.ss-dot-strike {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.ss-bowl-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex: 1.2;
+}
+
+.ss-bowl-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.ss-bowl-tag {
+  font-size: 9px;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 1.5px;
+}
+
+.ss-bowl-name {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.ss-bowl-figs {
+  font-size: 13px;
+  font-weight: 800;
+  color: #34d399;
+}
+
+.ss-ball-track {
+  display: flex;
+  gap: 6px;
+}
+
+.ss-ball {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #cbd5e1;
+}
+
+.ss-ball.s-four {
+  background: #0284c7;
+  color: #fff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
+}
+
+.ss-ball.s-six {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #c084fc;
+  box-shadow: 0 0 12px #c084fc;
+}
+
+.ss-ball.s-w {
+  background: #e11d48;
+  color: #fff;
+  border-color: #fda4af;
+  box-shadow: 0 0 12px #e11d48;
+}
+
+/* Common Target Pill for Chase in 2nd Innings */
+.mbo-target-strip {
+  width: 95%;
+  max-width: 1720px;
+  margin-top: 4px;
+  padding: 5px 24px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  animation: mboSlideUp 0.3s ease-out;
+}
+
+.mbo-target-icc {
+  background: linear-gradient(90deg, #ff007a, #00f5ff);
+  color: #000;
+}
+
+.mbo-target-sky {
+  background: #e6ff00;
+  color: #000;
+}
+
+.mbo-target-jio {
+  background: linear-gradient(90deg, #ffd700, #ff9900);
+  color: #000;
+}
+
+.mbo-target-fox {
+  background: linear-gradient(90deg, #ff4500, #ff9800);
+  color: #fff;
+  transform: skewX(-10deg);
+}
+.mbo-target-fox > * {
+  transform: skewX(10deg);
+}
+
+.mbo-target-ss {
+  background: rgba(16, 185, 129, 0.9);
+  color: #000;
+}
+

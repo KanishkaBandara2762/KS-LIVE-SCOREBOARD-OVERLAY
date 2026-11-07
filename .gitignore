@@ -8,6 +8,9 @@ dist/
 .cursor/
 *.log
 
+# Netlify build output (netlify build / netlify dev)
+.netlify/
+
 # Docker secrets
 .env.production
 

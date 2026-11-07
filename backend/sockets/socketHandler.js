@@ -21,6 +21,7 @@
 const Match = require('../models/Match');
 const Tournament = require('../models/Tournament');
 const { formatOvers } = require('../services/scoreEngine');
+const initAuctionSocket = require('./auctionSocket');
 
 module.exports = function initSockets(io) {
   // ── /overlay namespace — OBS browser sources ────────────────────────────────
@@ -159,7 +160,10 @@ module.exports = function initSockets(io) {
     });
   });
 
-  console.log('✅ Socket.IO initialized — namespaces: /overlay, /admin');
+  // ── /auction namespace — authenticated live bidding ───────────────────────
+  initAuctionSocket(io);
+
+  console.log('✅ Socket.IO initialized — namespaces: /overlay, /admin, /auction');
 };
 
 // ── Helper: build a minimal overlay snapshot ─────────────────────────────────

@@ -5,6 +5,7 @@ import { db } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import BroadcastTicker from "./BroadcastTicker";
+import ModernOverlayThemes from "./ModernOverlayThemes";
 import "./BroadcastScreens.css";
 import "./ks-premium.css";
 import "./ThemeNewKSColor.css";
@@ -15,14 +16,14 @@ import "./t20-blitz.css";
 import "./sl-broadcast.css";
 import "./gold-championship.css";
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 const isMongoDB = (id) => true;
 
 const getAbsoluteUrl = (url, cacheBuster) => {
   if (!url) return '';
   let finalUrl = url;
   if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('data:')) {
-    const baseUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+    const baseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
     finalUrl = `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
   }
   return cacheBuster && !url.startsWith('data:') && !url.startsWith('blob:') ? `${finalUrl}?cb=${cacheBuster}` : finalUrl;
@@ -98,6 +99,14 @@ function useDelayUnmount(isMounted, delayTime) {
   return shouldRender;
 }
 
+// Netlify Functions cannot host persistent Socket.IO connections, so production
+// falls back to REST polling. VITE_REALTIME_MODE=socket opts back in.
+const USE_SOCKET =
+  import.meta.env.VITE_REALTIME_MODE === 'socket' ||
+  (!import.meta.env.PROD && import.meta.env.VITE_REALTIME_MODE !== 'polling');
+const LIVE_POLL_MS =
+  Number(import.meta.env.VITE_LIVE_POLL_MS) || (import.meta.env.PROD ? 3000 : 30000);
+
 const ScorecardDisplay = () => {
   const { matchId, tournamentId } = useParams();
   const dbPath = matchId ? `matches/${matchId}/live_match` : 'live_match';
@@ -156,6 +165,11 @@ const ScorecardDisplay = () => {
 
   // ── Memoized static theme data (never changes, avoids re-creation) ──
   const themes = useMemo(() => ({
+    ICC_GLOBAL: { main: "theme-icc-global", isModernRenderer: true, animClass: "anim-icc-global" },
+    SKY_HYPERION: { main: "theme-sky-hyperion", isModernRenderer: true, animClass: "anim-sky-hyperion" },
+    JIO_TITAN: { main: "theme-jio-titan", isModernRenderer: true, animClass: "anim-jio-titan" },
+    FOX_STRIKE: { main: "theme-fox-strike", isModernRenderer: true, animClass: "anim-fox-strike" },
+    SUPERSPORT_AURA: { main: "theme-supersport-aura", isModernRenderer: true, animClass: "anim-supersport-aura" },
     IPL_GOLD: { main: "bg-slate-900", accent: "bg-yellow-400", text: "text-yellow-400", batsman: "bg-yellow-400", bowler: "from-blue-800 to-blue-950", border: "border-yellow-500", chase: "bg-blue-900", animClass: "anim-ipl-gold" },
     SKY_PRO: { main: "bg-white", accent: "bg-red-600", text: "text-red-600", batsman: "bg-slate-100", bowler: "from-red-600 to-red-800", border: "border-red-600", chase: "bg-slate-900", animClass: "anim-sky-pro" },
     NEON_VAVUNIYA: { main: "theme-neon-pulse", accent: "bg-lime-500", text: "text-lime-400", batsman: "bg-zinc-900", bowler: "from-zinc-800 to-black", border: "border-lime-500", chase: "bg-zinc-800", animClass: "anim-neon-vavuniya" },
@@ -322,6 +336,7 @@ const ScorecardDisplay = () => {
       let obsKeepaliveInterval;
       let obsPollInterval;
 
+      if (USE_SOCKET) {
       import('socket.io-client').then(({ io }) => {
         socket = io(`${API_URL}/overlay`, {
           query: { tournamentId },
@@ -382,12 +397,13 @@ const ScorecardDisplay = () => {
         }, 20000);
 
       }).catch(e => console.error('Failed to load socket client:', e));
+      }
 
-      // FIX 3: Polling safety net — re-fetch from REST every 30s.
-      // Ensures OBS always shows fresh scores even if the WebSocket silently drops.
+      // Polling safety net — re-fetch from REST. On Netlify Functions this is
+      // the primary update channel, so it runs every few seconds.
       obsPollInterval = setInterval(() => {
         fetchTournamentAndMatch();
-      }, 30000);
+      }, LIVE_POLL_MS);
 
       return () => {
         if (socket) socket.disconnect();
@@ -417,6 +433,7 @@ const ScorecardDisplay = () => {
           .catch(() => {});
       };
 
+      if (USE_SOCKET) {
       import('socket.io-client').then(({ io }) => {
         socket = io(`${API_URL}/overlay`, {
           query: { matchId },
@@ -468,12 +485,13 @@ const ScorecardDisplay = () => {
         }, 20000);
 
       }).catch(e => console.error('Failed to load socket client:', e));
+      }
 
-      // FIX 3: Polling safety net — re-fetch from REST every 30s.
-      // Ensures OBS always shows fresh scores even if the WebSocket silently drops.
+      // Polling safety net — re-fetch from REST. On Netlify Functions this is
+      // the primary update channel, so it runs every few seconds.
       obsPollInterval = setInterval(() => {
         fetchMatchSnapshot();
-      }, 30000);
+      }, LIVE_POLL_MS);
 
       return () => {
         if (socket) socket.disconnect();
@@ -681,9 +699,11 @@ const ScorecardDisplay = () => {
   const getOvers = useCallback((balls) => { const bpo = match?.ballsPerOver || 6; return `${Math.floor(balls / bpo)}.${balls % bpo}`; }, [match?.ballsPerOver]);
 
   const active = useMemo(() => {
-    const base = themes[match?.themeID] || themes.IPL_GOLD;
+    const base = themes[match?.themeID] || themes.ICC_GLOBAL || themes.IPL_GOLD;
+    const modernThemeIds = ['ICC_GLOBAL', 'SKY_HYPERION', 'JIO_TITAN', 'FOX_STRIKE', 'SUPERSPORT_AURA'];
     return {
       ...base,
+      isModernTheme: modernThemeIds.includes(match?.themeID),
       isKsPremium: match?.themeID === 'KS_PREMIUM',
       isNewKSColor: match?.themeID === 'NEW_KS_COLOR',
       isNewIpl: match?.themeID === 'NEW_IPL',
@@ -1046,11 +1066,23 @@ const ScorecardDisplay = () => {
 
           
           {/* ═══════════════════════════════════════════════════════════
-               KS PREMIUM THEME (Inspired by Broadcast Scoreboard)
+               MODERN INTERNATIONAL BROADCAST OVERLAY THEMES
+               (ICC Global, Sky Hyperion, Jio Titan, Fox Strike, SuperSport Aura)
           ═══════════════════════════════════════════════════════════ */}
-          
-          {/* NEW KS COLOR THEME (Emerald Pro) */}
-          {active.isNewKSColor ? (() => {
+          {active.isModernTheme ? (
+            <ModernOverlayThemes
+              themeId={match.themeID}
+              match={match}
+              showEvent={showEvent}
+              eventType={eventType}
+              eventWicketName={eventWicketName}
+              getHowOutText={getHowOutText}
+              scoreAnimClass={scoreAnimClass}
+              getOvers={getOvers}
+              getAbsoluteUrl={getAbsoluteUrl}
+              TeamLogo={TeamLogo}
+            />
+          ) : active.isNewKSColor ? (() => {
             const bpo = match.ballsPerOver || 6;
             const balls = match.recentBalls || [];
             const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;

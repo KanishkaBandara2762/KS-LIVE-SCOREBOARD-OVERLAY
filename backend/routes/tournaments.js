@@ -9,13 +9,11 @@ const checkSessionValidity = require('../middleware/checkSessionValidity');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const { resolveUploadDir } = require('../utils/uploadDir');
 
 // ── Team Logo Storage Setup ───────────────────────────────────────────
-const uploadDir = path.join(__dirname, '../uploads/logos');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Uses the OS temp folder on Netlify Functions (read-only filesystem).
+const uploadDir = resolveUploadDir('logos');
 
 const teamLogoStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
@@ -483,7 +481,7 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       matchTitle = '',
       venueName = '',
       matchDate = '',
-      themeID = 'IPL_GOLD',
+      themeID = 'ICC_GLOBAL',
       team1Squad: customTeam1Squad = null,
       team2Squad: customTeam2Squad = null,
     } = req.body;

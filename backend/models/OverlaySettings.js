@@ -22,7 +22,7 @@ const overlaySettingsSchema = new mongoose.Schema(
     // ── Theme ──────────────────────────────────────────────────────────────
     themeID: {
       type: String,
-      default: 'IPL_GOLD',
+      default: 'ICC_GLOBAL',
     },
 
     // ── Layout Mode ────────────────────────────────────────────────────────
