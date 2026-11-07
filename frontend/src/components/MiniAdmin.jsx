@@ -117,6 +117,15 @@ const MiniAdmin = () => {
 
     // ── Debounce: prevents double-click duplicate entries (100ms) ─
     const debounceRef = useRef(false);
+
+    // Write sequence: a server response or poll is applied only if no newer write
+    // started after it, so an old response can't roll the score back (blink).
+    const writeSeqRef = useRef(0);
+    const beginWrite = () => ++writeSeqRef.current;
+    const applyServerMatch = (seq, serverMatch) => {
+        if (!serverMatch || seq !== writeSeqRef.current) return;
+        setMatch(prev => (prev ? { ...prev, ...serverMatch } : serverMatch));
+    };
     const debounce = (fn) => {
         if (debounceRef.current) return;
         debounceRef.current = true;
@@ -146,9 +155,10 @@ const MiniAdmin = () => {
         if (isMongoDB(matchId)) {
             // Initial and periodic load from REST
             const loadMatch = () => {
+                const seqAtRequest = writeSeqRef.current;
                 matchesApi.get(matchId)
                     .then(res => {
-                        if (res.match) {
+                        if (res.match && seqAtRequest === writeSeqRef.current) {
                             // Flatten overlay settings for backward compatibility
                             const flattenedMatch = {
                                 ...res.match,
@@ -250,11 +260,13 @@ const MiniAdmin = () => {
             }
 
             if (hasPlayers) {
+                const seq = beginWrite();
                 matchesApi.updatePlayers(matchId, playerChanges)
-                    .then(res => { if (res.match && !hasGeneric) setMatch(res.match); })
+                    .then(res => { if (!hasGeneric) applyServerMatch(seq, res.match); })
                     .catch(() => {});
             }
             if (hasGeneric) {
+                beginWrite();
                 matchesApi.updateMatch(matchId, genericChanges).catch(() => {});
             }
         } else {
@@ -270,8 +282,9 @@ const MiniAdmin = () => {
             const delivery = deliveryMap[eventTrigger];
             if (delivery) {
                 setMatch(prev => prev ? { ...prev, ...changes } : changes);
+                const seq = beginWrite();
                 matchesApi.updateScore(matchId, { delivery, extraRuns: 0 })
-                    .then(res => { if (res.match) setMatch(res.match); })
+                    .then(res => applyServerMatch(seq, res.match))
                     .catch(() => {});
             } else {
                 push(changes);
@@ -334,8 +347,9 @@ const MiniAdmin = () => {
     // pushDelivery: for MongoDB uses updateScore REST API; for Firebase uses field update
     const pushDelivery = useCallback((delivery, extraRuns = 0, firebaseChanges = {}, apiExtraPayload = {}) => {
         if (isMongoDB(matchId)) {
+            const seq = beginWrite();
             matchesApi.updateScore(matchId, { delivery, extraRuns, ...apiExtraPayload })
-                .then(res => { if (res.match) setMatch(res.match); })
+                .then(res => applyServerMatch(seq, res.match))
                 .catch(() => {});
         } else {
             const payload = firebaseChanges?.eventTrigger
@@ -693,8 +707,9 @@ const MiniAdmin = () => {
         
         if (isMongoDB(matchId)) {
             try {
+                const seq = beginWrite();
                 const res = await matchesApi.undoLastBall(matchId);
-                if (res.match) setMatch(res.match);
+                applyServerMatch(seq, res.match);
             } catch (err) {
                 console.error("Undo failed:", err);
                 alert("Failed to undo last ball.");

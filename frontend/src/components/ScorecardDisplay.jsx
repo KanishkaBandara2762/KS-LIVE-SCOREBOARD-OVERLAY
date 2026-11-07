@@ -769,6 +769,14 @@ const ScorecardDisplay = () => {
     };
   }, [match?.themeID]);
 
+  // Key for the overlay bar: changes only when a NEW event starts, never when an event
+  // ends. Otherwise the bar remounts after every event and its entrance animation replays
+  // (the "blink" on the preview). Declared before any early return (Rules of Hooks).
+  const [fxKey, setFxKey] = useState('idle');
+  useEffect(() => {
+    if (currentEvent) setFxKey(`${currentEvent.type}-${currentEvent.time}`);
+  }, [currentEvent]);
+
   if (subscriptionExpired) {
     return (
       <div className="fixed inset-0 bg-[#070b14] flex flex-col items-center justify-center text-white font-sans p-6 text-center select-none">
@@ -1161,7 +1169,7 @@ const ScorecardDisplay = () => {
           {active.isModernTheme ? (
             // Keyed per event so each four / six / wicket replays its bar animation (live only).
             <div
-              key={currentEvent ? `${currentEvent.type}-${currentEvent.time}` : 'idle'}
+              key={fxKey}
               className={`fx-host ${showEvent && ['FOUR', 'SIX', 'WICKET'].includes(eventType) ? `fx-${eventType.toLowerCase()}` : ''}`}
             >
               <ModernOverlayThemes
