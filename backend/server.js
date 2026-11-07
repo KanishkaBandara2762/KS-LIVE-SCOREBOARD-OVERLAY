@@ -1,5 +1,5 @@
 /**
- * KS Live — Express + Socket.IO Server v2.0
+ * KS Live — Express + Socket.IO Server v2.1
  *
  * Architecture: MVC + MongoDB + JWT + Socket.IO
  *
