@@ -182,7 +182,20 @@ const getMatches = async (req, res, next) => {
 const updateScore = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { delivery, extraRuns = 0, batsmanName, bowlerName, dismissalType, fielderName } = req.body;
+    const {
+      delivery,
+      extraRuns = 0,
+      batsmanName,
+      bowlerName,
+      dismissalType,
+      fielderName,
+      dismissedBatter,      // 'striker' | 'nonStriker' | 'player1' | 'player2'
+      deliveryLegality,     // 'legal' | 'wide' | 'noball' | 'none'
+      isStumpingFromWide,   // boolean
+      isRunOutFromNoBall,   // boolean
+      isRunOutFromWide,     // boolean
+      runsCompleted = 0,    // number
+    } = req.body;
 
     const match = await Match.findOne({ matchId: id });
     if (!match) return res.status(404).json({ success: false, error: 'Match not found.' });
@@ -193,14 +206,48 @@ const updateScore = async (req, res, next) => {
     // ── Save state snapshot for undo BEFORE processing delivery ──────────────
     const snapshot = createStateSnapshot(match);
 
+    // ── Classify delivery & special dismissal/retirement events ───────────────
+    let deliveryToProcess = delivery;
+    const options = {};
+
+    if (dismissalType === 'Timed Out') {
+      deliveryToProcess = 'timedout';
+      options.isNonBallEvent = true;
+    } else if (dismissalType === 'Retired Out') {
+      deliveryToProcess = 'retired_out';
+      options.isNonBallEvent = true;
+    } else if (dismissalType === 'Retired Hurt') {
+      deliveryToProcess = 'retired_hurt';
+      options.isNonBallEvent = true;
+      options.isRetirementNotOut = true;
+    } else if (dismissalType === 'Absent Hurt') {
+      deliveryToProcess = 'absent_hurt';
+      options.isNonBallEvent = true;
+      options.isRetirementNotOut = true;
+    } else if (dismissalType === 'Run Out (Mankad)') {
+      deliveryToProcess = 'retired_out'; // Non-ball event that records wicket +1, bowler 0
+      options.isNonBallEvent = true;
+    } else if (isStumpingFromWide || (dismissalType === 'Stumped' && deliveryLegality === 'wide')) {
+      deliveryToProcess = 'wide';
+      options.isWicket = true;
+    } else if (isRunOutFromWide || (dismissalType === 'Run Out' && deliveryLegality === 'wide')) {
+      deliveryToProcess = 'wide';
+      options.isWicket = true;
+    } else if (isRunOutFromNoBall || (dismissalType === 'Run Out' && deliveryLegality === 'noball')) {
+      deliveryToProcess = 'noball';
+      options.isWicket = true;
+    }
+
+    const runsForDelivery = (runsCompleted || extraRuns || 0);
+
     // ── Process delivery through score engine ────────────────────────────────
-    const result = processBallDelivery(match, delivery, extraRuns);
+    const result = processBallDelivery(match, deliveryToProcess, runsForDelivery, options);
 
     // ── Build recent balls array (max 6 for current over) ────────────────────
     let recentBalls = [...(match.recentBalls || [])];
     if (result.overCompleted) {
       recentBalls = []; // Clear on over completion
-    } else {
+    } else if (result.ballLabel) {
       recentBalls.push(result.ballLabel);
       if (recentBalls.length > 6) recentBalls = recentBalls.slice(-6);
     }
@@ -208,29 +255,37 @@ const updateScore = async (req, res, next) => {
     // ── Update bowler figures string ──────────────────────────────────────────
     const currentOverStr = formatOvers(result.newLegalBallCount, match.ballsPerOver);
 
-    // ── Determine striker and update player runs/balls ────────────────────────
+    // ── Determine striker, non-striker, and dismissed batter ─────────────────
     const p1IsStriker = match.player1.onStrike;
     const strikerKey = p1IsStriker ? 'player1' : 'player2';
     const nonStrikerKey = p1IsStriker ? 'player2' : 'player1';
 
-    // Legal ball increments batter's ball count (not wides, not noball)
-    const incrementBatterBalls = result.isLegalDelivery && delivery !== 'noball';
+    let outKey = strikerKey;
+    if (dismissedBatter === 'nonStriker' || dismissedBatter === nonStrikerKey) {
+      outKey = nonStrikerKey;
+    } else if (dismissedBatter === 'player1') {
+      outKey = 'player1';
+    } else if (dismissedBatter === 'player2') {
+      outKey = 'player2';
+    }
+    const survivingKey = outKey === 'player1' ? 'player2' : 'player1';
+
+    // Legal ball increments batter's ball count (not wides, not noball, not non-ball events)
+    const incrementBatterBalls = result.isLegalDelivery && deliveryToProcess !== 'noball' && !result.isNonBallEvent;
 
     let batterRunsToAdd = 0;
     let runsForStrikeRotation = 0;
 
-    if (delivery === 'wide') {
-      // Wide: batters NEVER rotate, regardless of extra runs
-      // Wide ball is a penalty - it does NOT count as runs between wickets
+    if (deliveryToProcess === 'wide') {
       runsForStrikeRotation = 0;
-    } else if (delivery === 'noball') {
-      batterRunsToAdd = extraRuns;
-      runsForStrikeRotation = extraRuns;
-    } else if (delivery === 'lb' || delivery === 'byes') {
-      runsForStrikeRotation = extraRuns || 1;
-    } else if (delivery === 'runout') {
-      batterRunsToAdd = extraRuns;
-      runsForStrikeRotation = extraRuns;
+    } else if (deliveryToProcess === 'noball') {
+      batterRunsToAdd = runsForDelivery;
+      runsForStrikeRotation = runsForDelivery;
+    } else if (deliveryToProcess === 'lb' || deliveryToProcess === 'byes') {
+      runsForStrikeRotation = runsForDelivery || 1;
+    } else if (deliveryToProcess === 'runout' || dismissalType === 'Run Out') {
+      batterRunsToAdd = runsForDelivery;
+      runsForStrikeRotation = runsForDelivery;
     } else {
       batterRunsToAdd = result.runsScored;
       runsForStrikeRotation = result.runsScored;
@@ -238,13 +293,17 @@ const updateScore = async (req, res, next) => {
 
     const strikerRuns = (match[strikerKey].runs || 0) + batterRunsToAdd;
     const strikerBalls = (match[strikerKey].balls || 0) + (incrementBatterBalls ? 1 : 0);
-    const strikerFours = (match[strikerKey].fours || 0) + ((delivery === '4' || (delivery === 'noball' && extraRuns === 4)) ? 1 : 0);
-    const strikerSixes = (match[strikerKey].sixes || 0) + ((delivery === '6' || (delivery === 'noball' && extraRuns === 6)) ? 1 : 0);
+    const strikerFours = (match[strikerKey].fours || 0) + ((deliveryToProcess === '4' || (deliveryToProcess === 'noball' && runsForDelivery === 4)) ? 1 : 0);
+    const strikerSixes = (match[strikerKey].sixes || 0) + ((deliveryToProcess === '6' || (deliveryToProcess === 'noball' && runsForDelivery === 6)) ? 1 : 0);
 
-    // Rotate strike on odd runs physically run
+    // Rotate strike on odd runs
     let p1StrikeAfter = match.player1.onStrike;
     let p2StrikeAfter = match.player2.onStrike;
-    if (runsForStrikeRotation % 2 !== 0 && !result.isWicket) {
+    if (runsForStrikeRotation % 2 !== 0 && !result.isWicket && !result.isRetirementNotOut) {
+      p1StrikeAfter = !p1StrikeAfter;
+      p2StrikeAfter = !p2StrikeAfter;
+    } else if (runsForStrikeRotation % 2 !== 0 && (result.isWicket || result.isRetirementNotOut)) {
+      // Completed odd runs before dismissal: batters crossed
       p1StrikeAfter = !p1StrikeAfter;
       p2StrikeAfter = !p2StrikeAfter;
     }
@@ -266,30 +325,45 @@ const updateScore = async (req, res, next) => {
       updatedPlayer1 = { ...updatedPlayer1, onStrike: p1StrikeAfter };
     }
 
-    // On wicket: reset the out batsman slot
-    if (result.isWicket) {
-      updatedPlayer1 = p1IsStriker
-        ? { name: 'NEW PLAYER', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: p1StrikeAfter }
-        : updatedPlayer1;
-      updatedPlayer2 = !p1IsStriker
-        ? { name: 'NEW PLAYER', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: p2StrikeAfter }
-        : updatedPlayer2;
+    // Capture dismissed batter's final figures before resetting slot
+    const dismissedPlayerRaw = match[outKey];
+    const dismissedPlayerName = dismissedPlayerRaw?.name || 'BATTER';
+    const dismissedPlayerRuns = outKey === strikerKey ? strikerRuns : (dismissedPlayerRaw?.runs || 0);
+    const dismissedPlayerBalls = outKey === strikerKey ? strikerBalls : (dismissedPlayerRaw?.balls || 0);
+
+    // On wicket or retirement: reset the dismissed batter slot
+    if (result.isWicket || result.isRetirementNotOut) {
+      if (outKey === 'player1') {
+        updatedPlayer1 = { name: 'NEW PLAYER', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: p1StrikeAfter };
+        updatedPlayer2 = { ...updatedPlayer2, onStrike: p2StrikeAfter };
+      } else {
+        updatedPlayer2 = { name: 'NEW PLAYER', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: p2StrikeAfter };
+        updatedPlayer1 = { ...updatedPlayer1, onStrike: p1StrikeAfter };
+      }
     }
 
-    // ── Update bowler stats ────────────────────────────────────────────────────
+    // ── Bowler stats & credit accounting ─────────────────────────────────────
+    // Bowler gets credit only for: Bowled, Caught, Caught Behind, Caught & Bowled, LBW, Stumped, Hit Wicket
+    const BOWLER_CREDITED_DISMISSALS = [
+      'Bowled',
+      'Caught',
+      'Caught Behind',
+      'Caught & Bowled',
+      'LBW',
+      'Stumped',
+      'Hit Wicket',
+    ];
+    const creditsBowler = result.isWicket && BOWLER_CREDITED_DISMISSALS.includes(dismissalType || 'Bowled');
+
     let bowlerRunsFromDelivery = result.runsScored;
-    if (delivery === 'byes' || delivery === 'lb') {
+    if (deliveryToProcess === 'byes' || deliveryToProcess === 'lb') {
       bowlerRunsFromDelivery = 0; // Byes and Leg Byes do NOT count against the bowler
     }
-    const bowlerLegalBalls = result.isLegalDelivery ? (match.bowler.overs * match.ballsPerOver + (match.bowler.overs % 1 !== 0 ? 0 : 0)) : 0;
-    // Simpler approach: track bowler legal balls with a separate counter
-    // bowler.overs stores decimal like "2.4" but in DB it's stored as number
-    // We'll reconstruct: bowler's delivered legal balls = floor(overs) * bpo + fraction
     const bowlerPrevLegalBalls = match.bowler.legalBalls || Math.round((match.bowler.overs || 0) * match.ballsPerOver);
     const bowlerNewLegalBalls = bowlerPrevLegalBalls + (result.isLegalDelivery ? 1 : 0);
-    const bowlerNewOvers = bowlerNewLegalBalls / match.ballsPerOver; // store as decimal
+    const bowlerNewOvers = bowlerNewLegalBalls / match.ballsPerOver;
     const bowlerNewRuns = (match.bowler.runs || 0) + bowlerRunsFromDelivery;
-    const bowlerNewWickets = (match.bowler.wickets || 0) + (result.isWicket ? 1 : 0);
+    const bowlerNewWickets = (match.bowler.wickets || 0) + (creditsBowler ? 1 : 0);
     const bowlerOversDisplay = formatOvers(bowlerNewLegalBalls, match.ballsPerOver);
     const bowlerNewFigures = `${bowlerNewWickets}-${bowlerNewRuns} (${bowlerOversDisplay})`;
 
@@ -306,18 +380,18 @@ const updateScore = async (req, res, next) => {
 
     // ── Extras & Partnership updates ───────────────────────────────────────────
     const extrasUpdate = { ...(match.extras ? match.extras.toObject?.() ?? match.extras : {}) };
-    if (delivery === 'wide') extrasUpdate.wides = (extrasUpdate.wides || 0) + result.runsScored;
-    else if (delivery === 'noball') extrasUpdate.noballs = (extrasUpdate.noballs || 0) + result.runsScored;
-    else if (delivery === 'byes') extrasUpdate.byes = (extrasUpdate.byes || 0) + result.runsScored;
-    else if (delivery === 'lb') extrasUpdate.legbyes = (extrasUpdate.legbyes || 0) + result.runsScored;
+    if (deliveryToProcess === 'wide') extrasUpdate.wides = (extrasUpdate.wides || 0) + result.runsScored;
+    else if (deliveryToProcess === 'noball') extrasUpdate.noballs = (extrasUpdate.noballs || 0) + result.runsScored;
+    else if (deliveryToProcess === 'byes') extrasUpdate.byes = (extrasUpdate.byes || 0) + result.runsScored;
+    else if (deliveryToProcess === 'lb') extrasUpdate.legbyes = (extrasUpdate.legbyes || 0) + result.runsScored;
     extrasUpdate.total = (extrasUpdate.wides || 0) + (extrasUpdate.noballs || 0) + (extrasUpdate.byes || 0) + (extrasUpdate.legbyes || 0);
 
     const partnershipUpdate = { ...(match.partnership ? match.partnership.toObject?.() ?? match.partnership : {}) };
     partnershipUpdate.runs = (partnershipUpdate.runs || 0) + result.runsScored;
-    if (result.isLegalDelivery && delivery !== 'noball') {
+    if (result.isLegalDelivery && deliveryToProcess !== 'noball') {
       partnershipUpdate.balls = (partnershipUpdate.balls || 0) + 1;
     }
-    if (result.isWicket) {
+    if (result.isWicket || result.isRetirementNotOut) {
       partnershipUpdate.runs = 0;
       partnershipUpdate.balls = 0;
     }
@@ -342,17 +416,16 @@ const updateScore = async (req, res, next) => {
       partnership: partnershipUpdate,
     };
 
-    // ── Wicket handling ───────────────────────────────────────────────────────
+    // ── Wicket & Retirement handling ──────────────────────────────────────────
     if (result.isWicket) {
-      const strikerName = match[strikerKey].name;
-      const strikerRunsAtOut = match[strikerKey].runs;
-      const strikerBallsAtOut = match[strikerKey].balls;
+      // Auto-assign bowler as catcher for Caught & Bowled
+      const effectiveFielder = dismissalType === 'Caught & Bowled' ? (match.bowler?.name || 'Bowler') : (fielderName || '');
 
-      updateData.lastWicketName = strikerName;
-      updateData.lastWicketRuns = strikerRunsAtOut;
-      updateData.lastWicketBalls = strikerBallsAtOut;
+      updateData.lastWicketName = dismissedPlayerName;
+      updateData.lastWicketRuns = dismissedPlayerRuns;
+      updateData.lastWicketBalls = dismissedPlayerBalls;
       updateData.lastWicketDismissal = dismissalType || 'Bowled';
-      updateData.lastWicketFielder = fielderName || '';
+      updateData.lastWicketFielder = effectiveFielder;
       updateData.eventTrigger = 'WICKET';
       updateData.eventTime = new Date();
       updateData.eventId = uuidv4();
@@ -361,12 +434,46 @@ const updateScore = async (req, res, next) => {
         fallOfWickets: {
           score: result.newScore,
           wicket: result.newWickets,
-          playerName: strikerName,
+          playerName: dismissedPlayerName,
           overAtFall: currentOverStr,
           dismissalType: dismissalType || 'Bowled',
-          fielderName: fielderName || '',
+          fielderName: effectiveFielder,
+          bowler: creditsBowler ? (match.bowler?.name || '') : '',
         },
       };
+    } else if (result.isRetirementNotOut) {
+      updateData.lastWicketName = dismissedPlayerName;
+      updateData.lastWicketRuns = dismissedPlayerRuns;
+      updateData.lastWicketBalls = dismissedPlayerBalls;
+      updateData.lastWicketDismissal = dismissalType;
+      updateData.lastWicketFielder = '';
+      updateData.eventTrigger = dismissalType === 'Absent Hurt' ? 'ABSENT_HURT' : 'RETIRED_HURT';
+      updateData.eventTime = new Date();
+      updateData.eventId = uuidv4();
+    }
+
+    // ── Update batting squad status ───────────────────────────────────────────
+    if (match.battingSquad && match.battingSquad.length > 0) {
+      const newStatus = result.isRetirementNotOut
+        ? (dismissalType === 'Absent Hurt' ? 'absent_hurt' : 'retired_hurt')
+        : (result.isWicket ? 'out' : null);
+
+      if (newStatus) {
+        updateData.battingSquad = match.battingSquad.map(p => {
+          const pName = typeof p === 'string' ? p : p.name;
+          if (pName && pName.toUpperCase() === dismissedPlayerName.toUpperCase()) {
+            return {
+              ...(typeof p === 'object' ? p : { name: p }),
+              status: newStatus,
+              dismissal: dismissalType || 'Bowled',
+              fielderName: fielderName || '',
+              runs: dismissedPlayerRuns,
+              balls: dismissedPlayerBalls,
+            };
+          }
+          return p;
+        });
+      }
     }
 
     if (result.overCompleted) {

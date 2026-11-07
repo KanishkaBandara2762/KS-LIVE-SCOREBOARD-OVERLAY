@@ -731,11 +731,19 @@ const ScorecardDisplay = () => {
     const bowler = match.bowler?.name || "Bowler";
     switch (eventWicketDismissal) {
       case 'Caught': return `c ${eventWicketFielder || 'Sub'} b ${bowler}`;
-      case 'Stumped': return `st ${eventWicketFielder || 'Sub'} b ${bowler}`;
+      case 'Caught Behind': return `c †${eventWicketFielder || 'Wk'} b ${bowler}`;
+      case 'Caught & Bowled': return `c & b ${bowler}`;
+      case 'Stumped': return `st †${eventWicketFielder || 'Wk'} b ${bowler}`;
       case 'Run Out': return `Run Out (${eventWicketFielder || 'Direct Hit'})`;
+      case 'Run Out (Mankad)': return `Run Out (Mankad)`;
       case 'LBW': return `lbw b ${bowler}`;
       case 'Hit Wicket': return `hit wicket b ${bowler}`;
-      case 'Retired Hurt': return 'Retired Hurt';
+      case 'Hit the Ball Twice': return `hit the ball twice`;
+      case 'Obstructing the Field': return `obstructing the field`;
+      case 'Timed Out': return `timed out`;
+      case 'Retired Out': return `retired out`;
+      case 'Retired Hurt': return 'retired hurt (not out)';
+      case 'Absent Hurt': return 'absent hurt (not out)';
       default: return `b ${bowler}`;
     }
   };

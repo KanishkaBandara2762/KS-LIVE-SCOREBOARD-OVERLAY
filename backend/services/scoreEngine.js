@@ -169,21 +169,38 @@ const createStateSnapshot = (match) => {
 /**
  * Process a ball delivery and return the score delta
  */
-const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
+const processBallDelivery = (match, deliveryType, extraRuns = 0, options = {}) => {
   const { legalBallCount, ballsPerOver, maxOvers, score, wickets, isSecondInnings,
           targetScore, targetBalls, manualBallsOverride, manualBallsValue,
           manualTargetOverride, manualTargetValue } = match;
 
-  const legal = isLegalDelivery(deliveryType);
-  const runsScored = getRunsFromDelivery(deliveryType, extraRuns);
-  const isWicket = deliveryType === 'wicket' || deliveryType === 'runout';
-  const isBoundary = [...BOUNDARY_FOURS, ...BOUNDARY_SIXES].includes(deliveryType);
+  const isNonBallEvent = deliveryType === 'timedout' || deliveryType === 'retired_out' || 
+                         deliveryType === 'retired_hurt' || deliveryType === 'absent_hurt' || 
+                         Boolean(options.isNonBallEvent);
+  const isRetirementNotOut = deliveryType === 'retired_hurt' || deliveryType === 'absent_hurt' || 
+                             Boolean(options.isRetirementNotOut);
+
+  const legal = !isNonBallEvent && isLegalDelivery(deliveryType);
+  const runsScored = isNonBallEvent ? (extraRuns || 0) : getRunsFromDelivery(deliveryType, extraRuns);
+  
+  // Wicket accounting:
+  // Non-dismissals (retired_hurt, absent_hurt) NEVER increase wickets.
+  // Standard wickets, run outs, timed out, retired out, or explicit options.isWicket DO increase wickets.
+  const isWicket = !isRetirementNotOut && (
+    deliveryType === 'wicket' || 
+    deliveryType === 'runout' || 
+    deliveryType === 'timedout' || 
+    deliveryType === 'retired_out' || 
+    Boolean(options.isWicket)
+  );
+
+  const isBoundary = !isNonBallEvent && [...BOUNDARY_FOURS, ...BOUNDARY_SIXES].includes(deliveryType);
   const isDead = deliveryType === 'deadball';
 
   const newScore = isDead ? score : score + runsScored;
   const newWickets = isWicket ? wickets + 1 : wickets;
   const newLegalBallCount = legal && !isDead ? legalBallCount + 1 : legalBallCount;
-  const newTotalBalls = match.totalBalls + 1;
+  const newTotalBalls = isNonBallEvent ? match.totalBalls : match.totalBalls + 1;
 
   const ballInOver = newLegalBallCount % ballsPerOver;
   const currentOverDisplay = `${Math.floor(newLegalBallCount / ballsPerOver)}.${ballInOver}`;
@@ -207,8 +224,10 @@ const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
 
   const overCompleted = legal && !isDead && (newLegalBallCount % ballsPerOver === 0) && newLegalBallCount > 0;
 
-  const ballLabel = isDead ? 'DB' : deliveryType === 'wide' ? 'WD'
-    : deliveryType === 'noball' ? 'NB'
+  const ballLabel = isNonBallEvent ? null
+    : isDead ? 'DB' 
+    : deliveryType === 'wide' ? (isWicket ? 'W+WD' : (extraRuns > 0 ? `WD+${extraRuns}` : 'WD'))
+    : deliveryType === 'noball' ? (isWicket ? 'W+NB' : (extraRuns > 0 ? `NB+${extraRuns}` : 'NB'))
     : deliveryType === 'wicket' ? 'W'
     : deliveryType === 'runout' ? (runsScored > 0 ? `${runsScored}RO` : 'RO')
     : deliveryType === 'lb' ? (runsScored > 0 ? `LB${runsScored}` : 'LB')
@@ -221,6 +240,8 @@ const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
     isWicket,
     isBoundary,
     isDead,
+    isNonBallEvent,
+    isRetirementNotOut,
     newScore,
     newWickets,
     newLegalBallCount,
@@ -236,7 +257,7 @@ const processBallDelivery = (match, deliveryType, extraRuns = 0) => {
       score: newScore - score,
       legalBallCount: newLegalBallCount - legalBallCount,
       wickets: newWickets - wickets,
-      totalBalls: 1,
+      totalBalls: isNonBallEvent ? 0 : 1,
     },
   };
 };

@@ -78,6 +78,7 @@ const NewBatterModal = ({ squad, outPlayerName, slotLabel, onConfirm, onClose })
             {displayPlayers.length > 0 ? displayPlayers.map((p, i) => {
               const name = typeof p === 'string' ? p : (p.name || '');
               const role = typeof p === 'object' && p.role ? p.role : '';
+              const isRetiredHurt = typeof p === 'object' && p.status === 'retired_hurt';
               const isSelected = selected.toUpperCase() === name.toUpperCase();
               return (
                 <button
@@ -102,11 +103,18 @@ const NewBatterModal = ({ squad, outPlayerName, slotLabel, onConfirm, onClose })
                     <span style={{ opacity: 0.4, fontSize: 11 }}>{i + 1}.</span>
                     <span style={{ textTransform: 'uppercase' }}>{name}</span>
                   </div>
-                  {role && (
-                    <span style={{ fontSize: 10, opacity: 0.6, background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 4 }}>
-                      {role}
-                    </span>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {isRetiredHurt && (
+                      <span style={{ fontSize: 9, color: '#38bdf8', background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
+                        RETIRED HURT
+                      </span>
+                    )}
+                    {role && (
+                      <span style={{ fontSize: 10, opacity: 0.6, background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 4 }}>
+                        {role}
+                      </span>
+                    )}
+                  </div>
                 </button>
               );
             }) : (

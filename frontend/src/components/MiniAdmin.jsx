@@ -78,6 +78,10 @@ const MiniAdmin = () => {
     const [showWicketPanel, setShowWicketPanel] = useState(false);
     const [wicketDismissal, setWicketDismissal] = useState('Bowled');
     const [wicketFielder, setWicketFielder] = useState('');
+    const [wicketDismissedBatter, setWicketDismissedBatter] = useState('striker');
+    const [wicketRunsCompleted, setWicketRunsCompleted] = useState(0);
+    const [wicketDeliveryLegality, setWicketDeliveryLegality] = useState('legal');
+    const [wicketStumpedWide, setWicketStumpedWide] = useState(false);
 
     // Always use the real hostname/IP — OBS blocks WebSockets to 'localhost'
     // so we replace it with the actual network IP the browser is currently using.
@@ -453,26 +457,105 @@ const MiniAdmin = () => {
         }
     };
 
-    const handleWicket = (dismissalType = 'Bowled', fielderName = '') => {
+    const handleWicket = (customOpts = {}) => {
         if (!match || match.overLocked) return;
         setHistory(h => [...h, match]);
-        const outKey = match.player1.onStrike ? "player1" : "player2";
-        const op = match[outKey];
-        const { recentBalls, overRuns } = updateOverHistory("W", match, 0);
+
+        const type = customOpts.dismissalType || wicketDismissal || 'Bowled';
+        const fielder = customOpts.fielderName !== undefined ? customOpts.fielderName : wicketFielder;
+        const dismissedTarget = customOpts.dismissedBatter || wicketDismissedBatter || 'striker';
+        const runsDone = customOpts.runsCompleted !== undefined ? customOpts.runsCompleted : wicketRunsCompleted;
+        const isStumpWide = customOpts.isStumpingFromWide !== undefined ? customOpts.isStumpingFromWide : wicketStumpedWide;
+        const delivLegality = customOpts.deliveryLegality || wicketDeliveryLegality || 'legal';
+
+        const p1IsStriker = match.player1.onStrike;
+        const strikerKey = p1IsStriker ? "player1" : "player2";
+        const nonStrikerKey = p1IsStriker ? "player2" : "player1";
+        const outKey = dismissedTarget === 'nonStriker' ? nonStrikerKey : strikerKey;
+        const survivingKey = outKey === 'player1' ? 'player2' : 'player1';
+        const op = match[outKey] || { name: 'BATTER', runs: 0, balls: 0 };
+
+        const isRetirement = type === 'Retired Hurt' || type === 'Absent Hurt';
+        const isNonBall = isRetirement || type === 'Timed Out' || type === 'Retired Out' || type === 'Run Out (Mankad)';
+
+        // Credit bowler with wicket only for standard bowler dismissals:
+        const BOWLER_CREDITED = ['Bowled', 'Caught', 'Caught Behind', 'Caught & Bowled', 'LBW', 'Stumped', 'Hit Wicket'];
+        const creditsBowler = !isRetirement && BOWLER_CREDITED.includes(type);
+        const effectiveFielder = type === 'Caught & Bowled' ? (match.bowler?.name || 'Bowler') : fielder;
+
         if (isMongoDB(matchId)) {
-            pushDelivery('wicket', 0, {}, { dismissalType, fielderName });
+            let delivery = 'wicket';
+            if (type === 'Timed Out') delivery = 'timedout';
+            else if (type === 'Retired Out') delivery = 'retired_out';
+            else if (type === 'Retired Hurt') delivery = 'retired_hurt';
+            else if (type === 'Absent Hurt') delivery = 'absent_hurt';
+            else if (type === 'Run Out (Mankad)') delivery = 'retired_out';
+            else if (isStumpWide || (type === 'Stumped' && delivLegality === 'wide')) delivery = 'wide';
+            else if (delivLegality === 'wide') delivery = 'wide';
+            else if (delivLegality === 'noball') delivery = 'noball';
+
+            pushDelivery(delivery, runsDone, {}, {
+                dismissalType: type,
+                fielderName: effectiveFielder,
+                dismissedBatter: outKey,
+                deliveryLegality: delivLegality,
+                isStumpingFromWide: isStumpWide,
+                runsCompleted: runsDone,
+            });
         } else {
-            pushEvent({
-                wickets: match.wickets + 1, totalBalls: match.totalBalls + 1,
-                recentBalls, overRuns,
-                fallOfWickets: [...(match.fallOfWickets || []), { name: op.name, runs: op.runs, balls: op.balls, bowler: match.bowler?.name, fowScore: match.score, fowWicket: match.wickets + 1, dismissalType, fielderName }],
-                lastWicketName: op.name, lastWicketRuns: op.runs, lastWicketBalls: op.balls,
-                lastWicketDismissal: dismissalType, lastWicketFielder: fielderName,
-                [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: true },
-                legalBallCount: (match.legalBallCount || 0) + 1,
+            // Local / Firebase state handling
+            const ballEntry = isNonBall ? null : (isStumpWide || delivLegality === 'wide' ? 'W+WD' : (delivLegality === 'noball' ? 'W+NB' : 'W'));
+            const { recentBalls, overRuns } = ballEntry ? updateOverHistory(ballEntry, match, runsDone) : { recentBalls: match.recentBalls, overRuns: match.overRuns };
+            
+            const newWickets = isRetirement ? match.wickets : match.wickets + 1;
+            const extraPenalty = (isStumpWide || delivLegality === 'wide' || delivLegality === 'noball') ? 1 : 0;
+            const newScore = match.score + runsDone + extraPenalty;
+
+            let p1Strike = match.player1.onStrike;
+            let p2Strike = match.player2.onStrike;
+            if (runsDone % 2 !== 0) {
+                p1Strike = !p1Strike;
+                p2Strike = !p2Strike;
+            }
+
+            const outKeyStrikeStatus = outKey === 'player1' ? p1Strike : p2Strike;
+
+            const updatedPayload = {
+                score: newScore,
+                wickets: newWickets,
+                totalBalls: isNonBall ? match.totalBalls : match.totalBalls + 1,
+                recentBalls,
+                overRuns,
+                lastWicketName: op.name,
+                lastWicketRuns: op.runs,
+                lastWicketBalls: op.balls,
+                lastWicketDismissal: type,
+                lastWicketFielder: effectiveFielder,
+                [outKey]: { name: "NEW PLAYER", runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: outKeyStrikeStatus },
+                [survivingKey]: { ...match[survivingKey], onStrike: survivingKey === 'player1' ? p1Strike : p2Strike },
+                legalBallCount: (isNonBall || isStumpWide || delivLegality !== 'legal') ? match.legalBallCount : (match.legalBallCount || 0) + 1,
                 ...getManualBallsUpdate(),
-            }, "WICKET");
+            };
+
+            if (!isRetirement) {
+                updatedPayload.fallOfWickets = [
+                    ...(match.fallOfWickets || []),
+                    {
+                        name: op.name,
+                        runs: op.runs,
+                        balls: op.balls,
+                        bowler: creditsBowler ? (match.bowler?.name || '') : '',
+                        fowScore: newScore,
+                        fowWicket: newWickets,
+                        dismissalType: type,
+                        fielderName: effectiveFielder,
+                    }
+                ];
+            }
+
+            pushEvent(updatedPayload, isRetirement ? (type === 'Absent Hurt' ? 'ABSENT_HURT' : 'RETIRED_HURT') : "WICKET");
         }
+
         setShowWicketPanel(false);
         // Show new batter selection modal
         setOutPlayerName(op.name);
@@ -483,10 +566,14 @@ const MiniAdmin = () => {
     const handleNewBatterConfirm = (playerName) => {
         setShowNewBatterModal(false);
         if (!playerName || !newBatterSlot) return;
+        const isRetirement = wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt';
+        const retiredStatus = wicketDismissal === 'Absent Hurt' ? 'absent_hurt' : 'retired_hurt';
         // Update squad status
         const updatedSquad = (match.battingSquad || []).map(p => {
             const name = p.name || p;
-            if (name === outPlayerName && outPlayerName !== playerName) return { ...p, status: 'out' };
+            if (name === outPlayerName && outPlayerName !== playerName) {
+                return { ...p, status: isRetirement ? retiredStatus : 'out' };
+            }
             if (name === playerName) return { ...p, status: 'batting' };
             return p;
         });
@@ -732,7 +819,7 @@ const MiniAdmin = () => {
             const h = handlerRef.current;
             if (e.key === "Enter" && h.showWicketPanel) {
                 e.preventDefault();
-                h.handleWicket(h.wicketDismissal, h.wicketFielder);
+                h.handleWicket();
                 return;
             }
             if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
@@ -741,7 +828,7 @@ const MiniAdmin = () => {
             if (k === "4") h.addBoundary(4);
             if (k === "6") h.addBoundary(6);
             if (k === "w") {
-                if (h.showWicketPanel) h.handleWicket(h.wicketDismissal, h.wicketFielder);
+                if (h.showWicketPanel) h.handleWicket();
                 else h.setShowWicketPanel(true);
             }
             if (k === "s") h.swapStrike();
@@ -1614,47 +1701,241 @@ const MiniAdmin = () => {
             <div className="ma-kb-hints">Keys: 0–4,6 = Runs &nbsp;|&nbsp; W = Wicket &nbsp;|&nbsp; S = Swap &nbsp;|&nbsp; U = Undo</div>
 
             
-            {/* ══ WICKET DETAILS MODAL ════════════════════════════ */}
+            {/* ══ WICKET / DISMISSAL DETAILS MODAL ════════════════════════════ */}
             {showWicketPanel && (
                 <div className="ma-modal-overlay" style={{ zIndex: 100000 }}>
-                    <div className="ma-modal-card">
+                    <div className="ma-modal-card" style={{ maxWidth: 440, width: '92%' }}>
                         <div className="ma-modal-header">
-                            <span className="ma-modal-title">🔥 WICKET DETAILS</span>
+                            <span className="ma-modal-title">
+                                {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? '🏥 BATTER RETIREMENT' : '🔥 WICKET / DISMISSAL'}
+                            </span>
                             <button className="ma-modal-close" onClick={() => setShowWicketPanel(false)}>✕</button>
                         </div>
                         <div className="ma-modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
                             <div className="ma-modal-field">
-                                <label className="ma-modal-label">How Out?</label>
-                                <select className="ma-modal-inp" value={wicketDismissal} onChange={(e) => setWicketDismissal(e.target.value)}>
-                                    <option value="Bowled">Bowled</option>
-                                    <option value="Caught">Caught</option>
-                                    <option value="Stumped">Stumped</option>
-                                    <option value="LBW">LBW</option>
-                                    <option value="Hit Wicket">Hit Wicket</option>
-                                    <option value="Retired Hurt">Retired Hurt</option>
+                                <label className="ma-modal-label">How Out / Dismissal Type</label>
+                                <select 
+                                    className="ma-modal-inp" 
+                                    value={wicketDismissal} 
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setWicketDismissal(val);
+                                        if (val === 'Caught & Bowled') {
+                                            setWicketFielder(match?.bowler?.name || 'Bowler');
+                                        } else if (val === 'Run Out (Mankad)') {
+                                            setWicketDismissedBatter('nonStriker');
+                                        } else {
+                                            setWicketDismissedBatter('striker');
+                                        }
+                                    }}
+                                >
+                                    <optgroup label="BOWLED / CAUGHT">
+                                        <option value="Bowled">Bowled</option>
+                                        <option value="Caught">Caught</option>
+                                        <option value="Caught Behind">Caught Behind</option>
+                                        <option value="Caught & Bowled">Caught & Bowled</option>
+                                    </optgroup>
+                                    <optgroup label="OTHER DISMISSALS">
+                                        <option value="LBW">LBW</option>
+                                        <option value="Stumped">Stumped</option>
+                                        <option value="Hit Wicket">Hit Wicket</option>
+                                        <option value="Run Out">Run Out</option>
+                                        <option value="Run Out (Mankad)">Run Out (Mankad)</option>
+                                        <option value="Hit the Ball Twice">Hit the Ball Twice</option>
+                                        <option value="Obstructing the Field">Obstructing the Field</option>
+                                        <option value="Timed Out">Timed Out (No ball counted)</option>
+                                        <option value="Retired Out">Retired Out (No ball counted)</option>
+                                    </optgroup>
+                                    <optgroup label="NON-DISMISSAL EVENTS (NOT OUT)">
+                                        <option value="Retired Hurt">Retired Hurt (Not Out)</option>
+                                        <option value="Absent Hurt">Absent Hurt (Not Out)</option>
+                                    </optgroup>
                                 </select>
                             </div>
-                            {(wicketDismissal === 'Caught' || wicketDismissal === 'Stumped') && (
+
+                            {/* Dismissed Batter Selection (for Run Out, Mankad, Obstruction, Timed Out, Retirements) */}
+                            {['Run Out', 'Run Out (Mankad)', 'Obstructing the Field', 'Timed Out', 'Retired Out', 'Retired Hurt', 'Absent Hurt'].includes(wicketDismissal) && (
                                 <div className="ma-modal-field">
-                                    <label className="ma-modal-label">Fielder Name</label>
+                                    <label className="ma-modal-label">
+                                        {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? 'Retiring Batter' : 'Dismissed Batter'}
+                                    </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setWicketDismissedBatter('striker')}
+                                            style={{
+                                                padding: '9px 10px',
+                                                borderRadius: 8,
+                                                border: wicketDismissedBatter === 'striker' ? '2px solid #ef4444' : '1px solid #475569',
+                                                background: wicketDismissedBatter === 'striker' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
+                                                color: '#fff',
+                                                fontSize: 12,
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            🏏 {match?.player1?.onStrike ? match?.player1?.name : match?.player2?.name}
+                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>(Striker)</div>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setWicketDismissedBatter('nonStriker')}
+                                            style={{
+                                                padding: '9px 10px',
+                                                borderRadius: 8,
+                                                border: wicketDismissedBatter === 'nonStriker' ? '2px solid #ef4444' : '1px solid #475569',
+                                                background: wicketDismissedBatter === 'nonStriker' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
+                                                color: '#fff',
+                                                fontSize: 12,
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            🏃 {match?.player1?.onStrike ? match?.player2?.name : match?.player1?.name}
+                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>(Non-Striker)</div>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Caught & Bowled auto-catcher notice */}
+                            {wicketDismissal === 'Caught & Bowled' && (
+                                <div style={{ padding: '8px 12px', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 8, fontSize: 12, color: '#93c5fd' }}>
+                                    🎯 Catcher automatically credited to bowler: <b>{match?.bowler?.name || 'Current Bowler'}</b>
+                                </div>
+                            )}
+
+                            {/* Fielder Name (Caught, Caught Behind, Stumped, Run Out) */}
+                            {['Caught', 'Caught Behind', 'Stumped', 'Run Out'].includes(wicketDismissal) && (
+                                <div className="ma-modal-field">
+                                    <label className="ma-modal-label">
+                                        {wicketDismissal === 'Caught Behind' ? 'Wicketkeeper / Fielder' : wicketDismissal === 'Stumped' ? 'Wicketkeeper' : wicketDismissal === 'Run Out' ? 'Fielder (Thrower / Direct Hit)' : 'Fielder (Catcher)'}
+                                    </label>
                                     <input 
                                         list="ma-bowling-squad-list"
                                         type="text" 
-                                        placeholder="Type or select fielder..." 
+                                        placeholder={wicketDismissal === 'Caught Behind' || wicketDismissal === 'Stumped' ? "Select or type wicketkeeper..." : "Select or type fielder..."}
                                         className="ma-modal-inp" 
                                         value={wicketFielder} 
                                         onChange={(e) => setWicketFielder(e.target.value)} 
                                     />
                                     <datalist id="ma-bowling-squad-list">
-                                        {(match.bowlingSquad || []).map((player, idx) => (
+                                        {(match?.bowlingSquad || []).map((player, idx) => (
                                             <option key={idx} value={player.name} />
                                         ))}
                                     </datalist>
                                 </div>
                             )}
+
+                            {/* Stumping from Wide Checkbox */}
+                            {wicketDismissal === 'Stumped' && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        id="stumped-wide-check" 
+                                        checked={wicketStumpedWide} 
+                                        onChange={(e) => setWicketStumpedWide(e.target.checked)} 
+                                        style={{ width: 16, height: 16, accentColor: '#ef4444', cursor: 'pointer' }}
+                                    />
+                                    <label htmlFor="stumped-wide-check" style={{ color: '#facc15', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                                        Stumped from Wide Delivery (+1 Extra, No legal ball counted)
+                                    </label>
+                                </div>
+                            )}
+
+                            {/* Run Out Extras & Delivery Legality */}
+                            {wicketDismissal === 'Run Out' && (
+                                <>
+                                    <div className="ma-modal-field">
+                                        <label className="ma-modal-label">Delivery Legality</label>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                                            {[
+                                                { id: 'legal', label: 'Legal Ball' },
+                                                { id: 'wide', label: 'Wide (+1 WD)' },
+                                                { id: 'noball', label: 'No-Ball (+1 NB)' },
+                                            ].map((dl) => (
+                                                <button
+                                                    key={dl.id}
+                                                    type="button"
+                                                    onClick={() => setWicketDeliveryLegality(dl.id)}
+                                                    style={{
+                                                        padding: '8px 4px',
+                                                        borderRadius: 6,
+                                                        border: wicketDeliveryLegality === dl.id ? '2px solid #3b82f6' : '1px solid #475569',
+                                                        background: wicketDeliveryLegality === dl.id ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.04)',
+                                                        color: '#fff',
+                                                        fontSize: 11,
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    {dl.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="ma-modal-field">
+                                        <label className="ma-modal-label">Runs Completed Before Run Out</label>
+                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                            {[0, 1, 2, 3, 4].map(num => (
+                                                <button
+                                                    key={num}
+                                                    type="button"
+                                                    onClick={() => setWicketRunsCompleted(num)}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '8px 0',
+                                                        borderRadius: 6,
+                                                        border: wicketRunsCompleted === num ? '2px solid #22c55e' : '1px solid #475569',
+                                                        background: wicketRunsCompleted === num ? 'rgba(34,197,94,0.25)' : 'rgba(255,255,255,0.04)',
+                                                        color: '#fff',
+                                                        fontSize: 13,
+                                                        fontWeight: 800,
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    {num}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Non-ball event explanation */}
+                            {['Timed Out', 'Retired Out', 'Retired Hurt', 'Absent Hurt', 'Run Out (Mankad)'].includes(wicketDismissal) && (
+                                <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, fontSize: 11, color: '#fcd34d' }}>
+                                    ℹ️ <b>No ball consumed:</b> Occurs between balls / before delivery. Legal balls count and over will not increment.
+                                    {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? ' Total team wickets will NOT increase (Not Out).' : ' Bowler receives 0 wicket credit.'}
+                                </div>
+                            )}
+
                             <div className="ma-modal-footer">
-                                <button type="button" onClick={() => setShowWicketPanel(false)} style={{ background:'transparent', border:'1px solid #475569', color:'#cbd5e1', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}>Cancel</button>
-                                <button type="button" onClick={() => handleWicket(wicketDismissal, wicketFielder)} style={{ background:'#ef4444', border:'none', color:'#fff', borderRadius:6, padding:'8px 16px', fontWeight:900, cursor:'pointer' }}>🔥 Confirm Wicket</button>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowWicketPanel(false)} 
+                                    style={{ background:'transparent', border:'1px solid #475569', color:'#cbd5e1', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onClick={() => handleWicket()} 
+                                    style={{ 
+                                        background: wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? '#3b82f6' : '#ef4444', 
+                                        border:'none', 
+                                        color:'#fff', 
+                                        borderRadius:6, 
+                                        padding:'8px 16px', 
+                                        fontWeight:900, 
+                                        cursor:'pointer' 
+                                    }}
+                                >
+                                    {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? '🏥 Confirm Retirement (Not Out)' : '🔥 Confirm Wicket'}
+                                </button>
                             </div>
                         </div>
                     </div>
