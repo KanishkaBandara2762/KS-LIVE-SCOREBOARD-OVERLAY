@@ -72,13 +72,15 @@ const SubscriptionCountdownWidget = () => {
       <div className="sub-countdown-card expired-banner">
         <div className="sub-details">
           <div className="sub-header">
-            <span className="sub-icon">⚠️</span>
-            <h4>Subscription Expired / Free Tier</h4>
+            <span className="sub-icon">📡</span>
+            <h4>OBS Broadcasting Access — Free Tier / Expired</h4>
           </div>
-          <p>Broadcast access is currently locked. Upgrade to a premium plan to unlock themes and live score streaming.</p>
+          <p>
+            Match scoring and management are <strong>100% Free & Unlimited</strong>! To stream live scoreboard overlays directly into OBS Studio with broadcasting themes, activate an OBS Broadcasting pass.
+          </p>
         </div>
         <button className="btn-renew-now pulse-btn" onClick={() => navigate('/pricing')}>
-          Upgrade Now 🚀
+          Activate OBS Pass 🚀
         </button>
       </div>
     );
@@ -106,7 +108,7 @@ const SubscriptionCountdownWidget = () => {
         <div className="sub-top-row">
           <span className="sub-tier-badge">{data.plan?.toUpperCase()} PLAN</span>
           <span className="sub-dot-pulse" />
-          <span className="sub-status-label">Active License</span>
+          <span className="sub-status-label">OBS Broadcasting Active</span>
         </div>
         
         <div className="sub-countdown-numbers">

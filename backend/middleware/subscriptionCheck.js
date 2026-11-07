@@ -1,6 +1,37 @@
 const User = require('../models/User');
 const { isAdminRole } = require('../utils/roles');
 
+/**
+ * Check if a user has active OBS broadcasting access.
+ * Returns { hasAccess: boolean, user: Object, reason: string }
+ */
+const hasActiveBroadcastingAccess = (user) => {
+  if (!user) return { hasAccess: false, reason: 'USER_NOT_FOUND' };
+
+  // Admins and superadmins always have access
+  if (isAdminRole(user.role)) {
+    return { hasAccess: true, reason: 'ADMIN_BYPASS' };
+  }
+
+  const now = new Date();
+
+  // Active session trial
+  if (user.isSessionActive && user.sessionExpiresAt && new Date(user.sessionExpiresAt) > now) {
+    return { hasAccess: true, reason: 'ACTIVE_SESSION' };
+  }
+
+  // Active paid plan
+  if (user.plan !== 'free' && user.subscriptionExpiry && new Date(user.subscriptionExpiry) > now) {
+    return { hasAccess: true, reason: 'ACTIVE_SUBSCRIPTION' };
+  }
+
+  return { hasAccess: false, reason: 'EXPIRED_OR_FREE' };
+};
+
+/**
+ * Middleware strictly for routes requiring paid OBS broadcasting access.
+ * Scoring and match management routes DO NOT use this middleware.
+ */
 const checkSubscription = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -8,38 +39,14 @@ const checkSubscription = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Admins and superadmins bypass subscription checks
-    if (isAdminRole(user.role)) {
-      return next();
-    }
+    const { hasAccess, reason } = hasActiveBroadcastingAccess(user);
 
-    const now = new Date();
-
-    // If the user has a valid active free trial or session, bypass this subscription check!
-    const isSessionValid = user.isSessionActive && user.sessionExpiresAt && new Date(user.sessionExpiresAt) > now;
-    if (isSessionValid) {
-      return next();
-    }
-
-    // Expired paid plan → revert to free
-    if (user.plan !== 'free' && user.subscriptionExpiry && now > user.subscriptionExpiry) {
-      user.plan = 'free';
-      user.subscriptionExpiry = null;
-      await user.save();
-    }
-
-    // Paid tier without a valid expiry is not active
-    if (user.plan !== 'free' && (!user.subscriptionExpiry || now > user.subscriptionExpiry)) {
-      user.plan = 'free';
-      user.subscriptionExpiry = null;
-      await user.save();
-    }
-
-    if (user.plan === 'free') {
+    if (!hasAccess) {
       return res.status(403).json({ 
         success: false, 
-        error: 'Active subscription required.',
-        code: 'SUBSCRIPTION_REQUIRED'
+        error: 'Active OBS broadcasting subscription required.',
+        code: 'OBS_SUBSCRIPTION_REQUIRED',
+        reason
       });
     }
 
@@ -50,3 +57,4 @@ const checkSubscription = async (req, res, next) => {
 };
 
 module.exports = checkSubscription;
+module.exports.hasActiveBroadcastingAccess = hasActiveBroadcastingAccess;

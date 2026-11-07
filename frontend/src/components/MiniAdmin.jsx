@@ -7,7 +7,7 @@ import ComboboxPlayerInput from './ComboboxPlayerInput';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../i18n/LanguageContext';
 import { createMatchEvent } from '../utils/matchEvent';
-import { matchesApi, tournamentsApi, getToken } from '../api';
+import { matchesApi, tournamentsApi, subscriptionsApi, getToken } from '../api';
 import TossModal from './TossModal';
 import LogoUpload from './LogoUpload';
 import NewBatterModal from './NewBatterModal';
@@ -65,11 +65,22 @@ const MiniAdmin = () => {
     const [runOutPlayer, setRunOutPlayer] = useState('striker');
     const [showLivePreview, setShowLivePreview] = useState(false);
     const [obsCopied, setObsCopied] = useState(false);
+    const [isObsActive, setIsObsActive] = useState(false);
     const [newBattingPlayer, setNewBattingPlayer] = useState("");
     const [newBowlingPlayer, setNewBowlingPlayer] = useState("");
 
     // ── v2.1 NEW STATE ────────────────────────────────────────────────────
     const [showTossModal, setShowTossModal] = useState(false);
+
+    useEffect(() => {
+        if (getToken()) {
+            subscriptionsApi.getRemainingTime()
+                .then(res => {
+                    setIsObsActive(res && res.status === 'active' && res.total_seconds_remaining > 0);
+                })
+                .catch(() => setIsObsActive(false));
+        }
+    }, []);
     const [showNewBatterModal, setShowNewBatterModal] = useState(false);
     const [showNewBowlerModal, setShowNewBowlerModal] = useState(false);
     const [newBatterSlot, setNewBatterSlot] = useState(null); // 'player1' | 'player2'
@@ -93,6 +104,10 @@ const MiniAdmin = () => {
         : `/overlay/${matchId}`;
 
     const copyOBSLink = () => {
+        if (!isObsActive) {
+            alert("OBS Broadcasting Access required.\n\nScoring is 100% Free & Unlimited, but streaming overlay into OBS requires an active subscription. Please activate an OBS pass from your dashboard.");
+            return;
+        }
         navigator.clipboard.writeText(obsUrl).then(() => {
             setObsCopied(true);
             setTimeout(() => setObsCopied(false), 2500);

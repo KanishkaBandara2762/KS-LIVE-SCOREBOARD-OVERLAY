@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { matchesApi, tournamentsApi, getToken } from '../api';
+import { matchesApi, tournamentsApi, subscriptionsApi, getToken } from '../api';
 import SubscriptionCountdownWidget from './SubscriptionCountdownWidget';
 import TournamentTeamsModal from './TournamentTeamsModal';
 import AuctionDashboardPanel from './auction/AuctionDashboardPanel';
@@ -680,13 +680,17 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 }
 
 // ── Match Card ────────────────────────────────────────────────────────────
-function MatchCard({ match, onOpen, onDelete, onCopyUrl }) {
+function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const statusInfo = STATUS_COLORS[match.status] || STATUS_COLORS.live;
   const overlayUrl = `${window.location.origin}/overlay/${match.matchId}`;
 
   const handleCopy = async () => {
+    if (!isObsActive) {
+      alert("OBS Broadcasting Access required.\n\nScoring matches is 100% Free and Unlimited, but streaming overlay into OBS requires an active OBS pass. Click Activate OBS Pass in the top banner to subscribe.");
+      return;
+    }
     try {
       await navigator.clipboard.writeText(overlayUrl);
       setCopied(true);
@@ -765,11 +769,15 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl }) {
 }
 
 // ── Tournament Card ───────────────────────────────────────────────────────
-function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams }) {
+function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
 
   const handleCopy = async () => {
+    if (!isObsActive) {
+      alert("OBS Broadcasting Access required.\n\nScoring matches is 100% Free and Unlimited, but streaming overlay into OBS requires an active OBS pass. Click Activate OBS Pass in the top banner to subscribe.");
+      return;
+    }
     try {
       await navigator.clipboard.writeText(overlayUrl);
       setCopied(true);
@@ -849,6 +857,7 @@ const Dashboard = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isObsActive, setIsObsActive] = useState(false);
 
   // Tournament-specific state variables
   const [activeTab, setActiveTab] = useState('tournaments');
@@ -859,6 +868,16 @@ const Dashboard = () => {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showTournamentTeams, setShowTournamentTeams] = useState(false);
   const [teamsModalTournament, setTeamsModalTournament] = useState(null);
+
+  useEffect(() => {
+    if (getToken()) {
+      subscriptionsApi.getRemainingTime()
+        .then(res => {
+          setIsObsActive(res && res.status === 'active' && res.total_seconds_remaining > 0);
+        })
+        .catch(() => setIsObsActive(false));
+    }
+  }, []);
 
   const fetchMatches = useCallback(async () => {
     if (!getToken()) { setLoading(false); return; }
@@ -1168,6 +1187,7 @@ const Dashboard = () => {
                   <TournamentCard
                     key={t.id || t._id}
                     tournament={t}
+                    isObsActive={isObsActive}
                     onOpenMatch={handleOpen}
                     onManageTeams={(tourney) => {
                       setTeamsModalTournament(tourney);
@@ -1222,6 +1242,7 @@ const Dashboard = () => {
                   <MatchCard
                     key={match.matchId}
                     match={match}
+                    isObsActive={isObsActive}
                     onOpen={handleOpen}
                     onDelete={handleDelete}
                     onCopyUrl={(id) => navigator.clipboard.writeText(`${window.location.origin}/overlay/${id}`)}

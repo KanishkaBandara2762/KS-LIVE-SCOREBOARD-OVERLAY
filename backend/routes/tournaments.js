@@ -38,6 +38,8 @@ const teamLogoUpload = multer({
   },
 });
 
+const { hasActiveBroadcastingAccess } = require('../middleware/subscriptionCheck');
+
 // ── Public: Tournament details for OBS overlay ──────────────────────
 router.get('/public/:tournamentId', async (req, res, next) => {
   try {
@@ -46,6 +48,20 @@ router.get('/public/:tournamentId', async (req, res, next) => {
 
     if (!tournament) {
       return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+
+    // Verify tournament owner's active OBS broadcasting license
+    const owner = await User.findById(tournament.clientId).lean();
+    const access = hasActiveBroadcastingAccess(owner);
+
+    if (!access.hasAccess) {
+      return res.status(403).json({
+        success: false,
+        error: 'OBS Broadcasting subscription expired or inactive for this tournament.',
+        code: 'OBS_SUBSCRIPTION_REQUIRED',
+        subscriptionExpired: true,
+        tournamentId: tournament._id,
+      });
     }
 
     res.json({ success: true, tournament });

@@ -114,6 +114,8 @@ const ScorecardDisplay = () => {
   const [showEvent, setShowEvent] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
   const [winnerInfo, setWinnerInfo] = useState(null);
+  const [subscriptionExpired, setSubscriptionExpired] = useState(false);
+  const [subErrorMessage, setSubErrorMessage] = useState('');
 
   // --- Animation Hooks ---
   const isMatchFinishedCheck = ["finished", "match ended"].includes(String(match?.matchStatus || "").toLowerCase());
@@ -323,11 +325,22 @@ const ScorecardDisplay = () => {
       const fetchTournamentAndMatch = () => {
         tournamentsApi.publicGet(tournamentId)
           .then(res => {
+            if (res.subscriptionExpired || res.code === 'OBS_SUBSCRIPTION_REQUIRED') {
+              setSubscriptionExpired(true);
+              setSubErrorMessage(res.error || 'Broadcasting subscription expired.');
+              return;
+            }
             if (res.tournament && res.tournament.currentMatchId) {
               handleIncomingData(res.tournament.currentMatchId);
             }
           })
-          .catch(e => console.error('Tournament fetch failed:', e));
+          .catch(e => {
+            if (e.status === 403 || e.message?.includes('subscription')) {
+              setSubscriptionExpired(true);
+              setSubErrorMessage('OBS Broadcasting access has expired. Please renew your subscription.');
+            }
+            console.error('Tournament fetch failed:', e);
+          });
       };
 
       fetchTournamentAndMatch();
@@ -350,6 +363,12 @@ const ScorecardDisplay = () => {
 
         socket.on('connection:ack', ({ snapshot }) => {
           if (snapshot) handleIncomingData(snapshot);
+        });
+
+        socket.on('subscription:expired', (errData) => {
+          console.warn('[ScorecardDisplay] Subscription expired for this broadcast:', errData);
+          setSubscriptionExpired(true);
+          setSubErrorMessage(errData?.message || 'OBS Broadcasting access has expired.');
         });
 
         // FIX 1: In Socket.IO v4, reconnect fires on socket.io (Manager), not socket.
@@ -417,9 +436,20 @@ const ScorecardDisplay = () => {
       // Initial full load from public REST endpoint (no auth required — OBS browser source)
       matchesApi.overlay(matchId)
         .then(res => {
+          if (res.subscriptionExpired || res.code === 'OBS_SUBSCRIPTION_REQUIRED') {
+            setSubscriptionExpired(true);
+            setSubErrorMessage(res.error || 'Broadcasting subscription expired.');
+            return;
+          }
           if (res.overlay) handleIncomingData({ ...res.overlay, overlaySettings: res.overlay.settings });
         })
-        .catch(e => console.error('MongoDB initial fetch failed:', e));
+        .catch(e => {
+          if (e.status === 403 || e.message?.includes('subscription')) {
+            setSubscriptionExpired(true);
+            setSubErrorMessage('OBS Broadcasting access has expired. Please renew your subscription.');
+          }
+          console.error('MongoDB initial fetch failed:', e);
+        });
 
       // Real-time Socket.IO setup
       let socket;
@@ -429,8 +459,19 @@ const ScorecardDisplay = () => {
       // Public polling endpoint — no auth needed, safe for OBS
       const fetchMatchSnapshot = () => {
         matchesApi.overlay(matchId)
-          .then(res => { if (res.overlay) handleIncomingData({ ...res.overlay, overlaySettings: res.overlay.settings }); })
-          .catch(() => {});
+          .then(res => {
+            if (res.subscriptionExpired || res.code === 'OBS_SUBSCRIPTION_REQUIRED') {
+              setSubscriptionExpired(true);
+              setSubErrorMessage(res.error || 'Broadcasting subscription expired.');
+              return;
+            }
+            if (res.overlay) handleIncomingData({ ...res.overlay, overlaySettings: res.overlay.settings });
+          })
+          .catch(e => {
+            if (e.status === 403 || e.message?.includes('subscription')) {
+              setSubscriptionExpired(true);
+            }
+          });
       };
 
       if (USE_SOCKET) {
@@ -447,6 +488,12 @@ const ScorecardDisplay = () => {
 
         socket.on('connection:ack', ({ snapshot }) => {
           if (snapshot) handleIncomingData(snapshot);
+        });
+
+        socket.on('subscription:expired', (errData) => {
+          console.warn('[ScorecardDisplay] Subscription expired for this broadcast:', errData);
+          setSubscriptionExpired(true);
+          setSubErrorMessage(errData?.message || 'OBS Broadcasting access has expired.');
         });
 
         // FIX 1: In Socket.IO v4, reconnect fires on socket.io (Manager), not socket.
@@ -712,6 +759,31 @@ const ScorecardDisplay = () => {
       isDcBlue: match?.themeID === 'DC_BLUE',
     };
   }, [match?.themeID]);
+
+  if (subscriptionExpired) {
+    return (
+      <div className="fixed inset-0 bg-[#070b14] flex flex-col items-center justify-center text-white font-sans p-6 text-center select-none">
+        <div className="max-w-md w-full bg-slate-900/90 border border-red-500/30 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
+          <div className="w-16 h-16 mx-auto mb-4 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center text-3xl">
+            🔒
+          </div>
+          <h2 className="text-xl font-black text-red-400 uppercase tracking-wider mb-2">
+            OBS Broadcasting Access Expired
+          </h2>
+          <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+            {subErrorMessage || 'A valid KS LIVE Broadcasting subscription is required to stream this live scoreboard overlay in OBS.'}
+          </p>
+          <div className="bg-slate-800/80 rounded-xl p-4 mb-6 border border-slate-700/60 text-xs text-slate-400 text-left space-y-1.5">
+            <div>✓ Match scoring & data: <span className="text-emerald-400 font-semibold">100% Free & Unlimited</span></div>
+            <div>✓ OBS overlay streaming: <span className="text-amber-400 font-semibold">Time-Limited License</span></div>
+          </div>
+          <p className="text-xs text-slate-500">
+            Please log in to your KS Live dashboard to renew your OBS Broadcasting plan.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!match) return (
     <div className="fixed inset-0 bg-[#071A2F] flex flex-col items-center justify-center text-white font-black italic uppercase tracking-widest gap-6">

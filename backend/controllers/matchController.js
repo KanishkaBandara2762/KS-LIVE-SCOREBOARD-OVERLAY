@@ -747,7 +747,9 @@ const manualBallCorrection = async (req, res, next) => {
   }
 };
 
-// ── GET /overlay/:matchId (public, no auth) ───────────────────────────────────
+const { hasActiveBroadcastingAccess } = require('../middleware/subscriptionCheck');
+
+// ── GET /overlay/:matchId (OBS browser source) ──────────────────────────────
 const getOverlay = async (req, res, next) => {
   try {
     const { matchId } = req.params;
@@ -759,6 +761,20 @@ const getOverlay = async (req, res, next) => {
 
     if (!match) {
       return res.status(404).json({ success: false, error: 'Match not found.' });
+    }
+
+    // Verify owner's active OBS broadcasting license
+    const matchOwner = await User.findById(match.ownerUid).lean();
+    const access = hasActiveBroadcastingAccess(matchOwner);
+
+    if (!access.hasAccess) {
+      return res.status(403).json({
+        success: false,
+        error: 'OBS Broadcasting subscription expired or inactive for this match.',
+        code: 'OBS_SUBSCRIPTION_REQUIRED',
+        subscriptionExpired: true,
+        matchId,
+      });
     }
 
     // Return a combined overlay payload optimised for OBS browser source.

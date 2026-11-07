@@ -131,6 +131,14 @@ export const tournamentsApi = {
   deletePlayer: (tournamentId, teamId, playerId) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`, { method: 'DELETE' }),
 };
 
+// ── Subscriptions API ────────────────────────────────────────────────────────
+export const subscriptionsApi = {
+  getPlans: () => apiRequest('/api/subscriptions/plans'),
+  getRemainingTime: () => apiRequest('/api/subscriptions/remaining-time'),
+  checkout: (planId) => apiRequest('/api/subscriptions/checkout', { method: 'POST', body: JSON.stringify({ planId }) }),
+  cancel: () => apiRequest('/api/subscriptions/cancel', { method: 'POST' }),
+};
+
 // ── Admin API ───────────────────────────────────────────────────────────────
 export const adminApi = {
   activateSession: (clientId, body) =>

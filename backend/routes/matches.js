@@ -43,8 +43,9 @@ router.use(authMiddleware);
 router.get('/matches', getMatches);
 router.get('/match/:id', getMatch);
 
-// ── Protect mutating routes with subscription check ───────────────────────────
-router.use(checkSubscription);
+// NOTE: Match creation & scoring are 100% FREE & UNLIMITED for all registered users!
+// Subscription is ONLY required for OBS Broadcasting access (validated at /overlay endpoints).
+
 
 // ── POST /create-match ────────────────────────────────────────────────────────
 router.post(

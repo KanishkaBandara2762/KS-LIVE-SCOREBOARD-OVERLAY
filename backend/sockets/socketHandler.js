@@ -20,7 +20,9 @@
 
 const Match = require('../models/Match');
 const Tournament = require('../models/Tournament');
+const User = require('../models/User');
 const { formatOvers } = require('../services/scoreEngine');
+const { hasActiveBroadcastingAccess } = require('../middleware/subscriptionCheck');
 const initAuctionSocket = require('./auctionSocket');
 
 module.exports = function initSockets(io) {
@@ -43,11 +45,24 @@ module.exports = function initSockets(io) {
 
       Tournament.findById(tournamentId)
         .populate('currentMatchId')
-        .then((tournament) => {
+        .then(async (tournament) => {
           if (!tournament) {
             socket.emit('error', { message: `Tournament ${tournamentId} not found.` });
             return;
           }
+
+          // Verify tournament owner's broadcasting access
+          const owner = await User.findById(tournament.clientId).lean();
+          const access = hasActiveBroadcastingAccess(owner);
+          if (!access.hasAccess) {
+            socket.emit('subscription:expired', {
+              message: 'OBS Broadcasting subscription expired or inactive for this tournament.',
+              code: 'OBS_SUBSCRIPTION_REQUIRED',
+            });
+            socket.disconnect();
+            return;
+          }
+
           if (tournament.currentMatchId) {
             socket.emit('connection:ack', {
               tournamentId,
@@ -77,9 +92,21 @@ module.exports = function initSockets(io) {
       // Send current match state immediately so OBS doesn't wait for next update
       Match.findOne({ matchId })
         .lean()
-        .then((match) => {
+        .then(async (match) => {
           if (!match) {
             socket.emit('error', { message: `Match ${matchId} not found.` });
+            return;
+          }
+
+          // Verify match owner's broadcasting access
+          const owner = await User.findById(match.ownerUid).lean();
+          const access = hasActiveBroadcastingAccess(owner);
+          if (!access.hasAccess) {
+            socket.emit('subscription:expired', {
+              message: 'OBS Broadcasting subscription expired or inactive for this match.',
+              code: 'OBS_SUBSCRIPTION_REQUIRED',
+            });
+            socket.disconnect();
             return;
           }
 
