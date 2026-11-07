@@ -297,14 +297,11 @@ export default function LandingPage() {
                 </button>
 
                 <ul className={`landing-nav-links ${mobileMenuOpen ? "open" : ""}`}>
-                    <li><Link to="/live" onClick={() => setMobileMenuOpen(false)} style={{ color: '#2dd4bf', fontWeight: 'bold' }}>{t("landing.nav.liveScores")}</Link></li>
-                    <li><Link to="/auctions" onClick={() => setMobileMenuOpen(false)} className="landing-nav-auction">🔨 Explore Auctions</Link></li>
+                    <li><Link to="/live" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.liveScores")}</Link></li>
+                    <li><Link to="/auctions" onClick={() => setMobileMenuOpen(false)}>🔨 Explore Auctions</Link></li>
                     <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.features")}</a></li>
-                    <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.showcase")}</a></li>
                     <li><a href="#themes" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.themes")}</a></li>
-                    <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.solutions")}</a></li>
                     <li><a href="#plans" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.plans")}</a></li>
-                    <li><a href="#testimonials" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.testimonials")}</a></li>
                     <li className="landing-nav-language"><LanguageSwitcher compact /></li>
                     <li>
                         <Link to="/login" className="landing-nav-cta" onClick={() => setMobileMenuOpen(false)}>
@@ -349,7 +346,7 @@ export default function LandingPage() {
             </section>
 
             {liveMatches.length > 0 && (
-                <section className="max-w-7xl mx-auto px-6 py-8 -mt-16 relative z-10">
+                <section className="max-w-7xl mx-auto px-6 pt-8 pb-8 relative z-10">
                     <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">

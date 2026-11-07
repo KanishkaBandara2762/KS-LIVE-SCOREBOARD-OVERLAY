@@ -6,9 +6,6 @@ const LanguageSwitcher = ({ className = "", compact = false }) => {
 
   return (
     <label className={className} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: compact ? 10 : 11, fontWeight: 800, textTransform: "uppercase", color: "#94a3b8" }}>
-        {t("language.label")}
-      </span>
       <select
         value={language}
         onChange={(e) => setLanguage(e.target.value)}

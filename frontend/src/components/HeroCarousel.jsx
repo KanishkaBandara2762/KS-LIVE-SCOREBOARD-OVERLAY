@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import './HeroCarousel.css';
 
 const HERO_SLIDES = [
@@ -40,7 +39,6 @@ const HERO_SLIDES = [
 
 export function HeroCarousel() {
     const [currentSlide, setCurrentSlide] = useState(0);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -64,19 +62,17 @@ export function HeroCarousel() {
                         <h2 className="hero-subtitle">{s.subtitle}</h2>
                         <h1 className="hero-title">{s.title}</h1>
                         <p className="hero-desc">{s.description}</p>
-                        <div className="hero-btn-group">
-                            <button className="hero-btn" onClick={() => {
-                                if (s.action === 'auction') navigate('/auctions');
-                                else if (s.id === 3) document.getElementById('themes')?.scrollIntoView({ behavior: 'smooth' });
-                                else if (s.id === 4) document.getElementById('broadcasting')?.scrollIntoView({ behavior: 'smooth' });
-                                else document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
-                            }}>
-                                {s.cta}
-                            </button>
-                            <Link to="/auctions" className="hero-btn-auction">
-                                🔨 Explore Auctions
-                            </Link>
-                        </div>
+                        {s.action !== 'auction' && (
+                            <div className="hero-btn-group">
+                                <button className="hero-btn" onClick={() => {
+                                    if (s.id === 3) document.getElementById('themes')?.scrollIntoView({ behavior: 'smooth' });
+                                    else if (s.id === 4) document.getElementById('broadcasting')?.scrollIntoView({ behavior: 'smooth' });
+                                    else document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
+                                }}>
+                                    {s.cta}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             ))}
