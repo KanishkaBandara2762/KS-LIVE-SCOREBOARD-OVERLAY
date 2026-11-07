@@ -41,7 +41,34 @@ The Render API allows `*.kslivebroadcasting.com` origins, so CORS needs no
 further changes. `FRONTEND_URL` and `FRONTEND_ORIGIN` on the Render API point at
 `https://www.kslivebroadcasting.com`.
 
-## Redeploying the frontend
+## Automatic deployment
+
+Every push to `main` deploys both targets through
+`.github/workflows/deploy.yml` (GitHub Actions):
+
+1. `Cloudflare Pages (frontend)` — installs, builds `frontend/`, writes
+   `dist/_redirects`, then uploads with Wrangler.
+2. `Render (API + static site)` — runs after Cloudflare succeeds and triggers a
+   deploy of `kslivescore-api` and `kslivescore-web`, then waits until both
+   report `live` (a failed Render build fails the workflow).
+
+The workflow needs three repository secrets
+(**Settings → Secrets and variables → Actions**):
+
+| Secret | Purpose |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Scoped token: Account → Cloudflare Pages → Edit |
+| `CLOUDFLARE_ACCOUNT_ID` | `054c9fa38f3c6052251740df1cb83199` |
+| `RENDER_API_KEY` | Triggers the Render deploys |
+
+Runs are visible at
+<https://github.com/KanishkaBandara2762/KS-LIVE-SCOREBOARD-OVERLAY/actions>.
+
+> Render's own "Auto-Deploy" toggle does nothing for these services because the
+> repo was added by URL rather than through the Render GitHub App. The workflow
+> is what deploys Render; keep it enabled.
+
+## Manual redeploy (fallback)
 
 Pages is deployed by direct upload (46 files, ~20 s). Wrangler authenticates
 with the Cloudflare credentials from the environment; nothing is committed.

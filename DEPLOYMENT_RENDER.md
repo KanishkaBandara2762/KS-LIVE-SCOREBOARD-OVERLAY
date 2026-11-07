@@ -61,6 +61,17 @@ deployment in another workspace.
 The frontend build receives `VITE_API_URL=https://kslivescore-api.onrender.com`
 automatically through the `fromService` reference in `render.yaml`.
 
+## Automatic deployment
+
+A push to `main` deploys through `.github/workflows/deploy.yml` (GitHub
+Actions), which triggers both Render services with the Render API and waits for
+them to reach `live`. The workflow requires the `RENDER_API_KEY` repository
+secret.
+
+Render's dashboard "Auto-Deploy" toggle has no effect on these services because
+the repository was added by URL instead of through the Render GitHub App. Use the
+workflow (or **Manual Deploy**) instead.
+
 ## Behaviour differences vs Netlify
 
 | Concern | Netlify | Render |
@@ -78,5 +89,5 @@ automatically through the `fromService` reference in `render.yaml`.
   Use external `https://` image URLs.
 - `MONGODB_URI` and `JWT_SECRET` are stored only in Render's environment
   settings, never in Git.
-- To redeploy, push to `main` (auto-deploy) or click **Manual Deploy** in the
-  Render Dashboard.
+- To redeploy, push to `main` (the GitHub Actions workflow) or click
+  **Manual Deploy** in the Render Dashboard.
