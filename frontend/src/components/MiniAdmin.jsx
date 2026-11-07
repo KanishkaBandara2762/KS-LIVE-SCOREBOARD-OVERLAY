@@ -1342,6 +1342,14 @@ const MiniAdmin = () => {
                                     <option value="JIO_TITAN">👑 Jio Premier Titan</option>
                                     <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
                                     <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
+                                    <option value="APEX">📺 Apex</option>
+                                    <option value="DIAMOND">💎 Diamond</option>
+                                    <option value="VOLT">⚡ Volt</option>
+                                    <option value="THUNDER">🌩️ Thunder</option>
+                                    <option value="BLITZ">🔵 Blitz</option>
+                                    <option value="ELITE">🥂 Elite</option>
+                                    <option value="FRANCHISE">🏏 Franchise</option>
+                                    <option value="SHAKTI">🔥 Shakti</option>
                                 </optgroup>
                                 <optgroup label="✨ Premier Modern Themes">
                                     <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
@@ -2002,6 +2010,14 @@ const MiniAdmin = () => {
                                     <option value="JIO_TITAN">👑 Jio Premier Titan</option>
                                     <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
                                     <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
+                                    <option value="APEX">📺 Apex</option>
+                                    <option value="DIAMOND">💎 Diamond</option>
+                                    <option value="VOLT">⚡ Volt</option>
+                                    <option value="THUNDER">🌩️ Thunder</option>
+                                    <option value="BLITZ">🔵 Blitz</option>
+                                    <option value="ELITE">🥂 Elite</option>
+                                    <option value="FRANCHISE">🏏 Franchise</option>
+                                    <option value="SHAKTI">🔥 Shakti</option>
                                     <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
                                     <option value="NEW_IPL">🏏 Tata IPL Modern</option>
                                     <option value="IPL_2026">🏟️ IPL 2026 Stadium</option>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 import "./Portfolio.css";
+import { ThemePreview } from "./LandingThemePreviews";
 
 
 
@@ -173,114 +174,14 @@ const SCREENSHOTS = [
    ================================================================ */
 
 const THEMES = [
-    {
-        id: "icc-global",
-        name: "ICC T20 Global Apex",
-        image: "/themes/icc-global.svg",
-        desc: "Official ICC World Cup broadcast package. Chamfered cosmic obsidian, electric cyan & neon magenta accents, striker telemetry, and stadium live beacons.",
-        tags: ["ICC", "World Cup", "International"],
-        ribbon: "new",
-        category: ["all", "tournament", "t20"],
-    },
-    {
-        id: "sky-hyperion",
-        name: "Sky Sports Hyperion Pro",
-        image: "/themes/sky-hyperion.svg",
-        desc: "The pinnacle of British sports broadcast design. High-contrast Swiss typography, Citron Volt strike indicators, and The Hundred style continuous delivery bar.",
-        tags: ["Sky Sports", "The Hundred", "Clean"],
-        ribbon: "new",
-        category: ["all", "tournament", "t20", "odi"],
-    },
-    {
-        id: "jio-titan",
-        name: "Jio Premier Titan",
-        image: "/themes/jio-titan.svg",
-        desc: "Tata IPL & JioCinema 4K broadcast theme. Imperial midnight navy with 24K brushed gold metallic pill capsule, gold star striker aura, and boundary flare.",
-        tags: ["IPL", "Franchise", "Gold 4K"],
-        ribbon: "new",
-        category: ["all", "t20"],
-    },
-    {
-        id: "fox-strike",
-        name: "Fox Cricket BBL Strike",
-        image: "/themes/fox-strike.svg",
-        desc: "Fox Sports Australia & Big Bash League graphics. 10-degree athletic kinetic slant, fiery solar orange and flare yellow energy, and flame striker chevrons.",
-        tags: ["Fox Cricket", "BBL", "Action Slant"],
-        ribbon: "new",
-        category: ["all", "t20"],
-    },
-    {
-        id: "supersport-aura",
-        name: "SuperSport Aura Glass",
-        image: "/themes/supersport-aura.svg",
-        desc: "Translucent frosted glassmorphism inspired by international OTT live streams. Emerald & cyan holographic perimeter glow with pristine typography.",
-        tags: ["Glassmorphism", "International", "Minimal"],
-        ribbon: "new",
-        category: ["all", "tournament", "odi", "t20"],
-    },
-    {
-        id: "emerald-pro",
-        name: "Emerald Cricket Pro (KS Signature)",
-        image: "/themes/new ipl.png",
-        desc: "KS Live's modern emerald flagship overlay. Deep jade gradient, dual-tier tournament live strip, and color-coded boundary animation.",
-        tags: ["Emerald", "Signature", "Broadcast"],
-        ribbon: "premium",
-        category: ["all", "tournament", "t20"],
-    },
-    {
-        id: "new-ipl",
-        name: "Tata IPL 2026 (Modern)",
-        image: "/themes/new ipl.png",
-        desc: "A modernized take on the classic franchise cricket overlay. Sharp angles, high contrast, and animated live score updates.",
-        tags: ["IPL", "Modern", "Franchise"],
-        ribbon: "popular",
-        category: ["all", "t20"],
-    },
-    {
-        id: "ipl-2026-capsule",
-        name: "IPL 2026 Stadium Capsule",
-        image: "/themes/Ipl classic.png",
-        desc: "Curved central score capsule with green and blue team wings. Classic franchise stadium layout with high-visibility bowler HUD.",
-        tags: ["IPL", "Stadium", "Capsule"],
-        ribbon: "popular",
-        category: ["all", "t20"],
-    },
-    {
-        id: "ks-premium",
-        name: "KS Premium TV Broadcast",
-        image: "/themes/ks premium.png",
-        desc: "High-end television broadcast style theme. Sleek floating layout, individual batter statistics, and full over summary.",
-        tags: ["Broadcast", "Flagship", "Championship"],
-        ribbon: "premium",
-        category: ["all", "tournament", "t20"],
-    },
-    {
-        id: "t20-world-cup",
-        name: "T20 World Cup 2026 Electric",
-        image: "/themes/t20 world cup.png",
-        desc: "Official T20 World Cup tournament style layout. Vibrant electric blue, magenta accents, and lightning bolt boundary strikes.",
-        tags: ["World Cup", "Tournament", "T20"],
-        ribbon: "tournament",
-        category: ["all", "t20", "tournament"],
-    },
-    {
-        id: "gold-champ",
-        name: "Gold Championship Finals",
-        image: "/themes/gold championship.png",
-        desc: "Luxurious carbon-fiber with gold framing and amber score highlights. Designed for grand finals and trophy deciders.",
-        tags: ["Gold", "Championship", "Finals"],
-        ribbon: "premium",
-        category: ["all", "tournament"],
-    },
-    {
-        id: "sky-sports",
-        name: "Sky Sports Classic Pro",
-        image: "/themes/sky sports.png",
-        desc: "Television broadcast look with striking white and red accents. Extremely readable and iconic for ODI and Test formats.",
-        tags: ["TV Style", "Clean", "ODI"],
-        ribbon: null,
-        category: ["all", "odi", "t20", "school"],
-    }
+    { id: "APEX", previewId: "APEX", name: "Apex (TV Broadcast)", desc: "Professional TV broadcast design with a navy bar, red score block and angled tab.", tags: ["TV Broadcast", "Navy & Red", "Live"], ribbon: "new", category: ["all", "t20", "tournament"] },
+    { id: "DIAMOND", previewId: "DIAMOND", name: "Diamond (Metallic)", desc: "Metallic premium design with silver panels and a faceted gem score.", tags: ["Metallic", "Geometric", "Premium"], ribbon: "premium", category: ["all", "t20", "odi"] },
+    { id: "VOLT", previewId: "VOLT", name: "Volt (Sports-Tech)", desc: "Lime green on near-black with sharp sports-tech edges and modular stats.", tags: ["Lime", "Sports-Tech", "Dark"], ribbon: "new", category: ["all", "t20"] },
+    { id: "THUNDER", previewId: "THUNDER", name: "Thunder (Electric Red)", desc: "Electric red with diagonal stripes and a powerful, high-energy bar.", tags: ["Red", "Stripes", "Power"], ribbon: "new", category: ["all", "t20", "tournament"] },
+    { id: "BLITZ", previewId: "BLITZ", name: "Blitz (Lightning Blue)", desc: "Electric blue T20 design inspired by lightning and fast-paced graphics.", tags: ["Blue", "T20", "Lightning"], ribbon: "popular", category: ["all", "t20"] },
+    { id: "ELITE", previewId: "ELITE", name: "Elite (Minimal Gold)", desc: "Clean, minimal and elegant bar with gold accents and serif team names.", tags: ["Minimal", "Gold", "Elegant"], ribbon: "premium", category: ["all", "odi", "tournament"] },
+    { id: "FRANCHISE", previewId: "FRANCHISE", name: "Franchise (Gradient)", desc: "Vibrant gradients and franchise-style branding for league matches.", tags: ["Gradient", "League", "Vibrant"], ribbon: "popular", category: ["all", "t20", "tournament"] },
+    { id: "SHAKTI", previewId: "SHAKTI", name: "Shakti (Bold Contrast)", desc: "Bold colours, strong contrast and powerful visuals on a black bar.", tags: ["Bold", "Contrast", "Power"], ribbon: "new", category: ["all", "t20", "odi"] },
 ];
 
 
@@ -693,7 +594,7 @@ function ThemesGallery() {
 
                         >
 
-                            <img src={theme.image} alt={theme.name} loading="lazy" />
+                            <ThemePreview previewId={theme.previewId} />
 
                         </div>
 
@@ -755,17 +656,12 @@ function ThemesGallery() {
 
                     </button>
 
-                    <img
-
-                        className="lightbox-img"
-
-                        src={lightbox.image}
-
-                        alt={lightbox.name}
-
+                    <div
+                        className="ltp-lightbox"
                         onClick={(e) => e.stopPropagation()}
-
-                    />
+                    >
+                        <ThemePreview previewId={lightbox.previewId} />
+                    </div>
 
                     <div className="lightbox-label">{lightbox.name}</div>
 

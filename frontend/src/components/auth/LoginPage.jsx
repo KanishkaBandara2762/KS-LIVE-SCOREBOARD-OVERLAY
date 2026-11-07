@@ -107,17 +107,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="auth-divider">
-          <div className="auth-divider-line" />
-          <span className="auth-divider-text">New here?</span>
-          <div className="auth-divider-line" />
-        </div>
-
-        <div style={{ marginTop: '1.2rem' }}>
-          <span style={{ display: 'inline-block', marginRight: '1.5rem' }}>🔨</span>
-          <a href="/auctions" className="auth-link auth-link-secondary">Explore Auctions</a>
-        </div>
-
         <Link to="/register">
           <button className="auth-btn auth-btn-ghost" type="button">
             Create New Account

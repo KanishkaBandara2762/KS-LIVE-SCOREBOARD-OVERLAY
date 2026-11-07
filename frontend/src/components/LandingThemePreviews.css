@@ -1,0 +1,54 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   LANDING THEME PREVIEWS — real overlay themes on a shared match background.
+   Static: no styling is added to the themes themselves.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.ltp-root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-image: url('/images/stadiums/stadium_night.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Darkens the photo a little so the overlay reads clearly */
+.ltp-root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+/* 1920-wide stage, scaled by FitStage; overlays sit at its bottom edge */
+.ltp-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: top left;
+}
+
+/* Fallback team crest when no logo is set */
+.ltp-logo-fallback {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  font-weight: 900;
+  text-align: center;
+  font-size: 0.55em;
+}
+
+/* Lightbox (full-size preview) */
+.ltp-lightbox {
+  position: relative;
+  width: min(90vw, 1100px);
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}

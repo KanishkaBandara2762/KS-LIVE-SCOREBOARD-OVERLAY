@@ -1,0 +1,83 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   MODERN BROADCAST SKINS
+   Styling-only themes. Each skin reuses an original layout (see
+   SKIN_LAYOUTS in ModernOverlayThemes.jsx) and restyles its elements.
+   Overrides target the shared class-name patterns, so no layout changes.
+   No animations are added here.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── APEX · TV broadcast (ICC layout): navy + red ─────────────────────── */
+.skin-apex [class*="-board"] {
+  background: linear-gradient(180deg, #0c2148 0%, #071430 100%);
+  border-color: #e11d2e;
+}
+.skin-apex [class*="-team-name"] { color: #ffffff; text-transform: uppercase; }
+.skin-apex [class*="-score"] { color: #ffffff; }
+.skin-apex [class*="target-strip"] { background: #e11d2e; color: #ffffff; }
+
+/* ── DIAMOND · metallic geometric (Sky layout): silver + charcoal ─────── */
+.skin-diamond [class*="-board"] {
+  background: linear-gradient(180deg, #f2f4f7 0%, #b9c0ca 45%, #8d96a3 55%, #dfe4eb 100%);
+  border-color: #ffffff;
+  color: #101418;
+}
+.skin-diamond [class*="-team-name"],
+.skin-diamond [class*="-score"],
+.skin-diamond [class*="-bowl"] { color: #101418; }
+.skin-diamond [class*="target-strip"] { background: #101418; color: #e9d38a; }
+
+/* ── VOLT · sports-tech (Fox layout): near-black + lime ───────────────── */
+.skin-volt [class*="-board"] {
+  background: #050605;
+  border-color: #c6ff1a;
+}
+.skin-volt [class*="-team-name"],
+.skin-volt [class*="-score"] { color: #c6ff1a; }
+.skin-volt [class*="target-strip"] { background: #c6ff1a; color: #050605; }
+
+/* ── THUNDER · electric red, diagonal stripes (Fox layout) ────────────── */
+.skin-thunder [class*="-board"] {
+  background: repeating-linear-gradient(115deg, #1a0003 0 18px, #2a0006 18px 36px);
+  border-color: #ff1f2d;
+}
+.skin-thunder [class*="-team-name"],
+.skin-thunder [class*="-score"] { color: #ff1f2d; text-transform: uppercase; }
+.skin-thunder [class*="-bowl-name"],
+.skin-thunder [class*="-bowler-name"] { color: #ffd60a; }
+.skin-thunder [class*="target-strip"] { background: #ff1f2d; color: #ffffff; }
+
+/* ── BLITZ · lightning electric blue (Jio layout) ─────────────────────── */
+.skin-blitz [class*="-board"] {
+  background: linear-gradient(180deg, #03123a 0%, #010a24 100%);
+  border-color: #2bb5ff;
+}
+.skin-blitz [class*="-team-name"],
+.skin-blitz [class*="-score"] { color: #2bb5ff; }
+.skin-blitz [class*="target-strip"] { background: linear-gradient(90deg, #0a2a6b, #2bb5ff); color: #ffffff; }
+
+/* ── ELITE · clean, minimal, elegant (SuperSport layout) ──────────────── */
+.skin-elite [class*="-board"] {
+  background: #111418;
+  border-bottom: 1px solid #d4af37;
+}
+.skin-elite [class*="-team-name"] { font-family: Georgia, 'Times New Roman', serif; color: #f5f5f5; letter-spacing: 0.5px; }
+.skin-elite [class*="-score"] { color: #d4af37; }
+.skin-elite [class*="target-strip"] { background: transparent; color: #d4af37; border-top: 1px solid #d4af37; }
+
+/* ── FRANCHISE · vibrant gradients, league branding (Jio layout) ──────── */
+.skin-franchise [class*="-board"] {
+  background: linear-gradient(100deg, #5b0f8f 0%, #c2185b 55%, #ff7a18 100%);
+  border-color: #ffd000;
+}
+.skin-franchise [class*="-team-name"],
+.skin-franchise [class*="-score"] { color: #ffd000; }
+.skin-franchise [class*="target-strip"] { background: linear-gradient(90deg, #3a0a6b, #c2185b); color: #ffffff; }
+
+/* ── SHAKTI · bold colour, strong contrast (ICC layout): black + orange ── */
+.skin-shakti [class*="-board"] {
+  background: #0b0b0b;
+  border: 3px solid #ff7a00;
+}
+.skin-shakti [class*="-team-name"] { color: #ffffff; font-weight: 900; text-transform: uppercase; }
+.skin-shakti [class*="-score"] { color: #ff7a00; font-weight: 900; }
+.skin-shakti [class*="target-strip"] { background: #ff7a00; color: #0b0b0b; font-weight: 900; }

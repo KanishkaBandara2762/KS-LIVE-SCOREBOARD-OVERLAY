@@ -1,5 +1,18 @@
 import React from 'react';
 import './ModernBroadcastThemes.css';
+import './ModernBroadcastSkins.css';
+
+// New themes reuse an original layout and add their own skin (styling only).
+const SKIN_LAYOUTS = {
+  APEX: 'ICC_GLOBAL',
+  SHAKTI: 'ICC_GLOBAL',
+  DIAMOND: 'SKY_HYPERION',
+  VOLT: 'FOX_STRIKE',
+  THUNDER: 'FOX_STRIKE',
+  BLITZ: 'JIO_TITAN',
+  FRANCHISE: 'JIO_TITAN',
+  ELITE: 'SUPERSPORT_AURA',
+};
 
 /**
  * ModernOverlayThemes Component
@@ -23,6 +36,9 @@ export default function ModernOverlayThemes({
   TeamLogo,
 }) {
   if (!match) return null;
+
+  const layoutId = SKIN_LAYOUTS[themeId] || themeId;
+  const skinClass = SKIN_LAYOUTS[themeId] ? `skin-${themeId.toLowerCase()}` : '';
 
   const bpo = match.ballsPerOver || 6;
   const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
@@ -100,9 +116,9 @@ export default function ModernOverlayThemes({
   // ══════════════════════════════════════════════════════════════════════════
   // 1. ICC_GLOBAL — ICC T20 GLOBAL APEX
   // ══════════════════════════════════════════════════════════════════════════
-  if (themeId === 'ICC_GLOBAL') {
+  if (layoutId === 'ICC_GLOBAL') {
     return (
-      <div className="mbo-wrapper icc-wrapper">
+      <div className={`mbo-wrapper icc-wrapper ${skinClass}`}>
         {renderEventBanner()}
 
         {/* Top Info Ribbon */}
@@ -216,9 +232,9 @@ export default function ModernOverlayThemes({
   // ══════════════════════════════════════════════════════════════════════════
   // 2. SKY_HYPERION — SKY SPORTS HYPERION PRO (UK & The Hundred)
   // ══════════════════════════════════════════════════════════════════════════
-  if (themeId === 'SKY_HYPERION') {
+  if (layoutId === 'SKY_HYPERION') {
     return (
-      <div className="mbo-wrapper skyh-wrapper">
+      <div className={`mbo-wrapper skyh-wrapper ${skinClass}`}>
         {renderEventBanner()}
 
         <div className="skyh-board">
@@ -302,9 +318,9 @@ export default function ModernOverlayThemes({
   // ══════════════════════════════════════════════════════════════════════════
   // 3. JIO_TITAN — JIO PREMIER LEAGUE TITAN (IPL Gold & Navy 4K)
   // ══════════════════════════════════════════════════════════════════════════
-  if (themeId === 'JIO_TITAN') {
+  if (layoutId === 'JIO_TITAN') {
     return (
-      <div className="mbo-wrapper jio-wrapper">
+      <div className={`mbo-wrapper jio-wrapper ${skinClass}`}>
         {renderEventBanner()}
 
         <div className="jio-board">
@@ -394,9 +410,9 @@ export default function ModernOverlayThemes({
   // ══════════════════════════════════════════════════════════════════════════
   // 4. FOX_STRIKE — FOX CRICKET BBL STRIKE (Australia Action Slant)
   // ══════════════════════════════════════════════════════════════════════════
-  if (themeId === 'FOX_STRIKE') {
+  if (layoutId === 'FOX_STRIKE') {
     return (
-      <div className="mbo-wrapper fox-wrapper">
+      <div className={`mbo-wrapper fox-wrapper ${skinClass}`}>
         {renderEventBanner()}
 
         <div className="fox-board">
@@ -484,9 +500,9 @@ export default function ModernOverlayThemes({
   // ══════════════════════════════════════════════════════════════════════════
   // 5. SUPERSPORT_AURA — SUPERSPORT AURA GLASS (International Glassmorphism)
   // ══════════════════════════════════════════════════════════════════════════
-  if (themeId === 'SUPERSPORT_AURA') {
+  if (layoutId === 'SUPERSPORT_AURA') {
     return (
-      <div className="mbo-wrapper ss-wrapper">
+      <div className={`mbo-wrapper ss-wrapper ${skinClass}`}>
         {renderEventBanner()}
 
         <div className="ss-board">

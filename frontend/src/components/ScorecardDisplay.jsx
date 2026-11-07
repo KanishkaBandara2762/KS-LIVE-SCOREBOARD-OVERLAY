@@ -9,6 +9,7 @@ import ModernOverlayThemes from "./ModernOverlayThemes";
 import "./BroadcastScreens.css";
 import "./ks-premium.css";
 import "./ThemeNewKSColor.css";
+import "./ModernEventFx.css";
 import "./newipl.css";
 import "./IPL2026Theme.css";
 import "./neon-vavuniya.css";
@@ -172,6 +173,14 @@ const ScorecardDisplay = () => {
     JIO_TITAN: { main: "theme-jio-titan", isModernRenderer: true, animClass: "anim-jio-titan" },
     FOX_STRIKE: { main: "theme-fox-strike", isModernRenderer: true, animClass: "anim-fox-strike" },
     SUPERSPORT_AURA: { main: "theme-supersport-aura", isModernRenderer: true, animClass: "anim-supersport-aura" },
+    APEX: { main: "theme-apex", isModernRenderer: true, animClass: "" },
+    DIAMOND: { main: "theme-diamond", isModernRenderer: true, animClass: "" },
+    VOLT: { main: "theme-volt", isModernRenderer: true, animClass: "" },
+    THUNDER: { main: "theme-thunder", isModernRenderer: true, animClass: "" },
+    BLITZ: { main: "theme-blitz", isModernRenderer: true, animClass: "" },
+    ELITE: { main: "theme-elite", isModernRenderer: true, animClass: "" },
+    FRANCHISE: { main: "theme-franchise", isModernRenderer: true, animClass: "" },
+    SHAKTI: { main: "theme-shakti", isModernRenderer: true, animClass: "" },
     IPL_GOLD: { main: "bg-slate-900", accent: "bg-yellow-400", text: "text-yellow-400", batsman: "bg-yellow-400", bowler: "from-blue-800 to-blue-950", border: "border-yellow-500", chase: "bg-blue-900", animClass: "anim-ipl-gold" },
     SKY_PRO: { main: "bg-white", accent: "bg-red-600", text: "text-red-600", batsman: "bg-slate-100", bowler: "from-red-600 to-red-800", border: "border-red-600", chase: "bg-slate-900", animClass: "anim-sky-pro" },
     NEON_VAVUNIYA: { main: "theme-neon-pulse", accent: "bg-lime-500", text: "text-lime-400", batsman: "bg-zinc-900", bowler: "from-zinc-800 to-black", border: "border-lime-500", chase: "bg-zinc-800", animClass: "anim-neon-vavuniya" },
@@ -747,7 +756,7 @@ const ScorecardDisplay = () => {
 
   const active = useMemo(() => {
     const base = themes[match?.themeID] || themes.ICC_GLOBAL || themes.IPL_GOLD;
-    const modernThemeIds = ['ICC_GLOBAL', 'SKY_HYPERION', 'JIO_TITAN', 'FOX_STRIKE', 'SUPERSPORT_AURA'];
+    const modernThemeIds = ['ICC_GLOBAL', 'SKY_HYPERION', 'JIO_TITAN', 'FOX_STRIKE', 'SUPERSPORT_AURA', 'APEX', 'DIAMOND', 'VOLT', 'THUNDER', 'BLITZ', 'ELITE', 'FRANCHISE', 'SHAKTI'];
     return {
       ...base,
       isModernTheme: modernThemeIds.includes(match?.themeID),
@@ -1150,18 +1159,24 @@ const ScorecardDisplay = () => {
                (ICC Global, Sky Hyperion, Jio Titan, Fox Strike, SuperSport Aura)
           ═══════════════════════════════════════════════════════════ */}
           {active.isModernTheme ? (
-            <ModernOverlayThemes
-              themeId={match.themeID}
-              match={match}
-              showEvent={showEvent}
-              eventType={eventType}
-              eventWicketName={eventWicketName}
-              getHowOutText={getHowOutText}
-              scoreAnimClass={scoreAnimClass}
-              getOvers={getOvers}
-              getAbsoluteUrl={getAbsoluteUrl}
-              TeamLogo={TeamLogo}
-            />
+            // Keyed per event so each four / six / wicket replays its bar animation (live only).
+            <div
+              key={currentEvent ? `${currentEvent.type}-${currentEvent.time}` : 'idle'}
+              className={`fx-host ${showEvent && ['FOUR', 'SIX', 'WICKET'].includes(eventType) ? `fx-${eventType.toLowerCase()}` : ''}`}
+            >
+              <ModernOverlayThemes
+                themeId={match.themeID}
+                match={match}
+                showEvent={showEvent}
+                eventType={eventType}
+                eventWicketName={eventWicketName}
+                getHowOutText={getHowOutText}
+                scoreAnimClass={scoreAnimClass}
+                getOvers={getOvers}
+                getAbsoluteUrl={getAbsoluteUrl}
+                TeamLogo={TeamLogo}
+              />
+            </div>
           ) : active.isNewKSColor ? (() => {
             const bpo = match.ballsPerOver || 6;
             const balls = match.recentBalls || [];

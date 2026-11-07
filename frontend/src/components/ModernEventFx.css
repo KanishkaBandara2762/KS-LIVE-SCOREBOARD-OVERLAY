@@ -1,0 +1,68 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   MODERN EVENT FX — bar animations for FOUR / SIX / WICKET (live only)
+   Applied by ScorecardDisplay through .fx-host classes. The landing-page
+   previews don't use .fx-host, so they stay static.
+   Each effect plays once per event (the host is keyed by event).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Sweep of light across the bar */
+@keyframes fxSweepFour {
+  0% { transform: translateX(-100%); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes fxSweepSix {
+  0% { transform: translateX(-100%); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes fxPulseWicket {
+  0%, 100% { opacity: 0; }
+  30%, 60% { opacity: 1; }
+}
+
+@keyframes fxShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-10px); }
+  30% { transform: translateX(9px); }
+  45% { transform: translateX(-7px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}
+
+/* Light sweep layer, sits over the whole bar and ignores clicks */
+.fx-host .mbo-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.fx-host.fx-four .mbo-wrapper::after {
+  background: linear-gradient(100deg, transparent 0%, rgba(74, 222, 128, 0.55) 50%, transparent 100%);
+  animation: fxSweepFour 1.3s ease-out 1 both;
+}
+
+.fx-host.fx-six .mbo-wrapper::after {
+  background: linear-gradient(100deg, transparent 0%, rgba(250, 204, 21, 0.6) 50%, transparent 100%);
+  animation: fxSweepSix 1.5s ease-out 1 both;
+}
+
+.fx-host.fx-wicket .mbo-wrapper::after {
+  background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.45) 0%, transparent 70%);
+  animation: fxPulseWicket 1.4s ease-in-out 1 both;
+}
+
+.fx-host.fx-wicket .mbo-wrapper {
+  animation: fxShake 0.5s linear 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-host .mbo-wrapper::after,
+  .fx-host .mbo-wrapper {
+    animation: none !important;
+  }
+}
