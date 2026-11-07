@@ -67,6 +67,116 @@ router.put('/users/:id/subscription', async (req, res, next) => {
   }
 });
 
+// ── Credit plans (admin controls name, credits, price and visibility) ────────
+const SubscriptionPlan = require('../models/SubscriptionPlan');
+const { grantMatchCredits } = require('../services/matchCredits');
+
+const PLAN_FIELDS = ['name', 'slug', 'credits', 'priceLkr', 'description', 'isVisible', 'isActive'];
+const { getUsdToLkrRate, setUsdToLkrRate } = require('../services/pricing');
+
+router.get('/settings/exchange-rate', async (req, res, next) => {
+  try {
+    res.json({ success: true, usdToLkr: await getUsdToLkrRate() });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/settings/exchange-rate', async (req, res, next) => {
+  try {
+    const usdToLkr = await setUsdToLkrRate(req.body.usdToLkr);
+    res.json({ success: true, usdToLkr });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+const pickPlanFields = (body) =>
+  PLAN_FIELDS.reduce((acc, key) => {
+    if (body[key] !== undefined) acc[key] = body[key];
+    return acc;
+  }, {});
+
+router.get('/plans', async (req, res, next) => {
+  try {
+    const plans = await SubscriptionPlan.find().sort({ credits: 1 });
+    res.json({ success: true, plans });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/plans', async (req, res, next) => {
+  try {
+    const data = pickPlanFields(req.body);
+    const plan = await SubscriptionPlan.create(data);
+    res.status(201).json({ success: true, plan });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/plans/:id', async (req, res, next) => {
+  try {
+    const plan = await SubscriptionPlan.findByIdAndUpdate(
+      req.params.id,
+      pickPlanFields(req.body),
+      { new: true, runValidators: true }
+    );
+    if (!plan) return res.status(404).json({ success: false, error: 'Plan not found.' });
+    res.json({ success: true, plan });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/plans/:id', async (req, res, next) => {
+  try {
+    const plan = await SubscriptionPlan.findByIdAndDelete(req.params.id);
+    if (!plan) return res.status(404).json({ success: false, error: 'Plan not found.' });
+    res.json({ success: true, message: 'Plan deleted.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Set or add match credits for an account. mode: 'add' (default) | 'set'
+router.post('/users/:id/credits', async (req, res, next) => {
+  try {
+    const { credits, mode = 'add' } = req.body;
+    const amount = Math.floor(Number(credits));
+    if (!Number.isFinite(amount) || amount < 0 || (mode === 'add' && amount < 1)) {
+      return res.status(400).json({ success: false, error: 'Enter a valid number of credits.' });
+    }
+
+    let user;
+    if (mode === 'set') {
+      user = await User.findByIdAndUpdate(req.params.id, { matchCredits: amount }, { new: true }).select('-passwordHash');
+    } else {
+      user = await grantMatchCredits(req.params.id, amount);
+    }
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+    res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Activate a plan for an account: adds the plan's credits.
+router.post('/users/:id/activate-plan', async (req, res, next) => {
+  try {
+    const plan = await SubscriptionPlan.findById(req.body.planId);
+    if (!plan) return res.status(404).json({ success: false, error: 'Plan not found.' });
+    if (!plan.isActive) return res.status(400).json({ success: false, error: 'This plan is inactive.' });
+
+    const user = await grantMatchCredits(req.params.id, plan.credits);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+    res.json({ success: true, user, grantedCredits: plan.credits });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/payments', async (req, res, next) => {
   try {
     const payments = await Payment.find().populate('userId', 'email displayName').sort({ paymentDate: -1 });

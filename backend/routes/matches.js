@@ -27,7 +27,7 @@ const authMiddleware = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 
 const router = express.Router();
-const checkSubscription = require('../middleware/subscriptionCheck');
+const requireMatchCredit = require('../middleware/creditGate');
 
 // ── Public endpoints ──────────────────────────────────────────────────────────
 router.get('/overlay/:matchId', getOverlay);
@@ -43,13 +43,14 @@ router.use(authMiddleware);
 router.get('/matches', getMatches);
 router.get('/match/:id', getMatch);
 
-// NOTE: Match creation & scoring are 100% FREE & UNLIMITED for all registered users!
-// Subscription is ONLY required for OBS Broadcasting access (validated at /overlay endpoints).
+// NOTE: Account creation is free. Creating a match costs 1 match credit (admins bypass).
+// Scoring is free for every match that was created with a credit.
 
 
 // ── POST /create-match ────────────────────────────────────────────────────────
 router.post(
   '/create-match',
+  requireMatchCredit,
   [
     body('battingTeam').optional().isString().trim().notEmpty(),
     body('bowlingTeam').optional().isString().trim().notEmpty(),

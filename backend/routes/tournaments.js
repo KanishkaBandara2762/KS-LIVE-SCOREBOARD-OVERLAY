@@ -6,6 +6,7 @@ const OverlaySettings = require('../models/OverlaySettings');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
 const checkSessionValidity = require('../middleware/checkSessionValidity');
+const requireMatchCredit = require('../middleware/creditGate');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const path = require('path');
@@ -107,7 +108,7 @@ router.get('/:tournamentId', async (req, res, next) => {
 });
 
 // ── POST /create ──────────────────────────────────────────────────────
-router.post('/create', async (req, res, next) => {
+router.post('/create', requireMatchCredit, async (req, res, next) => {
   try {
     const { name, type } = req.body;
 

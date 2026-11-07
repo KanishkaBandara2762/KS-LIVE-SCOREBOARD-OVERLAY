@@ -978,8 +978,16 @@ const deleteMatch = async (req, res, next) => {
     const { id } = req.params;
     const match = await Match.findOne({ matchId: id });
     if (!match) return res.status(404).json({ success: false, error: 'Match not found.' });
-    if (match.ownerUid.toString() !== req.user.id) {
+
+    const requester = await User.findById(req.user.id).select('role');
+    const isAdmin = ['admin', 'superadmin'].includes(requester?.role);
+    if (!isAdmin && match.ownerUid.toString() !== req.user.id) {
       return res.status(403).json({ success: false, error: 'Access denied.' });
+    }
+    // Finished matches can only be removed by an admin.
+    const isFinished = ['completed', 'abandoned'].includes(match.matchStatus);
+    if (isFinished && !isAdmin) {
+      return res.status(403).json({ success: false, error: 'Only admins can delete finished matches.' });
     }
 
     await Promise.all([
@@ -988,7 +996,7 @@ const deleteMatch = async (req, res, next) => {
       ScoreEvent.deleteMany({ matchId: id }),
     ]);
 
-    await User.findByIdAndUpdate(req.user.id, { $inc: { matchCount: -1 } });
+    await User.findByIdAndUpdate(match.ownerUid, { $inc: { matchCount: -1 } });
 
     res.json({ success: true, message: 'Match deleted.' });
   } catch (err) {

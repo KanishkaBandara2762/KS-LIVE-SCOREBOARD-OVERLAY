@@ -45,6 +45,12 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Paid creation credits: 1 credit per match, tournament or auction created.
+    matchCredits: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     stripeCustomerId: {
       type: String,
       default: null,

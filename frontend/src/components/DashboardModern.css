@@ -1,0 +1,155 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   DASHBOARD — modern visual layer
+   Loaded after Dashboard.css. Only restyles existing classes (no layout or
+   behaviour changes).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.dashboard {
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(56, 189, 248, 0.12), transparent 60%),
+    radial-gradient(900px 500px at -10% 30%, rgba(99, 102, 241, 0.10), transparent 60%),
+    #040914;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #e2e8f0;
+}
+
+/* Header: glass bar with soft border */
+.dashboard .dash-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(8, 14, 30, 0.72);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.dashboard .dash-logo-text {
+  background: linear-gradient(90deg, #f8fafc, #7dd3fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+}
+
+.dashboard .dash-plan-badge {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+}
+
+/* Buttons */
+.dashboard .btn-create-match,
+.dashboard .btn-logout {
+  border-radius: 12px;
+  font-weight: 800;
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard .btn-create-match:hover,
+.dashboard .btn-logout:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.dashboard .btn-create-match {
+  box-shadow: 0 8px 22px rgba(250, 204, 21, 0.18);
+}
+
+/* Stats: cards with gradient numbers */
+.dashboard .dash-stats {
+  gap: 16px;
+  padding: 0 32px;
+}
+
+.dashboard .stat-item {
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.85), rgba(8, 13, 28, 0.85));
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.dashboard .stat-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.dashboard .stat-num {
+  background: linear-gradient(135deg, #f8fafc, #7dd3fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+}
+
+.dashboard .stat-label {
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.dashboard .stat-item-info {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(37, 99, 235, 0.18));
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+/* Tabs: pill segmented control */
+.dashboard .tab-buttons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  margin: 0 32px 22px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.dashboard .btn-tab {
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.dashboard .btn-tab:hover { color: #e2e8f0; background: rgba(255, 255, 255, 0.05); }
+
+.dashboard .btn-tab.active {
+  color: #04111f;
+  background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+}
+
+/* Main content gutters */
+.dashboard .dash-main { padding: 0 32px 32px; }
+
+/* Search */
+.dashboard .dash-search {
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+}
+
+.dashboard .dash-search:focus {
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+@media (max-width: 768px) {
+  .dashboard .dash-main,
+  .dashboard .dash-stats,
+  .dashboard .tab-buttons { padding-left: 16px; padding-right: 16px; margin-left: 0; margin-right: 0; }
+  .dashboard .dash-main { padding-bottom: 24px; }
+}

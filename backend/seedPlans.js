@@ -1,6 +1,9 @@
 /**
- * KS Live — Subscription Plans Seeder
+ * KS Live — Credit Plans Seeder
  * Run: node seedPlans.js
+ *
+ * Plans are credit packs. 1 credit = 1 match, tournament or auction.
+ * Prices are placeholders; the admin panel can change them at any time.
  */
 
 const mongoose = require('mongoose');
@@ -9,30 +12,36 @@ require('dotenv').config();
 
 const PLANS = [
   {
-    name: 'Daily Plan',
-    slug: 'daily',
-    priceUsd: 2,
-    durationInDays: 1,
-    description: '24-hour premium access pass. Unlimited broadcast matches.',
-    isActive: true
+    name: '1 Credit Pack',
+    slug: 'single_match',
+    credits: 1,
+    priceLkr: 600,
+    description: '1 Credit = 1 Event: one complete match, tournament or auction.',
+    isVisible: true,
+    isActive: true,
   },
   {
-    name: 'Monthly Plan',
-    slug: 'monthly',
-    priceUsd: 10,
-    durationInDays: 30,
-    description: '30 days of professional broadcasting tools and themes.',
-    isActive: true
+    name: '5 Credit Pack',
+    slug: 'five_match',
+    credits: 5,
+    priceLkr: 2500,
+    description: '5 Events: five complete matches, tournaments or auctions.',
+    isVisible: true,
+    isActive: true,
   },
   {
-    name: 'Annual Plan',
-    slug: 'annual',
-    priceUsd: 50,
-    durationInDays: 365,
-    description: '365-day complete broadcasting license. Best overall value!',
-    isActive: true
-  }
+    name: 'Custom Credit Pack',
+    slug: 'custom',
+    credits: 10,
+    priceLkr: 4500,
+    description: 'Flexible pack: the owner sets the number of events.',
+    isVisible: true,
+    isActive: true,
+  },
 ];
+
+// Old time-based plans are hidden and deactivated (not deleted).
+const RETIRED_SLUGS = ['daily', 'monthly', 'annual'];
 
 async function seedPlans() {
   try {
@@ -42,21 +51,26 @@ async function seedPlans() {
       process.exit(1);
     }
 
-    console.log('🔄 Connecting to MongoDB to seed Subscription Plans...');
+    console.log('🔄 Connecting to MongoDB to seed credit plans...');
     await mongoose.connect(dbUri);
     console.log('✅ DB Connected.');
 
-    // Upsert each plan based on slug
+    // Upsert by slug. $set leaves admin edits to fields not listed here alone.
     for (const plan of PLANS) {
       await SubscriptionPlan.findOneAndUpdate(
         { slug: plan.slug },
-        { $set: plan },
+        { $setOnInsert: plan },
         { upsert: true, new: true }
       );
-      console.log(`   ➕ Seeded Plan: ${plan.name} ($${plan.priceUsd})`);
+      console.log(`   ➕ Plan ready: ${plan.name} (${plan.credits} credits, LKR ${plan.priceLkr})`);
     }
 
-    console.log('\n🚀 Subscription Plans successfully updated in MongoDB!');
+    await SubscriptionPlan.updateMany(
+      { slug: { $in: RETIRED_SLUGS } },
+      { $set: { isVisible: false, isActive: false } }
+    );
+
+    console.log('\n🚀 Credit plans seeded. Edit prices and visibility in the admin panel.');
     process.exit(0);
   } catch (err) {
     console.error('\n❌ Seeding failed with error:', err);

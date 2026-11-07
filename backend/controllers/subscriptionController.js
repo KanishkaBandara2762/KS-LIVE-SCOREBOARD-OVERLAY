@@ -3,12 +3,14 @@ const User = require('../models/User');
 const Payment = require('../models/Payment');
 const SubscriptionPlan = require('../models/SubscriptionPlan');
 const UserSubscription = require('../models/UserSubscription');
+const { getUsdToLkrRate } = require('../services/pricing');
 
 // ── GET /api/subscription/plans ───────────────────────────────────────────
 const getPlans = async (req, res, next) => {
   try {
-    const plans = await SubscriptionPlan.find({ isActive: true }).sort({ priceUsd: 1 });
-    res.json({ success: true, plans });
+    const plans = await SubscriptionPlan.find({ isActive: true, isVisible: true }).sort({ credits: 1 });
+    const usdToLkr = await getUsdToLkrRate();
+    res.json({ success: true, plans, usdToLkr });
   } catch (err) {
     next(err);
   }
@@ -17,6 +19,13 @@ const getPlans = async (req, res, next) => {
 // ── POST /api/subscription/checkout ───────────────────────────────────────
 const createCheckoutSession = async (req, res, next) => {
   try {
+    // Self-service purchase is off. Admins activate plans from the admin panel.
+    return res.status(403).json({
+      success: false,
+      code: 'SELF_SERVICE_PURCHASE_DISABLED',
+      error: 'Plans are activated by the admin. Please contact the admin to purchase a plan.',
+    });
+    // eslint-disable-next-line no-unreachable
     if (!process.env.STRIPE_SECRET_KEY) {
       return res.status(500).json({
         success: false,

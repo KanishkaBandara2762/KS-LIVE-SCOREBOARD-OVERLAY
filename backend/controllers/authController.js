@@ -20,18 +20,12 @@ const register = async (req, res, next) => {
       });
     }
 
-    const now = new Date();
-
-    // Create user with 2-hour free trial pre-assigned
+    // Account creation is free. No trial or plan is assigned; matches,
+    // tournaments and auctions are paid with match credits.
     const user = await User.create({
       email: email.toLowerCase(),
       displayName,
       passwordHash: password, // pre-save hook hashes this
-      isSessionActive: true,
-      sessionType: '2-hour-trial',
-      sessionStart: now,
-      sessionExpiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000), // exactly 2 hours
-      isTrialUsed: true,
     });
 
     // Sign token
@@ -45,6 +39,7 @@ const register = async (req, res, next) => {
         email: user.email,
         displayName: user.displayName,
         plan: user.plan,
+        matchCredits: user.matchCredits,
         subscriptionExpiry: user.subscriptionExpiry,
         role: user.role,
         isSessionActive: user.isSessionActive,
@@ -88,14 +83,6 @@ const login = async (req, res, next) => {
       user.isSessionActive = false;
     }
 
-    // 2. Fallback trial assignment if registration missed it
-    if (!user.isSessionActive && !user.isTrialUsed) {
-      user.isSessionActive = true;
-      user.sessionType = '2-hour-trial';
-      user.sessionStart = now;
-      user.sessionExpiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-      user.isTrialUsed = true;
-    }
 
     // Update last login
     user.lastLogin = now;
@@ -112,6 +99,7 @@ const login = async (req, res, next) => {
         email: user.email,
         displayName: user.displayName,
         plan: user.plan,
+        matchCredits: user.matchCredits,
         subscriptionExpiry: user.subscriptionExpiry,
         role: user.role,
         matchCount: user.matchCount,
@@ -144,15 +132,6 @@ const getMe = async (req, res, next) => {
       await user.save({ validateBeforeSave: false });
     }
 
-    // 2. Fallback trial assignment if registration/login missed it
-    if (!user.isSessionActive && !user.isTrialUsed) {
-      user.isSessionActive = true;
-      user.sessionType = '2-hour-trial';
-      user.sessionStart = now;
-      user.sessionExpiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-      user.isTrialUsed = true;
-      await user.save({ validateBeforeSave: false });
-    }
 
     res.json({
       success: true,
@@ -161,6 +140,7 @@ const getMe = async (req, res, next) => {
         email: user.email,
         displayName: user.displayName,
         plan: user.plan,
+        matchCredits: user.matchCredits,
         subscriptionExpiry: user.subscriptionExpiry,
         role: user.role,
         matchCount: user.matchCount,

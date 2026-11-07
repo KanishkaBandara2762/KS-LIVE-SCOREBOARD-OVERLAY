@@ -10,9 +10,9 @@ const authMiddleware = require('../middleware/auth');
 const {
   loadAuction,
   requireAuctionOwner,
-  requireAuctionEntitlement,
   requireAuctionAccess,
 } = require('../middleware/auctionAccess');
+const requireMatchCredit = require('../middleware/creditGate');
 const controller = require('../controllers/auctionController');
 
 // ── Public / invite routes (no auction membership required) ─────────────────
@@ -23,14 +23,14 @@ router.post('/join/:token', authMiddleware, controller.joinAuction);
 router.use(authMiddleware);
 
 router.get('/', controller.listAuctions);
-router.post('/', requireAuctionEntitlement, controller.createAuction);
+router.post('/', requireMatchCredit, controller.createAuction);
 
 router.get('/:id', loadAuction, requireAuctionAccess, controller.getAuction);
 router.patch('/:id', loadAuction, requireAuctionOwner, controller.updateAuction);
 router.delete('/:id', loadAuction, requireAuctionOwner, controller.deleteAuction);
 
 // Lifecycle
-router.post('/:id/start', loadAuction, requireAuctionOwner, requireAuctionEntitlement, controller.startAuction);
+router.post('/:id/start', loadAuction, requireAuctionOwner, controller.startAuction);
 router.post('/:id/pause', loadAuction, requireAuctionOwner, controller.pauseAuction);
 router.post('/:id/resume', loadAuction, requireAuctionOwner, controller.resumeAuction);
 router.post('/:id/complete', loadAuction, requireAuctionOwner, controller.completeAuction);

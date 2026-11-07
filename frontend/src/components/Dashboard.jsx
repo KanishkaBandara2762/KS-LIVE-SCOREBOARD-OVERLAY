@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, subscriptionsApi, getToken } from '../api';
-import SubscriptionCountdownWidget from './SubscriptionCountdownWidget';
 import TournamentTeamsModal from './TournamentTeamsModal';
 import AuctionDashboardPanel from './auction/AuctionDashboardPanel';
 import { isAdminRole } from '../utils/roles';
 import './Dashboard.css';
+import './DashboardModern.css';
+import { CreditPlansPanel, OwnerContactFooter } from './CreditPlansPanel';
+import TournamentObsGuide from './TournamentObsGuide';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
 const THEMES = [
@@ -872,6 +874,7 @@ const Dashboard = () => {
   const [tournaments, setTournaments] = useState([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
   const [showCreateTournament, setShowCreateTournament] = useState(false);
+  const [createdTournament, setCreatedTournament] = useState(null);
   const [showNextMatch, setShowNextMatch] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showTournamentTeams, setShowTournamentTeams] = useState(false);
@@ -926,8 +929,9 @@ const Dashboard = () => {
   };
 
   const handleCreateTournament = async (formData) => {
-    await tournamentsApi.create(formData);
+    const res = await tournamentsApi.create(formData);
     await fetchTournaments();
+    if (res?.tournament) setCreatedTournament(res.tournament);
   };
 
   const handleNextMatchSubmit = async (tournamentId, matchData) => {
@@ -978,78 +982,6 @@ const Dashboard = () => {
     } catch { /* ignore */ }
   };
 
-  // Paywall interceptor
-  if (currentUser && !isAdminRole(currentUser.role) && !currentUser.isSessionActive) {
-    return (
-      <div className="paywall-overlay">
-        <div className="paywall-card">
-          <div className="paywall-badge">⚠️ SESSION EXPIRED / INACTIVE</div>
-          <h2>Access Restricted</h2>
-          <p>
-            Your free trial/session has expired. To continue using the KS Live System, please subscribe to a plan. Click below to contact us via our Facebook Page or join our WhatsApp Group to activate your account.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
-            <a 
-              href="https://www.facebook.com/share/p/18n3pFUz8y/"
-              target="_blank" 
-              rel="noreferrer" 
-              className="btn-paywall-facebook"
-              style={{
-                background: 'linear-gradient(135deg, #1877f2, #0d5dd6)',
-                color: '#fff',
-                padding: '14px 24px',
-                borderRadius: '12px',
-                fontWeight: '800',
-                fontSize: '0.95rem',
-                cursor: 'pointer',
-                display: 'block',
-                textDecoration: 'none',
-                boxShadow: '0 4px 20px rgba(24, 119, 242, 0.35)',
-                transition: 'all 0.2s',
-                textAlign: 'center'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #3b8cf7, #1877f2)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #1877f2, #0d5dd6)'; }}
-            >
-              📘 Connect via Facebook
-            </a>
-
-            <a 
-              href="https://chat.whatsapp.com/GwhPw79evWFIwGTcip9Lju"
-              target="_blank" 
-              rel="noreferrer" 
-              className="btn-paywall-whatsapp"
-              style={{
-                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                color: '#fff',
-                padding: '14px 24px',
-                borderRadius: '12px',
-                fontWeight: '800',
-                fontSize: '0.95rem',
-                cursor: 'pointer',
-                display: 'block',
-                textDecoration: 'none',
-                boxShadow: '0 4px 20px rgba(34, 197, 94, 0.35)',
-                transition: 'all 0.2s',
-                textAlign: 'center',
-                margin: '0'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #4ade80, #22c55e)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)'; }}
-            >
-              💬 Join WhatsApp Group
-            </a>
-          </div>
-
-          <button className="btn-paywall-logout" onClick={handleLogout}>
-            Sign Out / Switch Account
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const filteredMatches = matches.filter((m) => {
     const matchesSearch = !search ||
       m.battingTeam?.toLowerCase().includes(search.toLowerCase()) ||
@@ -1074,14 +1006,9 @@ const Dashboard = () => {
           </div>
           <div className="dash-user-info">
             <span className="dash-user-name">{currentUser?.displayName || currentUser?.email}</span>
-            <span className={`dash-plan-badge ${currentUser?.plan || 'free'}`}>
-              {currentUser?.plan === 'pro' ? 'Pro Plan' : currentUser?.plan === 'enterprise' ? 'Enterprise Plan' : 'Free Plan'}
+            <span className="dash-plan-badge free">
+              {isAdminRole(currentUser?.role) ? 'Admin' : `${currentUser?.matchCredits ?? 0} match credit(s)`}
             </span>
-            {currentUser?.isSessionActive && currentUser?.sessionExpiresAt && (
-              <span className="dash-expiry" style={{ fontSize: '0.8rem', color: '#94a3b8', marginLeft: '10px' }}>
-                Session Expires: {new Date(currentUser.sessionExpiresAt).toLocaleString()}
-              </span>
-            )}
           </div>
         </div>
         <div className="dash-header-right">
@@ -1100,8 +1027,10 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Live Subscription Tracking & Expiration Barrier */}
-      <SubscriptionCountdownWidget />
+      {/* Match credits + plan selection (directly below the header) */}
+      {!isAdminRole(currentUser?.role) && (
+        <CreditPlansPanel balance={currentUser?.matchCredits ?? 0} email={currentUser?.email || ''} />
+      )}
 
       {/* Stats Bar */}
       <div className="dash-stats">
@@ -1118,8 +1047,8 @@ const Dashboard = () => {
           <span className="stat-label">Live Matches</span>
         </div>
         <div className="stat-item stat-item-info">
-          <span className="stat-num" style={{ fontSize: '1.1rem' }}>Active Session</span>
-          <span className="stat-label">{currentUser?.sessionType || 'Free Access'}</span>
+          <span className="stat-num">{isAdminRole(currentUser?.role) ? '∞' : (currentUser?.matchCredits ?? 0)}</span>
+          <span className="stat-label">Match Credits</span>
         </div>
       </div>
 
@@ -1262,26 +1191,22 @@ const Dashboard = () => {
         )}
       </main>
 
-      {/* OBS Instructions */}
-      <div className="obs-guide">
-        <h3>📡 OBS Browser Source Setup</h3>
-        <ol>
-          <li>In OBS: <strong>Sources → + → Browser Source</strong></li>
-          <li>Paste your tournament's <strong>Static Overlay OBS URL</strong> (copy from tournament card above)</li>
-          <li>Set Width: <strong>1920</strong>, Height: <strong>1080</strong></li>
-          <li>✅ <strong>Shutdown source when not visible</strong> — OFF</li>
-          <li>When you transition to a "Next Match", the scoreboard updates in real-time seamlessly without reloading!</li>
-        </ol>
-      </div>
-
       {/* Create Modal */}
       {showCreate && (
         <CreateMatchModal onClose={handleModalClose} onCreate={handleCreate} />
       )}
 
+      {/* Owner contact */}
+      <OwnerContactFooter />
+
       {/* Create Tournament Modal */}
       {showCreateTournament && (
         <CreateTournamentModal onClose={() => setShowCreateTournament(false)} onCreate={handleCreateTournament} />
+      )}
+
+      {/* OBS setup shown right after a tournament is created */}
+      {createdTournament && (
+        <TournamentObsGuide tournament={createdTournament} onClose={() => setCreatedTournament(null)} />
       )}
 
       {/* Tournament Teams & Squads Modal */}

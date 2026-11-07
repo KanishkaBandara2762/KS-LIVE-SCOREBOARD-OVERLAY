@@ -4,7 +4,8 @@ import "./LandingPage.css";
 import { ScreenshotsShowcase, ThemesGallery, BuyerSolutions } from "./Portfolio";
 import { useLanguage } from "../i18n/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
-import { matchesApi } from "../api";
+import { matchesApi, subscriptionsApi } from "../api";
+import { formatLkr, lkrToUsd, formatUsd } from "../utils/money";
 import { BroadcastingServices, ReviewsSection, ModernFooter } from './LandingExtras';
 import { HeroCarousel } from './HeroCarousel';
 import { FeaturesHub } from './FeaturesHub';
@@ -161,6 +162,20 @@ export default function LandingPage() {
     useEffect(() => {
         const timer = setTimeout(() => setIntroComplete(true), 3600);
         return () => clearTimeout(timer);
+    }, []);
+
+    // Plan cards come from the admin-controlled plan list (visible plans only).
+    const [creditPlans, setCreditPlans] = useState([]);
+    const [usdToLkr, setUsdToLkr] = useState(null);
+    useEffect(() => {
+        subscriptionsApi.getPlans()
+            .then((res) => {
+                if (res.success) {
+                    setCreditPlans((res.plans || []).filter((p) => Number.isFinite(p.credits)));
+                    setUsdToLkr(res.usdToLkr || null);
+                }
+            })
+            .catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -445,86 +460,30 @@ export default function LandingPage() {
                 <p className="landing-section-sub">{t("landing.plans.subtitle")}</p>
 
                 <div className="landing-plans-grid">
-                    {/* DAILY PASS */}
-                    <div className="landing-plan-card">
-                        <div className="landing-plan-badge-placeholder"></div>
-                        <div className="landing-plan-header">
-                            <h3>{t("landing.plans.daily.name")}</h3>
-                            <div className="landing-plan-price">
-                                <span className="currency">$</span>
-                                <span className="amount">2</span>
-                                <span className="period">/ 24h</span>
+                    {creditPlans.map((plan) => (
+                        <div key={plan._id || plan.slug} className="landing-plan-card">
+                            <div className="landing-plan-header">
+                                <h3>{plan.name}</h3>
+                                <div className="landing-plan-price">
+                                    <span className="amount">{formatLkr(plan.priceLkr)}</span>
+                                    {usdToLkr && <span className="period">({formatUsd(lkrToUsd(plan.priceLkr, usdToLkr))})</span>}
+                                    <span className="period">/ {plan.credits} {plan.credits === 1 ? "match" : "matches"}</span>
+                                </div>
+                            </div>
+                            <div className="landing-plan-body">
+                                <ul>
+                                    <li><span className="check">✅</span> {plan.credits} match credit{plan.credits === 1 ? "" : "s"}: matches, tournaments or auctions</li>
+                                    <li><span className="check">✅</span> Live scoring and OBS overlays included</li>
+                                    {plan.description && <li><span className="check">✅</span> {plan.description}</li>}
+                                </ul>
+                            </div>
+                            <div className="landing-plan-footer">
+                                <Link to="/pricing" className="landing-plan-btn">
+                                    {t("landing.plans.btn.select")}
+                                </Link>
                             </div>
                         </div>
-                        <div className="landing-plan-body">
-                            <ul>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.allThemes")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.liveScoring")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.obsSupport")}</li>
-                            </ul>
-                        </div>
-                        <div className="landing-plan-footer">
-                            <Link to="/pricing?plan=daily" className="landing-plan-btn">
-                                {t("landing.plans.btn.select")}
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* MONTHLY PLAN */}
-                    <div className="landing-plan-card popular">
-                        <div className="landing-plan-popular-badge">{t("landing.plans.badge.popular")}</div>
-                        <div className="landing-plan-header">
-                            <h3>{t("landing.plans.monthly.name")}</h3>
-                            <div className="landing-plan-price">
-                                <span className="currency">$</span>
-                                <span className="amount">10</span>
-                                <span className="period">/ mo</span>
-                            </div>
-                        </div>
-                        <div className="landing-plan-body">
-                            <ul>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.allThemes")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.liveScoring")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.obsSupport")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.unlimitedMatches")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.prioritySupport")}</li>
-                            </ul>
-                        </div>
-                        <div className="landing-plan-footer">
-                            <Link to="/pricing?plan=monthly" className="landing-plan-btn popular-btn">
-                                {t("landing.plans.btn.select")}
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* ANNUAL PLAN */}
-                    <div className="landing-plan-card best-value">
-                        <div className="landing-plan-best-value-badge">{t("landing.plans.badge.bestValue")}</div>
-                        <div className="landing-plan-header">
-                            <h3>{t("landing.plans.annual.name")}</h3>
-                            <div className="landing-plan-price">
-                                <span className="currency">$</span>
-                                <span className="amount">50</span>
-                                <span className="period">/ yr</span>
-                            </div>
-                        </div>
-                        <div className="landing-plan-body">
-                            <ul>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.allThemes")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.liveScoring")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.obsSupport")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.unlimitedMatches")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.prioritySupport")}</li>
-                                <li><span className="check">✅</span> {t("landing.plans.feature.earlyAccess")}</li>
-                                <li className="highlight-feature"><span className="check">✅</span> {t("landing.plans.feature.saveMore")}</li>
-                            </ul>
-                        </div>
-                        <div className="landing-plan-footer">
-                            <Link to="/pricing?plan=annual" className="landing-plan-btn best-value-btn">
-                                {t("landing.plans.btn.select")}
-                            </Link>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </section>
 

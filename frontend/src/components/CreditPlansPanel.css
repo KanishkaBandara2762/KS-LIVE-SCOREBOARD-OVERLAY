@@ -1,0 +1,314 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   CREDIT PACKS (plan cards) + OWNER FOOTER — dashboard
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.credit-panel {
+  margin: 8px 0 28px;
+  padding: 28px;
+  border-radius: 20px;
+  background:
+    radial-gradient(900px 300px at 0% 0%, rgba(56, 189, 248, 0.14), transparent 60%),
+    linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(8, 13, 28, 0.95));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  color: #e2e8f0;
+}
+
+.credit-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.credit-panel-head h3 {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.credit-panel-head p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.credit-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(37, 99, 235, 0.2));
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.credit-balance-num {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #7dd3fc;
+}
+
+.credit-balance-lbl {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.credit-empty {
+  padding: 18px;
+  text-align: center;
+  color: #94a3b8;
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+}
+
+.credit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 18px;
+}
+
+.credit-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.credit-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+.credit-card.is-featured {
+  border-color: rgba(250, 204, 21, 0.55);
+  background: linear-gradient(180deg, rgba(120, 83, 10, 0.35), rgba(15, 23, 42, 0.8));
+}
+
+.credit-ribbon {
+  position: absolute;
+  top: -11px;
+  right: 18px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #facc15, #f59e0b);
+  color: #1c1400;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.credit-name {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.credit-count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.credit-count-num {
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.credit-count-lbl {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.credit-price {
+  margin: 10px 0 12px;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.credit-currency { font-size: 1rem; color: #94a3b8; margin-right: 2px; }
+.credit-amount { font-size: 1.6rem; }
+
+.credit-desc {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.credit-features {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.credit-features li::before {
+  content: "✓";
+  color: #34d399;
+  font-weight: 900;
+  margin-right: 8px;
+}
+
+.credit-cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(34, 197, 94, 0.3);
+  transition: filter 0.2s ease;
+}
+
+.credit-cta:hover { filter: brightness(1.08); }
+
+.credit-howto {
+  margin-top: 22px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+/* ── Owner footer ─────────────────────────────────────────────────────── */
+.owner-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 32px 0 8px;
+  padding: 22px 26px;
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+}
+
+.owner-footer h4 { margin: 0 0 4px; font-size: 1.05rem; font-weight: 800; }
+.owner-footer p { margin: 0; font-size: 0.88rem; color: #94a3b8; }
+
+.owner-footer-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.owner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.owner-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.owner-btn-wa { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.owner-btn-fb { background: linear-gradient(135deg, #1877f2, #0d5dd6); }
+
+/* ── Compact balance bar + plan selection ─────────────────────────────── */
+.credit-panel { margin: 0 32px 24px; }
+
+.credit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.credit-bar-info { display: flex; flex-direction: column; gap: 2px; }
+.credit-bar-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #7dd3fc; }
+.credit-bar-text { font-size: 0.88rem; color: #cbd5e1; }
+
+.credit-select-head h3 { margin: 0 0 4px; font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
+.credit-select-head p { margin: 0 0 14px; font-size: 0.85rem; color: #94a3b8; }
+
+.credit-card { text-align: left; font: inherit; color: inherit; cursor: pointer; position: relative; }
+.credit-card.is-selected {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.45), 0 16px 36px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(180deg, rgba(14, 116, 144, 0.35), rgba(15, 23, 42, 0.85));
+}
+
+.credit-check {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: #04111f;
+  background: #38bdf8;
+}
+.credit-check:empty { background: rgba(148, 163, 184, 0.2); border: 1px solid rgba(148, 163, 184, 0.35); }
+
+.credit-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+.credit-summary-label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
+.credit-summary strong { color: #f8fafc; }
+.credit-summary-meta { color: #94a3b8; font-size: 0.88rem; }
+
+.credit-summary .credit-cta { margin-top: 0; cursor: pointer; border: none; font: inherit; }
+
+.credit-panel .credit-howto { margin-top: 16px; }
+
+@media (max-width: 768px) {
+  .credit-panel { margin: 0 16px 20px; padding: 20px; }
+  .credit-bar { flex-direction: column; align-items: flex-start; }
+}
+
+.credit-price { flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.credit-price .credit-amount { font-size: 1.35rem; }
+.credit-price-usd { font-size: 0.85rem; font-weight: 700; color: #94a3b8; }

@@ -13,19 +13,9 @@ const hasActiveBroadcastingAccess = (user) => {
     return { hasAccess: true, reason: 'ADMIN_BYPASS' };
   }
 
-  const now = new Date();
-
-  // Active session trial
-  if (user.isSessionActive && user.sessionExpiresAt && new Date(user.sessionExpiresAt) > now) {
-    return { hasAccess: true, reason: 'ACTIVE_SESSION' };
-  }
-
-  // Active paid plan
-  if (user.plan !== 'free' && user.subscriptionExpiry && new Date(user.subscriptionExpiry) > now) {
-    return { hasAccess: true, reason: 'ACTIVE_SUBSCRIPTION' };
-  }
-
-  return { hasAccess: false, reason: 'EXPIRED_OR_FREE' };
+  // OBS access is included with every match, tournament or auction, because
+  // creating one costs a match credit. Time-based OBS subscriptions are retired.
+  return { hasAccess: true, reason: 'INCLUDED_WITH_MATCH_CREDIT' };
 };
 
 /**
