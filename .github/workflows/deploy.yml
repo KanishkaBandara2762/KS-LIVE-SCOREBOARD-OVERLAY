@@ -1,0 +1,136 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One production deploy at a time; a newer push supersedes an in-flight run.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cloudflare-pages:
+    name: Cloudflare Pages (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci --include=dev
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_API_URL: https://kslivescore-api.onrender.com
+          VITE_REALTIME_MODE: socket
+          VITE_AUCTION_POLL_MS: '3000'
+          VITE_LIVE_POLL_MS: '30000'
+        run: npm run build
+
+      # Cloudflare Pages does not read netlify.toml, and frontend/public/_redirects
+      # would shadow Netlify's /api/* function redirects, so the SPA fallback is
+      # written into the build output only.
+      - name: Add SPA fallback
+        working-directory: frontend
+        run: printf '/* /index.html 200\n' > dist/_redirects
+
+      - name: Deploy to Cloudflare Pages
+        working-directory: frontend
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@3 pages deploy dist --project-name kslivescore --branch main
+
+  render:
+    name: Render (API + static site)
+    needs: cloudflare-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger kslivescore-api deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST \
+            "https://api.render.com/v1/services/srv-dbnbjnh5efls73askk80/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"do_not_clear"}' > /dev/null
+
+      - name: Trigger kslivescore-web deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST \
+            "https://api.render.com/v1/services/srv-dbnbjpc9v7es73caepi0/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"do_not_clear"}' > /dev/null
+
+      # Surface Render build failures in the Actions log instead of silently
+      # finishing green.
+      - name: Wait for Render builds
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          sleep 20
+
+          services=(
+            "srv-dbnbjnh5efls73askk80 kslivescore-api"
+            "srv-dbnbjpc9v7es73caepi0 kslivescore-web"
+          )
+          pending=("${services[@]}")
+
+          for _ in $(seq 1 80); do
+            still=()
+            for entry in "${pending[@]}"; do
+              read -r id name <<< "$entry"
+              body=$(curl -fsS \
+                "https://api.render.com/v1/services/$id/deploys?limit=1" \
+                -H "Authorization: Bearer $RENDER_API_KEY")
+              commit=$(jq -r '.[0].deploy.commit.id // ""' <<< "$body")
+              status=$(jq -r '.[0].deploy.status // ""' <<< "$body")
+
+              if [ "$commit" != "$TARGET_SHA" ]; then
+                echo "$name: waiting for deploy of ${TARGET_SHA:0:7} (latest ${commit:0:7} $status)"
+                still+=("$entry")
+                continue
+              fi
+
+              case "$status" in
+                live)
+                  echo "$name: live (${TARGET_SHA:0:7})"
+                  ;;
+                build_failed|update_failed|canceled|deactivated)
+                  echo "$name: deploy failed with status $status"
+                  exit 1
+                  ;;
+                *)
+                  echo "$name: $status"
+                  still+=("$entry")
+                  ;;
+              esac
+            done
+
+            pending=("${still[@]}")
+            [ "${#pending[@]}" -eq 0 ] && echo "Render deploys finished" && exit 0
+            sleep 15
+          done
+
+          echo "Timed out waiting for Render deploys"
+          exit 1
