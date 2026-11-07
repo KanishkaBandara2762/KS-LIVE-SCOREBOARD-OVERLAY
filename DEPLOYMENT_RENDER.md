@@ -4,6 +4,17 @@ Netlify remains the primary deployment at <https://kslivescore.netlify.app>.
 This guide adds a second, independent deployment on Render. Nothing in this
 setup changes the Netlify site.
 
+**Current live Render deployment:**
+
+| Service | URL |
+| --- | --- |
+| Frontend | <https://kslivescore-web.onrender.com> |
+| API | <https://kslivescore-api.onrender.com> |
+| Health | <https://kslivescore-api.onrender.com/health> |
+
+Workspace: **Kanishka Bandara**. Both services use the free plan and
+auto-deploy from `main`.
+
 ```
 Browser
   │
@@ -20,6 +31,9 @@ Node process, so this deployment keeps native Socket.IO for the scoreboard and
 auction, while both deployments share the same Atlas database.
 
 ## One-time setup
+
+The services below are already live. Follow these steps only to recreate the
+deployment in another workspace.
 
 1. Add a payment method to the Render workspace
    (**Account Settings → Billing → Payment Method**). Render requires one on
