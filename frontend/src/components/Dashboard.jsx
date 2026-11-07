@@ -1017,9 +1017,11 @@ const Dashboard = () => {
               Super Admin
             </button>
           )}
-          <button className="btn-create-match" onClick={() => navigate('/pricing')} style={{ marginRight: '10px', background: '#eab308', color: '#000' }}>
-            {currentUser?.plan === 'free' ? 'Upgrade Plan' : 'Renew / Change Plan'}
-          </button>
+          {!isAdminRole(currentUser?.role) && (
+            <button className="btn-create-match" onClick={() => navigate('/pricing')} style={{ marginRight: '10px', background: '#eab308', color: '#000' }}>
+              {currentUser?.plan === 'free' ? 'Upgrade Plan' : 'Renew / Change Plan'}
+            </button>
+          )}
           <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }}>
             🏆 Create Tournament
           </button>

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import './MiniAdmin.css';
+import './MiniAdminModern.css';
 import ComboboxPlayerInput from './ComboboxPlayerInput';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -1046,75 +1047,60 @@ const MiniAdmin = () => {
                             </div>
                         )}
 
-                        {/* Run buttons */}
-                        <div className="ma-run-section">
-                            <div className="ma-section-label">RUNS</div>
-                            <div className="ma-run-grid">
-                                <button className="ma-big-btn ma-btn-dot" onClick={() => debounce(() => addRun(0))}>•</button>
-                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(1))}>1</button>
-                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(2))}>2</button>
-                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(3))}>3</button>
-                                <button className="ma-big-btn ma-btn-four" onClick={() => debounce(() => addBoundary(4))}>4</button>
-                                <button className="ma-big-btn ma-btn-six" onClick={() => debounce(() => addBoundary(6))}>6</button>
+                        {/* Scoring pad: runs + undo on the left, wicket and extras parallel on the right */}
+                        <div className="ma-section-label">SCORING</div>
+                        <div className="ma-pad">
+                            <div className="ma-pad-keys">
+                                <button className="ma-big-btn ma-btn-dot" onClick={() => debounce(() => addRun(0))}>•<small className="ma-key-sub">dot ball</small></button>
+                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(1))}>1<small className="ma-key-sub">single</small></button>
+                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(2))}>2<small className="ma-key-sub">two runs</small></button>
+                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(3))}>3<small className="ma-key-sub">three runs</small></button>
+                                <button className="ma-big-btn ma-btn-four" onClick={() => debounce(() => addBoundary(4))}>4<small className="ma-key-sub">boundary</small></button>
+                                <button className="ma-big-btn ma-btn-six" onClick={() => debounce(() => addBoundary(6))}>6<small className="ma-key-sub">maximum</small></button>
+                                <button className="ma-big-btn ma-btn-undo ma-pad-undo" onClick={handleUndo}>↶ UNDO (U)<small className="ma-key-sub">remove last ball</small></button>
                             </div>
-                        </div>
-
-                        {/* Wicket */}
-                        <button className="ma-wicket-btn" onClick={() => debounce(() => setShowWicketPanel(true))}>⚡ WICKET (W)</button>
-
-                        {/* Extras */}
-                        <div className="ma-run-section">
-                            <div className="ma-section-label">EXTRAS</div>
-                            <div className="ma-extras-grid">
+                            <div className="ma-pad-side">
+                                <button className="ma-wicket-btn" onClick={() => debounce(() => setShowWicketPanel(true))}>⚡ WICKET (W)<small className="ma-key-sub">batter out</small></button>
                                 {match.extrasConfig?.wd !== false && (
-                                    <button className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', 0))}>WD</button>
+                                    <button className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', 0))}>WD<small className="ma-key-sub">wide</small></button>
                                 )}
                                 {match.extrasConfig?.nb !== false && (
-                                    <button className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', 0))}>NB</button>
+                                    <button className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', 0))}>NB<small className="ma-key-sub">no ball</small></button>
                                 )}
                                 {match.extrasConfig?.lb !== false && (
-                                    <button className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(1))}>LB</button>
+                                    <button className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(1))}>LB<small className="ma-key-sub">leg bye</small></button>
                                 )}
                                 {match.extrasConfig?.b !== false && (
-                                    <button className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(1))}>BYE</button>
+                                    <button className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(1))}>BYE<small className="ma-key-sub">bye</small></button>
                                 )}
                             </div>
                         </div>
 
-                        {/* Extended Extras (all variants) */}
-                        <div className="ma-run-section" style={{ marginTop: '16px' }}>
-                            <div className="ma-section-label">EXTENDED EXTRAS</div>
+                        {/* More extras: only the variants not already on the pad */}
+                        <div className="ma-more-extras">
                             {match.extrasConfig?.wd !== false && (
-                                <>
-                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>WIDE + RUNS</div>
-                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
-                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', r))}>WD{r > 0 ? `+${r}` : ''}</button>)}
-                                    </div>
-                                </>
+                                <div className="ma-more-row">
+                                    <span className="ma-more-label">WD +</span>
+                                    {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', r))}>+{r}</button>)}
+                                </div>
                             )}
                             {match.extrasConfig?.nb !== false && (
-                                <>
-                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>NO BALL + RUNS</div>
-                                    <div className="ma-extras-grid" style={{ gridTemplateColumns:'repeat(5,1fr)' }}>
-                                        {[0,1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', r))}>NB{r > 0 ? `+${r}` : ''}</button>)}
-                                    </div>
-                                </>
+                                <div className="ma-more-row">
+                                    <span className="ma-more-label">NB +</span>
+                                    {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', r))}>+{r}</button>)}
+                                </div>
                             )}
                             {match.extrasConfig?.lb !== false && (
-                                <>
-                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>LEG BYES</div>
-                                    <div className="ma-extras-grid">
-                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(r))}>LB {r}</button>)}
-                                    </div>
-                                </>
+                                <div className="ma-more-row">
+                                    <span className="ma-more-label">LB</span>
+                                    {[2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-lb" onClick={() => debounce(() => addLegBye(r))}>{r}</button>)}
+                                </div>
                             )}
                             {match.extrasConfig?.b !== false && (
-                                <>
-                                    <div className="ma-section-label" style={{ opacity: 0.6, marginTop: '8px', fontSize: '9px' }}>BYES</div>
-                                    <div className="ma-extras-grid">
-                                        {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(r))}>B {r}</button>)}
-                                    </div>
-                                </>
+                                <div className="ma-more-row">
+                                    <span className="ma-more-label">BYE</span>
+                                    {[2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-bye" onClick={() => debounce(() => addBye(r))}>{r}</button>)}
+                                </div>
                             )}
                         </div>
 
@@ -1122,7 +1108,6 @@ const MiniAdmin = () => {
                         {/* Control row */}
                         <div className="ma-control-row">
                             <button className="ma-ctrl-btn ma-btn-swap" onClick={swapStrike}>↔ SWAP (S)</button>
-                            <button className="ma-ctrl-btn ma-btn-undo" onClick={handleUndo}>↶ UNDO (U)</button>
                             <button className="ma-ctrl-btn ma-btn-ro" onClick={() => setShowRunOutPanel(v => !v)}>🏃 RUN OUT</button>
                         </div>
 
@@ -1687,22 +1672,6 @@ const MiniAdmin = () => {
                 )}
 
             </div>{/* end ma-content */}
-
-            {/* ══ QUICK SCORE BAR (above tab bar) ════════════════════ */}
-            <div className="ma-quick-bar">
-                <button className="ma-qb ma-qb-dot" onClick={() => debounce(() => addRun(0))}>•</button>
-                <button className="ma-qb ma-qb-run" onClick={() => debounce(() => addRun(1))}>1</button>
-                <button className="ma-qb ma-qb-run" onClick={() => debounce(() => addRun(2))}>2</button>
-                <button className="ma-qb ma-qb-run" onClick={() => debounce(() => addRun(3))}>3</button>
-                <button className="ma-qb ma-qb-four" onClick={() => debounce(() => addBoundary(4))}>4</button>
-                <button className="ma-qb ma-qb-six" onClick={() => debounce(() => addBoundary(6))}>6</button>
-                <button className="ma-qb ma-qb-nb" onClick={() => debounce(() => addExtra('NB', 0))}>NB</button>
-                <button className="ma-qb ma-qb-wkt" onClick={() => debounce(() => handleWicket())}>W</button>
-                <button
-                    className={`ma-qb ${isOverReady && !overCooldown ? 'ma-qb-over' : 'ma-qb-undo'}`}
-                    onClick={() => isOverReady && !overCooldown ? debounce(handleOverCompleted) : handleUndo()}
-                >{isOverReady && !overCooldown ? '⚡' : '↶'}</button>
-            </div>
 
             {/* ══ TAB BAR ════════════════════════════════════════════ */}
             <div className="ma-tab-bar">
