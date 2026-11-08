@@ -307,7 +307,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
         )}
 
         {/* Two-Column Layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        <div className="resp-split" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
           
           {/* Left Column: Teams List */}
           <div style={{ display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', overflowY: 'auto' }}>
@@ -616,7 +616,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                 )}
 
                 {/* Single Player Add Bar */}
-                <form onSubmit={handleAddPlayer} style={{ display: 'grid', gridTemplateColumns: '1fr 140px 70px auto', gap: '8px', marginBottom: '16px', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <form onSubmit={handleAddPlayer} className="resp-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 140px 70px auto', gap: '8px', marginBottom: '16px', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <input
                     type="text"
                     placeholder="Player Name (e.g. V. Kohli)"

@@ -190,7 +190,7 @@ function CreateMatchModal({ onClose, onCreate }) {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
               <input type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
@@ -597,7 +597,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
           </div>
 
           {/* Overs & Balls */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
               <input type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
