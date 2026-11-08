@@ -91,6 +91,12 @@ const stateSnapshotSchema = new mongoose.Schema(
     lastWicketBalls: { type: Number },
     fallOfWickets: { type: [Object] },
     battingScorecard: { type: [Object] },
+    // v3.0 additive snapshot fields
+    freeHitActive: { type: Boolean },
+    bowlerCurrentOverRuns: { type: Number },
+    penaltyRunsBatting: { type: Number },
+    penaltyRunsFielding: { type: Number },
+    deliveryHistoryLength: { type: Number }, // just the count, not full array
     timestamp: { type: Number },
   },
   { _id: false }
@@ -172,11 +178,13 @@ const partnershipSchema = new mongoose.Schema(
 // ── Sub-schema: Extras Totals ─────────────────────────────────────────────────
 const extrasTotalsSchema = new mongoose.Schema(
   {
-    wides: { type: Number, default: 0 },
-    noballs: { type: Number, default: 0 },
-    byes: { type: Number, default: 0 },
-    legbyes: { type: Number, default: 0 },
-    total: { type: Number, default: 0 },
+    wides:    { type: Number, default: 0 },
+    noballs:  { type: Number, default: 0 },
+    byes:     { type: Number, default: 0 },
+    legbyes:  { type: Number, default: 0 },
+    total:    { type: Number, default: 0 },
+    // v3.0 additive: penalty runs (not charged to bowler/batter)
+    penalties:{ type: Number, default: 0 },
   },
   { _id: false }
 );
@@ -234,7 +242,7 @@ const matchSchema = new mongoose.Schema(
     team2Logo: { type: String, default: '' },
 
     // ── Match Info ─────────────────────────────────────────────────────────
-    matchType: { type: String, enum: ['T20', 'ODI', 'T10', 'Custom', 'Test'], default: 'T20' },
+    matchType: { type: String, enum: ['T20', 'ODI', 'T10', 'Custom', 'Test', 'T20I', 'DOMESTIC_OD', 'DOMESTIC_T20', 'MULTI_DAY'], default: 'T20' },
     matchTitle: { type: String, default: '' },
     tournamentName: { type: String, default: '' },
     venueName: { type: String, default: '' },
@@ -333,6 +341,98 @@ const matchSchema = new mongoose.Schema(
     // ── Public Preview ─────────────────────────────────────────────────────
     publicScorePreview: { type: Boolean, default: true },
     slug: { type: String, unique: true, sparse: true, trim: true },
+
+    // ── v3.0 CRICKET ENGINE — ADDITIVE FIELDS ──────────────────────────────
+    // All fields below are optional / nullable — existing match docs work fine.
+
+    // Match format & rules (additive; falls back to matchType for old docs)
+    matchFormat: {
+      type: String,
+      enum: ['TEST', 'ODI', 'T20I', 'DOMESTIC_OD', 'DOMESTIC_T20', 'T10', 'CUSTOM', 'MULTI_DAY'],
+      default: null,
+    },
+    // Operator rule overrides (null = use format default)
+    bowlerMaxOversOverride: { type: Number, default: null },
+    freeHitEnabledOverride: { type: Boolean, default: null },
+    maxOversOverride: { type: Number, default: null },
+
+    // Free hit state
+    freeHitActive: { type: Boolean, default: false },
+
+    // Penalty runs log
+    penaltyRunsLog: {
+      type: [{
+        runs:       { type: Number, required: true },
+        awardedTo:  { type: String, enum: ['batting', 'fielding'], required: true },
+        reason:     { type: String, default: 'Other' },
+        innings:    { type: Number, default: 1 },
+        overDisplay:{ type: String, default: '0.0' },
+        timestamp:  { type: Number },
+      }],
+      default: [],
+      _id: false,
+    },
+
+    // Extended extras totals (penalty runs tracked separately)
+    penaltyRunsBatting:  { type: Number, default: 0 },  // awarded TO batting team
+    penaltyRunsFielding: { type: Number, default: 0 },  // awarded TO fielding team
+
+    // Current over: runs charged to bowler (for maiden calculation)
+    bowlerCurrentOverRuns: { type: Number, default: 0 },
+
+    // Powerplay tracking
+    currentPowerplay: { type: Number, default: null },   // 1|2|3|null
+
+    // Ball-by-ball delivery history (capped at 400 per innings)
+    deliveryHistory: {
+      type: [{
+        eventId:         { type: String },
+        innings:         { type: Number, default: 1 },
+        overNumber:      { type: Number, default: 0 },
+        ballInOver:      { type: Number, default: 0 },  // legal ball sequence within over
+        legalBallSeq:    { type: Number, default: 0 },  // cumulative legal ball count
+        striker:         { type: String, default: '' },
+        nonStriker:      { type: String, default: '' },
+        bowler:          { type: String, default: '' },
+        deliveryType:    { type: String, default: 'dot' },
+        deliveryLegality:{ type: String, default: 'legal' }, // 'legal'|'wide'|'noball'
+        batterRuns:      { type: Number, default: 0 },
+        extraRuns:       { type: Number, default: 0 },
+        totalRuns:       { type: Number, default: 0 },
+        isWicket:        { type: Boolean, default: false },
+        dismissalType:   { type: String, default: null },
+        fielderName:     { type: String, default: '' },
+        isFreeHit:       { type: Boolean, default: false },
+        isBoundary:      { type: Boolean, default: false },
+        commentary:      { type: String, default: '' },
+        ballLabel:       { type: String, default: '' },
+        timestamp:       { type: Number },
+      }],
+      default: [],
+      _id: false,
+    },
+
+    // Super Over state (kept separate from main innings stats)
+    superOverData: {
+      type: {
+        battingTeam:    { type: String, default: '' },
+        bowlingTeam:    { type: String, default: '' },
+        score:          { type: Number, default: 0 },
+        wickets:        { type: Number, default: 0 },
+        legalBallCount: { type: Number, default: 0 },
+        maxWickets:     { type: Number, default: 2 },
+        player1:        { type: Object, default: null },
+        player2:        { type: Object, default: null },
+        bowler:         { type: Object, default: null },
+        extras:         { type: Object, default: null },
+        recentBalls:    { type: [String], default: [] },
+        freeHitActive:  { type: Boolean, default: false },
+        completed:      { type: Boolean, default: false },
+        result:         { type: String, default: null },
+      },
+      default: null,
+      _id: false,
+    },
   },
   {
     timestamps: true,

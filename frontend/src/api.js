@@ -108,6 +108,17 @@ export const matchesApi = {
   changeBowler: (matchId, body) => apiRequest(`/api/change-bowler/${matchId}`, { method: 'PUT', body: JSON.stringify(body) }),
   startSecondInnings: (matchId) => apiRequest(`/api/second-innings/${matchId}`, { method: 'POST' }),
   uploadLogo: (matchId, formData) => apiUpload(`/api/upload-logo/${matchId}`, formData),
+  // v3.0 new endpoints
+  awardPenaltyRuns: (matchId, body) => apiRequest(`/api/penalty-runs/${matchId}`, { method: 'POST', body: JSON.stringify(body) }),
+  recordOverthrow: (matchId, body) => apiRequest(`/api/overthrow/${matchId}`, { method: 'POST', body: JSON.stringify(body) }),
+  getDeliveryHistory: (matchId, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return apiRequest(`/api/delivery-history/${matchId}${qs ? `?${qs}` : ''}`);
+  },
+  updateMatchFormat: (matchId, body) => apiRequest(`/api/match-format/${matchId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  startSuperOver: (matchId, body) => apiRequest(`/api/super-over/${matchId}`, { method: 'POST', body: JSON.stringify(body) }),
+  declareInnings: (matchId) => apiRequest(`/api/declare-innings/${matchId}`, { method: 'POST' }),
+  getMatchRules: (matchId) => apiRequest(`/api/match-rules/${matchId}`),
 };
 
 // ── Tournaments API ───────────────────────────────────────────────────────────

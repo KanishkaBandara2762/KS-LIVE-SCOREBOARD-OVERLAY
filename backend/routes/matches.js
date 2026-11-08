@@ -1,5 +1,5 @@
 /**
- * KS Live — Match Routes v2.0
+ * KS Live — Match Routes v3.0
  */
 
 const express = require('express');
@@ -23,6 +23,14 @@ const {
   uploadLogo,
   logoUploadMiddleware,
   unlockBroadcastLink,
+  // v3.0 new endpoints
+  awardPenaltyRuns,
+  recordOverthrow,
+  getDeliveryHistory,
+  updateMatchFormat,
+  startSuperOver,
+  declareInnings,
+  getMatchRules,
 } = require('../controllers/matchController');
 const authMiddleware = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
@@ -138,5 +146,68 @@ router.post('/upload-logo/:id', (req, res, next) => {
     next();
   });
 }, uploadLogo);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// v3.0 NEW ROUTES — Additive only, no existing routes changed above.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── POST /penalty-runs/:id — Award 5-run penalty or custom ───────────────────
+router.post(
+  '/penalty-runs/:id',
+  [
+    body('runs').optional().isInt({ min: 1, max: 50 }),
+    body('awardedTo').isIn(['batting', 'fielding']),
+    body('reason').optional().isString().trim(),
+    validate,
+  ],
+  awardPenaltyRuns
+);
+
+// ── POST /overthrow/:id — Record overthrow scenario ──────────────────────────
+router.post(
+  '/overthrow/:id',
+  [
+    body('runsBeforeOvertake').optional().isInt({ min: 0 }),
+    body('runsAfterOvertake').optional().isInt({ min: 0 }),
+    body('isBoundary').optional().isBoolean(),
+    body('fromBat').optional().isBoolean(),
+    body('deliveryType').optional().isIn(['legal', 'wide', 'noball']),
+    validate,
+  ],
+  recordOverthrow
+);
+
+// ── GET /delivery-history/:id — Ball-by-ball log ─────────────────────────────
+router.get('/delivery-history/:id', getDeliveryHistory);
+
+// ── PUT /match-format/:id — Update match format / rules ──────────────────────
+router.put(
+  '/match-format/:id',
+  [
+    body('matchFormat').optional().isString(),
+    body('bowlerMaxOversOverride').optional().isInt({ min: 1 }),
+    body('freeHitEnabledOverride').optional().isBoolean(),
+    body('maxOversOverride').optional().isInt({ min: 1, max: 200 }),
+    validate,
+  ],
+  updateMatchFormat
+);
+
+// ── POST /super-over/:id — Start super over mode ─────────────────────────────
+router.post(
+  '/super-over/:id',
+  [
+    body('battingTeam').optional().isString().trim(),
+    body('bowlingTeam').optional().isString().trim(),
+    validate,
+  ],
+  startSuperOver
+);
+
+// ── POST /declare-innings/:id — Declare innings (Test/multi-day) ──────────────
+router.post('/declare-innings/:id', declareInnings);
+
+// ── GET /match-rules/:id — Get current match rules configuration ──────────────
+router.get('/match-rules/:id', getMatchRules);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 /**
- * KS Live — Score Calculation Service v2.0
+ * KS Live — Score Calculation Service v3.0
  *
  * Central engine for:
  *  - Valid ball counting (ignoring wides/no-balls)
@@ -10,6 +10,9 @@
  *  - Manual score correction
  *  - Bowler stats tracking (O/M/R/W/Economy)
  *  - Match state snapshots for undo system
+ *  - Free hit state management (v3.0)
+ *  - Delivery history entry building (v3.0)
+ *  - Overthrow calculation delegated to cricketRules.js (v3.0)
  */
 
 const LEGAL_DELIVERIES = ['dot', '1', '2', '3', '4', '5', '6', 'wicket', 'runout', 'lb', 'byes', 'deadball'];
@@ -46,7 +49,11 @@ const calculateEconomy = (runs, legalBalls, ballsPerOver = 6) => {
 /**
  * Determine if a delivery is a legal (valid) ball
  */
-const isLegalDelivery = (deliveryType) => LEGAL_DELIVERIES.includes(deliveryType);
+const isLegalDelivery = (deliveryType) => {
+  if (LEGAL_DELIVERIES.includes(deliveryType)) return true;
+  const parsed = parseInt(deliveryType, 10);
+  return !isNaN(parsed) && parsed >= 0;
+};
 
 /**
  * Get runs scored from a delivery type
@@ -68,7 +75,18 @@ const getRunsFromDelivery = (deliveryType, extraRuns = 0) => {
     noball: 1 + (extraRuns || 0),
     deadball: 0,
   };
-  return runMap[deliveryType] ?? 0;
+  if (runMap[deliveryType] !== undefined) {
+    if (['dot', '1', '2', '3', '4', '5', '6'].includes(deliveryType) && extraRuns > 0) {
+      return runMap[deliveryType] + extraRuns;
+    }
+    return runMap[deliveryType];
+  }
+  // Custom completed runs (e.g. '7', '8')
+  const parsed = parseInt(deliveryType, 10);
+  if (!isNaN(parsed) && parsed >= 0) {
+    return parsed + (extraRuns || 0);
+  }
+  return 0;
 };
 
 /**
@@ -152,6 +170,7 @@ const createStateSnapshot = (match) => {
       byes: match.extras.byes,
       legbyes: match.extras.legbyes,
       total: match.extras.total,
+      penalties: match.extras.penalties || 0,
     } : null,
     partnership: match.partnership ? {
       runs: match.partnership.runs,
@@ -162,6 +181,12 @@ const createStateSnapshot = (match) => {
     lastWicketBalls: match.lastWicketBalls,
     fallOfWickets: match.fallOfWickets ? [...match.fallOfWickets.map(f => ({ ...f }))] : [],
     battingScorecard: match.battingScorecard ? [...match.battingScorecard.map(b => ({ ...b }))] : [],
+    // v3.0 additive
+    freeHitActive: match.freeHitActive || false,
+    bowlerCurrentOverRuns: match.bowlerCurrentOverRuns || 0,
+    penaltyRunsBatting: match.penaltyRunsBatting || 0,
+    penaltyRunsFielding: match.penaltyRunsFielding || 0,
+    deliveryHistoryLength: (match.deliveryHistory || []).length,
     timestamp: Date.now(),
   };
 };
@@ -295,3 +320,49 @@ module.exports = {
   applyManualCorrection,
   isInningsComplete,
 };
+
+// ── v3.0 Additions ────────────────────────────────────────────────────────────
+
+/**
+ * Build a delivery history entry for ball-by-ball log.
+ * Called from matchController after processBallDelivery.
+ */
+const buildDeliveryHistoryEntry = ({
+  match, deliveryType, deliveryLegality, batterRuns, extraRuns, totalRuns,
+  isWicket, dismissalType, fielderName, isFreeHit, isBoundary, ballLabel,
+  overNumber, ballInOver, legalBallSeq, innings,
+}) => ({
+  eventId: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+  innings: innings || (match.isSecondInnings ? 2 : 1),
+  overNumber: overNumber !== undefined ? overNumber : Math.floor((match.legalBallCount || 0) / (match.ballsPerOver || 6)),
+  ballInOver: ballInOver !== undefined ? ballInOver : ((match.legalBallCount || 0) % (match.ballsPerOver || 6)),
+  legalBallSeq: legalBallSeq !== undefined ? legalBallSeq : (match.legalBallCount || 0),
+  striker: (match.player1?.onStrike ? match.player1?.name : match.player2?.name) || '',
+  nonStriker: (match.player1?.onStrike ? match.player2?.name : match.player1?.name) || '',
+  bowler: match.bowler?.name || '',
+  deliveryType,
+  deliveryLegality: deliveryLegality || (
+    deliveryType === 'wide' ? 'wide' :
+    deliveryType === 'noball' ? 'noball' : 'legal'
+  ),
+  batterRuns: batterRuns || 0,
+  extraRuns: extraRuns || 0,
+  totalRuns: totalRuns || 0,
+  isWicket: !!isWicket,
+  dismissalType: dismissalType || null,
+  fielderName: fielderName || '',
+  isFreeHit: !!isFreeHit,
+  isBoundary: !!isBoundary,
+  commentary: '',
+  ballLabel: ballLabel || '',
+  timestamp: Date.now(),
+});
+
+/**
+ * Calculate whether the current over was a maiden.
+ * bowlerCurrentOverRuns = runs charged to bowler THIS over (excludes byes/legbyes).
+ */
+const checkMaiden = (bowlerCurrentOverRuns) => bowlerCurrentOverRuns === 0;
+
+module.exports.buildDeliveryHistoryEntry = buildDeliveryHistoryEntry;
+module.exports.checkMaiden = checkMaiden;

@@ -14,6 +14,12 @@ import TossModal from './TossModal';
 import LogoUpload from './LogoUpload';
 import NewBatterModal from './NewBatterModal';
 import NewBowlerModal from './NewBowlerModal';
+import FreehitIndicator from './FreehitIndicator';
+import OverthrowPanel from './OverthrowPanel';
+import PenaltyRunsPanel from './PenaltyRunsPanel';
+import BallByBallHistory from './BallByBallHistory';
+import SuperOverPanel from './SuperOverPanel';
+import MatchFormatRulesModal from './MatchFormatRulesModal';
 
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
@@ -97,6 +103,14 @@ const MiniAdmin = () => {
     const [wicketRunsCompleted, setWicketRunsCompleted] = useState(0);
     const [wicketDeliveryLegality, setWicketDeliveryLegality] = useState('legal');
     const [wicketStumpedWide, setWicketStumpedWide] = useState(false);
+    const [showFormatModal, setShowFormatModal] = useState(false);
+    const [openAdvPanels, setOpenAdvPanels] = useState({
+        overthrow: false,
+        penalty: false,
+        history: false,
+        superOver: false,
+    });
+    const toggleAdv = (key) => setOpenAdvPanels(p => ({ ...p, [key]: !p[key] }));
 
     // Always use the real hostname/IP — OBS blocks WebSockets to 'localhost'
     // so we replace it with the actual network IP the browser is currently using.
@@ -965,6 +979,13 @@ const MiniAdmin = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button 
+                        onClick={() => setShowFormatModal(true)}
+                        style={{ background: '#eab308', color: '#000', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                        title="Configure Match Format & Rules"
+                    >
+                        ⚙ RULES
+                    </button>
+                    <button 
                         onClick={() => window.open(`/control-room/${matchId}`, '_blank')}
                         style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
@@ -997,6 +1018,13 @@ const MiniAdmin = () => {
                 {match.isSecondInnings && <span>RRR: <b>{rrr}</b></span>}
                 <span>OVER: <b>{match.overRuns || 0}</b></span>
             </div>
+
+            {/* Free Hit Banner (v3.0) */}
+            {match?.freeHitActive && (
+                <div style={{ margin: '6px 12px 0 12px' }}>
+                    <FreehitIndicator active={match.freeHitActive} />
+                </div>
+            )}
 
             {/* ══ MAIN CONTENT (tab-based) ══════════════════════════════ */}
             <div className="ma-content">
@@ -1070,7 +1098,7 @@ const MiniAdmin = () => {
                             </div>
                         )}
 
-                        {/* Scoring pad: runs + undo on the left, wicket and extras parallel on the right */}
+{/* Scoring pad: runs + undo on the left, wicket and extras parallel on the right */}
                         <div className="ma-section-label">SCORING</div>
                         <div className="ma-pad">
                             <div className="ma-pad-keys">
@@ -1079,6 +1107,7 @@ const MiniAdmin = () => {
                                 <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(2))}>2<small className="ma-key-sub">two runs</small></button>
                                 <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(3))}>3<small className="ma-key-sub">three runs</small></button>
                                 <button className="ma-big-btn ma-btn-four" onClick={() => debounce(() => addBoundary(4))}>4<small className="ma-key-sub">boundary</small></button>
+                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(5))}>5<small className="ma-key-sub">five runs</small></button>
                                 <button className="ma-big-btn ma-btn-six" onClick={() => debounce(() => addBoundary(6))}>6<small className="ma-key-sub">maximum</small></button>
                                 <button className="ma-big-btn ma-btn-undo ma-pad-undo" onClick={handleUndo}>↶ UNDO (U)<small className="ma-key-sub">remove last ball</small></button>
                             </div>
@@ -1102,15 +1131,15 @@ const MiniAdmin = () => {
                         {/* More extras: only the variants not already on the pad */}
                         <div className="ma-more-extras">
                             {match.extrasConfig?.wd !== false && (
-                                <div className="ma-more-row">
+<div className="ma-more-row">
                                     <span className="ma-more-label">WD +</span>
-                                    {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', r))}>+{r}</button>)}
+                                    {[1,2,3,4,5].map(r => <button key={r} className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', r))}>+{r}</button>)}
                                 </div>
                             )}
                             {match.extrasConfig?.nb !== false && (
                                 <div className="ma-more-row">
                                     <span className="ma-more-label">NB +</span>
-                                    {[1,2,3,4].map(r => <button key={r} className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', r))}>+{r}</button>)}
+                                    {[1,2,3,4,5,6].map(r => <button key={r} className="ma-extra-btn ma-btn-nb" onClick={() => debounce(() => addExtra('NB', r))}>+{r}</button>)}
                                 </div>
                             )}
                             {match.extrasConfig?.lb !== false && (
@@ -1216,6 +1245,63 @@ const MiniAdmin = () => {
                                 >✅ SET TARGET</button>
                             </div>
                         )}
+
+                        {/* ─── v3.0 ADVANCED CRICKET CONTROLS ───────────────── */}
+                        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div className="ma-section-label" style={{ opacity: 0.8, color: '#facc15' }}>
+                                ADVANCED SCORING & RULES
+                            </div>
+
+                            {/* Overthrow Accordion */}
+                            <Section
+                                label="Overthrow (Law 19.8)"
+                                color="blue"
+                                icon="🎯"
+                                open={openAdvPanels.overthrow}
+                                onClick={() => toggleAdv('overthrow')}
+                            >
+                                <OverthrowPanel matchId={matchId} onConfirm={() => {}} />
+                            </Section>
+
+                            {/* Penalty Runs Accordion */}
+                            <Section
+                                label="Penalty Runs (5 Runs)"
+                                color="orange"
+                                icon="🏏"
+                                open={openAdvPanels.penalty}
+                                onClick={() => toggleAdv('penalty')}
+                            >
+                                <PenaltyRunsPanel matchId={matchId} onConfirm={() => {}} />
+                            </Section>
+
+                            {/* Ball by Ball Timeline Accordion */}
+                            <Section
+                                label="Ball-by-Ball Timeline"
+                                color="purple"
+                                icon="📋"
+                                open={openAdvPanels.history}
+                                onClick={() => toggleAdv('history')}
+                            >
+                                <BallByBallHistory matchId={matchId} />
+                            </Section>
+
+                            {/* Super Over Accordion */}
+                            <Section
+                                label="Super Over Tie-breaker"
+                                color="pink"
+                                icon="⚡"
+                                open={openAdvPanels.superOver}
+                                onClick={() => toggleAdv('superOver')}
+                            >
+                                <SuperOverPanel
+                                    matchId={matchId}
+                                    team1={match.battingTeam}
+                                    team2={match.bowlingTeam}
+                                    isSuperOverActive={match.isSuperOver}
+                                    onStarted={() => {}}
+                                />
+                            </Section>
+                        </div>
 
                     </div>
                 )}
@@ -2025,6 +2111,19 @@ const MiniAdmin = () => {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* ══ MATCH FORMAT & RULES MODAL (v3.0) ═════════════════ */}
+            {showFormatModal && (
+                <MatchFormatRulesModal
+                    matchId={matchId}
+                    currentFormat={match.matchFormat || match.matchType}
+                    isOpen={showFormatModal}
+                    onClose={() => setShowFormatModal(false)}
+                    onUpdated={(res) => {
+                        if (res.match) setMatch(prev => ({ ...prev, ...res.match }));
+                    }}
+                />
             )}
 
         </div>

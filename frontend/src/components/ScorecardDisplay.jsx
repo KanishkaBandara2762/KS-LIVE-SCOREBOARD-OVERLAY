@@ -1148,6 +1148,13 @@ const ScorecardDisplay = () => {
       {/* 6. MAIN BOTTOM SCOREBOARD */}
       {renderScorecard && (
         <div className={`absolute bottom-0 left-0 w-full flex flex-col pointer-events-none ${animThemeClass}`}>
+          {/* FREE HIT LIVE BADGE (v3.0) */}
+          {match.freeHitActive && (
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 px-5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-600 to-red-600 border-2 border-yellow-300 text-white font-black text-xs tracking-[0.25em] shadow-[0_0_25px_rgba(249,115,22,0.8)] animate-pulse">
+              <span>⚡</span> FREE HIT <span>⚡</span>
+            </div>
+          )}
+
           {/* TOURNAMENT INFO STRIP — slides in above the ticker */}
           {showInfoStrip && (
             <div className="tourney-info-strip">
