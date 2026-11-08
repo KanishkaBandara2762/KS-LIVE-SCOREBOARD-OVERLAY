@@ -139,6 +139,31 @@ const overlaySettingsSchema = new mongoose.Schema(
     autoShowBanner: { type: Boolean, default: true },
     battingLogo: { type: String, default: '' },
     leagueLogo: { type: String, default: '' },
+    // ── Broadcast Graphics Panel fields (v3.1) ──────────────────────────────
+    showPlayerOfMatch: { type: Boolean, default: false },
+    showPartnership: { type: Boolean, default: false },
+    showSquadList: { type: Boolean, default: false },
+    squadListTeam: { type: String, default: '' },        // 'team1' | 'team2'
+    showMatchWon: { type: Boolean, default: false },
+    showNeedRun: { type: Boolean, default: false },
+    showNeedRunStrip: { type: Boolean, default: false },
+    showLastOut: { type: Boolean, default: false },
+    showCustomText: { type: Boolean, default: false },
+    customText: { type: String, default: '' },
+    show4or6Animation: { type: Boolean, default: true },
+    scoreboardOnly: { type: Boolean, default: false },
+    // Tournament cards
+    showTournamentMostRuns: { type: Boolean, default: false },
+    showTournamentMostWickets: { type: Boolean, default: false },
+    showTournamentBoundaries: { type: Boolean, default: false },
+    showPointsTable: { type: Boolean, default: false },
+    showUpcoming: { type: Boolean, default: false },
+    showResults: { type: Boolean, default: false },
+    // Player of the Match info
+    potmName: { type: String, default: '' },
+    potmTeam: { type: String, default: '' },
+    potmFigures: { type: String, default: '' },
+    potmPhoto: { type: String, default: '' },
   },
   { _id: false }
 );

@@ -2498,3 +2498,384 @@
 
 .toss-screen.hide { animation: tossHide 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes tossHide { from { opacity: 1; transform: translateY(0); filter: blur(0); } to { opacity: 0; transform: translateY(-40px); filter: blur(10px); } }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   BROADCAST GRAPHICS PANEL — Overlay Cards (v3.1)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── PLAYER OF THE MATCH ───────────────────────────────────────── */
+.potm-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 108;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    overflow: hidden;
+    animation: potmReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes potmReveal {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.potm-bg-radial {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 20%, #2d1a05 0%, #0a0505 100%);
+    z-index: 0;
+}
+.potm-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255,180,0,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,180,0,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 1;
+}
+.potm-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,200,0,0.06) 60%, transparent 70%);
+    animation: potmShimmer 3s ease-in-out infinite;
+    z-index: 2;
+}
+@keyframes potmShimmer {
+    0%, 100% { transform: translateX(-100%); }
+    50%       { transform: translateX(100%); }
+}
+.potm-label-top {
+    position: relative;
+    z-index: 10;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.5em;
+    color: rgba(255,215,0,0.7);
+    text-transform: uppercase;
+}
+.potm-crown {
+    position: relative;
+    z-index: 10;
+    font-size: 48px;
+    filter: drop-shadow(0 0 20px rgba(255,200,0,0.6));
+    animation: potmBounce 2s ease-in-out infinite;
+}
+@keyframes potmBounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
+}
+.potm-card {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    background: linear-gradient(135deg, rgba(30,20,0,0.9) 0%, rgba(10,8,0,0.95) 100%);
+    border: 2px solid rgba(255,215,0,0.4);
+    border-radius: 24px;
+    padding: 36px 48px;
+    box-shadow: 0 0 60px rgba(255,200,0,0.15), inset 0 0 40px rgba(255,200,0,0.05);
+    animation: potmCardSlide 0.6s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes potmCardSlide {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.potm-photo-wrap { position: relative; }
+.potm-photo {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,215,0,0.5);
+    box-shadow: 0 0 40px rgba(255,200,0,0.3);
+}
+.potm-photo-fallback {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c5c00, #3a2800);
+    border: 3px solid rgba(255,215,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(255,215,0,0.9);
+}
+.potm-photo-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,215,0,0.25);
+    animation: potmRingSpin 8s linear infinite;
+}
+@keyframes potmRingSpin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.potm-info { display: flex; flex-direction: column; gap: 8px; }
+.potm-name {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.potm-team {
+    font-size: 16px;
+    font-weight: 700;
+    color: rgba(255,215,0,0.8);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+}
+.potm-figures {
+    font-size: 22px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.65);
+    font-style: italic;
+    letter-spacing: 0.05em;
+}
+.potm-label-bottom {
+    position: relative;
+    z-index: 10;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    color: rgba(255,215,0,0.4);
+    text-transform: uppercase;
+}
+
+/* ── PARTNERSHIP FULL-SCREEN ───────────────────────────────────── */
+.partnership-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 107;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    animation: potmReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.partnership-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 30%, #001a2d 0%, #000a14 100%);
+}
+.partnership-label {
+    position: relative;
+    z-index: 10;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.5em;
+    color: rgba(100,200,255,0.7);
+    text-transform: uppercase;
+}
+.partnership-card {
+    position: relative;
+    z-index: 10;
+    background: linear-gradient(135deg, rgba(0,20,40,0.9), rgba(0,10,25,0.95));
+    border: 2px solid rgba(100,200,255,0.3);
+    border-radius: 24px;
+    padding: 40px 60px;
+    text-align: center;
+    min-width: 480px;
+    box-shadow: 0 0 60px rgba(100,200,255,0.1);
+}
+.partnership-runs {
+    font-size: 96px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+.partnership-runs-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    color: rgba(100,200,255,0.6);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.partnership-balls {
+    font-size: 22px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 24px;
+}
+.partnership-players { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid rgba(100,200,255,0.15); padding-top: 20px; }
+.partnership-player-row { display: flex; justify-content: space-between; align-items: center; }
+.partnership-player-name { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.08em; }
+.partnership-player-score { font-size: 22px; font-weight: 900; color: #fff; }
+.partnership-player-balls { font-size: 14px; color: rgba(255,255,255,0.4); font-weight: 600; }
+
+/* ── SQUAD LIST FULL-SCREEN ────────────────────────────────────── */
+.squadlist-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 107;
+    background: radial-gradient(ellipse at 50% 20%, #0d1a0d 0%, #050a05 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 60px;
+    gap: 32px;
+    animation: potmReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.squadlist-header { display: flex; align-items: center; gap: 24px; }
+.squadlist-logo { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(100,220,100,0.4); }
+.squadlist-team-name { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1; }
+.squadlist-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5em; color: rgba(100,220,100,0.6); text-transform: uppercase; margin-top: 4px; }
+.squadlist-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 40px;
+    width: 100%;
+    max-width: 800px;
+}
+.squadlist-player { display: flex; align-items: center; gap: 12px; }
+.squadlist-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(100,220,100,0.15);
+    border: 1px solid rgba(100,220,100,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(100,220,100,0.8);
+    flex-shrink: 0;
+}
+.squadlist-pname { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ── CUSTOM TEXT LOWER-THIRD ───────────────────────────────────── */
+.custom-text-strip {
+    position: fixed;
+    bottom: 180px;
+    left: 0;
+    right: 0;
+    z-index: 109;
+    display: flex;
+    align-items: center;
+    animation: lowerThirdIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes lowerThirdIn {
+    from { opacity: 0; transform: translateX(-60px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.custom-text-bar {
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(to bottom, #ffd700, #ff6600);
+    flex-shrink: 0;
+    margin-right: 0;
+}
+.custom-text-content {
+    background: linear-gradient(90deg, rgba(10,10,20,0.95) 85%, transparent);
+    padding: 12px 24px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+    border-left: 5px solid #ffd700;
+}
+
+/* ── LAST OUT LOWER-THIRD ──────────────────────────────────────── */
+.lastout-strip {
+    position: fixed;
+    bottom: 180px;
+    left: 0;
+    right: 0;
+    z-index: 109;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    animation: lowerThirdIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.lastout-label {
+    background: #cc2200;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    padding: 6px 16px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.lastout-name {
+    background: rgba(10,10,20,0.95);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 900;
+    padding: 6px 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+}
+.lastout-figures {
+    background: rgba(10,10,20,0.85);
+    color: rgba(255,215,0,0.8);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 16px;
+    white-space: nowrap;
+    font-style: italic;
+}
+
+/* ── TOURNAMENT CARDS FULL-SCREEN ──────────────────────────────── */
+.tournament-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 107;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 60px 80px;
+    gap: 32px;
+    overflow: hidden;
+    animation: potmReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.tournament-screen-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 20%, #0a0520 0%, #04020e 100%);
+    z-index: 0;
+}
+.tournament-screen-header {
+    position: relative;
+    z-index: 10;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 0.25em;
+    color: rgba(255,215,0,0.9);
+    text-transform: uppercase;
+    border-bottom: 2px solid rgba(255,215,0,0.2);
+    padding-bottom: 20px;
+    width: 100%;
+    text-align: center;
+}
+.tournament-screen-body {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.tournament-screen-empty {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    padding: 60px;
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 16px;
+    width: 100%;
+}

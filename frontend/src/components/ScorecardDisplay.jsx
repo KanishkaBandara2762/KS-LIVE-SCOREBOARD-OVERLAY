@@ -243,15 +243,39 @@ const ScorecardDisplay = () => {
       if (!prev) {
         // First load — flatten overlaySettings into top-level fields
         if (incoming.overlaySettings) {
+          const os = incoming.overlaySettings;
           return {
             ...incoming,
-            themeID: incoming.overlaySettings.themeID || 'IPL_GOLD',
-            battingLogo: getAbsoluteUrl(incoming.overlaySettings.battingLogo || incoming.team1Logo || incoming.battingLogo || '', refreshKey),
-            leagueLogo: getAbsoluteUrl(incoming.overlaySettings.leagueLogo || incoming.team2Logo || incoming.leagueLogo || '', refreshKey),
-            overlayMode: incoming.overlaySettings.overlayMode || 'full',
-            showVersus: !!incoming.overlaySettings.showVersus,
-            showSummary: !!incoming.overlaySettings.showSummary,
-            showMatchSituation: !!incoming.overlaySettings.showMatchSituation,
+            themeID: os.themeID || 'IPL_GOLD',
+            battingLogo: getAbsoluteUrl(os.battingLogo || incoming.team1Logo || incoming.battingLogo || '', refreshKey),
+            leagueLogo: getAbsoluteUrl(os.leagueLogo || incoming.team2Logo || incoming.leagueLogo || '', refreshKey),
+            overlayMode: os.overlayMode || 'full',
+            showVersus: !!os.showVersus,
+            showSummary: !!os.showSummary,
+            showMatchSituation: !!os.showMatchSituation,
+            showToss: !!os.showToss,
+            showPlayerOfMatch: !!os.showPlayerOfMatch,
+            showPartnership: !!os.showPartnership,
+            showSquadList: !!os.showSquadList,
+            squadListTeam: os.squadListTeam || '',
+            showMatchWon: !!os.showMatchWon,
+            showNeedRun: !!os.showNeedRun,
+            showNeedRunStrip: !!os.showNeedRunStrip,
+            showLastOut: !!os.showLastOut,
+            showCustomText: !!os.showCustomText,
+            customText: os.customText || '',
+            show4or6Animation: os.show4or6Animation !== false,
+            scoreboardOnly: !!os.scoreboardOnly,
+            showTournamentMostRuns: !!os.showTournamentMostRuns,
+            showTournamentMostWickets: !!os.showTournamentMostWickets,
+            showTournamentBoundaries: !!os.showTournamentBoundaries,
+            showPointsTable: !!os.showPointsTable,
+            showUpcoming: !!os.showUpcoming,
+            showResults: !!os.showResults,
+            potmName: os.potmName || '',
+            potmTeam: os.potmTeam || '',
+            potmFigures: os.potmFigures || '',
+            potmPhoto: os.potmPhoto || '',
           };
         }
         return incoming;
@@ -262,14 +286,38 @@ const ScorecardDisplay = () => {
 
       // If the update includes overlaySettings, always extract theme fields
       if (incoming.overlaySettings) {
-        merged.themeID = incoming.overlaySettings.themeID || prev.themeID || 'IPL_GOLD';
-        merged.battingLogo = getAbsoluteUrl(incoming.overlaySettings.battingLogo || prev.battingLogo || prev.team1Logo || '', refreshKey);
-        merged.leagueLogo = getAbsoluteUrl(incoming.overlaySettings.leagueLogo || prev.leagueLogo || prev.team2Logo || '', refreshKey);
-        merged.overlayMode = incoming.overlaySettings.overlayMode || prev.overlayMode || 'full';
-        merged.showVersus = incoming.overlaySettings.showVersus ?? prev.showVersus ?? false;
-        merged.showSummary = incoming.overlaySettings.showSummary ?? prev.showSummary ?? false;
-        merged.showMatchSituation = incoming.overlaySettings.showMatchSituation ?? prev.showMatchSituation ?? false;
-        merged.showToss = incoming.overlaySettings.showToss ?? prev.showToss ?? false;
+        const os = incoming.overlaySettings;
+        merged.themeID = os.themeID || prev.themeID || 'IPL_GOLD';
+        merged.battingLogo = getAbsoluteUrl(os.battingLogo || prev.battingLogo || prev.team1Logo || '', refreshKey);
+        merged.leagueLogo = getAbsoluteUrl(os.leagueLogo || prev.leagueLogo || prev.team2Logo || '', refreshKey);
+        merged.overlayMode = os.overlayMode || prev.overlayMode || 'full';
+        merged.showVersus = os.showVersus ?? prev.showVersus ?? false;
+        merged.showSummary = os.showSummary ?? prev.showSummary ?? false;
+        merged.showMatchSituation = os.showMatchSituation ?? prev.showMatchSituation ?? false;
+        merged.showToss = os.showToss ?? prev.showToss ?? false;
+        // Broadcast Graphics Panel fields
+        merged.showPlayerOfMatch = os.showPlayerOfMatch ?? prev.showPlayerOfMatch ?? false;
+        merged.showPartnership = os.showPartnership ?? prev.showPartnership ?? false;
+        merged.showSquadList = os.showSquadList ?? prev.showSquadList ?? false;
+        if (os.squadListTeam !== undefined) merged.squadListTeam = os.squadListTeam;
+        merged.showMatchWon = os.showMatchWon ?? prev.showMatchWon ?? false;
+        merged.showNeedRun = os.showNeedRun ?? prev.showNeedRun ?? false;
+        merged.showNeedRunStrip = os.showNeedRunStrip ?? prev.showNeedRunStrip ?? false;
+        merged.showLastOut = os.showLastOut ?? prev.showLastOut ?? false;
+        merged.showCustomText = os.showCustomText ?? prev.showCustomText ?? false;
+        if (os.customText !== undefined) merged.customText = os.customText;
+        merged.show4or6Animation = os.show4or6Animation ?? prev.show4or6Animation ?? true;
+        merged.scoreboardOnly = os.scoreboardOnly ?? prev.scoreboardOnly ?? false;
+        merged.showTournamentMostRuns = os.showTournamentMostRuns ?? prev.showTournamentMostRuns ?? false;
+        merged.showTournamentMostWickets = os.showTournamentMostWickets ?? prev.showTournamentMostWickets ?? false;
+        merged.showTournamentBoundaries = os.showTournamentBoundaries ?? prev.showTournamentBoundaries ?? false;
+        merged.showPointsTable = os.showPointsTable ?? prev.showPointsTable ?? false;
+        merged.showUpcoming = os.showUpcoming ?? prev.showUpcoming ?? false;
+        merged.showResults = os.showResults ?? prev.showResults ?? false;
+        if (os.potmName !== undefined) merged.potmName = os.potmName;
+        if (os.potmTeam !== undefined) merged.potmTeam = os.potmTeam;
+        if (os.potmFigures !== undefined) merged.potmFigures = os.potmFigures;
+        if (os.potmPhoto !== undefined) merged.potmPhoto = os.potmPhoto;
       }
 
       // Fallback: if flat logo fields came in (relative URL from older code paths),
@@ -1141,6 +1189,189 @@ const ScorecardDisplay = () => {
               </p>
               <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">to win</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── BROADCAST GRAPHICS PANEL OVERLAYS (v3.1) ─────────────────────────── */}
+
+      {/* 5a. PLAYER OF THE MATCH — Cinematic Full-Screen */}
+      {match.showPlayerOfMatch && match.potmName && (
+        <div className="potm-screen">
+          <div className="potm-bg-radial" />
+          <div className="potm-bg-grid" />
+          <div className="potm-shimmer" />
+          <div className="potm-label-top">PLAYER OF THE MATCH</div>
+          <div className="potm-crown">👑</div>
+          <div className="potm-card">
+            <div className="potm-photo-wrap">
+              {match.potmPhoto
+                ? <img src={getAbsoluteUrl(match.potmPhoto)} className="potm-photo" alt={match.potmName} />
+                : <div className="potm-photo-fallback">{(match.potmName || '').slice(0, 2).toUpperCase()}</div>
+              }
+              <div className="potm-photo-ring" />
+            </div>
+            <div className="potm-info">
+              <h1 className="potm-name">{match.potmName}</h1>
+              {match.potmTeam && <p className="potm-team">{match.potmTeam}</p>}
+              {match.potmFigures && <p className="potm-figures">{match.potmFigures}</p>}
+            </div>
+          </div>
+          <div className="potm-label-bottom">OUTSTANDING PERFORMANCE</div>
+        </div>
+      )}
+
+      {/* 5b. PARTNERSHIP FULL-SCREEN */}
+      {match.showPartnership && match.partnership && (
+        <div className="partnership-screen">
+          <div className="partnership-bg" />
+          <div className="partnership-label">CURRENT PARTNERSHIP</div>
+          <div className="partnership-card">
+            <div className="partnership-runs">{match.partnership.runs ?? 0}</div>
+            <div className="partnership-runs-label">RUNS</div>
+            <div className="partnership-balls">({match.partnership.balls ?? 0} balls)</div>
+            <div className="partnership-players">
+              {[match.player1, match.player2].filter(Boolean).map((p, i) => (
+                <div key={i} className="partnership-player-row">
+                  <span className="partnership-player-name">{p.name || 'BATTER'}</span>
+                  <span className="partnership-player-score">{p.runs ?? 0} <span className="partnership-player-balls">({p.balls ?? 0})</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5c. SQUAD LIST FULL-SCREEN */}
+      {match.showSquadList && (() => {
+        const isTeam2 = match.squadListTeam === 'team2';
+        const squad = isTeam2 ? (match.bowlingSquad || []) : (match.battingSquad || []);
+        const teamName = isTeam2 ? match.bowlingTeam : match.battingTeam;
+        const teamLogo = isTeam2 ? match.leagueLogo : match.battingLogo;
+        return (
+          <div className="squadlist-screen">
+            <div className="squadlist-bg" />
+            <div className="squadlist-header">
+              {teamLogo && <img src={getAbsoluteUrl(teamLogo)} className="squadlist-logo" alt={teamName} />}
+              <div>
+                <div className="squadlist-team-name">{teamName}</div>
+                <div className="squadlist-label">PLAYING SQUAD</div>
+              </div>
+            </div>
+            <div className="squadlist-grid">
+              {squad.map((p, i) => (
+                <div key={i} className="squadlist-player">
+                  <span className="squadlist-num">{i + 1}</span>
+                  <span className="squadlist-pname">{p.name || p}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 5d. NEED RUN FULL-SCREEN (manual trigger, works in 1st inns too) */}
+      {match.showNeedRun && !match.showMatchSituation && (
+        <div className="fixed inset-0 z-[106] flex items-center justify-center pointer-events-none match-situation-overlay">
+          <div className="match-situation-card relative px-16 py-10 rounded-2xl text-center">
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-xl rounded-2xl border border-white/10"></div>
+            <div className="relative z-10">
+              <p className="text-white/50 font-black text-[11px] uppercase tracking-[0.5em] mb-4">Match Situation</p>
+              <div className="flex items-center justify-center gap-3 mb-5">
+                <div className="h-px w-12 bg-gradient-to-r from-transparent to-yellow-500/50"></div>
+                <img src={getAbsoluteUrl(match.battingLogo)} className="w-14 h-14 rounded-full bg-white p-1 object-cover shadow-lg border-2 border-yellow-500/40" alt="Team" />
+                <div className="h-px w-12 bg-gradient-to-l from-transparent to-yellow-500/50"></div>
+              </div>
+              <h1 className="text-white font-black text-3xl italic uppercase tracking-wide mb-2">{match.battingTeam}</h1>
+              {match.isSecondInnings && (match.targetScore - match.score) > 0
+                ? <p className="text-yellow-400 font-black text-2xl italic">need <span className="text-white text-4xl mx-1">{match.targetScore - match.score}</span> runs in <span className="text-white text-4xl mx-1">{((match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * (match.ballsPerOver || 6))) - match.totalBalls}</span> balls</p>
+                : <p className="text-yellow-400 font-black text-2xl italic"><span className="text-white text-4xl mx-1">{match.score}-{match.wickets}</span> in <span className="text-white text-4xl mx-1">{match.maxOvers}</span> overs</p>
+              }
+              <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-4">live scoring</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5e. CUSTOM TEXT LOWER-THIRD */}
+      {match.showCustomText && match.customText && (
+        <div className="custom-text-strip">
+          <div className="custom-text-bar" />
+          <span className="custom-text-content">{match.customText}</span>
+        </div>
+      )}
+
+      {/* 5f. LAST OUT LOWER-THIRD */}
+      {match.showLastOut && match.lastWicketName && (
+        <div className="lastout-strip">
+          <div className="lastout-label">LAST OUT</div>
+          <div className="lastout-name">{match.lastWicketName}</div>
+          <div className="lastout-figures">{match.lastWicketRuns ?? 0} ({match.lastWicketBalls ?? 0}) • {match.lastWicketDismissal || 'OUT'}</div>
+        </div>
+      )}
+
+      {/* 5g. TOURNAMENT — MOST RUNS */}
+      {match.showTournamentMostRuns && (
+        <div className="tournament-screen">
+          <div className="tournament-screen-bg" />
+          <div className="tournament-screen-header">🏆 MOST RUNS — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-body">
+            <div className="tournament-screen-empty">Connect tournament data to display player stats.</div>
+          </div>
+        </div>
+      )}
+
+      {/* 5h. TOURNAMENT — MOST WICKETS */}
+      {match.showTournamentMostWickets && (
+        <div className="tournament-screen">
+          <div className="tournament-screen-bg" />
+          <div className="tournament-screen-header">🎳 MOST WICKETS — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-body">
+            <div className="tournament-screen-empty">Connect tournament data to display player stats.</div>
+          </div>
+        </div>
+      )}
+
+      {/* 5i. TOURNAMENT — POINTS TABLE */}
+      {match.showPointsTable && (
+        <div className="tournament-screen">
+          <div className="tournament-screen-bg" />
+          <div className="tournament-screen-header">📊 POINTS TABLE — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-body">
+            <div className="tournament-screen-empty">Connect tournament data to display points table.</div>
+          </div>
+        </div>
+      )}
+
+      {/* 5j. TOURNAMENT — BOUNDARIES */}
+      {match.showTournamentBoundaries && (
+        <div className="tournament-screen">
+          <div className="tournament-screen-bg" />
+          <div className="tournament-screen-header">💥 BOUNDARIES — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-body">
+            <div className="tournament-screen-empty">Connect tournament data to display boundary stats.</div>
+          </div>
+        </div>
+      )}
+
+      {/* 5k. TOURNAMENT — UPCOMING */}
+      {match.showUpcoming && (
+        <div className="tournament-screen">
+          <div className="tournament-screen-bg" />
+          <div className="tournament-screen-header">📅 UPCOMING MATCHES — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-body">
+            <div className="tournament-screen-empty">Connect tournament data to display upcoming fixtures.</div>
+          </div>
+        </div>
+      )}
+
+      {/* 5l. TOURNAMENT — RESULTS */}
+      {match.showResults && (
+        <div className="tournament-screen">
+          <div className="tournament-screen-bg" />
+          <div className="tournament-screen-header">📋 RESULTS — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-body">
+            <div className="tournament-screen-empty">Connect tournament data to display match results.</div>
           </div>
         </div>
       )}

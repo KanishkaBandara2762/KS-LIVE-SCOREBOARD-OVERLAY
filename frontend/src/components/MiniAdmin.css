@@ -1365,3 +1365,211 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   BROADCAST GRAPHICS TAB — MiniAdmin (v3.1)
+   ═══════════════════════════════════════════════════════════════ */
+
+.ma-graphics-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 8px;
+}
+
+/* ── Top Bar ───────────────────────────────────────────────────── */
+.ma-gfx-topbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-wrap: wrap;
+}
+.ma-gfx-onair {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+.ma-gfx-onair.off  { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.1); }
+.ma-gfx-onair.on   { background: rgba(220,38,38,0.2); color: #ef4444; border: 1px solid rgba(220,38,38,0.4); }
+.ma-gfx-onair-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.ma-gfx-onair.on .ma-gfx-onair-dot { animation: gfxBlink 1s step-start infinite; }
+@keyframes gfxBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+.ma-gfx-back {
+    flex: 1;
+    padding: 5px 10px;
+    background: #15803d;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.ma-gfx-back:active { opacity: 0.8; }
+.ma-gfx-hideall {
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.ma-gfx-close {
+    padding: 5px 10px;
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ── Section Wrapper ───────────────────────────────────────────── */
+.ma-gfx-section {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.ma-gfx-section-title {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.25em;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.ma-gfx-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+/* ── Auto-hide pills ───────────────────────────────────────────── */
+.ma-gfx-autohide-row { display: flex; align-items: center; gap: 4px; }
+.ma-gfx-autohide-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; margin-right: 2px; }
+.ma-gfx-autohide-pill {
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.ma-gfx-autohide-pill.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+
+/* ── Button Grid ───────────────────────────────────────────────── */
+.ma-gfx-btn-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.ma-gfx-btn-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.ma-gfx-btn {
+    padding: 9px 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-align: center;
+}
+.ma-gfx-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #fff; }
+.ma-gfx-btn.active { background: rgba(99,102,241,0.3); border-color: rgba(99,102,241,0.6); color: #c4b5fd; }
+.ma-gfx-btn-gold { background: rgba(217,119,6,0.15); border-color: rgba(217,119,6,0.4); color: #fbbf24; }
+.ma-gfx-btn-gold:hover { background: rgba(217,119,6,0.3); }
+
+/* ── Custom Text Row ───────────────────────────────────────────── */
+.ma-gfx-custom-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+.ma-gfx-custom-inp {
+    flex: 1;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    outline: none;
+}
+.ma-gfx-custom-inp::placeholder { color: rgba(255,255,255,0.3); }
+.ma-gfx-show-btn {
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #0ea5e9;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.ma-gfx-hide-btn {
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: rgba(239,68,68,0.2);
+    color: #f87171;
+    font-size: 11px;
+    font-weight: 800;
+    border: 1px solid rgba(239,68,68,0.3);
+    cursor: pointer;
+}
+
+/* ── Sponsor Input ─────────────────────────────────────────────── */
+.ma-gfx-sponsor-inp {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    font-weight: 600;
+    outline: none;
+    min-width: 100px;
+}
+.ma-gfx-sponsor-inp::placeholder { color: rgba(255,255,255,0.25); }
+
+/* ── Section colours ───────────────────────────────────────────── */
+.ma-gfx-scorebug   { background: rgba(240,253,244,0.03); }
+.ma-gfx-fullscreen { background: rgba(238,242,255,0.02); }
+.ma-gfx-tournament { background: rgba(254,249,195,0.02); }
+.ma-gfx-other      { background: rgba(0,0,0,0.1); }

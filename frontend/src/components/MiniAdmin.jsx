@@ -82,6 +82,68 @@ const MiniAdmin = () => {
     // ── v2.1 NEW STATE ────────────────────────────────────────────────────
     const [showTossModal, setShowTossModal] = useState(false);
 
+    // ── Broadcast Graphics Panel State (v3.1) ───────────────────────────────
+    const [bgAutoHide, setBgAutoHide] = useState('off');   // 'off' | '10s' | '20s' | '30s'
+    const bgAutoHideTimer = useRef(null);
+    const [bgCustomText, setBgCustomText] = useState('');
+    const [bgOnAir, setBgOnAir] = useState(false);
+    const [potmName, setPotmName] = useState('');
+    const [potmTeam, setPotmTeam] = useState('');
+    const [potmFigures, setPotmFigures] = useState('');
+    const [showPotmModal, setShowPotmModal] = useState(false);
+    // We use refs so pushOverlay/hideAllGraphics can be defined once and always see latest push/match/bgAutoHide
+    const pushRef = useRef(null);
+    const matchRef = useRef(null);
+    const bgAutoHideRef = useRef('off');
+    useEffect(() => { bgAutoHideRef.current = bgAutoHide; }, [bgAutoHide]);
+
+    const pushOverlay = useCallback((patch, hideKeys = []) => {
+        const pushFn = pushRef.current;
+        const curMatch = matchRef.current;
+        if (!pushFn) return;
+        const os = { ...(curMatch?.overlaySettings || {}), ...patch };
+        pushFn({ overlaySettings: os });
+        if (hideKeys.length && bgAutoHideRef.current !== 'off') {
+            if (bgAutoHideTimer.current) clearTimeout(bgAutoHideTimer.current);
+            const ms = { '10s': 10000, '20s': 20000, '30s': 30000 }[bgAutoHideRef.current] || 0;
+            if (ms > 0) {
+                bgAutoHideTimer.current = setTimeout(() => {
+                    const hidePatch = {};
+                    hideKeys.forEach(k => { hidePatch[k] = false; });
+                    pushFn({ overlaySettings: { ...(matchRef.current?.overlaySettings || {}), ...hidePatch } });
+                }, ms);
+            }
+        }
+    }, []);
+
+    const hideAllGraphics = useCallback(() => {
+        const pushFn = pushRef.current;
+        const curMatch = matchRef.current;
+        if (!pushFn) return;
+        if (bgAutoHideTimer.current) clearTimeout(bgAutoHideTimer.current);
+        pushFn({ overlaySettings: {
+            ...(curMatch?.overlaySettings || {}),
+            showVersus: false,
+            showSummary: false,
+            showMatchSituation: false,
+            showToss: false,
+            showPlayerOfMatch: false,
+            showPartnership: false,
+            showSquadList: false,
+            showMatchWon: false,
+            showNeedRun: false,
+            showNeedRunStrip: false,
+            showLastOut: false,
+            showCustomText: false,
+            showTournamentMostRuns: false,
+            showTournamentMostWickets: false,
+            showTournamentBoundaries: false,
+            showPointsTable: false,
+            showUpcoming: false,
+            showResults: false,
+        }});
+    }, []);
+
     useEffect(() => {
         if (getToken()) {
             subscriptionsApi.getRemainingTime()
@@ -295,6 +357,10 @@ const MiniAdmin = () => {
             update(ref(db, dbPath), payload);
         }
     }, [matchId, dbPath, match]);
+    // Keep pushRef in sync so pushOverlay/hideAllGraphics always have the latest push
+    useEffect(() => { pushRef.current = push; }, [push]);
+    // Keep matchRef in sync
+    useEffect(() => { matchRef.current = match; }, [match]);
 
     const pushEvent = useCallback((changes, eventTrigger) => {
         if (isMongoDB(matchId)) {
@@ -1533,136 +1599,195 @@ const MiniAdmin = () => {
                     </div>
                 )}
 
-                {/* ─── LINEUP TAB ─────────────────────────────────────── */}
-                {activeTab === 'lineup' && (
-                    <div className="ma-lineup-tab">
+                {/* ─── BROADCAST GRAPHICS TAB ───────────────────────────────── */}
+                {activeTab === 'graphics' && (
+                    <div className="ma-graphics-tab">
 
-                        {/* Striker */}
-                        <div className="ma-card">
-                            <div className="ma-card-title">Current Players</div>
-                            <div className="ma-field-row">
-                                <span className="ma-field-label" style={{ color: '#ffcc00' }}>Striker ★</span>
-                                <ComboboxPlayerInput
-                                    options={match.battingSquad}
-                                    className="ma-inp"
-                                    placeholder="Select striker"
-                                    value={striker?.name || ''}
-                                    onChange={e => push({ [strikerKey]: { ...match[strikerKey], name: e.target.value } })}
-                                    squadOnly
+                        {/* ─ Header Bar ─ */}
+                        <div className="ma-gfx-topbar">
+                            <div className={`ma-gfx-onair ${bgOnAir ? 'on' : 'off'}`} onClick={() => setBgOnAir(p => !p)}>
+                                <span className="ma-gfx-onair-dot" />
+                                {bgOnAir ? 'ON AIR' : 'OFF AIR'}
+                            </div>
+                            <button className="ma-gfx-back" onClick={() => { hideAllGraphics(); }}>↩ Back to Scorebug</button>
+                            <button className="ma-gfx-hideall" onClick={hideAllGraphics}>Hide All</button>
+                            <button className="ma-gfx-close" onClick={() => setActiveTab('score')}>✕</button>
+                        </div>
+
+                        {/* ─ SCOREBUG Section ─ */}
+                        <div className="ma-gfx-section ma-gfx-scorebug">
+                            <div className="ma-gfx-section-title">SCOREBUG</div>
+                            <div className="ma-gfx-btn-row">
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.scoreboardOnly ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ scoreboardOnly: !match?.overlaySettings?.scoreboardOnly })}
+                                >Scorebug</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showNeedRunStrip ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showNeedRunStrip: !match?.overlaySettings?.showNeedRunStrip })}
+                                >Need Run strip</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showLastOut ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showLastOut: !match?.overlaySettings?.showLastOut })}
+                                >Last Out</button>
+                            </div>
+                            <div className="ma-gfx-custom-row">
+                                <input
+                                    className="ma-gfx-custom-inp"
+                                    placeholder="Custom text…"
+                                    value={bgCustomText}
+                                    onChange={e => setBgCustomText(e.target.value.toUpperCase())}
+                                    onKeyDown={e => { if (e.key === 'Enter') pushOverlay({ customText: bgCustomText, showCustomText: true }); }}
                                 />
-                            </div>
-                            <div className="ma-field-row">
-                                <span className="ma-field-label">Non-Str</span>
-                                <ComboboxPlayerInput
-                                    options={match.battingSquad}
-                                    className="ma-inp"
-                                    placeholder="Select non-striker"
-                                    value={nonStriker?.name || ''}
-                                    onChange={e => push({ [nonStrikerKey]: { ...match[nonStrikerKey], name: e.target.value } })}
-                                    squadOnly
-                                />
-                            </div>
-                            <div className="ma-field-row">
-                                <span className="ma-field-label" style={{ color: '#a78bfa' }}>Bowler</span>
-                                <ComboboxPlayerInput
-                                    options={match.bowlingSquad}
-                                    className="ma-inp"
-                                    placeholder="Select bowler"
-                                    value={match.bowler?.name || ''}
-                                    onChange={e => handleChangeBowler({ name: e.target.value })}
-                                    squadOnly
-                                />
-                            </div>
-                            <div className="ma-field-row" style={{ opacity: 0.55 }}>
-                                <span className="ma-field-label" style={{ color: '#a78bfa' }}>Figures</span>
-                                <input className="ma-inp" placeholder="auto (use Change Bowler)" readOnly value={match.bowler?.figures || '0-0 (0.0)'} style={{ cursor: 'not-allowed' }} />
-                            </div>
-                            <button className="ma-over-btn ma-over-wait" style={{ cursor:'pointer', color:'#60a5fa', borderColor:'rgba(96,165,250,0.2)' }} onClick={swapStrike}>↔ SWAP STRIKE</button>
-                            <div className="ma-field-row">
-                                <span className="ma-field-label">Str Runs</span>
-                                <input type="number" className="ma-inp" value={striker?.runs || 0} onChange={e => push({ [strikerKey]: { ...match[strikerKey], runs: parseInt(e.target.value) || 0 } })} />
+                                <button className="ma-gfx-show-btn" onClick={() => pushOverlay({ customText: bgCustomText, showCustomText: true })}>Show Text</button>
+                                {match?.overlaySettings?.showCustomText && <button className="ma-gfx-hide-btn" onClick={() => pushOverlay({ showCustomText: false })}>✕</button>}
                             </div>
                         </div>
 
-                        {/* Batting Squad */}
-                        <div className="ma-squad-section ma-batting-card">
-                            <div className="ma-card-title" style={{ color: '#4ade80' }}>🏏 Batting Squad</div>
-                            <div className="ma-add-row">
-                                <input
-                                    className="ma-inp"
-                                    placeholder="Add batter name"
-                                    value={newBattingPlayer}
-                                    onChange={e => setNewBattingPlayer(e.target.value.toUpperCase())}
-                                    onKeyDown={e => { if (e.key === 'Enter') addSquadPlayer('batting'); }}
-                                />
-                                <button className="ma-add-btn" onClick={() => addSquadPlayer('batting')}>ADD</button>
+                        {/* ─ FULL SCREEN Section ─ */}
+                        <div className="ma-gfx-section ma-gfx-fullscreen">
+                            <div className="ma-gfx-section-header">
+                                <span className="ma-gfx-section-title">FULL SCREEN</span>
+                                <div className="ma-gfx-autohide-row">
+                                    <span className="ma-gfx-autohide-label">Auto-hide</span>
+                                    {['off', '10s', '20s', '30s'].map(v => (
+                                        <button
+                                            key={v}
+                                            className={`ma-gfx-autohide-pill ${bgAutoHide === v ? 'active' : ''}`}
+                                            onClick={() => setBgAutoHide(v)}
+                                        >{v}</button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="ma-squad-list">
-                                {battingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added. Type name above and press ADD.</div>}
-                                {battingSquad.map((p, i) => (
-                                    <div className="ma-squad-chip" key={`b-${i}`}>
-                                        <span className="ma-chip-name">{i+1}. {p.name}</span>
-                                        <div className="ma-chip-actions">
+                            <div className="ma-gfx-btn-grid">
+                                <button
+                                    className={`ma-gfx-btn ${match?.showToss || match?.overlaySettings?.showToss ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showToss: !match?.overlaySettings?.showToss }, ['showToss'])}
+                                >Toss</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.showVersus || match?.overlaySettings?.showVersus ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showVersus: !match?.overlaySettings?.showVersus }, ['showVersus'])}
+                                >Team vs Team</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showPartnership ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showPartnership: !match?.overlaySettings?.showPartnership }, ['showPartnership'])}
+                                >Partnership</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.showSummary || match?.overlaySettings?.showSummary ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showSummary: !match?.overlaySettings?.showSummary }, ['showSummary'])}
+                                >Summary</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showMatchSituation ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showMatchSituation: !match?.overlaySettings?.showMatchSituation }, ['showMatchSituation'])}
+                                >Chase Target</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showNeedRun ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showNeedRun: !match?.overlaySettings?.showNeedRun }, ['showNeedRun'])}
+                                >Need Run</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showMatchWon ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showMatchWon: !match?.overlaySettings?.showMatchWon }, ['showMatchWon'])}
+                                >Match Won</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showSquadList && match?.overlaySettings?.squadListTeam !== 'team2' ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showSquadList: !match?.overlaySettings?.showSquadList, squadListTeam: 'team1' }, ['showSquadList'])}
+                                >Squad List</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showSquadList && match?.overlaySettings?.squadListTeam === 'team2' ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showSquadList: !match?.overlaySettings?.showSquadList, squadListTeam: 'team2' }, ['showSquadList'])}
+                                >Squad Photo JP</button>
+                                <button
+                                    className="ma-gfx-btn ma-gfx-btn-gold"
+                                    onClick={() => setShowPotmModal(true)}
+                                >👑 Player of Match</button>
+                            </div>
+                        </div>
+
+                        {/* ─ TOURNAMENT · FULL SCREEN Section ─ */}
+                        <div className="ma-gfx-section ma-gfx-tournament">
+                            <div className="ma-gfx-section-title">TOURNAMENT · FULL SCREEN</div>
+                            <div className="ma-gfx-btn-grid">
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showTournamentMostRuns ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showTournamentMostRuns: !match?.overlaySettings?.showTournamentMostRuns }, ['showTournamentMostRuns'])}
+                                >Most Runs</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showTournamentMostWickets ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showTournamentMostWickets: !match?.overlaySettings?.showTournamentMostWickets }, ['showTournamentMostWickets'])}
+                                >Most Wickets</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showTournamentBoundaries ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showTournamentBoundaries: !match?.overlaySettings?.showTournamentBoundaries }, ['showTournamentBoundaries'])}
+                                >Boundaries</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showPointsTable ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showPointsTable: !match?.overlaySettings?.showPointsTable }, ['showPointsTable'])}
+                                >Points Table</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showUpcoming ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showUpcoming: !match?.overlaySettings?.showUpcoming }, ['showUpcoming'])}
+                                >Upcoming</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showResults ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showResults: !match?.overlaySettings?.showResults }, ['showResults'])}
+                                >Results</button>
+                            </div>
+                        </div>
+
+                        {/* ─ OTHER Section ─ */}
+                        <div className="ma-gfx-section ma-gfx-other">
+                            <div className="ma-gfx-section-title">OTHER</div>
+                            <div className="ma-gfx-btn-row">
+                                <input className="ma-gfx-sponsor-inp" placeholder="Sponsor (none)" defaultValue={match?.overlaySettings?.sponsorText || ''} onBlur={e => pushOverlay({ sponsorText: e.target.value })} />
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.show4or6Animation !== false ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ show4or6Animation: match?.overlaySettings?.show4or6Animation === false })}
+                                >• 4/6 Animation</button>
+                                <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.scoreboardOnly ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ scoreboardOnly: !match?.overlaySettings?.scoreboardOnly })}
+                                >Scorebug Only</button>
+                            </div>
+                        </div>
+
+                        {/* ─ Player of Match Modal ─ */}
+                        {showPotmModal && (
+                            <div className="ma-modal-overlay" style={{ zIndex: 100010 }}>
+                                <div className="ma-modal-card" style={{ maxWidth: 400, width: '95%' }}>
+                                    <div className="ma-modal-header">
+                                        <span className="ma-modal-title">👑 Player of the Match</span>
+                                        <button className="ma-modal-close" onClick={() => setShowPotmModal(false)}>✕</button>
+                                    </div>
+                                    <div className="ma-modal-form" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                        <label className="ma-modal-label">Player Name</label>
+                                        <input className="ma-modal-inp" placeholder="e.g. VIRAT KOHLI" value={potmName} onChange={e => setPotmName(e.target.value.toUpperCase())} />
+                                        <label className="ma-modal-label">Team</label>
+                                        <select className="ma-modal-inp" value={potmTeam} onChange={e => setPotmTeam(e.target.value)}>
+                                            <option value="">Select Team…</option>
+                                            <option value={match?.battingTeam || 'Team A'}>{match?.battingTeam || 'Team A'}</option>
+                                            <option value={match?.bowlingTeam || 'Team B'}>{match?.bowlingTeam || 'Team B'}</option>
+                                        </select>
+                                        <label className="ma-modal-label">Performance Figures</label>
+                                        <input className="ma-modal-inp" placeholder="e.g. 78 (42) & 2/18" value={potmFigures} onChange={e => setPotmFigures(e.target.value)} />
+                                        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
                                             <button
-                                                className="ma-chip-btn"
-                                                title="Set as Striker (on strike)"
-                                                style={{ color: '#facc15', borderColor: 'rgba(250,204,21,0.35)', background: 'rgba(234,179,8,0.15)' }}
-                                                onClick={() => setBatterSlot(strikerKey, p)}
-                                            >★ STR</button>
+                                                className="ma-btn-action"
+                                                style={{ flex: 1, background: '#d97706', color: '#fff', borderRadius: 8, padding: '10px 0', fontWeight: 900, fontSize: 13, border: 'none', cursor: 'pointer' }}
+                                                onClick={() => {
+                                                    pushOverlay({ showPlayerOfMatch: true, potmName, potmTeam, potmFigures }, ['showPlayerOfMatch']);
+                                                    setShowPotmModal(false);
+                                                }}
+                                            >👑 SHOW ON OBS</button>
                                             <button
-                                                className="ma-chip-btn"
-                                                title="Set as Non-Striker"
-                                                style={{ color: '#94a3b8', borderColor: 'rgba(148,163,184,0.25)', background: 'rgba(100,116,139,0.15)' }}
-                                                onClick={() => setBatterSlot(nonStrikerKey, p)}
-                                            >○ N-S</button>
-                                            <button className="ma-chip-btn ma-chip-remove" onClick={() => removeSquadPlayer('batting', i)}>✕</button>
+                                                className="ma-btn-action"
+                                                style={{ flex: 1, background: '#374151', color: '#fff', borderRadius: 8, padding: '10px 0', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer' }}
+                                                onClick={() => { pushOverlay({ showPlayerOfMatch: false }); setShowPotmModal(false); }}
+                                            >HIDE</button>
                                         </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
-                        </div>
-
-                        {/* Bowling Squad */}
-                        <div className="ma-squad-section ma-bowling-card">
-                            <div className="ma-card-title" style={{ color: '#a78bfa' }}>🎳 Bowling Squad</div>
-                            <div className="ma-add-row">
-                                <input
-                                    className="ma-inp"
-                                    placeholder="Add bowler name"
-                                    value={newBowlingPlayer}
-                                    onChange={e => setNewBowlingPlayer(e.target.value.toUpperCase())}
-                                    onKeyDown={e => { if (e.key === 'Enter') addSquadPlayer('bowling'); }}
-                                />
-                                <button className="ma-add-btn" onClick={() => addSquadPlayer('bowling')}>ADD</button>
-                            </div>
-                            <div className="ma-squad-list">
-                                {bowlingSquad.length === 0 && <div style={{ fontSize:'10px', color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'8px' }}>No players added. Type name above and press ADD.</div>}
-                                {bowlingSquad.map((p, i) => (
-                                    <div className="ma-squad-chip" key={`bwl-${i}`}>
-                                        <span className="ma-chip-name">{i+1}. {p.name}</span>
-                                        {/* Show live figures ONLY for the currently bowling player.
-                                            All other bowlers show no figures here — their accumulated
-                                            stats from previous spells are restored by changeBowler when
-                                            they are selected via the BOWL button. */}
-                                        {match.bowler?.name?.toUpperCase() === p.name?.toUpperCase() &&
-                                         match.bowler?.figures && match.bowler.figures !== '0-0 (0.0)' && (
-                                            <span style={{ fontSize:'9px', color:'rgba(167,139,250,0.8)', marginLeft: 4, fontWeight: 700 }}>
-                                                {match.bowler.figures}
-                                            </span>
-                                        )}
-                                        <div className="ma-chip-actions">
-                                            <button
-                                                className="ma-chip-btn"
-                                                title="Set as current bowler (figures reset to 0 if new, restored if returning)"
-                                                style={{ borderColor:'rgba(167,139,250,0.35)', color:'#a78bfa', background:'rgba(139,92,246,0.15)' }}
-                                                onClick={() => handleChangeBowler(p)}
-                                            >🎳 BOWL</button>
-                                            <button className="ma-chip-btn ma-chip-remove" onClick={() => removeSquadPlayer('bowling', i)}>✕</button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        )}
 
                     </div>
                 )}
@@ -1791,8 +1916,8 @@ const MiniAdmin = () => {
                 <button className={`ma-tab ${activeTab === 'match' ? 'active' : ''}`} onClick={() => setActiveTab('match')}>
                     <span className="ma-tab-icon">⚙️</span>MATCH
                 </button>
-                <button className={`ma-tab ${activeTab === 'lineup' ? 'active' : ''}`} onClick={() => setActiveTab('lineup')}>
-                    <span className="ma-tab-icon">👥</span>LINEUP
+                <button className={`ma-tab ${activeTab === 'graphics' ? 'active' : ''}`} onClick={() => setActiveTab('graphics')}>
+                    <span className="ma-tab-icon">🎬</span>GRAPHICS
                 </button>
                 <button className={`ma-tab ${activeTab === 'more' ? 'active' : ''}`} onClick={() => setActiveTab('more')}>
                     <span className="ma-tab-icon">📺</span>MORE

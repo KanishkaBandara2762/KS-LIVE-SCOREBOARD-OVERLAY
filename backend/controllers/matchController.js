@@ -1005,7 +1005,17 @@ const updateMatch = async (req, res, next) => {
       'manualTargetOverride', 'manualTargetValue'
     ];
     
-    const overlayFields = ['themeID', 'overlayMode', 'showVersus', 'showSummary', 'showMatchSituation', 'showToss', 'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo'];
+    const overlayFields = [
+      'themeID', 'overlayMode', 'showVersus', 'showSummary', 'showMatchSituation', 'showToss',
+      'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo',
+      // Broadcast Graphics Panel v3.1
+      'showPlayerOfMatch', 'showPartnership', 'showSquadList', 'squadListTeam',
+      'showMatchWon', 'showNeedRun', 'showNeedRunStrip', 'showLastOut',
+      'showCustomText', 'customText', 'show4or6Animation', 'scoreboardOnly',
+      'showTournamentMostRuns', 'showTournamentMostWickets', 'showTournamentBoundaries',
+      'showPointsTable', 'showUpcoming', 'showResults',
+      'potmName', 'potmTeam', 'potmFigures', 'potmPhoto',
+    ];
 
     const updateData = { $set: {} };
     for (const field of allowedFields) {
