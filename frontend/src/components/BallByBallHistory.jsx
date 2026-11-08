@@ -153,3 +153,4 @@ const BallByBallHistory = ({ matchId }) => {
 };
 
 export default BallByBallHistory;
+

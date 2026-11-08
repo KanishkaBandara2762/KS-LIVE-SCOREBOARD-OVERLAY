@@ -219,3 +219,4 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
 };
 
 export default MatchFormatRulesModal;
+

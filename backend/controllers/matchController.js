@@ -457,7 +457,6 @@ const updateScore = async (req, res, next) => {
     }
 
     // ── v3.0: Free Hit state ──────────────────────────────────────────────────
-    const rules = getRulesForMatch(match);
     const newFreeHitActive = computeNextFreeHitState(
       match.freeHitActive || false,
       deliveryToProcess,
