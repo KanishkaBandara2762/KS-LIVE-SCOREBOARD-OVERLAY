@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./TournamentObsGuide.css";
+import { ensureBroadcastLink } from "../api";
 
 // Shown right after a tournament is created. Gives the static overlay URL and OBS steps.
 export default function TournamentObsGuide({ tournament, onClose }) {
@@ -8,6 +9,7 @@ export default function TournamentObsGuide({ tournament, onClose }) {
   const url = `${window.location.origin}/overlay/tournament/${id}`;
 
   const copyUrl = async () => {
+    if (!(await ensureBroadcastLink({ tournamentId: id, locked: tournament?.broadcastLocked }))) return;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -48,7 +50,7 @@ export default function TournamentObsGuide({ tournament, onClose }) {
         </div>
 
         <div className="obs-guide-foot">
-          <span>This tournament used 1 credit (1 Event).</span>
+          <span>Tournament created free. The OBS link uses 1 credit, charged once.</span>
           <button type="button" className="obs-guide-done" onClick={onClose}>Done</button>
         </div>
       </div>

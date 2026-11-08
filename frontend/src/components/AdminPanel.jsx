@@ -7,7 +7,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "../i18n/LanguageContext";
 import { createMatchEvent } from "../utils/matchEvent";
 import { generateMatchKey } from "../utils/matchKey";
-import { matchesApi, tournamentsApi } from "../api";
+import { matchesApi, tournamentsApi, ensureBroadcastLink } from "../api";
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 // Netlify Functions cannot host persistent Socket.IO connections.
@@ -535,6 +535,7 @@ const AdminPanel = () => {
   };
 
   const handleCopyOverlayUrl = async () => {
+    if (!(await ensureBroadcastLink({ matchId: matchDbId, locked: match.broadcastLocked || Boolean(match.tournamentId) }))) return;
     try {
       await navigator.clipboard.writeText(overlayUrl);
       setOverlayCopied(true);
@@ -832,9 +833,9 @@ const legalBallCount = match.legalBallCount || 0;
             <h1 className="font-bold tracking-tighter text-yellow-400 text-xl italic">{t("admin.header")}</h1>
           </div>
             <div className="flex gap-2 ml-4">
-              <button onClick={() => window.open(`/overlay/${matchDbId}`, '_blank')} className="text-[10px] bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay ↗</button>
+              <button onClick={async () => { if (await ensureBroadcastLink({ matchId: matchDbId, locked: match.broadcastLocked || Boolean(match.tournamentId) })) window.open(`/overlay/${matchDbId}`, '_blank'); }} className="text-[10px] bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay ↗</button>
               {match.tournamentId && (
-                <button onClick={() => window.open(`/overlay/tournament/${match.tournamentId}`, '_blank')} className="text-[10px] bg-amber-500/20 text-amber-300 px-3 py-1 rounded hover:bg-amber-500/30 font-black border border-amber-500/30">Tournament Overlay ↗</button>
+                <button onClick={async () => { if (await ensureBroadcastLink({ tournamentId: match.tournamentId, locked: true })) window.open(`/overlay/tournament/${match.tournamentId}`, '_blank'); }} className="text-[10px] bg-amber-500/20 text-amber-300 px-3 py-1 rounded hover:bg-amber-500/30 font-black border border-amber-500/30">Tournament Overlay ↗</button>
               )}
               <button onClick={() => window.open(`/teams/${matchDbId}`, '_blank')} className="text-[10px] bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Teams ↗</button>
               <button onClick={() => window.open(`/mini-admin/${matchDbId}`, 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-[10px] bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini ⚡</button>

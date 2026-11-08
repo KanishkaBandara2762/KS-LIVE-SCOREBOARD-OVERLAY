@@ -23,17 +23,34 @@ const Tournament = require('../models/Tournament');
 const User = require('../models/User');
 const { formatOvers } = require('../services/scoreEngine');
 const { hasActiveBroadcastingAccess } = require('../middleware/subscriptionCheck');
+const { isMatchBroadcastLocked, isBroadcastLockedDoc } = require('../services/broadcastCredits');
 const initAuctionSocket = require('./auctionSocket');
 
 module.exports = function initSockets(io) {
   // ── /overlay namespace — OBS browser sources ────────────────────────────────
   const overlayNS = io.of('/overlay');
 
-  overlayNS.on('connection', (socket) => {
+  overlayNS.on('connection', async (socket) => {
     const { matchId, tournamentId } = socket.handshake.query;
 
     if (!matchId && !tournamentId) {
       socket.emit('error', { message: 'matchId or tournamentId is required.' });
+      socket.disconnect();
+      return;
+    }
+
+    // Broadcast lock: locked links receive no live data until the owner unlocks them
+    try {
+      const locked = tournamentId
+        ? isBroadcastLockedDoc(await Tournament.findById(tournamentId).select('broadcastLocked broadcastExpiresAt').lean())
+        : await isMatchBroadcastLocked(await Match.findOne({ matchId }).select('broadcastLocked broadcastExpiresAt tournamentId').lean());
+      if (locked) {
+        socket.emit('error', { code: 'OBS_SUBSCRIPTION_REQUIRED', message: 'Broadcast link is locked. The owner must generate the OBS link first.' });
+        socket.disconnect();
+        return;
+      }
+    } catch (err) {
+      console.error('[OVERLAY] broadcast lock check failed:', err.message);
       socket.disconnect();
       return;
     }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { matchesApi, tournamentsApi, subscriptionsApi, getToken } from '../api';
+import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
 import TournamentTeamsModal from './TournamentTeamsModal';
 import AuctionDashboardPanel from './auction/AuctionDashboardPanel';
 import { isAdminRole } from '../utils/roles';
@@ -9,6 +9,7 @@ import './Dashboard.css';
 import './DashboardModern.css';
 import { CreditPlansPanel, OwnerContactFooter } from './CreditPlansPanel';
 import TournamentObsGuide from './TournamentObsGuide';
+import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
 const THEMES = [
@@ -695,12 +696,13 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
   const [deleting, setDeleting] = useState(false);
   const statusInfo = STATUS_COLORS[match.status] || STATUS_COLORS.live;
   const overlayUrl = `${window.location.origin}/overlay/${match.matchId}`;
+  const [obs, setObs] = useState({ expiresAt: match.broadcastExpiresAt ?? null, locked: !!match.broadcastLocked });
+  const obsLocked = isBroadcastLocked({ broadcastLocked: obs.locked, broadcastExpiresAt: obs.expiresAt });
 
   const handleCopy = async () => {
-    if (!isObsActive) {
-      alert("OBS Broadcasting Access required.\n\nScoring matches is 100% Free and Unlimited, but streaming overlay into OBS requires an active OBS pass. Click Activate OBS Pass in the top banner to subscribe.");
-      return;
-    }
+    const res = await ensureBroadcastLink({ matchId: match.matchId, locked: obsLocked });
+    if (!res) return;
+    setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false });
     try {
       await navigator.clipboard.writeText(overlayUrl);
       setCopied(true);
@@ -757,6 +759,9 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
           {copied ? '✓ Copied!' : '📋 Copy'}
         </button>
       </div>
+      <div style={{ marginTop: 6 }}>
+        <BroadcastStatus expiresAt={obs.expiresAt} locked={obsLocked} onExpire={() => setObs((o) => ({ ...o }))} />
+      </div>
 
       <div className="match-card-actions">
         <button className="btn-open" onClick={() => onOpen(match.matchId)}>
@@ -782,12 +787,13 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
 function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
+  const [obs, setObs] = useState({ expiresAt: tournament.broadcastExpiresAt ?? null, locked: !!tournament.broadcastLocked });
+  const obsLocked = isBroadcastLocked({ broadcastLocked: obs.locked, broadcastExpiresAt: obs.expiresAt });
 
   const handleCopy = async () => {
-    if (!isObsActive) {
-      alert("OBS Broadcasting Access required.\n\nScoring matches is 100% Free and Unlimited, but streaming overlay into OBS requires an active OBS pass. Click Activate OBS Pass in the top banner to subscribe.");
-      return;
-    }
+    const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked });
+    if (!res) return;
+    setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false });
     try {
       await navigator.clipboard.writeText(overlayUrl);
       setCopied(true);
@@ -832,14 +838,17 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
           {copied ? '✓ Copied!' : '📋 Copy'}
         </button>
       </div>
+      <div style={{ marginTop: 6 }}>
+        <BroadcastStatus expiresAt={obs.expiresAt} locked={obsLocked} onExpire={() => setObs((o) => ({ ...o }))} />
+      </div>
 
       <div className="match-card-actions">
         {tournament.currentMatchId ? (
           <>
-            <button className="btn-open" onClick={() => onOpenMatch(tournament.currentMatchId.matchId)}>
+            <button className="btn-open" onClick={() => window.open(`/mini-admin/${tournament.currentMatchId.matchId}`, 'KS_Mini', 'width=480,height=850,resizable=yes')}>
               🎮 Score Live Match
             </button>
-            <button className="btn-overlay" onClick={() => window.open(`/overlay/tournament/${tournament.id || tournament._id}`, '_blank')}>
+            <button className="btn-overlay" onClick={async () => { const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked }); if (!res) return; setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false }); window.open(`/overlay/tournament/${tournament.id || tournament._id}`, '_blank'); }}>
               👁 Preview
             </button>
           </>
@@ -1077,6 +1086,16 @@ const Dashboard = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {activeTab === 'tournaments' && (
+          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000', whiteSpace: 'nowrap' }}>
+            🏆 New Tournament
+          </button>
+        )}
+        {activeTab === 'matches' && (
+          <button className="btn-create-match" onClick={() => setShowCreate(true)} style={{ background: '#facc15', color: '#000', whiteSpace: 'nowrap' }}>
+            🏏 New Match
+          </button>
+        )}
         {activeTab === 'matches' && (
           <div className="filter-pills">
             {['all', 'live', 'break', 'ended'].map((f) => (

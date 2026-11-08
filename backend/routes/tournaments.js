@@ -5,8 +5,7 @@ const Match = require('../models/Match');
 const OverlaySettings = require('../models/OverlaySettings');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
-const checkSessionValidity = require('../middleware/checkSessionValidity');
-const requireMatchCredit = require('../middleware/creditGate');
+const { unlockBroadcast, isBroadcastLockedDoc } = require('../services/broadcastCredits');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const path = require('path');
@@ -51,6 +50,17 @@ router.get('/public/:tournamentId', async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Tournament not found.' });
     }
 
+    // Broadcast lock: the owner must unlock the OBS link (1 credit) first
+    if (isBroadcastLockedDoc(tournament)) {
+      return res.status(403).json({
+        success: false,
+        error: 'This OBS link is locked or expired. The owner must generate a new OBS link (1 credit).',
+        code: 'OBS_SUBSCRIPTION_REQUIRED',
+        subscriptionExpired: true,
+        tournamentId: tournament._id,
+      });
+    }
+
     // Verify tournament owner's active OBS broadcasting license
     const owner = await User.findById(tournament.clientId).lean();
     const access = hasActiveBroadcastingAccess(owner);
@@ -71,8 +81,22 @@ router.get('/public/:tournamentId', async (req, res, next) => {
   }
 });
 
-// Secure all tournament routes with auth and session validity
-router.use(authMiddleware, checkSessionValidity);
+// Secure all tournament routes with auth. Creation is free; OBS links cost 1 credit.
+router.use(authMiddleware);
+
+// ── POST /:tournamentId/unlock-broadcast (1 credit, once per tournament) ────
+router.post('/:tournamentId/unlock-broadcast', async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('role').lean();
+    const result = await unlockBroadcast(Tournament, req.params.tournamentId, 'clientId', req.user.id, user?.role);
+    if (result.status >= 400) {
+      return res.status(result.status).json({ success: false, code: result.code, error: result.error });
+    }
+    res.json({ success: true, charged: result.charged, broadcastExpiresAt: result.broadcastExpiresAt, message: result.charged ? 'OBS link generated for 24 hours. 1 credit used.' : 'OBS link is ready.' });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // ── GET / (List all tournaments for client) ──────────────────────────
 router.get('/', async (req, res, next) => {
@@ -108,7 +132,7 @@ router.get('/:tournamentId', async (req, res, next) => {
 });
 
 // ── POST /create ──────────────────────────────────────────────────────
-router.post('/create', requireMatchCredit, async (req, res, next) => {
+router.post('/create', async (req, res, next) => {
   try {
     const { name, type } = req.body;
 
@@ -121,6 +145,7 @@ router.post('/create', requireMatchCredit, async (req, res, next) => {
       type,
       clientId: req.user.id,
       teams: [],
+      broadcastLocked: true,
     });
 
     res.status(201).json({

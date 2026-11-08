@@ -214,6 +214,16 @@ const matchSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    // Broadcast (OBS link) lock. New standalone matches start locked; 1 credit unlocks.
+    broadcastLocked: {
+      type: Boolean,
+      default: false,
+    },
+    // OBS link open until this time (24h per 1-credit unlock). Null = never unlocked.
+    broadcastExpiresAt: {
+      type: Date,
+      default: null,
+    },
 
     // ── Teams ──────────────────────────────────────────────────────────────
     battingTeam: { type: String, default: 'TEAM A', trim: true },

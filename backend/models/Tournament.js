@@ -66,6 +66,16 @@ const tournamentSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    // Broadcast (OBS link) lock. New tournaments start locked; 1 credit unlocks.
+    broadcastLocked: {
+      type: Boolean,
+      default: false,
+    },
+    // OBS link open until this time (24h per 1-credit unlock). Null = never unlocked.
+    broadcastExpiresAt: {
+      type: Date,
+      default: null,
+    },
     teams: {
       type: [teamSchema],
       default: [],

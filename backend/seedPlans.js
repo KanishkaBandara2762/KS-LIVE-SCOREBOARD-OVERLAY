@@ -16,7 +16,7 @@ const PLANS = [
     slug: 'single_match',
     credits: 1,
     priceLkr: 600,
-    description: '1 Credit = 1 Event: one complete match, tournament or auction.',
+    description: '1 Credit = 1 OBS broadcast link. Creating matches, tournaments and auctions is free.',
     isVisible: true,
     isActive: true,
   },

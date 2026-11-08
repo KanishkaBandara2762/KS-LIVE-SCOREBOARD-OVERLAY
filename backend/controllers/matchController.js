@@ -8,6 +8,8 @@ const Match = require('../models/Match');
 const ScoreEvent = require('../models/ScoreEvent');
 const OverlaySettings = require('../models/OverlaySettings');
 const User = require('../models/User');
+const Tournament = require('../models/Tournament');
+const { isMatchBroadcastLocked, isBroadcastLockedDoc, resolveMatchBroadcast, unlockMatchBroadcast } = require('../services/broadcastCredits');
 const { processBallDelivery, applyManualCorrection, formatOvers, formatBowlerFigures, calculateEconomy, createStateSnapshot } = require('../services/scoreEngine');
 const multer = require('multer');
 const path = require('path');
@@ -78,6 +80,7 @@ const createMatch = async (req, res, next) => {
     const match = await Match.create({
       matchId,
       ownerUid: req.user.id,
+      broadcastLocked: true,
       team1Name,
       team2Name,
       matchNumber,
@@ -137,7 +140,8 @@ const getMatch = async (req, res, next) => {
       return res.status(403).json({ success: false, error: 'Access denied.' });
     }
 
-    res.json({ success: true, match });
+    const broadcast = await resolveMatchBroadcast(match);
+    res.json({ success: true, match: { ...match.toJSON(), ...broadcast } });
   } catch (err) {
     next(err);
   }
@@ -150,14 +154,25 @@ const getMatches = async (req, res, next) => {
       .select(
         'matchId battingTeam bowlingTeam matchType matchStatus status score wickets ' +
         'legalBallCount maxOvers ballsPerOver createdAt matchTitle tournamentName ' +
-        'venueName matchDate overlaySettings isSecondInnings targetScore slug publicScorePreview'
+        'venueName matchDate overlaySettings isSecondInnings targetScore slug publicScorePreview ' +
+        'tournamentId broadcastLocked broadcastExpiresAt'
       )
       .sort({ createdAt: -1 })
       .limit(50);
 
+    // Broadcast lock per card: tournament matches follow their tournament's lock
+    const tournamentIds = [...new Set(matches.filter(m => m.tournamentId).map(m => String(m.tournamentId)))];
+    const tournamentBroadcast = new Map(
+      (await Tournament.find({ _id: { $in: tournamentIds } }).select('broadcastLocked broadcastExpiresAt').lean())
+        .map(t => [String(t._id), t])
+    );
+
     // Normalize: matchStatus → status field for Dashboard compatibility
     const normalized = matches.map(m => {
       const obj = m.toJSON();
+      const broadcastSource = m.tournamentId ? tournamentBroadcast.get(String(m.tournamentId)) : m;
+      obj.broadcastLocked = isBroadcastLockedDoc(broadcastSource);
+      obj.broadcastExpiresAt = broadcastSource?.broadcastExpiresAt ?? null;
       // Map matchStatus values to simple live/ended/break for Dashboard badges
       const statusMap = {
         live: 'live',
@@ -768,6 +783,17 @@ const getOverlay = async (req, res, next) => {
 
     if (!match) {
       return res.status(404).json({ success: false, error: 'Match not found.' });
+    }
+
+    // Broadcast lock: the owner must unlock the OBS link (1 credit) first
+    if (await isMatchBroadcastLocked(match)) {
+      return res.status(403).json({
+        success: false,
+        error: 'This OBS link is locked or expired. The owner must generate a new OBS link (1 credit).',
+        code: 'OBS_SUBSCRIPTION_REQUIRED',
+        subscriptionExpired: true,
+        matchId,
+      });
     }
 
     // Verify owner's active OBS broadcasting license
@@ -1502,8 +1528,28 @@ const uploadLogo = async (req, res, next) => {
   }
 };
 
+// ── POST /match/:id/unlock-broadcast (owner, 1 credit once per match) ───────
+const unlockBroadcastLink = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('role').lean();
+    const result = await unlockMatchBroadcast(req.params.id, req.user.id, user?.role);
+    if (result.status >= 400) {
+      return res.status(result.status).json({ success: false, code: result.code, error: result.error });
+    }
+    res.json({
+      success: true,
+      charged: result.charged,
+      broadcastExpiresAt: result.broadcastExpiresAt,
+      message: result.charged ? 'OBS link generated for 24 hours. 1 credit used.' : 'OBS link is ready.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createMatch,
+  unlockBroadcastLink,
   getMatch,
   getMatches,
   deleteMatch,

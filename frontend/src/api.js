@@ -95,6 +95,7 @@ export const matchesApi = {
   delete: (matchId)       => apiRequest(`/api/match/${matchId}`, { method: 'DELETE' }),
   getPublicMatch: (idOrSlug) => apiRequest(`/api/public/match/${idOrSlug}`),
   getPublicMatches: () => apiRequest('/api/public/matches'),
+  unlockBroadcast: (matchId) => apiRequest(`/api/match/${matchId}/unlock-broadcast`, { method: 'POST' }),
   // New v2.1 endpoints
   undoLastBall: (matchId)  => apiRequest(`/api/undo/${matchId}`, { method: 'POST' }),
   changeBowler: (matchId, body) => apiRequest(`/api/change-bowler/${matchId}`, { method: 'PUT', body: JSON.stringify(body) }),
@@ -110,6 +111,7 @@ export const tournamentsApi = {
   create: (body) => apiRequest('/api/tournaments/create', { method: 'POST', body: JSON.stringify(body) }),
   delete: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}`, { method: 'DELETE' }),
   nextMatch: (tournamentId, body) => apiRequest(`/api/tournaments/${tournamentId}/next-match`, { method: 'POST', body: JSON.stringify(body) }),
+  unlockBroadcast: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}/unlock-broadcast`, { method: 'POST' }),
   // Teams & Players
   addTeam: (tournamentId, data) => {
     if (typeof FormData !== 'undefined' && data instanceof FormData) {
@@ -132,6 +134,25 @@ export const tournamentsApi = {
 };
 
 // ── Subscriptions API ────────────────────────────────────────────────────────
+// ── Broadcast (OBS link) credits ─────────────────────────────────────────────
+// Creating and scoring are free. The first OBS link for a match or tournament
+// costs 1 credit and stays open 24h; repeat calls while open are free.
+// Returns the server response ({ broadcastExpiresAt }) on success, or false.
+export async function ensureBroadcastLink({ matchId, tournamentId, locked }) {
+  if (locked && !window.confirm('Generate the OBS link for this broadcast?\n\nEach OBS link uses 1 credit and stays open for 24 hours. Scoring stays free.')) {
+    return false;
+  }
+  try {
+    const res = tournamentId
+      ? await tournamentsApi.unlockBroadcast(tournamentId)
+      : await matchesApi.unlockBroadcast(matchId);
+    return res; // { broadcastExpiresAt, charged }
+  } catch (err) {
+    alert(err.message || 'Could not generate the OBS link.');
+    return false;
+  }
+}
+
 export const subscriptionsApi = {
   getPlans: () => apiRequest('/api/subscriptions/plans'),
   getRemainingTime: () => apiRequest('/api/subscriptions/remaining-time'),

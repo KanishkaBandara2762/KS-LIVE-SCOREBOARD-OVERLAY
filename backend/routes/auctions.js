@@ -12,7 +12,6 @@ const {
   requireAuctionOwner,
   requireAuctionAccess,
 } = require('../middleware/auctionAccess');
-const requireMatchCredit = require('../middleware/creditGate');
 const controller = require('../controllers/auctionController');
 
 // ── Public / invite routes (no auction membership required) ─────────────────
@@ -23,7 +22,7 @@ router.post('/join/:token', authMiddleware, controller.joinAuction);
 router.use(authMiddleware);
 
 router.get('/', controller.listAuctions);
-router.post('/', requireMatchCredit, controller.createAuction);
+router.post('/', controller.createAuction);
 
 router.get('/:id', loadAuction, requireAuctionAccess, controller.getAuction);
 router.patch('/:id', loadAuction, requireAuctionOwner, controller.updateAuction);

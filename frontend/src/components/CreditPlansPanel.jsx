@@ -69,7 +69,7 @@ export function CreditPlansPanel({ balance = 0, email = "" }) {
         <div className="credit-bar-info">
           <span className="credit-bar-label">Match credits</span>
           <span className="credit-bar-text">
-            1 Credit = 1 Event
+            1 Credit = 1 OBS broadcast link
           </span>
         </div>
         <div className="credit-balance">

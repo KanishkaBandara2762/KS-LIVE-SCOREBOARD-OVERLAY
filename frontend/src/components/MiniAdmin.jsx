@@ -8,7 +8,8 @@ import ComboboxPlayerInput from './ComboboxPlayerInput';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../i18n/LanguageContext';
 import { createMatchEvent } from '../utils/matchEvent';
-import { matchesApi, tournamentsApi, subscriptionsApi, getToken } from '../api';
+import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
+import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 import TossModal from './TossModal';
 import LogoUpload from './LogoUpload';
 import NewBatterModal from './NewBatterModal';
@@ -67,6 +68,8 @@ const MiniAdmin = () => {
     const [showLivePreview, setShowLivePreview] = useState(false);
     const [obsCopied, setObsCopied] = useState(false);
     const [isObsActive, setIsObsActive] = useState(false);
+    const [obsOverride, setObsOverride] = useState(null); // set right after generating a link
+    const [, setObsTick] = useState(0); // forces re-render when the 24h window ends
     const [newBattingPlayer, setNewBattingPlayer] = useState("");
     const [newBowlingPlayer, setNewBowlingPlayer] = useState("");
 
@@ -104,11 +107,15 @@ const MiniAdmin = () => {
             : `${window.location.protocol}//${window.location.hostname}:${window.location.port || 5173}/overlay/${matchId}`)
         : `/overlay/${matchId}`;
 
-    const copyOBSLink = () => {
-        if (!isObsActive) {
-            alert("OBS Broadcasting Access required.\n\nScoring is 100% Free & Unlimited, but streaming overlay into OBS requires an active subscription. Please activate an OBS pass from your dashboard.");
-            return;
-        }
+    const obsExpiresAt = obsOverride ? obsOverride.expiresAt : (match?.broadcastExpiresAt ?? null);
+    const obsLockedNow = obsOverride
+        ? isBroadcastLocked({ broadcastLocked: obsOverride.locked, broadcastExpiresAt: obsOverride.expiresAt })
+        : isBroadcastLocked({ broadcastLocked: match?.broadcastLocked, broadcastExpiresAt: match?.broadcastExpiresAt });
+
+    const copyOBSLink = async () => {
+        const res = await ensureBroadcastLink({ matchId, locked: obsLockedNow });
+        if (!res) return;
+        setObsOverride({ expiresAt: res.broadcastExpiresAt ?? null, locked: false });
         navigator.clipboard.writeText(obsUrl).then(() => {
             setObsCopied(true);
             setTimeout(() => setObsCopied(false), 2500);
@@ -964,6 +971,7 @@ const MiniAdmin = () => {
                         DESKTOP CONTROL ROOM ↗
                     </button>
                     <LanguageSwitcher compact />
+                    <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} compact />
                     <div className="ma-live-dot" />
                 </div>
             </div>
@@ -1587,6 +1595,7 @@ const MiniAdmin = () => {
                                     style={{ background: obsCopied ? '#10b981' : '#0ea5e9', color: '#fff' }}
                                     onClick={copyOBSLink}
                                 >{obsCopied ? '✔ COPIED!' : '📋 COPY'}</button>
+                                <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} />
                             </div>
                             <button className="ma-preview-toggle" onClick={() => setShowLivePreview(p => !p)}>
                                 <div className="ma-preview-dot" style={{ background: showLivePreview ? '#10b981' : '#475569', animation: showLivePreview ? 'pulse 1.5s infinite' : 'none' }} />
