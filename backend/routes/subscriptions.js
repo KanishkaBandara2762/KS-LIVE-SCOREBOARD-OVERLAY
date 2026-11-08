@@ -12,6 +12,9 @@ router.use(express.json());
 // ── Public: plan list for pricing page (no auth) ─────────────────────────────
 router.get('/plans', subscriptionController.getPlans);
 
+// ── Public: owner payment + contact details for the buy dialog ───────────────
+router.get('/owner-contact', subscriptionController.getOwnerContact);
+
 // ── Authenticated subscription APIs ───────────────────────────────────────────
 router.get('/remaining-time', authMiddleware, subscriptionController.getRemainingTime);
 

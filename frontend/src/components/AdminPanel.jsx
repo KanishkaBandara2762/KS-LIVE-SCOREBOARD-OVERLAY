@@ -844,6 +844,7 @@ const legalBallCount = match.legalBallCount || 0;
           </div>
           <div className="flex gap-2 items-center">
             <LanguageSwitcher compact />
+            <button onClick={() => navigate('/account')} className="bg-slate-700 text-white px-3 py-1 rounded text-[10px] font-black shadow-lg">⚙ Account</button>
             {match.tournamentId && (
               <button onClick={() => setShowNextMatch(true)} className="bg-yellow-500 px-3 py-1 rounded text-[10px] font-black shadow-lg text-black animate-pulse">🚀 NEXT MATCH</button>
             )}

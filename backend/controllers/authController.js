@@ -5,6 +5,7 @@
 
 const User = require('../models/User');
 const { signToken } = require('../services/jwtService');
+const { isAdminRole } = require('../utils/roles');
 
 // ── POST /register ────────────────────────────────────────────────────────────
 const register = async (req, res, next) => {
@@ -158,4 +159,114 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, getMe };
+// ── Account profile (protected) ──────────────────────────────────────────────
+const QR_IMAGE_PATTERN = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+const MAX_QR_IMAGE_CHARS = 400000; // ~300 KB image
+
+const isPrivilegedRole = (role) => isAdminRole(role);
+
+const formatProfile = (user) => {
+  const profile = {
+    id: user._id,
+    email: user.email,
+    displayName: user.displayName,
+    role: user.role,
+    matchCredits: user.matchCredits,
+    whatsappNumber: user.whatsappNumber,
+    contactNumber: user.contactNumber,
+    createdAt: user.createdAt,
+    lastLogin: user.lastLogin,
+  };
+  if (isPrivilegedRole(user.role)) {
+    profile.facebookUrl = user.facebookUrl;
+    profile.bankDetails = {
+      bankName: user.bankDetails?.bankName || '',
+      branch: user.bankDetails?.branch || '',
+      accountHolder: user.bankDetails?.accountHolder || '',
+      accountNumber: user.bankDetails?.accountNumber || '',
+    };
+    profile.paymentQrImage = user.paymentQrImage || '';
+  }
+  return profile;
+};
+
+// GET /api/auth/profile
+const getProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+    res.json({ success: true, profile: formatProfile(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/auth/profile — admins may also set payment details shown to buyers
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+
+    const { displayName, whatsappNumber, contactNumber, facebookUrl, bankDetails, paymentQrImage } = req.body;
+
+    if (displayName !== undefined) {
+      const name = String(displayName).trim();
+      if (name.length < 2 || name.length > 50) {
+        return res.status(400).json({ success: false, error: 'Display name must be 2–50 characters.' });
+      }
+      user.displayName = name;
+    }
+    if (whatsappNumber !== undefined) user.whatsappNumber = String(whatsappNumber).trim();
+    if (contactNumber !== undefined) user.contactNumber = String(contactNumber).trim();
+
+    if (isPrivilegedRole(user.role)) {
+      if (facebookUrl !== undefined) user.facebookUrl = String(facebookUrl).trim();
+      if (bankDetails !== undefined && bankDetails !== null) {
+        const pick = (key) => String(bankDetails[key] ?? '').trim().slice(0, 120);
+        user.bankDetails = {
+          bankName: pick('bankName'),
+          branch: pick('branch'),
+          accountHolder: pick('accountHolder'),
+          accountNumber: pick('accountNumber'),
+        };
+      }
+      if (paymentQrImage !== undefined) {
+        const image = String(paymentQrImage || '');
+        if (image && (image.length > MAX_QR_IMAGE_CHARS || !QR_IMAGE_PATTERN.test(image))) {
+          return res.status(400).json({ success: false, error: 'QR image must be a PNG, JPG or WEBP under 300 KB.' });
+        }
+        user.paymentQrImage = image;
+      }
+    }
+
+    await user.save({ validateBeforeSave: true });
+    res.json({ success: true, profile: formatProfile(user), user: { id: user._id, email: user.email, displayName: user.displayName, role: user.role, plan: user.plan, matchCredits: user.matchCredits, whatsappNumber: user.whatsappNumber } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/auth/password
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id).select('+passwordHash');
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, error: 'Current password is incorrect.' });
+    }
+    if (await user.comparePassword(newPassword)) {
+      return res.status(400).json({ success: false, error: 'New password must be different from the current password.' });
+    }
+
+    user.passwordHash = newPassword; // pre-save hook hashes this
+    await user.save({ validateBeforeSave: false });
+    res.json({ success: true, message: 'Password changed successfully.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, login, getMe, getProfile, updateProfile, changePassword };

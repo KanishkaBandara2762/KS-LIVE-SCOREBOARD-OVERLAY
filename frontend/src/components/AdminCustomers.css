@@ -324,3 +324,10 @@ code {
   font-size: 0.75rem;
   color: #f472b6;
 }
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}

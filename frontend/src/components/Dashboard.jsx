@@ -1034,6 +1034,9 @@ const Dashboard = () => {
           <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }}>
             🏆 Create Tournament
           </button>
+          <button className="btn-create-match" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(148,163,184,0.45)' }}>
+            ⚙ Account
+          </button>
           <button className="btn-logout" onClick={handleLogout}>Sign Out</button>
         </div>
       </header>

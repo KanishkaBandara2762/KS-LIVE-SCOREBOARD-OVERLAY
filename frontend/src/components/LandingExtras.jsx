@@ -110,7 +110,7 @@ export function ModernFooter() {
                 <div className="footer-col developer-info">
                     <h4>About the Developer</h4>
                     <p className="dev-name"><strong>A.G.K.S. Bandara</strong></p>
-                    <p className="dev-title">Software Engineer</p>
+                    <p className="dev-title">Owner</p>
                     <div className="contact-details">
                         <p><span>📞</span> 0719574089 / 0789577089</p>
                         <p><span>📍</span> 121/1, Pamunuwa, Pilimathalawa, Kandy, Sri Lanka.</p>
@@ -129,7 +129,7 @@ export function ModernFooter() {
             
             <div className="footer-bottom">
                 <p><strong>© {new Date().getFullYear()} KS Live Broadcasting. All Rights Reserved.</strong></p>
-                <p className="dev-credit">Developed and Maintained by A.G.K.S. Bandara.</p>
+                <p className="dev-credit">Software Engineer: H.P.N.I.Herath</p>
             </div>
         </footer>
     );

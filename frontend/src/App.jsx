@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import { LanguageProvider } from "./i18n/LanguageContext";
+import AccountSettings from "./components/AccountSettings";
 
 // ── Scoreboard components ────────────────────────────────────────────────
 import AdminPanel from "./components/AdminPanel";
@@ -82,6 +83,11 @@ function App() {
             {/* Dashboard — match list (redirects here after login) */}
             <Route path="/dashboard" element={
               <PrivateRoute><Dashboard /></PrivateRoute>
+            } />
+
+            {/* Account settings — users and admins */}
+            <Route path="/account" element={
+              <PrivateRoute><AccountSettings /></PrivateRoute>
             } />
 
             {/* Admin Panel — per-match, requires login */}

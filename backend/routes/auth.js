@@ -7,7 +7,7 @@
 
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getMe } = require('../controllers/authController');
+const { register, login, getMe, getProfile, updateProfile, changePassword } = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 
@@ -43,5 +43,34 @@ router.post(
 
 // ── GET /me (protected) ────────────────────────────────────────────────────
 router.get('/me', authMiddleware, getMe);
+
+// ── Account settings (protected) ───────────────────────────────────────────
+router.get('/profile', authMiddleware, getProfile);
+
+router.put(
+  '/profile',
+  authMiddleware,
+  [
+    body('displayName').optional().isString().withMessage('Display name must be text.'),
+    body('whatsappNumber').optional().isString().isLength({ max: 30 }).withMessage('WhatsApp number is too long.'),
+    body('contactNumber').optional().isString().isLength({ max: 30 }).withMessage('Contact number is too long.'),
+    body('facebookUrl').optional().isString().isLength({ max: 200 }).withMessage('Facebook link is too long.'),
+    body('bankDetails').optional().isObject().withMessage('Bank details must be an object.'),
+    body('paymentQrImage').optional().isString().withMessage('QR image must be an image.'),
+    validate,
+  ],
+  updateProfile
+);
+
+router.put(
+  '/password',
+  authMiddleware,
+  [
+    body('currentPassword').notEmpty().withMessage('Current password is required.'),
+    body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters.'),
+    validate,
+  ],
+  changePassword
+);
 
 module.exports = router;

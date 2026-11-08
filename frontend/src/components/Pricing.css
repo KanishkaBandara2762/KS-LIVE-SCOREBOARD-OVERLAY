@@ -465,3 +465,23 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
 }
+
+/* Back link + theme toggle in the plans header */
+.pricing-back {
+  position: absolute;
+  left: 24px;
+  top: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.pricing-back:hover {
+  opacity: 1;
+}
+
+.pricing-header {
+  position: relative;
+}

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getToken } from '../api';
 import AdminPlans from './AdminPlans';
+import { useNavigate } from 'react-router-dom';
 import './AdminCustomers.css';
 
 const AdminCustomers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [payments, setPayments] = useState([]);
   const [globalMatches, setGlobalMatches] = useState([]);
@@ -172,9 +174,12 @@ const AdminCustomers = () => {
     <div className="admin-container">
       <div className="admin-header-bar">
         <h1>Admin SaaS Dashboard</h1>
-        <button onClick={exportToCSV} className="btn-export">
-          📊 Export Payments (CSV)
-        </button>
+        <div className="admin-header-actions">
+          <button onClick={() => navigate('/account')} className="btn-export">⚙ Account</button>
+          <button onClick={exportToCSV} className="btn-export">
+            📊 Export Payments (CSV)
+          </button>
+        </div>
       </div>
 
       {/* ── Executive Metrics Ribbon ── */}

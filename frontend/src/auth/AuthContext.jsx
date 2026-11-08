@@ -72,6 +72,15 @@ export function AuthProvider({ children }) {
     setCurrentUser(null);
   }, []);
 
+  // ── Merge updated profile fields (e.g. after account settings are saved) ───
+  const updateCurrentUser = useCallback((partial) => {
+    setCurrentUser((prev) => {
+      const next = { ...(prev || {}), ...partial };
+      setStoredUser(next);
+      return next;
+    });
+  }, []);
+
   // ── Stub: these were Firebase-specific, kept for compatibility ─────────────
   const sendVerification = useCallback(() => Promise.resolve(), []);
   const resetPassword    = useCallback(() => Promise.resolve(), []);
@@ -83,6 +92,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    updateCurrentUser,
     sendVerification,
     resetPassword,
     reloadUser,

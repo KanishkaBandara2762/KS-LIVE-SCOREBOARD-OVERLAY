@@ -321,8 +321,40 @@ const handleWebhook = async (req, res) => {
   }
 };
 
+// ── GET /api/subscriptions/owner-contact (public) ─────────────────────────
+// Public payment/contact details of the owner account, shown on the Plans page.
+const getOwnerContact = async (req, res, next) => {
+  try {
+    const owner =
+      (await User.findOne({ role: 'superadmin' }).sort({ createdAt: 1 })) ||
+      (await User.findOne({ role: 'admin' }).sort({ createdAt: 1 }));
+    if (!owner) {
+      return res.json({ success: true, owner: null });
+    }
+    res.json({
+      success: true,
+      owner: {
+        displayName: owner.displayName,
+        contactNumber: owner.contactNumber || '',
+        whatsappNumber: owner.whatsappNumber || '',
+        facebookUrl: owner.facebookUrl || '',
+        bankDetails: {
+          bankName: owner.bankDetails?.bankName || '',
+          branch: owner.bankDetails?.branch || '',
+          accountHolder: owner.bankDetails?.accountHolder || '',
+          accountNumber: owner.bankDetails?.accountNumber || '',
+        },
+        paymentQrImage: owner.paymentQrImage || '',
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getPlans,
+  getOwnerContact,
   createCheckoutSession,
   getRemainingTime,
   cancelSubscription,

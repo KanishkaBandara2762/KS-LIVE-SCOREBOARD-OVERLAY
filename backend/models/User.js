@@ -93,6 +93,28 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    // Owner/admin contact and payment details shown to buyers on the Plans page.
+    contactNumber: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    facebookUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    bankDetails: {
+      bankName: { type: String, default: '', trim: true },
+      branch: { type: String, default: '', trim: true },
+      accountHolder: { type: String, default: '', trim: true },
+      accountNumber: { type: String, default: '', trim: true },
+    },
+    // Payment QR code image stored as a small data URL (no file-system uploads).
+    paymentQrImage: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

@@ -81,6 +81,13 @@ export const authApi = {
   me:       ()     => apiRequest('/api/auth/me'),
 };
 
+// ── Account settings API ────────────────────────────────────────────────────
+export const accountApi = {
+  getProfile:     ()     => apiRequest('/api/auth/profile'),
+  updateProfile:  (body) => apiRequest('/api/auth/profile', { method: 'PUT', body: JSON.stringify(body) }),
+  changePassword: (body) => apiRequest('/api/auth/password', { method: 'PUT', body: JSON.stringify(body) }),
+};
+
 // ── Matches API ──────────────────────────────────────────────────────────────
 export const matchesApi = {
   list:   ()              => apiRequest('/api/matches'),
@@ -155,6 +162,7 @@ export async function ensureBroadcastLink({ matchId, tournamentId, locked }) {
 
 export const subscriptionsApi = {
   getPlans: () => apiRequest('/api/subscriptions/plans'),
+  getOwnerContact: () => apiRequest('/api/subscriptions/owner-contact'),
   getRemainingTime: () => apiRequest('/api/subscriptions/remaining-time'),
   checkout: (planId) => apiRequest('/api/subscriptions/checkout', { method: 'POST', body: JSON.stringify({ planId }) }),
   cancel: () => apiRequest('/api/subscriptions/cancel', { method: 'POST' }),
