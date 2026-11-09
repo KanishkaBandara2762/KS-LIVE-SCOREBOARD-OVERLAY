@@ -467,10 +467,11 @@
 }
 
 /* Back link + theme toggle in the plans header */
+/* Own row at the top-left, above the centred heading, so it never overlaps it */
 .pricing-back {
-  position: absolute;
-  left: 24px;
-  top: 24px;
+  display: block;
+  width: fit-content;
+  margin: 0 0 14px 0;
   font-size: 13px;
   font-weight: 600;
   color: inherit;
