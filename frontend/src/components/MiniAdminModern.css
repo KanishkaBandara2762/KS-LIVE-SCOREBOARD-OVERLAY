@@ -246,7 +246,12 @@
   gap: 10px;
 }
 
-.ma-pad-keys .ma-big-btn { min-height: 54px; font-size: 19px; }
+/* Calculator-style keys: narrow portrait rectangles, centred in their column */
+.ma-pad-keys {
+  grid-template-columns: repeat(3, minmax(0, 70px));
+  justify-content: center;
+}
+.ma-pad-keys .ma-big-btn { width: 100%; min-height: 54px; font-size: 19px; }
 
 .ma-pad-undo {
   grid-column: 1 / -1;

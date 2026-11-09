@@ -123,9 +123,6 @@ export default function LoginPage() {
           </button>
         </Link>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>
-          🔒 KS Live — Secured with JWT
-        </p>
       </div>
     </div>
   );

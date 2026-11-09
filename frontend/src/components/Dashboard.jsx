@@ -785,6 +785,7 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
 
 // ── Tournament Card ───────────────────────────────────────────────────────
 function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, isObsActive = true }) {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
   const [obs, setObs] = useState({ expiresAt: tournament.broadcastExpiresAt ?? null, locked: !!tournament.broadcastLocked });
@@ -845,7 +846,7 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
       <div className="match-card-actions">
         {tournament.currentMatchId ? (
           <>
-            <button className="btn-open" onClick={() => window.open(`/mini-admin/${tournament.currentMatchId.matchId}`, 'KS_Mini', 'width=480,height=850,resizable=yes')}>
+            <button className="btn-open" onClick={() => navigate(`/mini-admin/${tournament.currentMatchId.matchId}`)}>
               🎮 Score Live Match
             </button>
             <button className="btn-overlay" onClick={async () => { const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked }); if (!res) return; setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false }); window.open(`/overlay/tournament/${tournament.id || tournament._id}`, '_blank'); }}>
