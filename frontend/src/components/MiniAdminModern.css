@@ -322,3 +322,172 @@
   opacity: 0.75;
   line-height: 1.1;
 }
+
+/* ── Scoring console v2: keypad, full-width wicket, extras panel, controls ── */
+.ma-pad-keys {
+  grid-template-columns: repeat(3, minmax(0, 76px));
+  gap: 10px;
+  justify-content: center;
+}
+
+.ma-pad-keys .ma-big-btn {
+  width: 100%;
+  min-height: 62px;
+  padding: 6px 4px;
+  border-radius: 16px;
+  font-size: 26px;
+  font-weight: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ma-pad-keys .ma-big-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.ma-pad-keys .ma-big-btn:active { transform: scale(0.93); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35); }
+
+.ma-pad-keys .ma-key-sub {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.ma-pad-keys .ma-pad-undo {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  gap: 10px;
+  min-height: 46px !important;
+  font-size: 14px !important;
+  letter-spacing: 0.05em;
+}
+
+.ma-pad-keys .ma-pad-undo .ma-key-sub { font-size: 9px; }
+
+/* Wicket: full-width, red, the most prominent action */
+.ma-wicket-full {
+  width: 100%;
+  min-height: 58px;
+  margin: 10px 0 12px;
+  border-radius: 16px !important;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  background: linear-gradient(135deg, #ef4444, #991b1b) !important;
+  color: #fff !important;
+  border: 1px solid rgba(248, 113, 113, 0.45) !important;
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+
+.ma-wicket-full:hover { filter: brightness(1.08); }
+.ma-wicket-full:active { transform: scale(0.97); }
+.ma-wicket-icon { font-size: 20px; }
+.ma-wicket-hint {
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* Extras: compact side column, expandable panel for the rest */
+.ma-pad-side .ma-extra-btn {
+  min-height: 0;
+  border-radius: 12px;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+
+.ma-pad-side .ma-extra-btn:hover { filter: brightness(1.12); }
+.ma-pad-side .ma-extra-btn:active { transform: scale(0.95); }
+
+.ma-more-toggle {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(148, 163, 184, 0.28);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ma-more-toggle:hover { background: rgba(30, 41, 59, 0.85); border-color: rgba(96, 165, 250, 0.45); }
+.ma-more-toggle-chevron { transition: transform 0.2s ease; }
+.ma-more-toggle.is-open .ma-more-toggle-chevron { transform: rotate(180deg); }
+
+/* Match actions: one consistent row */
+.ma-control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ma-control-row .ma-ctrl-btn {
+  min-height: 46px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+
+.ma-control-row .ma-ctrl-btn:hover { filter: brightness(1.1); }
+.ma-control-row .ma-ctrl-btn:active { transform: scale(0.96); }
+
+.ma-big-btn:focus-visible,
+.ma-wicket-full:focus-visible,
+.ma-more-toggle:focus-visible,
+.ma-control-row .ma-ctrl-btn:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Phones: keep the keypad within the screen width */
+@media (max-width: 380px) {
+  .ma-pad-keys { grid-template-columns: repeat(3, minmax(0, 68px)); gap: 8px; }
+  .ma-pad-keys .ma-big-btn { min-height: 56px; font-size: 22px; }
+}
+
+/* Tablet and desktop: larger keys, still narrower than tall */
+@media (min-width: 768px) {
+  .ma-pad-keys { grid-template-columns: repeat(3, minmax(0, 92px)); gap: 12px; }
+  .ma-pad-keys .ma-big-btn { min-height: 72px; font-size: 30px; }
+  .ma-wicket-full { min-height: 64px; font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ma-pad-keys .ma-big-btn,
+  .ma-wicket-full,
+  .ma-more-toggle,
+  .ma-more-toggle-chevron { transition: none !important; }
+}

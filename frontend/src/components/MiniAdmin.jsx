@@ -69,6 +69,7 @@ const MiniAdmin = () => {
 
     // ── Run Out State ─────────────────────────────────────────────
     const [showRunOutPanel, setShowRunOutPanel] = useState(false);
+    const [showMoreExtras, setShowMoreExtras] = useState(false);
     const [runOutRuns, setRunOutRuns] = useState(0);
     const [runOutPlayer, setRunOutPlayer] = useState('striker');
     const [showLivePreview, setShowLivePreview] = useState(false);
@@ -1178,7 +1179,6 @@ const MiniAdmin = () => {
                                 <button className="ma-big-btn ma-btn-undo ma-pad-undo" onClick={handleUndo}>↶ UNDO (U)<small className="ma-key-sub">remove last ball</small></button>
                             </div>
                             <div className="ma-pad-side">
-                                <button className="ma-wicket-btn" onClick={() => debounce(() => setShowWicketPanel(true))}>⚡ WICKET (W)<small className="ma-key-sub">batter out</small></button>
                                 {match.extrasConfig?.wd !== false && (
                                     <button className="ma-extra-btn ma-btn-wd" onClick={() => debounce(() => addExtra('WD', 0))}>WD<small className="ma-key-sub">wide</small></button>
                                 )}
@@ -1194,7 +1194,23 @@ const MiniAdmin = () => {
                             </div>
                         </div>
 
-                        {/* More extras: only the variants not already on the pad */}
+                        {/* Full-width wicket: the strongest action on the console */}
+                        <button className="ma-wicket-btn ma-wicket-full" onClick={() => debounce(() => setShowWicketPanel(true))}>
+                            <span className="ma-wicket-icon" aria-hidden="true">⚡</span>
+                            <span className="ma-wicket-text">WICKET</span>
+                            <small className="ma-wicket-hint">batter out · W</small>
+                        </button>
+
+                        {/* More extras: expandable panel for the less common variants */}
+                        <button
+                            className={`ma-more-toggle${showMoreExtras ? ' is-open' : ''}`}
+                            aria-expanded={showMoreExtras}
+                            onClick={() => setShowMoreExtras(v => !v)}
+                        >
+                            <span>{showMoreExtras ? 'Hide extra runs' : 'More extra runs'}</span>
+                            <span className="ma-more-toggle-chevron" aria-hidden="true">▾</span>
+                        </button>
+                        {showMoreExtras && (
                         <div className="ma-more-extras">
                             {match.extrasConfig?.wd !== false && (
 <div className="ma-more-row">
@@ -1221,12 +1237,13 @@ const MiniAdmin = () => {
                                 </div>
                             )}
                         </div>
+                        )}
 
 
                         {/* Control row */}
                         <div className="ma-control-row">
-                            <button className="ma-ctrl-btn ma-btn-swap" onClick={swapStrike}>↔ SWAP (S)</button>
-                            <button className="ma-ctrl-btn ma-btn-ro" onClick={() => setShowRunOutPanel(v => !v)}>🏃 RUN OUT</button>
+                            <button className="ma-ctrl-btn ma-btn-swap" onClick={swapStrike}><span aria-hidden="true">⇄</span> SWAP BATSMEN (S)</button>
+                            <button className="ma-ctrl-btn ma-btn-ro" onClick={() => setShowRunOutPanel(v => !v)}><span aria-hidden="true">🏃</span> RUN OUT</button>
                         </div>
 
                         {/* Run Out Panel (inline) */}
