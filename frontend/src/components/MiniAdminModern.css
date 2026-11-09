@@ -246,7 +246,7 @@
   gap: 10px;
 }
 
-.ma-pad-keys .ma-big-btn { min-height: 64px; font-size: 22px; }
+.ma-pad-keys .ma-big-btn { min-height: 54px; font-size: 19px; }
 
 .ma-pad-undo {
   grid-column: 1 / -1;
