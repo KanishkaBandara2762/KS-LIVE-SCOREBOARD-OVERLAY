@@ -269,36 +269,42 @@
 .ma-pad-side .ma-wicket-btn { flex: 1.6; }
 
 /* More extras: one row per extra type, compact chips */
+/* Four parallel columns (WD, NB, LB, BYE). Each column holds its chips in a
+   compact 2-wide grid so the whole block stays short and fits one screen. */
 .ma-more-extras {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+  margin-bottom: 10px;
   border-radius: 14px;
   background: rgba(2, 6, 23, 0.45);
   border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .ma-more-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+  align-content: start;
 }
 
 .ma-more-label {
-  min-width: 56px;
-  font-size: 11px;
+  grid-column: 1 / -1;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
+  text-align: center;
   color: var(--ma-muted, #94a3b8);
 }
 
 .ma-more-row .ma-extra-btn {
-  flex: 1 1 56px;
-  min-height: 40px;
-  padding: 0 10px;
+  min-height: 32px;
+  padding: 0 2px;
+  font-size: 13px;
+  border-radius: 10px;
+  min-width: 0;
 }
 
 /* Small descriptions under key labels (e.g. WD = wide) */
