@@ -1167,6 +1167,7 @@ const MiniAdmin = () => {
 
 {/* Scoring pad: runs + undo on the left, wicket and extras parallel on the right */}
                         <div className="ma-section-label">SCORING</div>
+                        <div className="ma-score-row">
                         <div className="ma-pad">
                             <div className="ma-pad-keys">
                                 <button className="ma-big-btn ma-btn-dot" onClick={() => debounce(() => addRun(0))}>•<small className="ma-key-sub">dot ball</small></button>
@@ -1174,7 +1175,6 @@ const MiniAdmin = () => {
                                 <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(2))}>2<small className="ma-key-sub">two runs</small></button>
                                 <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(3))}>3<small className="ma-key-sub">three runs</small></button>
                                 <button className="ma-big-btn ma-btn-four" onClick={() => debounce(() => addBoundary(4))}>4<small className="ma-key-sub">boundary</small></button>
-                                <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(5))}>5<small className="ma-key-sub">five runs</small></button>
                                 <button className="ma-big-btn ma-btn-six" onClick={() => debounce(() => addBoundary(6))}>6<small className="ma-key-sub">maximum</small></button>
                                 <button className="ma-big-btn ma-btn-undo ma-pad-undo" onClick={handleUndo}>↶ UNDO (U)<small className="ma-key-sub">remove last ball</small></button>
                             </div>
@@ -1194,6 +1194,7 @@ const MiniAdmin = () => {
                             </div>
                         </div>
 
+                        <div className="ma-score-actions">
                         {/* Full-width wicket: the strongest action on the console */}
                         <button className="ma-wicket-btn ma-wicket-full" onClick={() => debounce(() => setShowWicketPanel(true))}>
                             <span className="ma-wicket-icon" aria-hidden="true">⚡</span>
@@ -1210,6 +1211,8 @@ const MiniAdmin = () => {
                             <span>{showMoreExtras ? 'Hide extra runs' : 'More extra runs'}</span>
                             <span className="ma-more-toggle-chevron" aria-hidden="true">▾</span>
                         </button>
+                        </div>
+                        </div>
                         {showMoreExtras && (
                         <div className="ma-more-extras">
                             {match.extrasConfig?.wd !== false && (
