@@ -52,10 +52,14 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(email.trim(), password, displayName.trim());
-      // JWT is now stored by AuthContext — go straight to dashboard
-      navigate('/dashboard');
+      const res = await register(email.trim(), password, displayName.trim());
+      navigate('/verify-email', { state: { email: res.email } });
     } catch (err) {
+      // Account was created but the email failed: the verify screen can resend.
+      if (err.code === 'EMAIL_SEND_FAILED') {
+        navigate('/verify-email', { state: { email: err.email || email.trim(), notice: err.message } });
+        return;
+      }
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);

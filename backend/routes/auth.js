@@ -7,8 +7,21 @@
 
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getMe, getProfile, updateProfile, changePassword } = require('../controllers/authController');
+const {
+  register,
+  verifyEmail,
+  resendOtp,
+  requestPasswordReset,
+  verifyPasswordResetCode,
+  resetPassword,
+  login,
+  getMe,
+  getProfile,
+  updateProfile,
+  changePassword,
+} = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
+const otpRateLimit = require('../middleware/otpRateLimit');
 const { validate } = require('../middleware/validate');
 
 const router = express.Router();
@@ -28,6 +41,63 @@ router.post(
     validate,
   ],
   register
+);
+
+// ── POST /verify-email (signup OTP) ────────────────────────────────────────
+router.post(
+  '/verify-email',
+  otpRateLimit,
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email.'),
+    body('code').matches(/^\d{6}$/).withMessage('Enter the 6-digit code.'),
+    validate,
+  ],
+  verifyEmail
+);
+
+// ── POST /resend-otp ───────────────────────────────────────────────────────
+router.post(
+  '/resend-otp',
+  otpRateLimit,
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email.'),
+    validate,
+  ],
+  resendOtp
+);
+
+// ── Forgot password (OTP) ──────────────────────────────────────────────────
+router.post(
+  '/forgot-password',
+  otpRateLimit,
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email.'),
+    validate,
+  ],
+  requestPasswordReset
+);
+
+router.post(
+  '/forgot-password/verify',
+  otpRateLimit,
+  [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email.'),
+    body('code').matches(/^\d{6}$/).withMessage('Enter the 6-digit code.'),
+    validate,
+  ],
+  verifyPasswordResetCode
+);
+
+router.post(
+  '/forgot-password/reset',
+  otpRateLimit,
+  [
+    body('resetToken').isString().isLength({ min: 20, max: 2000 }).withMessage('Reset session is missing.'),
+    body('newPassword').isString().withMessage('New password is required.'),
+    body('confirmPassword').isString().withMessage('Please confirm your new password.'),
+    validate,
+  ],
+  resetPassword
 );
 
 // ── POST /login ────────────────────────────────────────────────────────────

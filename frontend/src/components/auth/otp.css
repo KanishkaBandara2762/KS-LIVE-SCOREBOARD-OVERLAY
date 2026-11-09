@@ -1,0 +1,82 @@
+/* OTP verification styles. Colours match auth.css (teal → blue accent). */
+
+.otp-input-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 6px 0 4px;
+}
+
+.otp-box {
+    width: 48px;
+    height: 58px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(15, 23, 42, 0.6);
+    color: #f1f5f9;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    outline: none;
+    caret-color: #00d2be;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.otp-box:focus {
+    border-color: #00d2be;
+    box-shadow: 0 0 0 3px rgba(0, 210, 190, 0.18);
+    transform: translateY(-1px);
+}
+
+.otp-box:disabled {
+    opacity: 0.6;
+}
+
+.otp-input-group--error .otp-box {
+    border-color: rgba(255, 80, 80, 0.6);
+}
+
+.otp-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.otp-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #00d2be;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.otp-link-btn:disabled {
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.otp-email {
+    color: #e2e8f0;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+@media (max-width: 420px) {
+    .otp-input-group {
+        gap: 6px;
+    }
+
+    .otp-box {
+        width: 40px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+}

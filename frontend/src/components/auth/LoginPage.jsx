@@ -31,6 +31,10 @@ export default function LoginPage() {
       await login(email.trim(), password);
       navigate(from, { replace: true });
     } catch (err) {
+      if (err.code === 'EMAIL_NOT_VERIFIED') {
+        navigate('/verify-email', { state: { email: err.email || email.trim() } });
+        return;
+      }
       // err.message comes from the API wrapper — already human-readable
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -50,6 +54,12 @@ export default function LoginPage() {
 
         <h1 className="auth-title">Welcome Back</h1>
         <p className="auth-subtitle">Sign in to your scorer account</p>
+
+        {location.state?.message && !error && (
+          <div className="auth-alert auth-alert-success">
+            <span style={{ flexShrink: 0 }}>✅</span> {location.state.message}
+          </div>
+        )}
 
         {error && (
           <div className="auth-alert auth-alert-error">

@@ -17,7 +17,8 @@ const signToken = (payload) => {
   if (!JWT_SECRET()) {
     throw new Error('JWT_SECRET is not configured.');
   }
-  return jwt.sign(payload, JWT_SECRET(), { expiresIn: JWT_EXPIRES_IN() });
+  // iatMs: millisecond issue time, used to revoke sessions after a password reset
+  return jwt.sign({ ...payload, iatMs: Date.now() }, JWT_SECRET(), { expiresIn: JWT_EXPIRES_IN() });
 };
 
 /**

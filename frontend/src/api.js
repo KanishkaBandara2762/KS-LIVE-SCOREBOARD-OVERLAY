@@ -46,6 +46,8 @@ async function apiRequest(path, options = {}) {
     const err = new Error(data.error || `Request failed: ${res.status}`);
     err.code = data.code;
     err.status = res.status;
+    err.retryAfterSeconds = data.retryAfterSeconds;
+    err.email = data.email;
     throw err;
   }
 
@@ -79,6 +81,11 @@ export const authApi = {
   register: (body) => apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   login:    (body) => apiRequest('/api/auth/login',    { method: 'POST', body: JSON.stringify(body) }),
   me:       ()     => apiRequest('/api/auth/me'),
+  verifyEmail: (body) => apiRequest('/api/auth/verify-email', { method: 'POST', body: JSON.stringify(body) }),
+  resendOtp:   (body) => apiRequest('/api/auth/resend-otp',   { method: 'POST', body: JSON.stringify(body) }),
+  forgotPassword:      (body) => apiRequest('/api/auth/forgot-password',        { method: 'POST', body: JSON.stringify(body) }),
+  verifyResetCode:     (body) => apiRequest('/api/auth/forgot-password/verify', { method: 'POST', body: JSON.stringify(body) }),
+  resetPassword:       (body) => apiRequest('/api/auth/forgot-password/reset',  { method: 'POST', body: JSON.stringify(body) }),
 };
 
 // ── Account settings API ────────────────────────────────────────────────────

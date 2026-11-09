@@ -37,6 +37,17 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Signup sets this to false until the email OTP is confirmed.
+    // Default is true so accounts created before OTP verification keep working.
+    emailVerified: {
+      type: Boolean,
+      default: true,
+    },
+    // Set when a password is reset. Tokens issued at or before this time are rejected.
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
     lastLogin: {
       type: Date,
       default: null,
