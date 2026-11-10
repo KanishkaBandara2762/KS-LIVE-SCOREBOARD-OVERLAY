@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Activity, Check, TriangleAlert } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { authApi } from '../../api';
@@ -67,7 +68,7 @@ export default function LoginPage() {
 
         {/* Branding */}
         <div className="auth-logo">
-          <div className="auth-logo-icon">🏏</div>
+          <div className="auth-logo-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <span className="auth-logo-text">KS Live</span>
         </div>
 
@@ -76,13 +77,13 @@ export default function LoginPage() {
 
         {location.state?.message && !error && (
           <div className="auth-alert auth-alert-success">
-            <span style={{ flexShrink: 0 }}>✅</span> {location.state.message}
+            <span style={{ flexShrink: 0 }}><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {location.state.message}
           </div>
         )}
 
         {error && (
           <div className="auth-alert auth-alert-error">
-            <span style={{ flexShrink: 0 }}>⚠️</span> {error}
+            <span style={{ flexShrink: 0 }}><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {error}
           </div>
         )}
 

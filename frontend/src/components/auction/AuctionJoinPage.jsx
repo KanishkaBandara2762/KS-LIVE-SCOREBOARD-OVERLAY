@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Handshake, Hourglass, TriangleAlert } from 'lucide-react';
 import { auctionApi } from '../../api';
 import './Auction.css';
 
@@ -37,7 +38,15 @@ export default function AuctionJoinPage() {
   return (
     <div className="auction-page auction-join-page">
       <div className="auction-panel auction-join-card">
-        <div className="auction-empty-icon">{loading ? '⏳' : error ? '⚠️' : '🤝'}</div>
+        <div className="auction-empty-icon">
+          {loading ? (
+            <Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
+          ) : error ? (
+            <TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
+          ) : (
+            <Handshake size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
+          )}
+        </div>
         {loading ? (
           <>
             <h1>Joining auction…</h1>

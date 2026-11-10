@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Activity, ArrowRight, TriangleAlert } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import './auth.css';
@@ -71,7 +72,7 @@ export default function RegisterPage() {
       <div className="auth-card">
 
         <div className="auth-logo">
-          <div className="auth-logo-icon">🏏</div>
+          <div className="auth-logo-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <span className="auth-logo-text">KS Live</span>
         </div>
 
@@ -80,7 +81,7 @@ export default function RegisterPage() {
 
         {error && (
           <div className="auth-alert auth-alert-error">
-            <span style={{ flexShrink: 0 }}>⚠️</span> {error}
+            <span style={{ flexShrink: 0 }}><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {error}
           </div>
         )}
 
@@ -158,7 +159,7 @@ export default function RegisterPage() {
 
           <button className="auth-btn" type="submit" disabled={loading} style={{ marginTop: '0.5rem' }}>
             {loading && <span className="auth-spinner" />}
-            {loading ? 'Creating Account…' : 'Create Account →'}
+            {loading ? 'Creating Account…' : <>Create Account <ArrowRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></>}
           </button>
         </form>
 

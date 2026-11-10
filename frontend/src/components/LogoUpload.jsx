@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { matchesApi } from '../api';
+import { Hourglass, Image, X } from 'lucide-react';
 
 const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
   const [dragging, setDragging] = useState(false);
@@ -133,11 +134,13 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
             background: 'rgba(255,255,255,0.06)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 18,
-          }}>🖼️</div>
+          }}><Image size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
         )}
         <div style={{ flex: 1 }}>
           <div style={{ color: '#fff', fontSize: 11, fontWeight: 600 }}>
-            {uploading ? '⏳ Uploading...' : dragging ? 'Drop to upload' : 'Click or drag logo'}
+            {uploading
+              ? <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Uploading...</>
+              : dragging ? 'Drop to upload' : 'Click or drag logo'}
           </div>
           <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>PNG, JPG, WebP, SVG (max 3MB)</div>
         </div>
@@ -150,7 +153,7 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
               color: '#fff', fontSize: 10, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
-            }}>✕</button>
+            }}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
         )}
       </div>
       {error && <div style={{ color: '#f87171', fontSize: 10, marginTop: 4 }}>{error}</div>}

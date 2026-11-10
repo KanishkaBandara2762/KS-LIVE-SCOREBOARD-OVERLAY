@@ -3,6 +3,7 @@ import { getToken } from '../api';
 import AdminPlans from './AdminPlans';
 import { useNavigate } from 'react-router-dom';
 import './AdminCustomers.css';
+import { Settings, Download, Zap, Globe, Eye, Trash2 } from 'lucide-react';
 
 const AdminCustomers = () => {
   const navigate = useNavigate();
@@ -175,9 +176,9 @@ const AdminCustomers = () => {
       <div className="admin-header-bar">
         <h1>Admin SaaS Dashboard</h1>
         <div className="admin-header-actions">
-          <button onClick={() => navigate('/account')} className="btn-export">⚙ Account</button>
+          <button onClick={() => navigate('/account')} className="btn-export"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account</button>
           <button onClick={exportToCSV} className="btn-export">
-            📊 Export Payments (CSV)
+            <Download size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Export Payments (CSV)
           </button>
         </div>
       </div>
@@ -241,7 +242,7 @@ const AdminCustomers = () => {
                     </select>
 
                     <button onClick={() => handleActivatePlan(u.id || u._id)} className="btn-small bg-green">
-                      ⚡ Activate Plan
+                      <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Activate Plan
                     </button>
 
                     <button onClick={() => handleAddCredits(u.id || u._id)} className="btn-small bg-blue">
@@ -290,7 +291,7 @@ const AdminCustomers = () => {
       </div>
 
       <div className="admin-section">
-        <h2>🌐 Live Matches Across Platform</h2>
+        <h2><Globe size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Live Matches Across Platform</h2>
         <table className="admin-table">
           <thead>
             <tr>
@@ -321,10 +322,10 @@ const AdminCustomers = () => {
                     onClick={() => window.open(`/overlay/${m.matchId}`, '_blank')}
                     className="btn-small bg-blue"
                   >
-                    👁 View OBS
+                    <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> View OBS
                   </button>
                   <button onClick={() => handleDeleteMatch(m.matchId)} className="btn-small bg-red" style={{ marginLeft: '6px' }}>
-                    🗑 Delete
+                    <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Delete
                   </button>
                 </td>
               </tr>

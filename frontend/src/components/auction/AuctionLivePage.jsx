@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, BarChart3, Hourglass, Mic } from 'lucide-react';
 import { auctionApi } from '../../api';
 import {
   Countdown,
@@ -150,7 +151,7 @@ export default function AuctionLivePage() {
     <div className="auction-page auction-live-page">
       <header className="auction-header">
         <div className="auction-header-title">
-          <button className="auction-back" onClick={() => navigate('/auctions')}>← Auctions</button>
+          <button className="auction-back" onClick={() => navigate('/auctions')}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions</button>
           <div>
             <span className="auction-eyebrow">LIVE BID ROOM</span>
             <h1>{auction.name}</h1>
@@ -163,9 +164,9 @@ export default function AuctionLivePage() {
         </div>
         <div className="auction-header-actions">
           {role === 'auctioneer' || role === 'admin' ? (
-            <button className="auction-btn primary" onClick={() => navigate(`/auctions/${id}/control`)}>🎙 Control room</button>
+            <button className="auction-btn primary" onClick={() => navigate(`/auctions/${id}/control`)}><Mic size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Control room</button>
           ) : null}
-          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/results`)}>📊 Results</button>
+          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/results`)}><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Results</button>
         </div>
       </header>
 
@@ -249,7 +250,7 @@ export default function AuctionLivePage() {
             </>
           ) : (
             <div className="auction-lot-empty">
-              <div className="auction-empty-icon">⏳</div>
+              <div className="auction-empty-icon"><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
               <h2>{auction.status === 'live' ? 'Waiting for the next lot' : `Auction ${statusLabel(auction.status)}`}</h2>
               <p>
                 {auction.status === 'live'

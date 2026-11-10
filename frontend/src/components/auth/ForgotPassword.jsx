@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Activity, ArrowLeft, Check, TriangleAlert } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authApi } from "../../api";
 import OtpInput from "./OtpInput";
@@ -122,18 +123,18 @@ export default function ForgotPassword() {
             <div className="auth-card">
 
                 <div className="auth-logo">
-                    <div className="auth-logo-icon">🏏</div>
+                    <div className="auth-logo-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                     <span className="auth-logo-text">KS Live</span>
                 </div>
 
                 {notice && (
                     <div className="auth-alert auth-alert-success">
-                        <span style={{ flexShrink: 0 }}>✅</span> {notice}
+                        <span style={{ flexShrink: 0 }}><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {notice}
                     </div>
                 )}
                 {error && (
                     <div className="auth-alert auth-alert-error" role="alert">
-                        <span style={{ flexShrink: 0 }}>⚠️</span> {error}
+                        <span style={{ flexShrink: 0 }}><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {error}
                     </div>
                 )}
 
@@ -242,9 +243,9 @@ export default function ForgotPassword() {
                                 </div>
                             </div>
                             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px", fontSize: "0.8rem", color: "#94a3b8", lineHeight: 1.8 }}>
-                                <li style={{ color: rules.length ? "#00d2be" : undefined }}>{rules.length ? "✓" : "•"} 8–128 characters</li>
-                                <li style={{ color: rules.letter ? "#00d2be" : undefined }}>{rules.letter ? "✓" : "•"} At least one letter</li>
-                                <li style={{ color: rules.number ? "#00d2be" : undefined }}>{rules.number ? "✓" : "•"} At least one number</li>
+                                <li style={{ color: rules.length ? "#00d2be" : undefined }}>{rules.length ? <Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> : "•"} 8–128 characters</li>
+                                <li style={{ color: rules.letter ? "#00d2be" : undefined }}>{rules.letter ? <Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> : "•"} At least one letter</li>
+                                <li style={{ color: rules.number ? "#00d2be" : undefined }}>{rules.number ? <Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> : "•"} At least one number</li>
                             </ul>
                             <button className="auth-btn" type="submit" disabled={loading}>
                                 {loading && <span className="auth-spinner" />}
@@ -262,7 +263,7 @@ export default function ForgotPassword() {
 
                 <Link to="/login" style={{ display: "block" }}>
                     <button className="auth-btn auth-btn-ghost" type="button" style={{ width: "100%", fontSize: "0.87rem" }}>
-                        ← Back to Login
+                        <ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Back to Login
                     </button>
                 </Link>
 

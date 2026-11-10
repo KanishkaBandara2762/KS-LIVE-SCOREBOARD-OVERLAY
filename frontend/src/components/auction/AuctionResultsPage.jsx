@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowDown, ArrowLeft, Mic, Printer } from 'lucide-react';
 import { auctionApi } from '../../api';
 import { formatMoney, statusLabel } from './auctionShared';
 import './Auction.css';
@@ -94,7 +95,7 @@ export default function AuctionResultsPage() {
     <div className="auction-page">
       <header className="auction-header">
         <div className="auction-header-title">
-          <button className="auction-back" onClick={() => navigate('/auctions')}>← Auctions</button>
+          <button className="auction-back" onClick={() => navigate('/auctions')}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions</button>
           <div>
             <span className="auction-eyebrow">AUCTION RESULTS</span>
             <h1>{auction.name}</h1>
@@ -102,9 +103,9 @@ export default function AuctionResultsPage() {
           </div>
         </div>
         <div className="auction-header-actions">
-          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/control`)}>🎙 Control room</button>
-          <button className="auction-btn" onClick={exportCsv}>⬇ Export CSV</button>
-          <button className="auction-btn" onClick={() => window.print()}>🖨 Print</button>
+          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/control`)}><Mic size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Control room</button>
+          <button className="auction-btn" onClick={exportCsv}><ArrowDown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Export CSV</button>
+          <button className="auction-btn" onClick={() => window.print()}><Printer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Print</button>
         </div>
       </header>
 

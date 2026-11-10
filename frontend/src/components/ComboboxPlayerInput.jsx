@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { ChevronDown } from 'lucide-react';
 
 const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, className = "", squadOnly = false }) => {
   const { t } = useLanguage();
@@ -195,7 +196,7 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
           onClick={() => { inputRef.current?.focus(); setIsOpen(!isOpen); }}
           style={{ position: 'absolute', right: '4px' }}
         >
-          ▼
+          <ChevronDown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
         </div>
       </div>
 

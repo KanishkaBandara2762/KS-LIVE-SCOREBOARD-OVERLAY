@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./BroadcastTicker.css";
+import { Star, Zap } from "lucide-react";
 
 /**
  * BroadcastTicker
@@ -38,7 +39,11 @@ const BroadcastTicker = React.memo(({ matchId, tickerData }) => {
                     : "ticker-banner-custom";
 
     // Triple the text for seamless infinite scroll
-    const scrollText = `${ticker.message}     ★     ${ticker.message}     ★     ${ticker.message}     ★     `;
+    const scrollItems = [0, 1, 2].map((index) => (
+        <React.Fragment key={index}>
+            {ticker.message}     <Star size="1em" style={{ verticalAlign: '-0.125em' }} fill="currentColor" aria-hidden="true" />
+        </React.Fragment>
+    ));
 
     const animKey = ticker.timestamp || ticker.updatedAt || "ticker-default";
 
@@ -55,11 +60,11 @@ const BroadcastTicker = React.memo(({ matchId, tickerData }) => {
                     style={{ animationIterationCount: autoRepeat ? "infinite" : 1, animationFillMode: "forwards" }}
                     onAnimationEnd={handleAnimationEnd}
                 >
-                    {scrollText}
+                    {scrollItems}
                 </span>
             </div>
             {mode === "breaking" && (
-                <div className="ticker-breaking-badge">⚡ BREAKING</div>
+                <div className="ticker-breaking-badge"><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BREAKING</div>
             )}
         </div>
     );

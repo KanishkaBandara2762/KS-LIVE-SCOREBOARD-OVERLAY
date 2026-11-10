@@ -8,6 +8,7 @@
  */
 
 import React, { useState } from 'react';
+import { Activity, Check, Hand, X, Zap } from 'lucide-react';
 import { matchesApi } from '../api';
 
 const PENALTY_REASONS = [
@@ -29,6 +30,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
   const [reason, setReason] = useState('Other');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageOk, setMessageOk] = useState(false);
 
   const handleAward = async () => {
     if (!matchId) return;
@@ -37,11 +39,13 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
     try {
       const res = await matchesApi.awardPenaltyRuns(matchId, { runs, awardedTo, reason });
       if (res.success) {
-        setMessage(`✅ ${runs} penalty runs awarded to ${awardedTo} team.`);
+        setMessageOk(true);
+        setMessage(`${runs} penalty runs awarded to ${awardedTo} team.`);
         onConfirm?.(res);
       }
     } catch (err) {
-      setMessage(`❌ ${err.message}`);
+      setMessageOk(false);
+      setMessage(err.message);
     } finally {
       setLoading(false);
     }
@@ -50,7 +54,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
   return (
     <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ color: '#facc15', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
-        🏏 PENALTY RUNS
+        <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> PENALTY RUNS
       </div>
 
       {/* Award To */}
@@ -72,7 +76,9 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
               textTransform: 'uppercase',
             }}
           >
-            {side === 'batting' ? '🏏 Batting Team' : '🧤 Fielding Team'}
+            {side === 'batting'
+              ? <><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Batting Team</>
+              : <><Hand size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Fielding Team</>}
           </button>
         ))}
       </div>
@@ -133,7 +139,8 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
 
       {/* Message */}
       {message && (
-        <div style={{ fontSize: 12, color: message.startsWith('✅') ? '#4ade80' : '#f87171', padding: '4px 0' }}>
+        <div style={{ fontSize: 12, color: messageOk ? '#4ade80' : '#f87171', padding: '4px 0', display: 'inline-flex', gap: '0.35em', alignItems: 'center' }}>
+          {messageOk ? <Check size="1em" aria-hidden="true" /> : <X size="1em" aria-hidden="true" />}
           {message}
         </div>
       )}
@@ -155,7 +162,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
           letterSpacing: 1,
         }}
       >
-        {loading ? 'Awarding…' : `⚡ AWARD ${runs} PENALTY RUNS`}
+        {loading ? 'Awarding…' : <><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> AWARD {runs} PENALTY RUNS</>}
       </button>
     </div>
   );

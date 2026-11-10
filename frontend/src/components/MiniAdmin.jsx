@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { Activity, ArrowLeftRight, ArrowUpRight, Check, ChevronDown, ChevronRight, Circle, CircleDot, Clapperboard, ClipboardList, Coins, CornerUpLeft, Crown, Flag, Flame, Hospital, Hourglass, Info, PersonStanding, Pause, Pencil, Radio, RefreshCw, Rocket, Save, Settings, Sparkles, Target, Tv, TriangleAlert, Umbrella, X, Zap } from 'lucide-react';
 import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import './MiniAdmin.css';
@@ -46,7 +47,7 @@ const Section = React.memo(({ label, color, icon, open, onClick, children }) => 
     <div className={`ma-section ${open ? "ma-section-open" : ""}`}>
         <button className={`ma-section-header ma-sec-${color}`} onClick={onClick}>
             <span>{icon} {label}</span>
-            <span className="ma-chevron">{open ? "▾" : "▸"}</span>
+            <span className="ma-chevron">{open ? <ChevronDown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> : <ChevronRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}</span>
         </button>
         {open && <div className="ma-section-body">{children}</div>}
     </div>
@@ -1050,13 +1051,13 @@ const MiniAdmin = () => {
                         style={{ background: '#eab308', color: '#000', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
                         title="Configure Match Format & Rules"
                     >
-                        ⚙ RULES
+                        <Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RULES
                     </button>
                     <button 
                         onClick={() => window.open(`/control-room/${matchId}`, '_blank')}
                         style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
-                        DESKTOP CONTROL ROOM ↗
+                        DESKTOP CONTROL ROOM <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                     </button>
                     <LanguageSwitcher compact />
                     <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} compact />
@@ -1113,9 +1114,9 @@ const MiniAdmin = () => {
                                 }}
                             >
                                 <div className="ma-player-info">
-                                    <span className="ma-player-icon">🏏</span>
+                                    <span className="ma-player-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                                     <span className="ma-player-name">{striker?.name || 'SELECT STRIKER'}</span>
-                                    <span style={{ fontSize: '10px', color: '#facc15', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
+                                    <span style={{ fontSize: '10px', color: '#facc15', opacity: 0.8, marginLeft: '6px' }}><Pencil size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                                 </div>
                                 <span className="ma-player-stat">{striker?.runs ?? 0}({striker?.balls ?? 0})</span>
                             </div>
@@ -1131,9 +1132,9 @@ const MiniAdmin = () => {
                                 }}
                             >
                                 <div className="ma-player-info">
-                                    <span className="ma-player-icon" style={{ opacity: 0.5 }}>🏏</span>
+                                    <span className="ma-player-icon" style={{ opacity: 0.5 }}><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                                     <span className="ma-player-name" style={{ color: 'rgba(255,255,255,0.7)' }}>{nonStriker?.name || 'SELECT NON-STRIKER'}</span>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', opacity: 0.8, marginLeft: '6px' }}><Pencil size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                                 </div>
                                 <span className="ma-player-stat">{nonStriker?.runs ?? 0}({nonStriker?.balls ?? 0})</span>
                             </div>
@@ -1145,9 +1146,9 @@ const MiniAdmin = () => {
                                 onClick={() => setShowNewBowlerModal(true)}
                             >
                                 <div className="ma-player-info">
-                                    <span className="ma-player-icon">🎳</span>
+                                    <span className="ma-player-icon"><CircleDot size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                                     <span className="ma-player-name" style={{ color: '#a78bfa' }}>{match.bowler?.name || 'SELECT BOWLER'}</span>
-                                    <span style={{ fontSize: '10px', color: '#a78bfa', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
+                                    <span style={{ fontSize: '10px', color: '#a78bfa', opacity: 0.8, marginLeft: '6px' }}><Pencil size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                                 </div>
                                 <span className="ma-player-stat" style={{ color: '#c4b5fd' }}>{match.bowler?.figures || ''}</span>
                             </div>
@@ -1155,7 +1156,7 @@ const MiniAdmin = () => {
 
                         {/* Over alert */}
                         {legalBallCount > 0 && isOverReady && (
-                            <div className="ma-over-alert">⚠️ OVER COMPLETE — Click OVER DONE below!</div>
+                            <div className="ma-over-alert"><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVER COMPLETE — Click OVER DONE below!</div>
                         )}
 
                         {/* Chase alert */}
@@ -1176,7 +1177,7 @@ const MiniAdmin = () => {
                                 <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(3))}>3<small className="ma-key-sub">three runs</small></button>
                                 <button className="ma-big-btn ma-btn-four" onClick={() => debounce(() => addBoundary(4))}>4<small className="ma-key-sub">boundary</small></button>
                                 <button className="ma-big-btn ma-btn-six" onClick={() => debounce(() => addBoundary(6))}>6<small className="ma-key-sub">maximum</small></button>
-                                <button className="ma-big-btn ma-btn-undo ma-pad-undo" onClick={handleUndo}>↶ UNDO (U)<small className="ma-key-sub">remove last ball</small></button>
+                                <button className="ma-big-btn ma-btn-undo ma-pad-undo" onClick={handleUndo}><CornerUpLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> UNDO (U)<small className="ma-key-sub">remove last ball</small></button>
                             </div>
                             <div className="ma-pad-side">
                                 {match.extrasConfig?.wd !== false && (
@@ -1197,7 +1198,7 @@ const MiniAdmin = () => {
                         <div className="ma-score-actions">
                         {/* Full-width wicket: the strongest action on the console */}
                         <button className="ma-wicket-btn ma-wicket-full" onClick={() => debounce(() => setShowWicketPanel(true))}>
-                            <span className="ma-wicket-icon" aria-hidden="true">⚡</span>
+                            <span className="ma-wicket-icon" aria-hidden="true"><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                             <span className="ma-wicket-text">WICKET</span>
                             <small className="ma-wicket-hint">batter out · W</small>
                         </button>
@@ -1209,7 +1210,7 @@ const MiniAdmin = () => {
                             onClick={() => setShowMoreExtras(v => !v)}
                         >
                             <span>{showMoreExtras ? 'Hide extra runs' : 'More extra runs'}</span>
-                            <span className="ma-more-toggle-chevron" aria-hidden="true">▾</span>
+                            <span className="ma-more-toggle-chevron" aria-hidden="true"><ChevronDown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                         </button>
                         </div>
                         </div>
@@ -1245,14 +1246,14 @@ const MiniAdmin = () => {
 
                         {/* Control row */}
                         <div className="ma-control-row">
-                            <button className="ma-ctrl-btn ma-btn-swap" onClick={swapStrike}><span aria-hidden="true">⇄</span> SWAP BATSMEN (S)</button>
-                            <button className="ma-ctrl-btn ma-btn-ro" onClick={() => setShowRunOutPanel(v => !v)}><span aria-hidden="true">🏃</span> RUN OUT</button>
+                            <button className="ma-ctrl-btn ma-btn-swap" onClick={swapStrike}><span aria-hidden="true"><ArrowLeftRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> SWAP BATSMEN (S)</button>
+                            <button className="ma-ctrl-btn ma-btn-ro" onClick={() => setShowRunOutPanel(v => !v)}><span aria-hidden="true"><PersonStanding size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> RUN OUT</button>
                         </div>
 
                         {/* Run Out Panel (inline) */}
                         {showRunOutPanel && (
                             <div className="ma-runout-panel">
-                                <div className="ma-runout-title">🏃 RUN OUT</div>
+                                <div className="ma-runout-title"><PersonStanding size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RUN OUT</div>
                                 <div className="ma-runout-row">
                                     <div className="ma-runout-group">
                                         <div className="ma-runout-group-label">Runs scored</div>
@@ -1281,8 +1282,8 @@ const MiniAdmin = () => {
                                     </div>
                                 </div>
                                 <div className="ma-runout-actions">
-                                    <button className="ma-ro-cancel" onClick={() => setShowRunOutPanel(false)}>✕ CANCEL</button>
-                                    <button className="ma-ro-confirm" onClick={() => { debounce(() => handleRunOut()); setShowRunOutPanel(false); }}>✅ CONFIRM RUN OUT</button>
+                                    <button className="ma-ro-cancel" onClick={() => setShowRunOutPanel(false)}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CANCEL</button>
+                                    <button className="ma-ro-confirm" onClick={() => { debounce(() => handleRunOut()); setShowRunOutPanel(false); }}><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CONFIRM RUN OUT</button>
                                 </div>
                             </div>
                         )}
@@ -1293,7 +1294,7 @@ const MiniAdmin = () => {
                             disabled={!isOverReady || overCooldown}
                             className={`ma-over-btn ${isOverReady && !overCooldown ? 'ma-over-ready' : 'ma-over-wait'}`}
                         >
-                            {overCooldown ? '✔ OVER LOCKED' : isOverReady ? `⚡ OVER DONE (${currentOverBalls}/${bpo})` : `⏳ ${currentOverBalls}/${bpo} BALLS`}
+                            {overCooldown ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVER LOCKED</> : isOverReady ? <><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVER DONE ({currentOverBalls}/{bpo})</> : <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {currentOverBalls}/{bpo} BALLS</>}
                         </button>
 
                         {/* Recent balls */}
@@ -1307,7 +1308,7 @@ const MiniAdmin = () => {
                         {/* Target entry (2nd innings with no target) */}
                         {match.isSecondInnings && !match.targetScore && (
                             <div className="ma-target-card">
-                                <div className="ma-target-title">🎯 SET TARGET</div>
+                                <div className="ma-target-title"><Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SET TARGET</div>
                                 <div className="ma-target-hint">1st Inn: {match.firstInningsScore || 0}-{match.firstInningsWickets ?? 0} ({overs(match.firstInningsOvers || 0)})</div>
                                 <div className="ma-target-inputs">
                                     <div className="ma-target-field">
@@ -1328,7 +1329,7 @@ const MiniAdmin = () => {
                                         if (runs <= 0) { alert('Enter a valid target'); return; }
                                         push({ targetScore: runs, targetBalls: balls });
                                     }}
-                                >✅ SET TARGET</button>
+                                ><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SET TARGET</button>
                             </div>
                         )}
 
@@ -1342,7 +1343,7 @@ const MiniAdmin = () => {
                             <Section
                                 label="Overthrow (Law 19.8)"
                                 color="blue"
-                                icon="🎯"
+                                icon={<Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}
                                 open={openAdvPanels.overthrow}
                                 onClick={() => toggleAdv('overthrow')}
                             >
@@ -1353,7 +1354,7 @@ const MiniAdmin = () => {
                             <Section
                                 label="Penalty Runs (5 Runs)"
                                 color="orange"
-                                icon="🏏"
+                                icon={<Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}
                                 open={openAdvPanels.penalty}
                                 onClick={() => toggleAdv('penalty')}
                             >
@@ -1364,7 +1365,7 @@ const MiniAdmin = () => {
                             <Section
                                 label="Ball-by-Ball Timeline"
                                 color="purple"
-                                icon="📋"
+                                icon={<ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}
                                 open={openAdvPanels.history}
                                 onClick={() => toggleAdv('history')}
                             >
@@ -1375,7 +1376,7 @@ const MiniAdmin = () => {
                             <Section
                                 label="Super Over Tie-breaker"
                                 color="pink"
-                                icon="⚡"
+                                icon={<Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}
                                 open={openAdvPanels.superOver}
                                 onClick={() => toggleAdv('superOver')}
                             >
@@ -1411,7 +1412,7 @@ const MiniAdmin = () => {
                                 className="ma-over-btn ma-over-wait"
                                 style={{ cursor: 'pointer', color: '#60a5fa', borderColor: 'rgba(96,165,250,0.2)' }}
                                 onClick={() => push({ battingTeam: match.bowlingTeam, bowlingTeam: match.battingTeam, battingLogo: match.leagueLogo, leagueLogo: match.battingLogo })}
-                            >↔ SWAP TEAMS</button>
+                            ><ArrowLeftRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SWAP TEAMS</button>
                         </div>
 
                         {/* Logos */}
@@ -1505,7 +1506,7 @@ const MiniAdmin = () => {
                                         });
                                     }
                                 }}
-                            >⚠ RESET & START 2ND INNINGS</button>
+                            ><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RESET & START 2ND INNINGS</button>
                             <div className="ma-field-row" style={{ marginTop: 4 }}>
                                 <span className="ma-field-label">Super Over</span>
                                 <input type="checkbox" checked={!!match.isSuperOver} onChange={e => push({ isSuperOver: e.target.checked })} style={{ transform: 'scale(1.8)', margin: '0 8px' }} />
@@ -1516,29 +1517,29 @@ const MiniAdmin = () => {
                         <div className="ma-card">
                             <div className="ma-card-title">Overlay Theme</div>
                             <select className="ma-sel" value={match.themeID || 'ICC_GLOBAL'} onChange={e => push({ themeID: e.target.value })}>
-                                <optgroup label="🌟 International Broadcast">
-                                    <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex</option>
-                                    <option value="SKY_HYPERION">⚡ Sky Sports Hyperion</option>
-                                    <option value="JIO_TITAN">👑 Jio Premier Titan</option>
-                                    <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
-                                    <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
-                                    <option value="APEX">📺 Apex</option>
-                                    <option value="DIAMOND">💎 Diamond</option>
-                                    <option value="VOLT">⚡ Volt</option>
-                                    <option value="THUNDER">🌩️ Thunder</option>
-                                    <option value="BLITZ">🔵 Blitz</option>
-                                    <option value="ELITE">🥂 Elite</option>
-                                    <option value="FRANCHISE">🏏 Franchise</option>
-                                    <option value="SHAKTI">🔥 Shakti</option>
+                                <optgroup label="International Broadcast">
+                                    <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
+                                    <option value="SKY_HYPERION">Sky Sports Hyperion</option>
+                                    <option value="JIO_TITAN">Jio Premier Titan</option>
+                                    <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
+                                    <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
+                                    <option value="APEX">Apex</option>
+                                    <option value="DIAMOND">Diamond</option>
+                                    <option value="VOLT">Volt</option>
+                                    <option value="THUNDER">Thunder</option>
+                                    <option value="BLITZ">Blitz</option>
+                                    <option value="ELITE">Elite</option>
+                                    <option value="FRANCHISE">Franchise</option>
+                                    <option value="SHAKTI">Shakti</option>
                                 </optgroup>
-                                <optgroup label="✨ Premier Modern Themes">
-                                    <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
-                                    <option value="NEW_IPL">🏏 Tata IPL Modern</option>
-                                    <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
-                                    <option value="KS_PREMIUM">⭐ KS Premium Broadcast</option>
-                                    <option value="WC2026">🌐 T20 World Cup 2026</option>
-                                    <option value="APOGEE">🔮 Apogee Arena Pro</option>
-                                    <option value="GOLD_CHAMPIONSHIP">🥇 Gold Championship</option>
+                                <optgroup label="Premier Modern Themes">
+                                    <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
+                                    <option value="NEW_IPL">Tata IPL Modern</option>
+                                    <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
+                                    <option value="KS_PREMIUM">KS Premium Broadcast</option>
+                                    <option value="WC2026">T20 World Cup 2026</option>
+                                    <option value="APOGEE">Apogee Arena Pro</option>
+                                    <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
                                 </optgroup>
                             </select>
                             <div className="ma-grid-2">
@@ -1551,7 +1552,7 @@ const MiniAdmin = () => {
                                 className="ma-over-btn ma-over-wait"
                                 style={{ cursor: 'pointer', color: '#22d3ee', borderColor: 'rgba(34,211,238,0.25)' }}
                                 onClick={() => push({ eventTrigger: 'SHOW_BANNER' })}
-                            >✨ SHOW BANNER</button>
+                            ><Sparkles size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SHOW BANNER</button>
                         </div>
 
                         {/* Extras config */}
@@ -1577,12 +1578,12 @@ const MiniAdmin = () => {
                         <div className="ma-card">
                             <div className="ma-card-title">Match Status</div>
                             <div className="ma-status-grid">
-                                <button className={`ma-status-btn ${(!match.matchStatus || match.matchStatus === 'Live') ? 'active-live' : ''}`} onClick={() => push({ matchStatus: 'Live' })}>🔴 LIVE</button>
-                                <button className={`ma-status-btn ${match.matchStatus === 'Break' ? 'active-break' : ''}`} onClick={() => push({ matchStatus: 'Break' })}>⏸ BREAK</button>
-                                <button className={`ma-status-btn ${match.matchStatus === 'Innings Break' ? 'active-inn' : ''}`} onClick={() => push({ matchStatus: 'Innings Break' })}>🔄 INN BREAK</button>
-                                <button className={`ma-status-btn ${match.matchStatus === 'Rain Delay' ? 'active-rain' : ''}`} onClick={() => push({ matchStatus: 'Rain Delay' })}>☔ RAIN</button>
+                                <button className={`ma-status-btn ${(!match.matchStatus || match.matchStatus === 'Live') ? 'active-live' : ''}`} onClick={() => push({ matchStatus: 'Live' })}><Circle size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em', color: '#ef4444' }} aria-hidden="true" /> LIVE</button>
+                                <button className={`ma-status-btn ${match.matchStatus === 'Break' ? 'active-break' : ''}`} onClick={() => push({ matchStatus: 'Break' })}><Pause size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BREAK</button>
+                                <button className={`ma-status-btn ${match.matchStatus === 'Innings Break' ? 'active-inn' : ''}`} onClick={() => push({ matchStatus: 'Innings Break' })}><RefreshCw size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> INN BREAK</button>
+                                <button className={`ma-status-btn ${match.matchStatus === 'Rain Delay' ? 'active-rain' : ''}`} onClick={() => push({ matchStatus: 'Rain Delay' })}><Umbrella size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RAIN</button>
                             </div>
-                            <button className={`ma-status-btn w-full mt-2 ${match.matchStatus === 'Match Ended' ? 'active-ended' : ''}`} style={{ width:'100%' }} onClick={() => push({ matchStatus: 'Match Ended' })}>🏁 MATCH ENDED</button>
+                            <button className={`ma-status-btn w-full mt-2 ${match.matchStatus === 'Match Ended' ? 'active-ended' : ''}`} style={{ width:'100%' }} onClick={() => push({ matchStatus: 'Match Ended' })}><Flag size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> MATCH ENDED</button>
                         </div>
 
                         {/* Score override */}
@@ -1606,13 +1607,13 @@ const MiniAdmin = () => {
                         <div className="ma-card">
                             <div className="ma-card-title">Match Actions</div>
                             {match.tournamentId && (
-                                <button className="ma-btn-deploy" onClick={() => setShowNextMatch(true)}>🚀 DEPLOY NEXT MATCH</button>
+                                <button className="ma-btn-deploy" onClick={() => setShowNextMatch(true)}><Rocket size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> DEPLOY NEXT MATCH</button>
                             )}
                             <div className="ma-action-grid">
-                                <button className="ma-action-btn ma-btn-new" onClick={() => setShowTossModal(true)}>🪙 TOSS</button>
-                                <button className="ma-action-btn ma-btn-new" onClick={handleNewMatch}>🆕 NEW MATCH</button>
-                                <button className="ma-action-btn ma-btn-inn" onClick={handleNewInnings}>🔄 NEW INNINGS</button>
-                                <button className="ma-action-btn ma-btn-reset" onClick={handleResetTournament}>💥 RESET ALL</button>
+                                <button className="ma-action-btn ma-btn-new" onClick={() => setShowTossModal(true)}><Coins size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> TOSS</button>
+                                <button className="ma-action-btn ma-btn-new" onClick={handleNewMatch}><Sparkles size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> NEW MATCH</button>
+                                <button className="ma-action-btn ma-btn-inn" onClick={handleNewInnings}><RefreshCw size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> NEW INNINGS</button>
+                                <button className="ma-action-btn ma-btn-reset" onClick={handleResetTournament}><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RESET ALL</button>
                             </div>
                         </div>
 
@@ -1629,9 +1630,9 @@ const MiniAdmin = () => {
                                 <span className="ma-gfx-onair-dot" />
                                 {bgOnAir ? 'ON AIR' : 'OFF AIR'}
                             </div>
-                            <button className="ma-gfx-back" onClick={() => { hideAllGraphics(); }}>↩ Back to Scorebug</button>
+                            <button className="ma-gfx-back" onClick={() => { hideAllGraphics(); }}><CornerUpLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Back to Scorebug</button>
                             <button className="ma-gfx-hideall" onClick={hideAllGraphics}>Hide All</button>
-                            <button className="ma-gfx-close" onClick={() => setActiveTab('score')}>✕</button>
+                            <button className="ma-gfx-close" onClick={() => setActiveTab('score')}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
                         </div>
 
                         {/* ─ SCOREBUG Section ─ */}
@@ -1660,7 +1661,7 @@ const MiniAdmin = () => {
                                     onKeyDown={e => { if (e.key === 'Enter') pushOverlay({ customText: bgCustomText, showCustomText: true }); }}
                                 />
                                 <button className="ma-gfx-show-btn" onClick={() => pushOverlay({ customText: bgCustomText, showCustomText: true })}>Show Text</button>
-                                {match?.overlaySettings?.showCustomText && <button className="ma-gfx-hide-btn" onClick={() => pushOverlay({ showCustomText: false })}>✕</button>}
+                                {match?.overlaySettings?.showCustomText && <button className="ma-gfx-hide-btn" onClick={() => pushOverlay({ showCustomText: false })}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>}
                             </div>
                         </div>
 
@@ -1719,7 +1720,7 @@ const MiniAdmin = () => {
                                 <button
                                     className="ma-gfx-btn ma-gfx-btn-gold"
                                     onClick={() => setShowPotmModal(true)}
-                                >👑 Player of Match</button>
+                                ><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Player of Match</button>
                             </div>
                         </div>
 
@@ -1775,8 +1776,8 @@ const MiniAdmin = () => {
                             <div className="ma-modal-overlay" style={{ zIndex: 100010 }}>
                                 <div className="ma-modal-card" style={{ maxWidth: 400, width: '95%' }}>
                                     <div className="ma-modal-header">
-                                        <span className="ma-modal-title">👑 Player of the Match</span>
-                                        <button className="ma-modal-close" onClick={() => setShowPotmModal(false)}>✕</button>
+                                        <span className="ma-modal-title"><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Player of the Match</span>
+                                        <button className="ma-modal-close" onClick={() => setShowPotmModal(false)}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
                                     </div>
                                     <div className="ma-modal-form" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                                         <label className="ma-modal-label">Player Name</label>
@@ -1797,7 +1798,7 @@ const MiniAdmin = () => {
                                                     pushOverlay({ showPlayerOfMatch: true, potmName, potmTeam, potmFigures }, ['showPlayerOfMatch']);
                                                     setShowPotmModal(false);
                                                 }}
-                                            >👑 SHOW ON OBS</button>
+                                            ><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SHOW ON OBS</button>
                                             <button
                                                 className="ma-btn-action"
                                                 style={{ flex: 1, background: '#374151', color: '#fff', borderRadius: 8, padding: '10px 0', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer' }}
@@ -1825,7 +1826,7 @@ const MiniAdmin = () => {
                                     className="ma-obs-copy"
                                     style={{ background: obsCopied ? '#10b981' : '#0ea5e9', color: '#fff' }}
                                     onClick={copyOBSLink}
-                                >{obsCopied ? '✔ COPIED!' : '📋 COPY'}</button>
+                                >{obsCopied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> COPIED!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> COPY</>}</button>
                                 <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} />
                             </div>
                             <button className="ma-preview-toggle" onClick={() => setShowLivePreview(p => !p)}>
@@ -1845,21 +1846,21 @@ const MiniAdmin = () => {
                             <input className="ma-inp" placeholder="GRAND FINAL — MATCH 3" value={tickerMsg} onChange={e => setTickerMsg(e.target.value.toUpperCase())} />
                             <div className="ma-grid-2">
                                 <select className="ma-sel" value={tickerMode} onChange={e => { setTickerMode(e.target.value); pushTicker({ mode: e.target.value }); }}>
-                                    <option value="banner">🏆 Tournament</option>
-                                    <option value="breaking">🔴 Breaking</option>
+                                    <option value="banner">Tournament</option>
+                                    <option value="breaking">Breaking</option>
                                 </select>
                                 <select className="ma-sel" value={tickerPreset} onChange={e => { setTickerPreset(e.target.value); pushTicker({ preset: e.target.value }); }}>
-                                    <option value="final">🥇 Final</option>
-                                    <option value="semi">🔵 Semi</option>
-                                    <option value="custom">🟢 Custom</option>
+                                    <option value="final">Final</option>
+                                    <option value="semi">Semi</option>
+                                    <option value="custom">Custom</option>
                                 </select>
                             </div>
                             <div className="ma-btn-row-2">
-                                <button className="ma-ticker-btn ma-ticker-save" onClick={() => pushTicker({ message: tickerMsg })}>💾 SAVE</button>
+                                <button className="ma-ticker-btn ma-ticker-save" onClick={() => pushTicker({ message: tickerMsg })}><Save size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SAVE</button>
                                 <button
                                     className={`ma-ticker-btn ${tickerVisible ? 'ma-ticker-hide' : 'ma-ticker-show'}`}
                                     onClick={() => { const v = !tickerVisible; setTickerVisible(v); pushTicker({ visible: v, timestamp: Date.now() }); }}
-                                >{tickerVisible ? '🔴 HIDE TICKER' : '🟢 SHOW TICKER'}</button>
+                                >{tickerVisible ? <><Circle size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em', color: '#ef4444' }} aria-hidden="true" /> HIDE TICKER</> : <><Circle size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em', color: '#22c55e' }} aria-hidden="true" /> SHOW TICKER</>}</button>
                             </div>
                             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px', background:'rgba(255,255,255,0.03)', borderRadius:6 }}>
                                 <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontWeight:700 }}>AUTO REPEAT</span>
@@ -1881,8 +1882,8 @@ const MiniAdmin = () => {
                             <div className="ma-field-row"><span className="ma-field-label">Wkts Left</span><input type="number" className="ma-inp" placeholder="6" value={msWickets} onChange={e => setMsWickets(e.target.value)} /></div>
                             <div className="ma-field-row"><span className="ma-field-label">Message</span><input type="text" className="ma-inp" placeholder="Need 25 in 12 balls" value={msMsg} onChange={e => setMsMsg(e.target.value)} /></div>
                             <div className="ma-btn-row-2">
-                                <button className="ma-ticker-btn ma-sit-update" onClick={() => push({ showMatchSituation: true, matchSituation: { crr: msCrr || null, rrr: msRrr || null, target: msTarget ? parseInt(msTarget) : null, oversRemaining: msOvers || null, wicketsInHand: msWickets ? parseInt(msWickets) : null, customMsg: msMsg || null } })}>📡 UPDATE</button>
-                                <button className="ma-ticker-btn ma-sit-clear" onClick={() => { push({ showMatchSituation: false, matchSituation: {} }); setMsCrr(''); setMsRrr(''); setMsTarget(''); setMsOvers(''); setMsWickets(''); setMsMsg(''); }}>✖ CLEAR</button>
+                                <button className="ma-ticker-btn ma-sit-update" onClick={() => push({ showMatchSituation: true, matchSituation: { crr: msCrr || null, rrr: msRrr || null, target: msTarget ? parseInt(msTarget) : null, oversRemaining: msOvers || null, wicketsInHand: msWickets ? parseInt(msWickets) : null, customMsg: msMsg || null } })}><Radio size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> UPDATE</button>
+                                <button className="ma-ticker-btn ma-sit-clear" onClick={() => { push({ showMatchSituation: false, matchSituation: {} }); setMsCrr(''); setMsRrr(''); setMsTarget(''); setMsOvers(''); setMsWickets(''); setMsMsg(''); }}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CLEAR</button>
                             </div>
                         </div>
 
@@ -1931,16 +1932,16 @@ const MiniAdmin = () => {
             {/* ══ TAB BAR ════════════════════════════════════════════ */}
             <div className="ma-tab-bar">
                 <button className={`ma-tab ${activeTab === 'score' ? 'active' : ''}`} onClick={() => setActiveTab('score')}>
-                    <span className="ma-tab-icon">🏏</span>SCORE
+                    <span className="ma-tab-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>SCORE
                 </button>
                 <button className={`ma-tab ${activeTab === 'match' ? 'active' : ''}`} onClick={() => setActiveTab('match')}>
-                    <span className="ma-tab-icon">⚙️</span>MATCH
+                    <span className="ma-tab-icon"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>MATCH
                 </button>
                 <button className={`ma-tab ${activeTab === 'graphics' ? 'active' : ''}`} onClick={() => setActiveTab('graphics')}>
-                    <span className="ma-tab-icon">🎬</span>GRAPHICS
+                    <span className="ma-tab-icon"><Clapperboard size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>GRAPHICS
                 </button>
                 <button className={`ma-tab ${activeTab === 'more' ? 'active' : ''}`} onClick={() => setActiveTab('more')}>
-                    <span className="ma-tab-icon">📺</span>MORE
+                    <span className="ma-tab-icon"><Tv size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>MORE
                 </button>
             </div>
 
@@ -1954,9 +1955,9 @@ const MiniAdmin = () => {
                     <div className="ma-modal-card" style={{ maxWidth: 440, width: '92%' }}>
                         <div className="ma-modal-header">
                             <span className="ma-modal-title">
-                                {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? '🏥 BATTER RETIREMENT' : '🔥 WICKET / DISMISSAL'}
+                                {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? <><Hospital size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BATTER RETIREMENT</> : <><Flame size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> WICKET / DISMISSAL</>}
                             </span>
-                            <button className="ma-modal-close" onClick={() => setShowWicketPanel(false)}>✕</button>
+                            <button className="ma-modal-close" onClick={() => setShowWicketPanel(false)}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
                         </div>
                         <div className="ma-modal-form" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
                             <div className="ma-modal-field">
@@ -2022,7 +2023,7 @@ const MiniAdmin = () => {
                                                 textAlign: 'center',
                                             }}
                                         >
-                                            🏏 {match?.player1?.onStrike ? match?.player1?.name : match?.player2?.name}
+                                            <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match?.player1?.onStrike ? match?.player1?.name : match?.player2?.name}
                                             <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>(Striker)</div>
                                         </button>
                                         <button
@@ -2040,7 +2041,7 @@ const MiniAdmin = () => {
                                                 textAlign: 'center',
                                             }}
                                         >
-                                            🏃 {match?.player1?.onStrike ? match?.player2?.name : match?.player1?.name}
+                                            <PersonStanding size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match?.player1?.onStrike ? match?.player2?.name : match?.player1?.name}
                                             <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>(Non-Striker)</div>
                                         </button>
                                     </div>
@@ -2050,7 +2051,7 @@ const MiniAdmin = () => {
                             {/* Caught & Bowled auto-catcher notice */}
                             {wicketDismissal === 'Caught & Bowled' && (
                                 <div style={{ padding: '8px 12px', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 8, fontSize: 12, color: '#93c5fd' }}>
-                                    🎯 Catcher automatically credited to bowler: <b>{match?.bowler?.name || 'Current Bowler'}</b>
+                                    <Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Catcher automatically credited to bowler: <b>{match?.bowler?.name || 'Current Bowler'}</b>
                                 </div>
                             )}
 
@@ -2155,7 +2156,7 @@ const MiniAdmin = () => {
                             {/* Non-ball event explanation */}
                             {['Timed Out', 'Retired Out', 'Retired Hurt', 'Absent Hurt', 'Run Out (Mankad)'].includes(wicketDismissal) && (
                                 <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, fontSize: 11, color: '#fcd34d' }}>
-                                    ℹ️ <b>No ball consumed:</b> Occurs between balls / before delivery. Legal balls count and over will not increment.
+                                    <Info size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <b>No ball consumed:</b> Occurs between balls / before delivery. Legal balls count and over will not increment.
                                     {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? ' Total team wickets will NOT increase (Not Out).' : ' Bowler receives 0 wicket credit.'}
                                 </div>
                             )}
@@ -2181,7 +2182,7 @@ const MiniAdmin = () => {
                                         cursor:'pointer' 
                                     }}
                                 >
-                                    {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? '🏥 Confirm Retirement (Not Out)' : '🔥 Confirm Wicket'}
+                                    {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? <><Hospital size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Confirm Retirement (Not Out)</> : <><Flame size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Confirm Wicket</>}
                                 </button>
                             </div>
                         </div>
@@ -2194,8 +2195,8 @@ const MiniAdmin = () => {
                 <div className="ma-modal-overlay">
                     <div className="ma-modal-card">
                         <div className="ma-modal-header">
-                            <span className="ma-modal-title">⚡ DEPLOY NEXT MATCH</span>
-                            <button className="ma-modal-close" onClick={() => setShowNextMatch(false)}>✕</button>
+                            <span className="ma-modal-title"><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> DEPLOY NEXT MATCH</span>
+                            <button className="ma-modal-close" onClick={() => setShowNextMatch(false)}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
                         </div>
                         <form className="ma-modal-form" onSubmit={async e => {
                             e.preventDefault();
@@ -2229,29 +2230,29 @@ const MiniAdmin = () => {
                             <div className="ma-modal-field"><label className="ma-modal-label">Stage / Title</label><input name="matchTitle" className="ma-modal-inp" placeholder="GRAND FINAL" /></div>
                             <div className="ma-modal-field"><label className="ma-modal-label">Theme</label>
                                 <select name="themeID" className="ma-modal-inp">
-                                    <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex</option>
-                                    <option value="SKY_HYPERION">⚡ Sky Sports Hyperion</option>
-                                    <option value="JIO_TITAN">👑 Jio Premier Titan</option>
-                                    <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
-                                    <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
-                                    <option value="APEX">📺 Apex</option>
-                                    <option value="DIAMOND">💎 Diamond</option>
-                                    <option value="VOLT">⚡ Volt</option>
-                                    <option value="THUNDER">🌩️ Thunder</option>
-                                    <option value="BLITZ">🔵 Blitz</option>
-                                    <option value="ELITE">🥂 Elite</option>
-                                    <option value="FRANCHISE">🏏 Franchise</option>
-                                    <option value="SHAKTI">🔥 Shakti</option>
-                                    <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
-                                    <option value="NEW_IPL">🏏 Tata IPL Modern</option>
-                                    <option value="IPL_2026">🏟️ IPL 2026 Stadium</option>
-                                    <option value="KS_PREMIUM">⭐ KS Premium</option>
-                                    <option value="WC2026">🌐 T20 World Cup 2026</option>
+                                    <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
+                                    <option value="SKY_HYPERION">Sky Sports Hyperion</option>
+                                    <option value="JIO_TITAN">Jio Premier Titan</option>
+                                    <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
+                                    <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
+                                    <option value="APEX">Apex</option>
+                                    <option value="DIAMOND">Diamond</option>
+                                    <option value="VOLT">Volt</option>
+                                    <option value="THUNDER">Thunder</option>
+                                    <option value="BLITZ">Blitz</option>
+                                    <option value="ELITE">Elite</option>
+                                    <option value="FRANCHISE">Franchise</option>
+                                    <option value="SHAKTI">Shakti</option>
+                                    <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
+                                    <option value="NEW_IPL">Tata IPL Modern</option>
+                                    <option value="IPL_2026">IPL 2026 Stadium</option>
+                                    <option value="KS_PREMIUM">KS Premium</option>
+                                    <option value="WC2026">T20 World Cup 2026</option>
                                 </select>
                             </div>
                             <div className="ma-modal-footer">
                                 <button type="button" onClick={() => setShowNextMatch(false)} style={{ background:'transparent', border:'1px solid #475569', color:'#cbd5e1', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}>Cancel</button>
-                                <button type="submit" style={{ background:'#eab308', border:'none', color:'#0f172a', borderRadius:6, padding:'8px 16px', fontWeight:900, cursor:'pointer' }}>🚀 Switch Match</button>
+                                <button type="submit" style={{ background:'#eab308', border:'none', color:'#0f172a', borderRadius:6, padding:'8px 16px', fontWeight:900, cursor:'pointer' }}><Rocket size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Switch Match</button>
                             </div>
                         </form>
                     </div>

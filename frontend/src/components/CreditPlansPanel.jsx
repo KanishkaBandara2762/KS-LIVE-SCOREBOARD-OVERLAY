@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { subscriptionsApi } from "../api";
 import { formatLkr, lkrToUsd, formatUsd } from "../utils/money";
+import { Check } from "lucide-react";
 import "./CreditPlansPanel.css";
 
 // Owner contact links shown to users who need credits.
@@ -103,7 +104,7 @@ export function CreditPlansPanel({ balance = 0, email = "" }) {
               className={`credit-card ${isSelected ? "is-selected" : ""} ${featured ? "is-featured" : ""}`}
             >
               {featured && <span className="credit-ribbon">Most popular</span>}
-              <span className="credit-check" aria-hidden="true">{isSelected ? "✓" : ""}</span>
+              <span className="credit-check" aria-hidden="true">{isSelected ? <Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> : null}</span>
               <h4 className="credit-name">{plan.name}</h4>
               <div className="credit-count">
                 <span className="credit-count-num">{plan.credits}</span>

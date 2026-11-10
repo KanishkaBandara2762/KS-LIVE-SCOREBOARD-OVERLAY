@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { Zap } from 'lucide-react';
 
 const FreehitIndicator = ({ active }) => {
   if (!active) return null;
@@ -33,9 +34,9 @@ const FreehitIndicator = ({ active }) => {
         animation: 'freehit-pulse 1s ease-in-out infinite alternate',
       }}
     >
-      <span style={{ fontSize: 18 }}>⚡</span>
+      <span style={{ fontSize: 18 }}><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
       FREE HIT
-      <span style={{ fontSize: 18 }}>⚡</span>
+      <span style={{ fontSize: 18 }}><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
       <style>{`
         @keyframes freehit-pulse {
           from { box-shadow: 0 0 10px rgba(249,115,22,0.4); transform: scale(1); }
