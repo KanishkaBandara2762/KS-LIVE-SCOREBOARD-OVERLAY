@@ -52,7 +52,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
   };
 
   return (
-    <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="ma-icon-panel" style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ color: '#facc15', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
         <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> PENALTY RUNS
       </div>

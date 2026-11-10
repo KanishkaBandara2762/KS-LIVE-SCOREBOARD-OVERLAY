@@ -602,6 +602,124 @@
   }
 }
 
+/* ── Penalty, Super Over and Ball-by-Ball panels: icon and text in one centered row ── */
+.ma-icon-panel > div:first-child,
+.ma-icon-panel > div:first-child > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ma-icon-panel button:has(> svg) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ── Overthrow panel: icon and text in one centered row ── */
+.ot-panel > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ot-panel button:has(> svg) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ── Advanced section headers: icon, title and chevron in one centered row ── */
+.ma-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.ma-section-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.ma-section-header .ma-chevron {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── Header tools (RULES, DESKTOP CONTROL ROOM, OBS timer): icon on top, text below ── */
+.ma-header-tools > button,
+.ma-header-tools > span {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.ma-header-tools > button > svg {
+  order: -1;
+}
+
+/* Mobile: back button is shorter */
+@media (max-width: 767px) {
+  .ma-back-btn {
+    padding: 0 4px !important;
+    line-height: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+}
+
+/* Mobile: OBS countdown label is smaller, wraps inside its box, and keeps a right gap */
+@media (max-width: 767px) {
+  .ma-header-tools > span {
+    font-size: 0.6rem !important;
+    white-space: normal !important;
+    max-width: 92px;
+    margin-right: 8px;
+  }
+}
+
+/* ── Mobile/window (≤ 1024px): 2 rows. Row 1 = run keys; row 2 = WICKET | WD/NB/LB/BYE.
+   The extras toggle sits below. Desktop (≥ 1025px) stays one row. ── */
+@media (max-width: 1024px) {
+  .ma-score-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .ma-score-row > .ma-pad { display: contents; }
+
+  .ma-pad-keys { grid-column: 1 / -1; grid-row: 1; }
+
+  .ma-pad-side { grid-column: 2; grid-row: 2; }
+
+  .ma-score-actions .ma-wicket-full {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    max-width: none;
+    aspect-ratio: auto;
+    min-height: 64px;
+    margin: 0;
+  }
+
+  .ma-score-actions .ma-more-toggle {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 0;
+  }
+}
+
 /* ── Mobile only (≤ 767px): OBS link expiry stays visible.
    The long URL gets its own line; Copy and the expiry status share the line below. ── */
 @media (max-width: 767px) {

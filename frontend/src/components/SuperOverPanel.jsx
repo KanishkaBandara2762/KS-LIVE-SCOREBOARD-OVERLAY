@@ -41,7 +41,7 @@ const SuperOverPanel = ({ matchId, team1, team2, isSuperOverActive, onStarted })
   };
 
   return (
-    <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="ma-icon-panel" style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ color: '#ec4899', fontWeight: 800, fontSize: 13, letterSpacing: 1 }}>
         <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SUPER OVER TIE-BREAKER
       </div>

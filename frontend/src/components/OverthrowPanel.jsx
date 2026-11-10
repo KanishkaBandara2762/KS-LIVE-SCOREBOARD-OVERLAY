@@ -53,7 +53,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
   };
 
   return (
-    <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="ot-panel" style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ color: '#38bdf8', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
         <Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVERTHROW SCORING (LAW 19.8)
       </div>
