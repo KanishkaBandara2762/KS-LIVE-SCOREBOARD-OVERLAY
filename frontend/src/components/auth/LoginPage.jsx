@@ -143,7 +143,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <Link to="/register">
+        <Link to="/register" style={{ display: 'block', marginTop: '0.75rem' }}>
           <button className="auth-btn auth-btn-ghost" type="button">
             Create New Account
           </button>
