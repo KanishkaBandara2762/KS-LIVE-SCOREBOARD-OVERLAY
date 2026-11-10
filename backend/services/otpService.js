@@ -57,6 +57,50 @@ const hashCode = (email, purpose, code) =>
     .update(`${purpose}:${email}:${code}`)
     .digest('hex');
 
+// ── Copy-link helpers ────────────────────────────────────────────────────────
+// The email links to /copy-otp#<token>. Only a sha256 of the token is stored.
+// The code itself is kept AES-256-GCM encrypted with a key derived from the
+// token + OTP_SECRET, so the database alone cannot reveal it.
+const COPY_TOKEN_RE = /^[A-Za-z0-9_-]{20,200}$/;
+
+const generateCopyToken = () => crypto.randomBytes(32).toString('base64url');
+
+const hashCopyToken = (token) =>
+  crypto.createHash('sha256').update(String(token)).digest('hex');
+
+const copyKey = (token) =>
+  crypto.createHmac('sha256', getSecret()).update(`otp-copy:${token}`).digest();
+
+const encryptCode = (code, token) => {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', copyKey(token), iv);
+  const data = Buffer.concat([cipher.update(String(code), 'utf8'), cipher.final()]);
+  return JSON.stringify({
+    v: 1,
+    iv: iv.toString('base64'),
+    tag: cipher.getAuthTag().toString('base64'),
+    data: data.toString('base64'),
+  });
+};
+
+const decryptCode = (payload, token) => {
+  try {
+    const parsed = JSON.parse(payload);
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      copyKey(token),
+      Buffer.from(parsed.iv, 'base64')
+    );
+    decipher.setAuthTag(Buffer.from(parsed.tag, 'base64'));
+    return Buffer.concat([
+      decipher.update(Buffer.from(parsed.data, 'base64')),
+      decipher.final(),
+    ]).toString('utf8');
+  } catch {
+    return null;
+  }
+};
+
 const hashesMatch = (a, b) => {
   const bufA = Buffer.from(a, 'hex');
   const bufB = Buffer.from(b, 'hex');
@@ -64,6 +108,14 @@ const hashesMatch = (a, b) => {
 };
 
 const secondsUntil = (ms) => Math.max(1, Math.ceil(ms / 1000));
+
+// Removing the code also removes the copy-page capability.
+const CLEARED_CODE = {
+  codeHash: null,
+  codeEnc: null,
+  copyTokenHash: null,
+  copyTokenExpiresAt: null,
+};
 
 /**
  * Create a new code for (email, purpose), replacing any previous one.
@@ -108,6 +160,7 @@ async function issueOtp({ email, purpose }) {
   }
 
   const code = generateCode();
+  const copyToken = generateCopyToken();
   const codeExpiresAt = new Date(now + cfg.codeTtlMs);
 
   await EmailOtp.updateOne(
@@ -116,6 +169,9 @@ async function issueOtp({ email, purpose }) {
       $set: {
         codeHash: hashCode(normalizedEmail, purpose, code),
         codeExpiresAt,
+        codeEnc: encryptCode(code, copyToken),
+        copyTokenHash: hashCopyToken(copyToken),
+        copyTokenExpiresAt: codeExpiresAt,
         attempts: 0,
         lastSentAt: new Date(now),
         sendCount,
@@ -126,7 +182,7 @@ async function issueOtp({ email, purpose }) {
     { upsert: true }
   );
 
-  return { code, expiresAt: codeExpiresAt };
+  return { code, expiresAt: codeExpiresAt, copyToken };
 }
 
 /**
@@ -144,12 +200,12 @@ async function verifyOtp({ email, purpose, code }) {
   }
 
   if (record.codeExpiresAt <= now) {
-    await EmailOtp.updateOne({ _id: record._id }, { $set: { codeHash: null } });
+    await EmailOtp.updateOne({ _id: record._id }, { $set: CLEARED_CODE });
     throw new OtpError('OTP_EXPIRED', 'This code has expired. Please request a new one.');
   }
 
   if (record.attempts >= cfg.maxAttempts) {
-    await EmailOtp.updateOne({ _id: record._id }, { $set: { codeHash: null } });
+    await EmailOtp.updateOne({ _id: record._id }, { $set: CLEARED_CODE });
     throw new OtpError(
       'OTP_TOO_MANY_ATTEMPTS',
       'Too many incorrect attempts. Please request a new code.',
@@ -163,7 +219,7 @@ async function verifyOtp({ email, purpose, code }) {
     const exhausted = attempts >= cfg.maxAttempts;
     await EmailOtp.updateOne(
       { _id: record._id },
-      { $set: { attempts, ...(exhausted ? { codeHash: null } : {}) } }
+      { $set: { attempts, ...(exhausted ? CLEARED_CODE : {}) } }
     );
     if (exhausted) {
       throw new OtpError(
@@ -182,7 +238,7 @@ async function verifyOtp({ email, purpose, code }) {
   // Atomically consume: only one concurrent request can clear codeHash.
   const consumed = await EmailOtp.updateOne(
     { _id: record._id, codeHash: record.codeHash },
-    { $set: { codeHash: null } }
+    { $set: CLEARED_CODE }
   );
   if (consumed.modifiedCount !== 1) {
     throw new OtpError('OTP_NOT_FOUND', 'No active code. Please request a new one.');
@@ -191,4 +247,61 @@ async function verifyOtp({ email, purpose, code }) {
   return { ok: true };
 }
 
-module.exports = { issueOtp, verifyOtp, hashCode, generateCode, OtpError, config };
+/**
+ * Reveal the active code to the holder of a copy-link token.
+ * The token is emailed as /copy-otp#<token>; it is single-purpose, expires with
+ * the code and stops working as soon as the code is used or replaced.
+ */
+async function revealOtpByCopyToken({ token }) {
+  if (typeof token !== 'string' || !COPY_TOKEN_RE.test(token)) {
+    throw new OtpError('OTP_NOT_FOUND', 'This copy link is not valid.', 404);
+  }
+
+  const record = await EmailOtp.findOne({ copyTokenHash: hashCopyToken(token) });
+  if (!record || !record.codeEnc || !record.codeHash) {
+    throw new OtpError(
+      'OTP_NOT_FOUND',
+      'This copy link has already been used or replaced. Request a new code.',
+      410
+    );
+  }
+
+  if (record.copyTokenExpiresAt <= new Date() || record.codeExpiresAt <= new Date()) {
+    await EmailOtp.updateOne({ _id: record._id }, { $set: CLEARED_CODE });
+    throw new OtpError('OTP_EXPIRED', 'This code has expired. Request a new one.', 410);
+  }
+
+  const code = decryptCode(record.codeEnc, token);
+  if (!code) {
+    throw new OtpError('OTP_NOT_FOUND', 'This copy link is not valid.', 404);
+  }
+
+  // A copy link is single-use: two concurrent clicks cannot both succeed.
+  const consumed = await EmailOtp.updateOne(
+    { _id: record._id, copyTokenHash: record.copyTokenHash, codeEnc: record.codeEnc },
+    { $set: { copyTokenHash: null, copyTokenExpiresAt: null, codeEnc: null } }
+  );
+  if (consumed.modifiedCount !== 1) {
+    throw new OtpError(
+      'OTP_NOT_FOUND',
+      'This copy link has already been used or replaced. Request a new code.',
+      410
+    );
+  }
+
+  return { email: record.email, purpose: record.purpose, code, expiresAt: record.codeExpiresAt };
+}
+
+module.exports = {
+  issueOtp,
+  verifyOtp,
+  revealOtpByCopyToken,
+  hashCode,
+  generateCode,
+  generateCopyToken,
+  hashCopyToken,
+  encryptCode,
+  decryptCode,
+  OtpError,
+  config,
+};

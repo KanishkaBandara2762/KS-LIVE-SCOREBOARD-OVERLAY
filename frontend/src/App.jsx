@@ -20,6 +20,7 @@ import LoginPage from "./components/auth/LoginPage";
 import RegisterPage from "./components/auth/RegisterPage";
 import OTPVerification from "./components/auth/OTPVerification";
 import ForgotPassword from "./components/auth/ForgotPassword";
+import CopyOtp from "./components/auth/CopyOtp";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import HomeRedirect from "./components/auth/HomeRedirect";
 import AdminRoute from "./components/auth/AdminRoute";
@@ -77,6 +78,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify-email" element={<OTPVerification />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/copy-otp" element={<CopyOtp />} />
 
             {/* ── PROTECTED ROUTES ───────────────────────────────────────── */}
 

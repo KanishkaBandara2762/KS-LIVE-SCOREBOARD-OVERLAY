@@ -81,6 +81,15 @@ const latestCode = (email, subjectFragment) => {
   return /Your code: (\d{6})/.exec(message.text)[1];
 };
 
+// One-time token from the copy link in the latest matching email.
+const latestCopyToken = (email, subjectFragment) => {
+  const message = [...sent].reverse().find((m) => m.to === email && m.subject.includes(subjectFragment));
+  assert.ok(message, `no "${subjectFragment}" email was sent to ${email}`);
+  const link = /Copy it in one click: (\S+)/.exec(message.text);
+  assert.ok(link, `no copy link in the "${subjectFragment}" email to ${email}`);
+  return link[1].split('#')[1];
+};
+
 // Clears only this test's collections in the ks-live-test database.
 const clearTestData = () => Promise.all([User.deleteMany({}), EmailOtp.deleteMany({})]);
 
@@ -106,6 +115,8 @@ after(async () => {
 const A = 'flow-a@example.test'; // full signup, then forgot password
 const B = 'flow-b@example.test'; // cooldown, send cap, expiry
 const C = 'flow-c@example.test'; // lockout
+const D = 'flow-d@example.test'; // one-time copy link
+const E = 'flow-e@example.test'; // expired copy link
 const PASSWORD = 'pass1234';
 
 let tokenBeforeReset;
@@ -214,6 +225,54 @@ test('five wrong attempts lock the code, and the locked code cannot be used', as
   const afterLock = await call('POST', '/verify-email', { email: C, code });
   assert.equal(afterLock.status, 400);
   assert.equal(afterLock.body.code, 'OTP_NOT_FOUND');
+});
+
+// ── Copy-OTP link ────────────────────────────────────────────────────────────
+
+test('the emailed copy link reveals the same code once without using it up', async () => {
+  await call('POST', '/register', { email: D, password: PASSWORD, displayName: 'Dev' });
+  const code = latestCode(D, 'Verify');
+  const token = latestCopyToken(D, 'Verify');
+
+  const first = await call('POST', '/otp/copy', { token });
+  assert.equal(first.status, 200);
+  assert.equal(first.body.code, code);
+  assert.equal(first.body.purpose, 'signup');
+  assert.ok(first.body.expiresAt);
+  assert.equal(first.headers.get('cache-control'), 'no-store');
+
+  const second = await call('POST', '/otp/copy', { token });
+  assert.equal(second.status, 410);
+  assert.equal(second.body.code, 'OTP_NOT_FOUND');
+
+  // Copying does not consume the code itself.
+  const verified = await call('POST', '/verify-email', { email: D, code });
+  assert.equal(verified.status, 200);
+});
+
+test('a malformed copy token is rejected by validation', async () => {
+  const res = await call('POST', '/otp/copy', { token: 'short' });
+  assert.equal(res.status, 400);
+  assert.equal(res.body.success, false);
+});
+
+test('an expired copy link cannot reveal the code', async () => {
+  await call('POST', '/register', { email: E, password: PASSWORD, displayName: 'Era' });
+  const token = latestCopyToken(E, 'Verify');
+  await EmailOtp.updateOne(
+    { email: E, purpose: 'signup' },
+    { $set: { copyTokenExpiresAt: new Date(Date.now() - 1000) } }
+  );
+
+  const res = await call('POST', '/otp/copy', { token });
+  assert.equal(res.status, 410);
+  assert.equal(res.body.code, 'OTP_EXPIRED');
+
+  // The expired link also clears the stored code, matching verify behaviour.
+  const stored = await EmailOtp.findOne({ email: E, purpose: 'signup' });
+  assert.equal(stored.codeHash, null);
+  assert.equal(stored.codeEnc, null);
+  assert.equal(stored.copyTokenHash, null);
 });
 
 // ── Forgot password ──────────────────────────────────────────────────────────
@@ -327,4 +386,22 @@ test('after the reset: old password fails, new password works, new session works
   assert.equal(newLogin.status, 200);
   const me = await call('GET', '/me', null, newLogin.body.token);
   assert.equal(me.status, 200);
+});
+
+test('the reset email carries a working copy link too', async () => {
+  // Step past the resend cooldown so a fresh reset message is sent.
+  await EmailOtp.updateOne(
+    { email: A, purpose: 'reset' },
+    { $set: { lastSentAt: new Date(Date.now() - 61000) } }
+  );
+  const before = emailCount(A);
+  await call('POST', '/forgot-password', { email: A });
+  assert.ok(await waitFor(() => emailCount(A) > before), 'reset email was not sent');
+
+  const code = latestCode(A, 'Reset');
+  const token = latestCopyToken(A, 'Reset');
+  const res = await call('POST', '/otp/copy', { token });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.purpose, 'reset');
+  assert.equal(res.body.code, code);
 });

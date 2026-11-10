@@ -6,7 +6,7 @@
 const User = require('../models/User');
 const { signToken } = require('../services/jwtService');
 const { isAdminRole } = require('../utils/roles');
-const { issueOtp, verifyOtp, OtpError } = require('../services/otpService');
+const { issueOtp, verifyOtp, revealOtpByCopyToken, OtpError } = require('../services/otpService');
 const { sendEmail } = require('../services/emailService');
 const { buildOtpEmail } = require('../services/email/otpTemplates');
 const { signResetToken, verifyResetToken, RESET_TOKEN_TTL_SECONDS } = require('../services/resetTokenService');
@@ -15,14 +15,22 @@ const { isIssuedBeforePasswordChange } = require('../utils/sessionRevocation');
 
 const OTP_EXPIRY_MINUTES = () => Number(process.env.OTP_EXPIRY_MINUTES) || 5;
 
+// The copy page is opened in the user's browser, so it belongs to the frontend.
+// Token travels in the hash fragment: browsers never send it to a server.
+const frontendBaseUrl = () =>
+  String(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
+
+const buildCopyUrl = (token) => `${frontendBaseUrl()}/copy-otp#${token}`;
+
 // Generates a code for the email and sends it. Throws OtpError when throttled.
 async function sendSignupCode(user) {
-  const { code } = await issueOtp({ email: user.email, purpose: 'signup' });
+  const { code, copyToken } = await issueOtp({ email: user.email, purpose: 'signup' });
   const message = buildOtpEmail({
     purpose: 'signup',
     code,
     displayName: user.displayName,
     expiryMinutes: OTP_EXPIRY_MINUTES(),
+    copyUrl: buildCopyUrl(copyToken),
   });
   await sendEmail({ to: user.email, ...message });
 }
@@ -411,12 +419,13 @@ const requestPasswordReset = async (req, res, next) => {
     // Reply first, then send, so response timing does not reveal the account.
     res.json(RESET_GENERIC_REPLY);
     try {
-      const { code } = await issueOtp({ email: user.email, purpose: 'reset' });
+      const { code, copyToken } = await issueOtp({ email: user.email, purpose: 'reset' });
       const message = buildOtpEmail({
         purpose: 'reset',
         code,
         displayName: user.displayName,
         expiryMinutes: OTP_EXPIRY_MINUTES(),
+        copyUrl: buildCopyUrl(copyToken),
       });
       await sendEmail({ to: user.email, ...message });
     } catch (err) {
@@ -506,10 +515,33 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+// ── POST /otp/copy ────────────────────────────────────────────────────────────
+// The copy page exchanges the emailed token (sent in the URL fragment) for the
+// active code. No-store so no proxy or browser keeps the response.
+const copyOtpCode = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    const result = await revealOtpByCopyToken({ token });
+    res.set('Cache-Control', 'no-store');
+    res.set('Pragma', 'no-cache');
+    res.set('Referrer-Policy', 'no-referrer');
+    res.json({
+      success: true,
+      code: result.code,
+      purpose: result.purpose,
+      expiresAt: result.expiresAt,
+    });
+  } catch (err) {
+    if (respondOtpError(res, err)) return;
+    next(err);
+  }
+};
+
 module.exports = {
   register,
   verifyEmail,
   resendOtp,
+  copyOtpCode,
   requestPasswordReset,
   verifyPasswordResetCode,
   resetPassword,

@@ -83,6 +83,7 @@ export const authApi = {
   me:       ()     => apiRequest('/api/auth/me'),
   verifyEmail: (body) => apiRequest('/api/auth/verify-email', { method: 'POST', body: JSON.stringify(body) }),
   resendOtp:   (body) => apiRequest('/api/auth/resend-otp',   { method: 'POST', body: JSON.stringify(body) }),
+  copyOtp:     (body) => apiRequest('/api/auth/otp/copy',     { method: 'POST', body: JSON.stringify(body) }),
   forgotPassword:      (body) => apiRequest('/api/auth/forgot-password',        { method: 'POST', body: JSON.stringify(body) }),
   verifyResetCode:     (body) => apiRequest('/api/auth/forgot-password/verify', { method: 'POST', body: JSON.stringify(body) }),
   resetPassword:       (body) => apiRequest('/api/auth/forgot-password/reset',  { method: 'POST', body: JSON.stringify(body) }),

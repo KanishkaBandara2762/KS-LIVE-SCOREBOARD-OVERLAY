@@ -11,6 +11,7 @@ const {
   register,
   verifyEmail,
   resendOtp,
+  copyOtpCode,
   requestPasswordReset,
   verifyPasswordResetCode,
   resetPassword,
@@ -64,6 +65,20 @@ router.post(
     validate,
   ],
   resendOtp
+);
+
+// ── POST /otp/copy (exchange copy-link token for the active code) ───────────
+router.post(
+  '/otp/copy',
+  otpRateLimit,
+  [
+    body('token')
+      .isString()
+      .matches(/^[A-Za-z0-9_-]{20,200}$/)
+      .withMessage('This copy link is not valid.'),
+    validate,
+  ],
+  copyOtpCode
 );
 
 // ── Forgot password (OTP) ──────────────────────────────────────────────────

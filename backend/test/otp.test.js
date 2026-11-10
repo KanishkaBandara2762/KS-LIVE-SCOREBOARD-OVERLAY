@@ -10,7 +10,16 @@ const assert = require('node:assert/strict');
 const SMTP_KEYS = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'EMAIL_FROM'];
 const clearSmtpEnv = () => SMTP_KEYS.forEach((key) => delete process.env[key]);
 
-const { generateCode, hashCode, config, OtpError } = require('../services/otpService');
+const {
+  generateCode,
+  hashCode,
+  config,
+  generateCopyToken,
+  hashCopyToken,
+  encryptCode,
+  decryptCode,
+  OtpError,
+} = require('../services/otpService');
 const { buildOtpEmail } = require('../services/email/otpTemplates');
 const { sendEmail, isEmailConfigured } = require('../services/emailService');
 const { validatePasswordStrength } = require('../utils/passwordPolicy');
@@ -80,13 +89,31 @@ test('signup template embeds the code and escapes the display name', () => {
     code: '042917',
     displayName: '<script>x</script>',
     expiryMinutes: 5,
+    copyUrl: 'https://www.kslivebroadcasting.com/copy-otp#abc123',
   });
-  assert.match(msg.html, /0&nbsp;&nbsp;4/); // digits spaced for readability
+  assert.match(msg.html, /042917/); // plain digits: selectable and copyable
+  assert.doesNotMatch(msg.html, /&nbsp;/); // spaced with CSS, never with entities
   assert.doesNotMatch(msg.html, /<script>x/);
   assert.match(msg.html, /&lt;script&gt;/);
+  assert.match(msg.html, /Copy OTP/);
+  assert.match(msg.html, /https:\/\/www\.kslivebroadcasting\.com\/copy-otp#abc123/);
   assert.match(msg.text, /Your code: 042917/);
+  assert.match(msg.text, /https:\/\/www\.kslivebroadcasting\.com\/copy-otp#abc123/);
   assert.match(msg.text, /5 minutes/);
   assert.match(msg.subject, /KS Live/);
+});
+
+test('copy-link token round-trips through hashing and AES-GCM', () => {
+  const token = generateCopyToken();
+  assert.match(token, /^[A-Za-z0-9_-]{20,200}$/);
+  assert.equal(hashCopyToken(token), hashCopyToken(token));
+  assert.equal(hashCopyToken(token).length, 64);
+
+  const sealed = encryptCode('042917', token);
+  assert.doesNotMatch(sealed, /042917/); // never stored in plain text
+  assert.equal(decryptCode(sealed, token), '042917');
+  assert.equal(decryptCode(sealed, generateCopyToken()), null); // wrong token
+  assert.equal(decryptCode('not-json', token), null);
 });
 
 test('reset template has its own subject and wording', () => {

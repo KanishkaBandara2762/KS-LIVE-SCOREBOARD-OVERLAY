@@ -13,6 +13,12 @@ const emailOtpSchema = new mongoose.Schema(
     purpose: { type: String, enum: ['signup', 'reset'], required: true },
     codeHash: { type: String, default: null }, // null = no active code
     codeExpiresAt: { type: Date, default: null },
+    // Encrypted copy of the active code, readable only with the one-time copy
+    // token that is emailed as a link. Cleared as soon as the code is consumed
+    // or expires, so plain text never sits in the database.
+    codeEnc: { type: String, default: null },
+    copyTokenHash: { type: String, default: null }, // sha256 of the emailed token
+    copyTokenExpiresAt: { type: Date, default: null },
     attempts: { type: Number, default: 0 },
     lastSentAt: { type: Date, required: true },
     sendCount: { type: Number, default: 1 },
@@ -23,6 +29,7 @@ const emailOtpSchema = new mongoose.Schema(
 );
 
 emailOtpSchema.index({ email: 1, purpose: 1 }, { unique: true });
+emailOtpSchema.index({ copyTokenHash: 1 }, { sparse: true });
 emailOtpSchema.index({ purgeAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('EmailOtp', emailOtpSchema);
