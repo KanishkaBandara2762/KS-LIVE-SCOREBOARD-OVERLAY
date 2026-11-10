@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Rocket, Settings, Target, Trash2, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
+import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Rocket, Settings, Target, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
 import TournamentTeamsModal from './TournamentTeamsModal';
@@ -692,9 +692,8 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 }
 
 // ── Match Card ────────────────────────────────────────────────────────────
-function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
+function MatchCard({ match, onOpen, onCopyUrl, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const statusInfo = STATUS_COLORS[match.status] || STATUS_COLORS.live;
   const overlayUrl = `${window.location.origin}/overlay/${match.matchId}`;
   const [obs, setObs] = useState({ expiresAt: match.broadcastExpiresAt ?? null, locked: !!match.broadcastLocked });
@@ -709,16 +708,6 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* ignore */ }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm(`Delete match "${match.battingTeam} vs ${match.bowlingTeam}"?\nThis cannot be undone.`)) return;
-    setDeleting(true);
-    try {
-      await onDelete(match.matchId);
-    } catch {
-      setDeleting(false);
-    }
   };
 
   const createdDate = match.createdAt
@@ -776,9 +765,6 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
           window.open(`/mini-admin/${match.matchId}`, 'KS_Mini', 'width=480,height=850,resizable=yes')
         }>
           <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Mini
-        </button>
-        <button className="btn-delete" onClick={handleDelete} disabled={deleting}>
-          {deleting ? '...' : <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}
         </button>
       </div>
     </div>
@@ -977,11 +963,6 @@ const Dashboard = () => {
     navigate(`/admin/${matchId}`);
   };
 
-  const handleDelete = async (matchId) => {
-    await matchesApi.delete(matchId);
-    setMatches((prev) => prev.filter((m) => m.matchId !== matchId));
-  };
-
   const handleModalClose = (newMatchId) => {
     setShowCreate(false);
     if (newMatchId) {
@@ -1030,7 +1011,15 @@ const Dashboard = () => {
       {/* Header */}
       <header className="dash-header">
         <div className="dash-header-left">
-          <div className="dash-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            className="dash-logo"
+            role="button"
+            tabIndex={0}
+            aria-label="Go to landing page"
+            onClick={() => navigate('/landing')}
+            onKeyDown={(event) => { if (event.key === 'Enter') navigate('/landing'); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+          >
             <img src="/ks_logo.png" alt="KS Live Logo" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
             <span className="dash-logo-text">KS <span>LIVE</span></span>
           </div>
@@ -1248,7 +1237,6 @@ const Dashboard = () => {
                     match={match}
                     isObsActive={isObsActive}
                     onOpen={handleOpen}
-                    onDelete={handleDelete}
                     onCopyUrl={(id) => navigator.clipboard.writeText(`${window.location.origin}/overlay/${id}`)}
                   />
                 ))}
