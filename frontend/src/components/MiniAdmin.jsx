@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import { Activity, ArrowLeftRight, ArrowUpRight, Check, ChevronDown, ChevronRight, Circle, CircleDot, Clapperboard, ClipboardList, Coins, CornerUpLeft, Crown, Flag, Flame, Hospital, Hourglass, Info, PersonStanding, Pause, Pencil, Radio, RefreshCw, Rocket, Save, Settings, Sparkles, Target, Tv, TriangleAlert, Umbrella, X, Zap } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Activity, ArrowLeft, ArrowLeftRight, Check, ChevronDown, ChevronRight, Circle, CircleDot, Clapperboard, ClipboardList, Coins, CornerUpLeft, Crown, Flag, Flame, Hospital, Hourglass, Info, PersonStanding, Pause, Pencil, Radio, RefreshCw, Rocket, Save, Settings, Sparkles, Target, Tv, TriangleAlert, Umbrella, X, Zap } from 'lucide-react';
 import { db } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import './MiniAdmin.css';
@@ -58,6 +58,7 @@ const MiniAdmin = () => {
     const { t } = useLanguage();
     // ── Multi-match: derive Firebase paths from URL param ──────────────────
     const { matchId } = useParams();
+    const navigate = useNavigate();
     const dbPath = matchId ? `matches/${matchId}/live_match` : 'live_match';
     const tickerPath = matchId ? `matches/${matchId}/overlay_ticker` : 'overlay_ticker';
 
@@ -1042,11 +1043,21 @@ const MiniAdmin = () => {
             {/* ══ HEADER ══════════════════════════════════════════════ */}
             <div className="ma-header">
                 <div className="ma-logo">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/dashboard')}
+                        aria-label="Back to dashboard"
+                        title="Back to dashboard"
+                        className="ma-back-btn"
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', color: '#fff', border: '1px solid rgba(148,163,184,0.45)', borderRadius: '6px', padding: '4px 6px', marginRight: '6px', cursor: 'pointer' }}
+                    >
+                        <ArrowLeft size="1.1em" strokeWidth={3} aria-hidden="true" />
+                    </button>
                     <img src="/ks_logo.png" alt="KS" style={{ height: '20px', width: 'auto', objectFit: 'contain' }} />
                     KS CONTROL
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button 
+                <div className="ma-header-tools" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
                         onClick={() => setShowFormatModal(true)}
                         style={{ background: '#eab308', color: '#000', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
                         title="Configure Match Format & Rules"
@@ -1057,7 +1068,7 @@ const MiniAdmin = () => {
                         onClick={() => window.open(`/control-room/${matchId}`, '_blank')}
                         style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
-                        DESKTOP CONTROL ROOM <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
+                        DESKTOP CONTROL ROOM
                     </button>
                     <LanguageSwitcher compact />
                     <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} compact />
