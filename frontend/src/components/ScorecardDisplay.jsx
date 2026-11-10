@@ -8,6 +8,7 @@ import { Activity, ArrowUpRight, BarChart3, Calendar, Check, Circle, CircleDot, 
 import BroadcastTicker from "./BroadcastTicker";
 import ModernOverlayThemes from "./ModernOverlayThemes";
 import "./BroadcastScreens.css";
+import "./BroadcastLogo.css";
 import "./ks-premium.css";
 import "./ThemeNewKSColor.css";
 import "./ModernEventFx.css";
@@ -78,9 +79,9 @@ const TeamLogo = React.memo(function TeamLogo({ src, teamName, className, size =
   return (
     <img
       src={src}
-      className={className}
+      className={['team-logo-img', className].filter(Boolean).join(' ')}
       alt={teamName || 'Team Logo'}
-      style={style}
+      style={{ width: size, height: size, minWidth: size, maxWidth: size, flexShrink: 0, ...style }}
       onError={() => setFailed(true)}
     />
   );
@@ -136,6 +137,29 @@ const ScorecardDisplay = () => {
   const [scoreAnimClass, setScoreAnimClass] = useState("");
   const [boardAnimClass, setBoardAnimClass] = useState("");
   const [bowlerAnimClass, setBowlerAnimClass] = useState("");
+  // Phones: lay the overlay out on a fixed-width canvas and scale it to the screen width.
+  const [viewportSize, setViewportSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
+  useEffect(() => {
+    const handleResize = () => setViewportSize({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  // Smaller design width = bigger text on phones. Content wider than this is cut off on phones.
+  const OVERLAY_DESIGN_WIDTH = 1000;
+  const isPhoneScreen = viewportSize.w < 768;
+  const phoneScale = isPhoneScreen ? viewportSize.w / OVERLAY_DESIGN_WIDTH : 1;
+  const phoneCanvasStyle = isPhoneScreen
+    ? {
+        width: OVERLAY_DESIGN_WIDTH,
+        height: viewportSize.h / phoneScale,
+        transform: `scale(${phoneScale})`,
+        transformOrigin: "0 0",
+        left: 0,
+        top: 0,
+        right: "auto",
+        bottom: "auto",
+      }
+    : undefined;
   const [newOverAnim, setNewOverAnim] = useState(false);
   const [showInfoStrip, setShowInfoStrip] = useState(false);
   // FIX 5: KS Premium over-break chase display state
@@ -901,7 +925,7 @@ const ScorecardDisplay = () => {
   const finalWinnerTeam = winnerInfo?.team || (match.isSecondInnings ? (match.score >= (match.targetScore || 0) ? match.battingTeam : match.bowlingTeam) : match.battingTeam);
 
   return (
-    <div key={refreshKey} className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic">
+    <div key={refreshKey} className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic" style={phoneCanvasStyle}>
 
       {/* 1. NAVIGATION OVERLAY (Admin only, visible on hover) */}
       <div className="fixed top-4 left-4 z-[200] flex gap-2 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity">
