@@ -573,11 +573,11 @@ function ThemesGallery() {
 
                             <span className={`theme-card-ribbon ${theme.ribbon}`}>
 
-                                {theme.ribbon === "new" && <><Sparkles size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> New</>}
+                                {theme.ribbon === "new" && <>New<Sparkles size="1em" aria-hidden="true" /></>}
 
-                                {theme.ribbon === "premium" && <><Star size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Premium</>}
+                                {theme.ribbon === "premium" && <>Premium<Star size="1em" aria-hidden="true" /></>}
 
-                                {theme.ribbon === "tournament" && <><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Tournament</>}
+                                {theme.ribbon === "tournament" && <>Tournament<Trophy size="1em" aria-hidden="true" /></>}
 
                             </span>
 
