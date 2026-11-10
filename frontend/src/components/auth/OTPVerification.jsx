@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Activity, Check, TriangleAlert } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api';
 import OtpInput from './OtpInput';
@@ -92,7 +93,7 @@ export default function OTPVerification() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="auth-logo-icon">🏏</div>
+          <div className="auth-logo-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <span className="auth-logo-text">KS Live</span>
         </div>
 
@@ -106,12 +107,12 @@ export default function OTPVerification() {
 
         {notice && (
           <div className="auth-alert auth-alert-success">
-            <span style={{ flexShrink: 0 }}>✅</span> {notice}
+            <span style={{ flexShrink: 0 }}><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {notice}
           </div>
         )}
         {error && (
           <div className="auth-alert auth-alert-error" role="alert">
-            <span style={{ flexShrink: 0 }}>⚠️</span> {error}
+            <span style={{ flexShrink: 0 }}><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {error}
           </div>
         )}
 

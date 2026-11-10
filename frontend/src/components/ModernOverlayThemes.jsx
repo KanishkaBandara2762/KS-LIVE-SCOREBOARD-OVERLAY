@@ -1,4 +1,5 @@
 import React from 'react';
+import { Play, Star } from 'lucide-react';
 import './ModernBroadcastThemes.css';
 import './ModernBroadcastSkins.css';
 
@@ -161,7 +162,7 @@ export default function ModernOverlayThemes({
           <div className="icc-batsmen-section">
             <div className={`icc-bat-row striker`}>
               <div className="icc-bat-name-box">
-                <span className="icc-striker-arrow">▶</span>
+                <span className="icc-striker-arrow"><Play size="1em" style={{ verticalAlign: '-0.125em' }} fill="currentColor" aria-hidden="true" /></span>
                 <span>{striker?.name || "BATTER 1"}</span>
               </div>
               <div>
@@ -347,7 +348,7 @@ export default function ModernOverlayThemes({
           <div className="jio-bat-section">
             <div className="jio-bat-row striker">
               <div>
-                <span className="jio-star-icon">★</span>
+                <span className="jio-star-icon"><Star size="1em" style={{ verticalAlign: '-0.125em' }} fill="currentColor" aria-hidden="true" /></span>
                 <span>{striker?.name || "BATTER 1"}</span>
               </div>
               <div>
@@ -437,7 +438,7 @@ export default function ModernOverlayThemes({
           <div className="fox-bat-block">
             <div className="fox-bat-row striker">
               <div>
-                <span className="fox-fire-arrow">▶</span>
+                <span className="fox-fire-arrow"><Play size="1em" style={{ verticalAlign: '-0.125em' }} fill="currentColor" aria-hidden="true" /></span>
                 <span>{striker?.name || "BATTER 1"}</span>
               </div>
               <div>

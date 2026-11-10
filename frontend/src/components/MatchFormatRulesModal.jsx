@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { matchesApi } from '../api';
+import { Settings, X, Check } from 'lucide-react';
 
 const FORMAT_OPTIONS = [
   { id: 'T20I', label: 'T20 International (20 overs, max 4/bowler, Free Hit)' },
@@ -36,6 +37,7 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
   const [freeHitEnabled, setFreeHitEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const [msgOk, setMsgOk] = useState(false);
 
   useEffect(() => {
     if (matchId && isOpen) {
@@ -68,14 +70,16 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
       }
       const res = await matchesApi.updateMatchFormat(matchId, payload);
       if (res.success) {
-        setMsg('✅ Match format and rules updated successfully!');
+        setMsgOk(true);
+        setMsg('Match format and rules updated successfully!');
         setTimeout(() => {
           onUpdated?.(res);
           onClose();
         }, 1200);
       }
     } catch (err) {
-      setMsg(`❌ ${err.message}`);
+      setMsgOk(false);
+      setMsg(err.message);
     } finally {
       setLoading(false);
     }
@@ -95,13 +99,13 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0, color: '#facc15', fontSize: 16, fontWeight: 800 }}>
-            ⚙ MATCH FORMAT & PLAYING CONDITIONS
+            <Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> MATCH FORMAT & PLAYING CONDITIONS
           </h3>
           <button
             onClick={onClose}
             style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer' }}
           >
-            ✕
+            <X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
           </button>
         </div>
 
@@ -182,7 +186,8 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
         </div>
 
         {msg && (
-          <div style={{ fontSize: 12, color: msg.startsWith('✅') ? '#4ade80' : '#f87171' }}>
+          <div style={{ fontSize: 12, color: msgOk ? '#4ade80' : '#f87171', display: 'inline-flex', gap: '0.35em', alignItems: 'center' }}>
+            {msgOk ? <Check size="1em" aria-hidden="true" /> : <X size="1em" aria-hidden="true" />}
             {msg}
           </div>
         )}
@@ -210,7 +215,7 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
               cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: 0.5,
             }}
           >
-            {loading ? 'Saving...' : '✔ APPLY RULES'}
+            {loading ? 'Saving...' : <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> APPLY RULES</>}
           </button>
         </div>
       </div>

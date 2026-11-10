@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import './LandingExtras.css';
+import { School, Video, Trophy, Activity, Check, Star, Phone, MapPin, MessageSquare, Mail } from 'lucide-react';
 
 export function BroadcastingServices() {
     return (
         <section className="landing-broadcasting-section landing-reveal" id="broadcasting">
             <div className="broadcasting-content">
-                <div className="broadcasting-badge">🎥 Professional Broadcasting Services</div>
+                <div className="broadcasting-badge"><Video size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Professional Broadcasting Services</div>
                 <h2 className="landing-section-title">
                     Take Your Event to the <span>Next Level</span>
                 </h2>
@@ -15,26 +16,18 @@ export function BroadcastingServices() {
                 <div className="broadcasting-grid">
                     <div className="broadcasting-card">
                         <div className="broadcasting-icon">
-                            {/* Lucide "school" icon (ISC license), inline so no package is needed */}
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
-                                <path d="M18 5v16" />
-                                <path d="m4 6 7.106-3.79a1.999 1.999 0 0 1 1.788 0L20 6" />
-                                <path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11" />
-                                <path d="M6 5v16" />
-                                <circle cx="12" cy="9" r="2" />
-                            </svg>
+                            <School size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                         </div>
                         <h3>Schools & Colleges</h3>
                         <p>Perfect for big matches and inter-school tournaments with multi-camera setups.</p>
                     </div>
                     <div className="broadcasting-card">
-                        <div className="broadcasting-icon">🏆</div>
+                        <div className="broadcasting-icon"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                         <h3>Tournaments & Leagues</h3>
                         <p>Complete broadcast solutions including live scoring, overlays, and commentary boxes.</p>
                     </div>
                     <div className="broadcasting-card">
-                        <div className="broadcasting-icon">🏏</div>
+                        <div className="broadcasting-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                         <h3>Clubs & Organizations</h3>
                         <p>Affordable, premium live streaming to showcase your weekend matches to the world.</p>
                     </div>
@@ -73,7 +66,7 @@ export function ReviewsSection() {
 
                 {submitted ? (
                     <div className="review-success">
-                        <div className="success-icon">✅</div>
+                        <div className="success-icon"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                         <h3>Thank you for your feedback!</h3>
                         <p>Your review has been submitted for moderation.</p>
                     </div>
@@ -87,7 +80,7 @@ export function ReviewsSection() {
                                     className={`star-btn ${rating >= star ? 'active' : ''}`}
                                     onClick={() => setRating(star)}
                                 >
-                                    ★
+                                    <Star size="1em" style={{ verticalAlign: '-0.125em' }} fill={rating >= star ? 'currentColor' : 'none'} aria-hidden="true" />
                                 </button>
                             ))}
                         </div>
@@ -122,17 +115,17 @@ export function ModernFooter() {
                     <p className="dev-name"><strong>A.G.K.S. Bandara</strong></p>
                     <p className="dev-title">Owner</p>
                     <div className="contact-details">
-                        <p><span>📞</span> 0719574089 / 0789577089</p>
-                        <p><span>📍</span> 121/1, Pamunuwa, Pilimathalawa, Kandy, Sri Lanka.</p>
+                        <p><span><Phone size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> 0719574089 / 0789577089</p>
+                        <p><span><MapPin size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> 121/1, Pamunuwa, Pilimathalawa, Kandy, Sri Lanka.</p>
                     </div>
                 </div>
 
                 <div className="footer-col quick-contact">
                     <h4>Get In Touch</h4>
                     <div className="social-links">
-                        <a href="tel:+94719574089" className="social-btn call">📞 Call Now</a>
-                        <a href="https://wa.me/94719574089" target="_blank" rel="noopener noreferrer" className="social-btn whatsapp">💬 WhatsApp</a>
-                        <a href="mailto:contact@kslive.com" className="social-btn email">✉️ Email</a>
+                        <a href="tel:+94719574089" className="social-btn call"><Phone size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Call Now</a>
+                        <a href="https://wa.me/94719574089" target="_blank" rel="noopener noreferrer" className="social-btn whatsapp"><MessageSquare size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> WhatsApp</a>
+                        <a href="mailto:contact@kslive.com" className="social-btn email"><Mail size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Email</a>
                     </div>
                 </div>
             </div>

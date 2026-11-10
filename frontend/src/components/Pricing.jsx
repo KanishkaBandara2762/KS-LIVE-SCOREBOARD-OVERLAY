@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, X, Gem, Lightbulb } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { subscriptionsApi } from "../api";
 import { formatLkr, lkrToUsd, formatUsd } from "../utils/money";
@@ -86,7 +87,7 @@ const Pricing = () => {
   return (
     <div className="pricing-container">
       <div className="pricing-header">
-        <Link to="/dashboard" className="pricing-back">← Dashboard</Link>
+        <Link to="/dashboard" className="pricing-back"><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Dashboard</Link>
         <h1>Choose Your KS Live Plan</h1>
         <p>Broadcast cricket matches professionally with KS Live.</p>
       </div>
@@ -113,10 +114,10 @@ const Pricing = () => {
               </div>
               <div className="pricing-card-body">
                 <ul>
-                  <li><span className="check">✓</span> {plan.credits} match, tournament or auction credit{plan.credits === 1 ? "" : "s"}</li>
-                  <li><span className="check">✓</span> OBS broadcast link (1 credit, 24 hours)</li>
-                  <li><span className="check">✓</span> Live scoring dashboard</li>
-                  {plan.description && <li><span className="check">✓</span> {plan.description}</li>}
+                  <li><span className="check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {plan.credits} match, tournament or auction credit{plan.credits === 1 ? "" : "s"}</li>
+                  <li><span className="check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> OBS broadcast link (1 credit, 24 hours)</li>
+                  <li><span className="check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> Live scoring dashboard</li>
+                  {plan.description && <li><span className="check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {plan.description}</li>}
                 </ul>
               </div>
               <div className="pricing-card-footer">
@@ -133,9 +134,9 @@ const Pricing = () => {
       {selectedPlan && (
         <div className="pricing-modal-overlay" role="dialog" aria-modal="true" onClick={() => setSelectedPlan(null)}>
           <div className="pricing-modal" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="pricing-modal-close" onClick={() => setSelectedPlan(null)} aria-label="Close">×</button>
+            <button type="button" className="pricing-modal-close" onClick={() => setSelectedPlan(null)} aria-label="Close"><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
             <div className="pricing-modal-header">
-              <div className="plan-badge-icon">💎</div>
+              <div className="plan-badge-icon"><Gem size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
               <h2>Buy {selectedPlan.name}</h2>
               <p className="plan-price-info">
                 {selectedPlan.credits} credit{selectedPlan.credits === 1 ? "" : "s"} · <span className="price-highlight">{priceLabel(selectedPlan, usdToLkr)}</span>
@@ -225,7 +226,7 @@ const Pricing = () => {
 
                   <div className="modal-activation-footer">
                     <p className="screenshot-reminder">
-                      💡 <strong>Important:</strong> After payment, send the transfer slip or receipt screenshot on WhatsApp so the owner can add your credits.
+                      <Lightbulb size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <strong>Important:</strong> After payment, send the transfer slip or receipt screenshot on WhatsApp so the owner can add your credits.
                     </p>
                   </div>
                 </>

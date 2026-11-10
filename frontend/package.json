@@ -16,6 +16,7 @@
     "@capacitor/core": "^8.6.0",
     "@heroicons/react": "^2.1.1",
     "firebase": "^12.9.0",
+    "lucide-react": "^1.71.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.13.0",

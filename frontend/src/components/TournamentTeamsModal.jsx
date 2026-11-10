@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { tournamentsApi } from '../api';
+import { Activity, Check, Hand, Shield, Star, Target, Trash2, TriangleAlert, Users, X, Zap } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 const getAbsoluteUrl = (url) => {
@@ -9,10 +10,10 @@ const getAbsoluteUrl = (url) => {
 };
 
 const ROLE_OPTIONS = [
-  { value: 'All-Rounder', label: '⭐ All-Rounder', color: '#facc15', bg: 'rgba(250, 204, 21, 0.12)' },
-  { value: 'Batsman', label: '🏏 Batsman', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.12)' },
-  { value: 'Bowler', label: '🎯 Bowler', color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.12)' },
-  { value: 'Wicket-Keeper', label: '🧤 Wicket-Keeper', color: '#34d399', bg: 'rgba(52, 211, 153, 0.12)' },
+  { value: 'All-Rounder', label: 'All-Rounder', Icon: Star, color: '#facc15', bg: 'rgba(250, 204, 21, 0.12)' },
+  { value: 'Batsman', label: 'Batsman', Icon: Activity, color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.12)' },
+  { value: 'Bowler', label: 'Bowler', Icon: Target, color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.12)' },
+  { value: 'Wicket-Keeper', label: 'Wicket-Keeper', Icon: Hand, color: '#34d399', bg: 'rgba(52, 211, 153, 0.12)' },
 ];
 
 export default function TournamentTeamsModal({ tournament, onClose, onUpdated }) {
@@ -282,7 +283,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '16px', marginBottom: '20px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '1.6rem' }}>👥</span>
+              <span style={{ fontSize: '1.6rem' }}><Users size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', margin: 0 }}>
                 Tournament Teams & Squads
               </h2>
@@ -291,18 +292,18 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
               {currentTournament.name} • {teams.length} Teams Configured
             </p>
           </div>
-          <button className="modal-close" onClick={onClose} style={{ fontSize: '1.2rem', padding: '6px 12px' }}>✕</button>
+          <button className="modal-close" onClick={onClose} style={{ fontSize: '1.2rem', padding: '6px 12px' }}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
         </div>
 
         {/* Notifications */}
         {error && (
           <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '16px' }}>
-            ⚠ {error}
+            <TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {error}
           </div>
         )}
         {successMsg && (
           <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ade80', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '16px' }}>
-            ✓ {successMsg}
+            <Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {successMsg}
           </div>
         )}
 
@@ -355,7 +356,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                         <img src={teamLogoPreview} alt="Logo Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                       ) : (
                         <>
-                          <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🛡️</span>
+                          <span style={{ fontSize: '1.1rem', lineHeight: 1 }}><Shield size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                           <span style={{ fontSize: '0.55rem', color: '#94a3b8', fontWeight: 700, marginTop: '2px' }}>+ Logo</span>
                         </>
                       )}
@@ -384,7 +385,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                         }}
                         title="Remove Logo"
                       >
-                        ✕
+                        <X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                       </button>
                     )}
 
@@ -490,7 +491,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                         style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px', fontSize: '0.85rem' }}
                         title="Delete Team"
                       >
-                        🗑
+                        <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                       </button>
                     </div>
                   );
@@ -536,7 +537,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                           />
                         ) : (
-                          <span style={{ fontSize: '1.4rem' }}>🏏</span>
+                          <span style={{ fontSize: '1.4rem' }}><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                         )}
                       </div>
                       <input
@@ -589,7 +590,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                       borderRadius: '8px', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
                     }}
                   >
-                    {showBulkAdd ? '✕ Close Bulk Add' : '⚡ Bulk Import Names'}
+                    {showBulkAdd ? <><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Close Bulk Add</> : <><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Bulk Import Names</>}
                   </button>
                 </div>
 
@@ -597,7 +598,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                 {showBulkAdd && (
                   <form onSubmit={handleBulkAdd} style={{ background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.25)', borderRadius: '10px', padding: '14px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#facc15', textTransform: 'uppercase' }}>
-                      ⚡ Paste Squad Player Names (comma or line separated):
+                      <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Paste Squad Player Names (comma or line separated):
                     </label>
                     <textarea
                       rows={3}
@@ -654,7 +655,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                   {(!selectedTeam.players || selectedTeam.players.length === 0) ? (
                     <div style={{ textAlign: 'center', padding: '36px 12px', color: '#64748b', fontSize: '0.85rem' }}>
                       No players in this squad yet.<br />
-                      Type a player name above or click <strong>⚡ Bulk Import Names</strong> to add your team roster!
+                      Type a player name above or click <strong><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Bulk Import Names</strong> to add your team roster!
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -690,7 +691,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                                 fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
                                 border: `1px solid ${roleMeta.color}33`
                               }}>
-                                {roleMeta.label}
+                                <roleMeta.Icon size="1em" style={{ verticalAlign: '-0.125em', marginRight: '0.3em' }} aria-hidden="true" />{roleMeta.label}
                               </span>
                               <button
                                 type="button"
@@ -698,7 +699,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                                 style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem', padding: '2px 6px' }}
                                 title="Remove Player"
                               >
-                                ✕
+                                <X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                               </button>
                             </div>
                           </div>

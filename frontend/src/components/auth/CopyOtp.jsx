@@ -9,6 +9,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Activity } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api';
 import './copyOtp.css';
@@ -99,7 +100,7 @@ export default function CopyOtp() {
     <div className="copy-otp-page">
       <main className="copy-otp-card">
         <div className="copy-otp-logo">
-          <span className="copy-otp-logo-icon" aria-hidden="true">🏏</span>
+          <span className="copy-otp-logo-icon" aria-hidden="true"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
           <span className="copy-otp-logo-text">KS Live</span>
         </div>
 

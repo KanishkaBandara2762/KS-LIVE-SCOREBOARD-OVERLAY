@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Activity, Check, RefreshCw, Target, X, Zap } from 'lucide-react';
 
 const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
   const [customName, setCustomName] = useState('');
@@ -50,7 +51,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: 32, marginBottom: 4 }}>🎯</div>
+            <div style={{ fontSize: 32, marginBottom: 4 }}><Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
             <h2 style={{
               color: '#fff', fontSize: 18, fontWeight: 800,
               letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0,
@@ -64,7 +65,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
               type="button"
               onClick={onClose}
               style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', padding: 4 }}
-            >✕</button>
+            ><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
           )}
         </div>
 
@@ -74,7 +75,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
             <div style={{
               color: '#a78bfa', fontSize: 10, fontWeight: 800,
               letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10,
-            }}>⚡ TEAM SQUAD BOWLERS ({squadList.length})</div>
+            }}><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> TEAM SQUAD BOWLERS ({squadList.length})</div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, maxHeight: 150, overflowY: 'auto' }}>
               {squadList.map((p, i) => {
@@ -104,7 +105,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
                       e.currentTarget.style.borderColor = isSelected ? '#a78bfa' : 'rgba(167, 139, 250, 0.25)';
                     }}
                   >
-                    <span style={{ fontSize: 11 }}>🏏</span>
+                    <span style={{ fontSize: 11 }}><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{name}</span>
                   </button>
                 );
@@ -119,7 +120,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
             <div style={{
               color: '#facc15', fontSize: 10, fontWeight: 800,
               letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10,
-            }}>🔄 RECENT BOWLERS (CONTINUE SPELL)</div>
+            }}><RefreshCw size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RECENT BOWLERS (CONTINUE SPELL)</div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, maxHeight: 130, overflowY: 'auto' }}>
               {previousBowlers.map((b, i) => (
@@ -215,7 +216,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
                   transition: 'all 0.15s',
                 }}
               >
-                ✅ CONFIRM BOWLER
+                <Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CONFIRM BOWLER
               </button>
             </div>
           </div>

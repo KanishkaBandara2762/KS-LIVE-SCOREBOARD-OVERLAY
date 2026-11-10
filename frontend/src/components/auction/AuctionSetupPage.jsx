@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Crown, Download, Link, Play, Settings, Smartphone, Users, X } from 'lucide-react';
 import { auctionApi, tournamentsApi } from '../../api';
 import {
   AUCTION_CURRENCIES,
@@ -65,7 +66,7 @@ function TeamRow({ auction, team, inviteUrl, onSave, onInvite, onDelete }) {
         {team.ownerUserId ? (
           <span className="auction-badge joined">Owner joined</span>
         ) : (
-          <button className="auction-btn small" onClick={() => onInvite(team.id)}>🔗 Invite owner</button>
+          <button className="auction-btn small" onClick={() => onInvite(team.id)}><Link size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Invite owner</button>
         )}
         {inviteUrl ? (
           <div className="auction-invite-box">
@@ -265,7 +266,7 @@ export default function AuctionSetupPage() {
       <div className="auction-page">
         <header className="auction-header">
           <div className="auction-header-title">
-            <button className="auction-back" onClick={() => navigate('/auctions')}>← Auctions</button>
+            <button className="auction-back" onClick={() => navigate('/auctions')}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions</button>
             <div><h1>{auction.name}</h1><p>Setup is only available to the auctioneer.</p></div>
           </div>
         </header>
@@ -282,7 +283,7 @@ export default function AuctionSetupPage() {
     <div className="auction-page">
       <header className="auction-header">
         <div className="auction-header-title">
-          <button className="auction-back" onClick={() => navigate('/auctions')}>← Auctions</button>
+          <button className="auction-back" onClick={() => navigate('/auctions')}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions</button>
           <div>
             <span className="auction-eyebrow">AUCTION SETUP</span>
             <h1>{auction.name}</h1>
@@ -293,9 +294,9 @@ export default function AuctionSetupPage() {
           </div>
         </div>
         <div className="auction-header-actions">
-          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/live`)}>📱 Bid Room</button>
+          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/live`)}><Smartphone size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Bid Room</button>
           <button className="auction-btn primary" onClick={startAuction} disabled={!['draft', 'ready'].includes(auction.status)}>
-            ▶ Start Auction
+            <Play size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Start Auction
           </button>
         </div>
       </header>
@@ -313,9 +314,9 @@ export default function AuctionSetupPage() {
       </div>
 
       <div className="auction-tabs">
-        <button className={tab === 'teams' ? 'active' : ''} onClick={() => setTab('teams')}>👥 Teams</button>
-        <button className={tab === 'players' ? 'active' : ''} onClick={() => setTab('players')}>🧢 Players</button>
-        <button className={tab === 'rules' ? 'active' : ''} onClick={() => setTab('rules')}>⚙ Rules</button>
+        <button className={tab === 'teams' ? 'active' : ''} onClick={() => setTab('teams')}><Users size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Teams</button>
+        <button className={tab === 'players' ? 'active' : ''} onClick={() => setTab('players')}><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Players</button>
+        <button className={tab === 'rules' ? 'active' : ''} onClick={() => setTab('rules')}><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Rules</button>
       </div>
 
       {tab === 'teams' ? (
@@ -384,7 +385,7 @@ export default function AuctionSetupPage() {
           <section className="auction-panel">
             <div className="auction-panel-header">
               <div><h2>Player pool</h2><p>{players.length} player(s), {pendingPlayers.length} still pending.</p></div>
-              <button className="auction-btn small" onClick={openImport}>📥 Import from tournament</button>
+              <button className="auction-btn small" onClick={openImport}><Download size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Import from tournament</button>
             </div>
 
             {players.length === 0 ? (
@@ -521,7 +522,7 @@ export default function AuctionSetupPage() {
           <div className="auction-modal">
             <div className="auction-modal-header">
               <div><span className="auction-eyebrow">IMPORT</span><h2>Import tournament players</h2></div>
-              <button className="auction-icon-btn" onClick={() => setShowImport(false)}>✕</button>
+              <button className="auction-icon-btn" onClick={() => setShowImport(false)}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
             </div>
             <div className="auction-form">
               <div className="auction-field">
