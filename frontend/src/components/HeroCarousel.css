@@ -146,6 +146,15 @@
 }
 
 @media (max-width: 768px) {
+    /* mobile.css sets min-height: 44px on all buttons; keep the dots as thin bars. */
+    .hero-indicators {
+        gap: 6px;
+    }
+    .indicator-dot {
+        width: 20px;
+        height: 4px;
+        min-height: 0;
+    }
     .hero-title {
         font-size: 2.5rem !important;
     }
