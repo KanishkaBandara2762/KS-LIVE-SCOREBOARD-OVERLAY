@@ -18,7 +18,8 @@ const LanguageSwitcher = ({ className = "", compact = false }) => {
           color: "#f8fafc",
           border: "1px solid #334155",
           outline: "none",
-          cursor: "pointer"
+          cursor: "pointer",
+          minHeight: 0 // mobile.css forces 44px min-height on selects
         }}
       >
         {languages.map((item) => (

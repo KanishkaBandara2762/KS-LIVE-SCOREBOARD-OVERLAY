@@ -1293,6 +1293,10 @@
         display: flex;
     }
 
+    .landing-nav-language {
+        margin-bottom: 0.75rem;
+    }
+
     .landing-nav-hamburger {
         display: block;
     }
