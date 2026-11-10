@@ -15,7 +15,7 @@ const { isIssuedBeforePasswordChange } = require('../utils/sessionRevocation');
 
 const OTP_EXPIRY_MINUTES = () => Number(process.env.OTP_EXPIRY_MINUTES) || 5;
 
-// The copy page is opened in the user's browser, so it belongs to the frontend.
+// The verify page is opened in the user's browser, so it belongs to the frontend.
 // Token travels in the hash fragment: browsers never send it to a server.
 const frontendBaseUrl = () =>
   String(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
@@ -524,6 +524,7 @@ const copyOtpCode = async (req, res, next) => {
     const result = await revealOtpByCopyToken({ token });
     res.json({
       success: true,
+      email: result.email,
       code: result.code,
       purpose: result.purpose,
       expiresAt: result.expiresAt,

@@ -23,7 +23,7 @@ export default function OTPVerification() {
   const emailFromQuery = new URLSearchParams(location.search).get('email');
   const email = location.state?.email || emailFromQuery || '';
 
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(location.state?.prefillCode || ''); // filled from the verify link
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
