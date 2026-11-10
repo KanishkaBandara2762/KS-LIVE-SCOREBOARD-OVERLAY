@@ -50,6 +50,14 @@
 .broadcasting-icon {
     font-size: 2rem;
     margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.broadcasting-icon svg {
+    width: 2rem;
+    height: 2rem;
+    color: #14b8a6;
 }
 
 .broadcasting-card h3 {
