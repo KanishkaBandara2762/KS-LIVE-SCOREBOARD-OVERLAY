@@ -185,6 +185,7 @@
 
   .dashboard .dash-plan-badge {
     padding: 4px 8px;
+    margin-right: 10px;
     font-size: 0.6rem;
     line-height: 1.25;
     white-space: normal;
@@ -200,18 +201,44 @@
   }
 
   .dashboard .dash-header-right > button {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     min-width: 0;
+    max-width: 120px;
     min-height: 34px;
     margin: 0 !important;
     padding: 6px 8px;
     font-size: 11px;
-    white-space: nowrap;
+    line-height: 1.2;
+    white-space: normal;
+    text-align: center;
   }
 
   .dashboard .dash-btn-label {
     display: none;
   }
+
+  /* Icon-only Create Tournament button: wider and icon centered */
+  .dashboard .dash-header-right > .dash-create-tournament-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 46px;
+    padding: 6px 14px;
+  }
+}
+
+/* Icon on top (centered), title below. Used by match card actions and
+   the tournament toolbar buttons. */
+.dashboard .match-card-actions button,
+.dashboard .dash-stacked-btn,
+.dashboard .tournament-title {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  line-height: 1.2;
 }
 
 /* Mobile-only account dropdown is hidden on desktop */
@@ -240,6 +267,10 @@
   }
 
   .dashboard .dash-mobile-account-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     width: 100%;
     min-height: 40px;
     margin: 0;
@@ -255,8 +286,9 @@
   .dashboard .dash-mobile-account-menu {
     position: absolute;
     top: calc(100% + 6px);
-    left: 0;
     right: 0;
+    width: max-content;
+    min-width: 180px;
     z-index: 60;
     display: flex;
     flex-direction: column;
@@ -269,7 +301,9 @@
   }
 
   .dashboard .dash-mobile-account-menu button {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
     width: 100%;
     padding: 10px 12px;
     border: none;
@@ -279,6 +313,7 @@
     font-size: 13px;
     font-weight: 600;
     text-align: left;
+    white-space: nowrap;
     cursor: pointer;
   }
 

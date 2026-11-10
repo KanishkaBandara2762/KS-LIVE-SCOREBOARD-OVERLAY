@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Rocket, Settings, Target, Trash2, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
+import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Radio, Rocket, Settings, Target, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
 import TournamentTeamsModal from './TournamentTeamsModal';
@@ -9,7 +9,6 @@ import { isAdminRole } from '../utils/roles';
 import './Dashboard.css';
 import './DashboardModern.css';
 import { CreditPlansPanel, OwnerContactFooter } from './CreditPlansPanel';
-import TournamentObsGuide from './TournamentObsGuide';
 import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
@@ -692,9 +691,8 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 }
 
 // ── Match Card ────────────────────────────────────────────────────────────
-function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
+function MatchCard({ match, onOpen, onCopyUrl, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const statusInfo = STATUS_COLORS[match.status] || STATUS_COLORS.live;
   const overlayUrl = `${window.location.origin}/overlay/${match.matchId}`;
   const [obs, setObs] = useState({ expiresAt: match.broadcastExpiresAt ?? null, locked: !!match.broadcastLocked });
@@ -709,16 +707,6 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* ignore */ }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm(`Delete match "${match.battingTeam} vs ${match.bowlingTeam}"?\nThis cannot be undone.`)) return;
-    setDeleting(true);
-    try {
-      await onDelete(match.matchId);
-    } catch {
-      setDeleting(false);
-    }
   };
 
   const createdDate = match.createdAt
@@ -777,9 +765,6 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
         }>
           <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Mini
         </button>
-        <button className="btn-delete" onClick={handleDelete} disabled={deleting}>
-          {deleting ? '...' : <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}
-        </button>
       </div>
     </div>
   );
@@ -792,6 +777,13 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
   const [obs, setObs] = useState({ expiresAt: tournament.broadcastExpiresAt ?? null, locked: !!tournament.broadcastLocked });
   const obsLocked = isBroadcastLocked({ broadcastLocked: obs.locked, broadcastExpiresAt: obs.expiresAt });
+
+  // Spends 1 credit (after confirmation) and reveals the static overlay link
+  const handleGenerate = async () => {
+    const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked });
+    if (!res) return;
+    setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false });
+  };
 
   const handleCopy = async () => {
     const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked });
@@ -834,13 +826,21 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
         </div>
       </div>
 
-      <div className="match-card-url" style={{ marginBottom: '20px' }}>
-        <span className="obs-label">Static Overlay:</span>
-        <code className="obs-url">/overlay/tournament/{tournament.id || tournament._id}</code>
-        <button className="btn-copy" onClick={handleCopy}>
-          {copied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copied!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copy</>}
-        </button>
-      </div>
+      {obsLocked ? (
+        <div style={{ marginBottom: '20px' }}>
+          <button className="btn-copy" onClick={handleGenerate}>
+            <Radio size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Generate Static Overlay link
+          </button>
+        </div>
+      ) : (
+        <div className="match-card-url" style={{ marginBottom: '20px' }}>
+          <span className="obs-label">Static Overlay:</span>
+          <code className="obs-url">/overlay/tournament/{tournament.id || tournament._id}</code>
+          <button className="btn-copy" onClick={handleCopy}>
+            {copied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copied!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copy</>}
+          </button>
+        </div>
+      )}
       <div style={{ marginTop: 6 }}>
         <BroadcastStatus expiresAt={obs.expiresAt} locked={obsLocked} onExpire={() => setObs((o) => ({ ...o }))} />
       </div>
@@ -904,7 +904,6 @@ const Dashboard = () => {
       document.removeEventListener('touchstart', handleOutsideTap);
     };
   }, [showMobileAccountMenu]);
-  const [createdTournament, setCreatedTournament] = useState(null);
   const [showNextMatch, setShowNextMatch] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showTournamentTeams, setShowTournamentTeams] = useState(false);
@@ -961,7 +960,6 @@ const Dashboard = () => {
   const handleCreateTournament = async (formData) => {
     const res = await tournamentsApi.create(formData);
     await fetchTournaments();
-    if (res?.tournament) setCreatedTournament(res.tournament);
   };
 
   const handleNextMatchSubmit = async (tournamentId, matchData) => {
@@ -975,11 +973,6 @@ const Dashboard = () => {
 
   const handleOpen = (matchId) => {
     navigate(`/admin/${matchId}`);
-  };
-
-  const handleDelete = async (matchId) => {
-    await matchesApi.delete(matchId);
-    setMatches((prev) => prev.filter((m) => m.matchId !== matchId));
   };
 
   const handleModalClose = (newMatchId) => {
@@ -1030,7 +1023,15 @@ const Dashboard = () => {
       {/* Header */}
       <header className="dash-header">
         <div className="dash-header-left">
-          <div className="dash-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            className="dash-logo"
+            role="button"
+            tabIndex={0}
+            aria-label="Go to landing page"
+            onClick={() => navigate('/landing')}
+            onKeyDown={(event) => { if (event.key === 'Enter') navigate('/landing'); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+          >
             <img src="/ks_logo.png" alt="KS Live Logo" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
             <span className="dash-logo-text">KS <span>LIVE</span></span>
           </div>
@@ -1052,10 +1053,10 @@ const Dashboard = () => {
               {currentUser?.plan === 'free' ? 'Upgrade Plan' : 'Renew / Change Plan'}
             </button>
           )}
-          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }} aria-label="Create Tournament">
+          <button className="btn-create-match dash-create-tournament-btn dash-stacked-btn"onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }} aria-label="Create Tournament">
             <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <span className="dash-btn-label">Create Tournament</span>
           </button>
-          <button className="btn-create-match dash-desktop-only" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(148,163,184,0.45)' }}>
+          <button className="btn-create-match dash-desktop-only dash-stacked-btn" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(148,163,184,0.45)' }}>
             <Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account
           </button>
           <button className="btn-logout dash-desktop-only" onClick={handleLogout}>Sign Out</button>
@@ -1133,7 +1134,7 @@ const Dashboard = () => {
           onChange={(e) => setSearch(e.target.value)}
         />
         {activeTab === 'tournaments' && (
-          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000', whiteSpace: 'nowrap' }}>
+          <button className="btn-create-match dash-stacked-btn" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000', whiteSpace: 'nowrap' }}>
             <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> New Tournament
           </button>
         )}
@@ -1248,7 +1249,6 @@ const Dashboard = () => {
                     match={match}
                     isObsActive={isObsActive}
                     onOpen={handleOpen}
-                    onDelete={handleDelete}
                     onCopyUrl={(id) => navigator.clipboard.writeText(`${window.location.origin}/overlay/${id}`)}
                   />
                 ))}
@@ -1269,11 +1269,6 @@ const Dashboard = () => {
       {/* Create Tournament Modal */}
       {showCreateTournament && (
         <CreateTournamentModal onClose={() => setShowCreateTournament(false)} onCreate={handleCreateTournament} />
-      )}
-
-      {/* OBS setup shown right after a tournament is created */}
-      {createdTournament && (
-        <TournamentObsGuide tournament={createdTournament} onClose={() => setCreatedTournament(null)} />
       )}
 
       {/* Tournament Teams & Squads Modal */}
