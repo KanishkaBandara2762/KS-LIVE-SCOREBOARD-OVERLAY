@@ -97,6 +97,15 @@ const stateSnapshotSchema = new mongoose.Schema(
     penaltyRunsBatting: { type: Number },
     penaltyRunsFielding: { type: Number },
     deliveryHistoryLength: { type: Number }, // just the count, not full array
+    // Undo integrity (additive; older snapshots simply lack them)
+    bowlerHistory: { type: [Object], default: undefined },
+    battingSquad: { type: [Object], default: undefined },
+    perOverRunsLength: { type: Number },
+    lastWicketDismissal: { type: String },
+    lastWicketFielder: { type: String },
+    currentPowerplay: { type: Number },
+    awaitingNextBowler: { type: Boolean },
+    lastOverBowler: { type: String },
     timestamp: { type: Number },
   },
   { _id: false }
@@ -307,6 +316,11 @@ const matchSchema = new mongoose.Schema(
     battingScorecard: { type: [battingScorecardSchema], default: [] },
     firstInningsBattingScorecard: { type: [battingScorecardSchema], default: [] },
     firstInningsBowlerHistory: { type: [bowlerHistorySchema], default: [] },
+    // First-innings archive (additive) — kept when the second innings starts
+    firstInningsFallOfWickets: { type: [fowSchema], default: [] },
+    firstInningsExtras: { type: extrasTotalsSchema, default: undefined },
+    firstInningsBattingTeam: { type: String, default: '' },
+    firstInningsBowlingTeam: { type: String, default: '' },
 
     // ── Match State History (for Undo) ─────────────────────────────────────
     matchStateHistory: { type: [stateSnapshotSchema], default: [] },
@@ -344,6 +358,9 @@ const matchSchema = new mongoose.Schema(
     manualTargetOverride: { type: Boolean, default: false },
     manualTargetValue: { type: Number, default: 0, min: 0 },
     overLocked: { type: Boolean, default: false },
+    // Over-end gate: scoring pauses until a (different) next bowler is chosen
+    awaitingNextBowler: { type: Boolean, default: false },
+    lastOverBowler: { type: String, default: '' },
 
     // ── Overlay & Ticker ───────────────────────────────────────────────────
     overlaySettings: { type: overlaySettingsSchema, default: () => ({}) },

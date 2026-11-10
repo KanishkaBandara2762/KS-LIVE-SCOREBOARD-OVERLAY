@@ -106,7 +106,8 @@ export const matchesApi = {
   // New v2.1 endpoints
   undoLastBall: (matchId)  => apiRequest(`/api/undo/${matchId}`, { method: 'POST' }),
   changeBowler: (matchId, body) => apiRequest(`/api/change-bowler/${matchId}`, { method: 'PUT', body: JSON.stringify(body) }),
-  startSecondInnings: (matchId) => apiRequest(`/api/second-innings/${matchId}`, { method: 'POST' }),
+  // body (optional): { striker, nonStriker, openingBowler }
+  startSecondInnings: (matchId, body = {}) => apiRequest(`/api/second-innings/${matchId}`, { method: 'POST', body: JSON.stringify(body) }),
   uploadLogo: (matchId, formData) => apiUpload(`/api/upload-logo/${matchId}`, formData),
   // v3.0 new endpoints
   awardPenaltyRuns: (matchId, body) => apiRequest(`/api/penalty-runs/${matchId}`, { method: 'POST', body: JSON.stringify(body) }),

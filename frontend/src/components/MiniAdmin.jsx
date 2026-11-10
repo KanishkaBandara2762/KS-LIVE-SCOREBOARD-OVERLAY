@@ -14,6 +14,7 @@ import TossModal from './TossModal';
 import LogoUpload from './LogoUpload';
 import NewBatterModal from './NewBatterModal';
 import NewBowlerModal from './NewBowlerModal';
+import InningsStartModal from './InningsStartModal';
 import FreehitIndicator from './FreehitIndicator';
 import OverthrowPanel from './OverthrowPanel';
 import PenaltyRunsPanel from './PenaltyRunsPanel';
@@ -52,6 +53,29 @@ const Section = React.memo(({ label, color, icon, open, onClick, children }) => 
     </div>
 ));
 Section.displayName = "Section";
+
+
+// Flatten overlaySettings onto the match object (the shape this panel expects).
+const flattenServerMatch = (m) => ({
+    ...m,
+    themeID: m.overlaySettings?.themeID || 'ICC_GLOBAL',
+    battingLogo: m.overlaySettings?.battingLogo || '',
+    leagueLogo: m.overlaySettings?.leagueLogo || '',
+    showVersus: m.overlaySettings?.showVersus || false,
+    showSummary: m.overlaySettings?.showSummary || false,
+    showMatchSituation: m.overlaySettings?.showMatchSituation || false,
+});
+
+const PLACEHOLDER_PLAYER_NAMES = ['', 'SELECT P1', 'SELECT P2', 'SELECT PLAYER', 'SELECT BOWLER', 'NEW PLAYER', 'BOWLER', 'BATTER', 'SELECT STRIKER', 'SELECT NON-STRIKER'];
+const isPlaceholderPlayer = (name) => PLACEHOLDER_PLAYER_NAMES.includes(String(name || '').trim().toUpperCase());
+
+// A team's own players: permanent team1/team2 squad first, role squad as fallback.
+const teamSquadFor = (m, teamName, fallback = []) => {
+    const n = String(teamName || '').trim().toUpperCase();
+    const own = n && n === String(m?.team1Name || '').trim().toUpperCase() ? m?.team1Squad
+        : n && n === String(m?.team2Name || '').trim().toUpperCase() ? m?.team2Squad : null;
+    return own && own.length > 0 ? own : (fallback || []);
+};
 
 const MiniAdmin = () => {
     const { t } = useLanguage();
@@ -155,6 +179,17 @@ const MiniAdmin = () => {
     }, []);
     const [showNewBatterModal, setShowNewBatterModal] = useState(false);
     const [showNewBowlerModal, setShowNewBowlerModal] = useState(false);
+    const [showInningsStartModal, setShowInningsStartModal] = useState(false);
+    const [inningsStartBusy, setInningsStartBusy] = useState(false);
+    const [inningsStartError, setInningsStartError] = useState('');
+    const [showOpeningModal, setShowOpeningModal] = useState(false);
+    const [openingBusy, setOpeningBusy] = useState(false);
+    const [openingError, setOpeningError] = useState('');
+    const [bowlerModalError, setBowlerModalError] = useState('');
+    const scoringBlockRef = useRef(null);   // reason scoring is paused (null = allowed)
+    const overDoneRef = useRef(null);       // latest handleOverCompleted
+    const autoOverRef = useRef(-1);         // legalBallCount whose over-end was auto-handled
+    const autoOpeningRef = useRef('');      // innings for which the opener picker auto-opened
     const [newBatterSlot, setNewBatterSlot] = useState(null); // 'player1' | 'player2'
     const [outPlayerName, setOutPlayerName] = useState('');
     const [showBowlerHistory, setShowBowlerHistory] = useState(false);
@@ -243,16 +278,7 @@ const MiniAdmin = () => {
                     .then(res => {
                         if (res.match && seqAtRequest === writeSeqRef.current) {
                             // Flatten overlay settings for backward compatibility
-                            const flattenedMatch = {
-                                ...res.match,
-                                themeID: res.match.overlaySettings?.themeID || 'ICC_GLOBAL',
-                                battingLogo: res.match.overlaySettings?.battingLogo || '',
-                                leagueLogo: res.match.overlaySettings?.leagueLogo || '',
-                                showVersus: res.match.overlaySettings?.showVersus || false,
-                                showSummary: res.match.overlaySettings?.showSummary || false,
-                                showMatchSituation: res.match.overlaySettings?.showMatchSituation || false
-                            };
-                            setMatch(flattenedMatch);
+                            setMatch(flattenServerMatch(res.match));
                         }
                     })
                     .catch(() => {});
@@ -346,7 +372,11 @@ const MiniAdmin = () => {
                 const seq = beginWrite();
                 matchesApi.updatePlayers(matchId, playerChanges)
                     .then(res => { if (!hasGeneric) applyServerMatch(seq, res.match); })
-                    .catch(() => {});
+                    .catch((err) => {
+                        // Server rejected the change (e.g. player belongs to the other team): undo the optimistic edit.
+                        if (err?.message) alert(err.message);
+                        matchesApi.get(matchId).then(r => { if (r.match) setMatch(flattenServerMatch(r.match)); }).catch(() => {});
+                    });
             }
             if (hasGeneric) {
                 beginWrite();
@@ -434,10 +464,14 @@ const MiniAdmin = () => {
     // pushDelivery: for MongoDB uses updateScore REST API; for Firebase uses field update
     const pushDelivery = useCallback((delivery, extraRuns = 0, firebaseChanges = {}, apiExtraPayload = {}) => {
         if (isMongoDB(matchId)) {
+            if (scoringBlockRef.current) { alert(scoringBlockRef.current); return; }
             const seq = beginWrite();
             matchesApi.updateScore(matchId, { delivery, extraRuns, ...apiExtraPayload })
                 .then(res => applyServerMatch(seq, res.match))
-                .catch(() => {});
+                .catch((err) => {
+                    if (err?.message) alert(err.message);
+                    matchesApi.get(matchId).then(r => { if (r.match) setMatch(flattenServerMatch(r.match)); }).catch(() => {});
+                });
         } else {
             const payload = firebaseChanges?.eventTrigger
                 ? { ...firebaseChanges, ...createMatchEvent(firebaseChanges.eventTrigger) }
@@ -709,9 +743,28 @@ const MiniAdmin = () => {
         });
     };
 
-    const handleNewBowlerConfirm = (playerName) => {
-        setShowNewBowlerModal(false);
-        handleChangeBowler({ name: playerName });
+    const handleNewBowlerConfirm = async (playerName) => {
+        const ok = await handleChangeBowler({ name: playerName });
+        if (ok !== false) { setBowlerModalError(''); setShowNewBowlerModal(false); }
+    };
+
+    // First-innings (or any fresh innings) opening selection — one validated server call.
+    const confirmOpeningPlayers = async ({ striker, nonStriker, openingBowler }) => {
+        setOpeningBusy(true);
+        setOpeningError('');
+        try {
+            const res = await matchesApi.updatePlayers(matchId, {
+                player1: { name: striker, runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: true },
+                player2: { name: nonStriker, runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: false },
+                bowler: { name: openingBowler },
+            });
+            if (res.match) setMatch(flattenServerMatch(res.match));
+            setShowOpeningModal(false);
+        } catch (err) {
+            setOpeningError(err?.message || 'Could not save opening players.');
+        } finally {
+            setOpeningBusy(false);
+        }
     };
 
     const handleRunOut = () => {
@@ -836,17 +889,14 @@ const MiniAdmin = () => {
             alert("Match is already in the 2nd innings.");
             return;
         }
-        if (!window.confirm(`Start 2nd Innings?\n1st Innings Score: ${match.score}\nYou will need to set the target manually.\nThis will reset scores.`)) return;
-        
         if (isMongoDB(matchId)) {
-            try {
-                const res = await matchesApi.startSecondInnings(matchId);
-                if (res.match) setMatch(res.match);
-            } catch (err) {
-                console.error("Failed to start second innings:", err);
-                alert("Failed to start second innings.");
-            }
-        } else {
+            // Pick the new batting team's openers + the other team's opening bowler first.
+            setInningsStartError('');
+            setShowInningsStartModal(true);
+            return;
+        }
+        if (!window.confirm(`Start 2nd Innings?\n1st Innings Score: ${match.score}\nYou will need to set the target manually.\nThis will reset scores.`)) return;
+        {
             setHistory([]);
             push({
                 firstInningsScore: match.score,
@@ -866,6 +916,21 @@ const MiniAdmin = () => {
                 partnership: { runs: 0, balls: 0 },
                 eventTrigger: "RESET_WINNER",
             });
+        }
+    };
+
+    const confirmStartSecondInnings = async (openers) => {
+        setInningsStartBusy(true);
+        setInningsStartError('');
+        try {
+            const res = await matchesApi.startSecondInnings(matchId, openers);
+            if (res.match) setMatch(flattenServerMatch(res.match));
+            setShowInningsStartModal(false);
+        } catch (err) {
+            console.error("Failed to start second innings:", err);
+            setInningsStartError(err?.message || 'Failed to start second innings.');
+        } finally {
+            setInningsStartBusy(false);
         }
     };
 
@@ -906,12 +971,14 @@ const MiniAdmin = () => {
             // when the 6th legal delivery completes the over (result.overCompleted = true).
             // Do NOT flip here again — that would double-flip and cancel the correct swap.
             // Only increment currentOver, unlock the over, and reset the bowler slot.
+            // Bowler slot is not cleared here: the server already banked the figures and
+            // blocks scoring until a different bowler is chosen (avoids a write race).
             push({
-                currentOver: (match.currentOver || 0) + 1,
+                currentOver: Math.floor(lbc / bpo),
                 overLocked: false,
-                bowler: { name: 'SELECT BOWLER', figures: '0-0 (0.0)' },
                 eventTrigger: "NEW_OVER",
             });
+            setBowlerModalError('');
             setShowNewBowlerModal(true); // FIX: Prompt for next bowler
         } else {
             pushEvent({
@@ -956,6 +1023,28 @@ const MiniAdmin = () => {
         return () => window.removeEventListener("keydown", handler);
     }, []);
 
+    // ── Over completed → pause and ask for the next bowler automatically ──
+    useEffect(() => {
+        if (!match || !isMongoDB(matchId) || !match.awaitingNextBowler) return;
+        const lbc = match.legalBallCount || 0;
+        if (autoOverRef.current === lbc) return;
+        autoOverRef.current = lbc;
+        overDoneRef.current?.();
+    }, [match?.awaitingNextBowler, match?.legalBallCount, matchId]);
+
+    // ── Fresh innings without openers → open the opening-player picker once ──
+    useEffect(() => {
+        if (!match || !isMongoDB(matchId) || showInningsStartModal) return;
+        const fresh = (match.legalBallCount || 0) === 0 && (match.totalBalls || 0) === 0;
+        const missing = isPlaceholderPlayer(match.player1?.name) || isPlaceholderPlayer(match.player2?.name) || isPlaceholderPlayer(match.bowler?.name);
+        const key = `${match.matchId || matchId}-${match.isSecondInnings ? 2 : 1}`;
+        if (fresh && missing && autoOpeningRef.current !== key) {
+            autoOpeningRef.current = key;
+            setOpeningError('');
+            setShowOpeningModal(true);
+        }
+    }, [match?.legalBallCount, match?.totalBalls, match?.player1?.name, match?.player2?.name, match?.bowler?.name, match?.isSecondInnings, showInningsStartModal, matchId]);
+
     // ── Loading ───────────────────────────────────────────────────
     if (!match) return <div className="ma-root"><div className="ma-loading">Connecting…</div></div>;
 
@@ -991,12 +1080,17 @@ const MiniAdmin = () => {
         if (isMongoDB(matchId)) {
             try {
                 const res = await matchesApi.changeBowler(matchId, { bowlerName: player.name });
-                if (res.match) setMatch(res.match);
+                if (res.match) setMatch(flattenServerMatch(res.match));
+                return true;
             } catch (err) {
                 console.error("Failed to change bowler:", err);
+                setBowlerModalError(err?.message || 'Failed to change bowler.');
+                if (!showNewBowlerModal) alert(err?.message || 'Failed to change bowler.');
+                return false;
             }
         } else {
             push({ bowler: { ...match.bowler, name: player.name } });
+            return true;
         }
     };
     const totalMatchBalls = match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * bpo;
@@ -1007,6 +1101,24 @@ const MiniAdmin = () => {
         ? ((match.targetScore - match.score) / (remainingBalls / 6)).toFixed(2)
         : "--";
     const isOverReady = isMongoDB(matchId) ? (legalBallCount > 0 && legalBallCount % bpo === 0) : (legalBallCount >= bpo);
+
+    // ── Scoring state (drives the gate over the scoring pad) ──
+    const freshInnings = legalBallCount === 0 && (match.totalBalls || 0) === 0;
+    const p1Missing = isPlaceholderPlayer(match.player1?.name);
+    const p2Missing = isPlaceholderPlayer(match.player2?.name);
+    const bowlerMissing = isPlaceholderPlayer(match.bowler?.name);
+    const inningsDone = (match.wickets || 0) >= 10 || (!match.manualBallsOverride && totalMatchBalls > 0 && legalBallCount >= totalMatchBalls);
+    let scoringState;
+    if (!isMongoDB(matchId)) scoringState = { key: 'live', label: 'SCORING LIVE' };
+    else if (inningsDone) scoringState = { key: 'done', label: 'INNINGS COMPLETED', blocked: true, reason: 'Innings completed. Start the next innings to continue scoring.' };
+    else if (freshInnings && (p1Missing || p2Missing || bowlerMissing)) scoringState = { key: 'openers', label: 'WAITING FOR OPENING PLAYERS', blocked: true, reason: 'Select striker, non-striker and bowler before scoring.', action: 'SELECT OPENING PLAYERS', onAction: () => { setOpeningError(''); setShowOpeningModal(true); } };
+    else if (match.awaitingNextBowler || bowlerMissing) scoringState = { key: 'bowler', label: 'OVER COMPLETED — WAITING FOR NEXT BOWLER', blocked: true, reason: 'Over complete — select the next bowler to continue scoring.', action: 'SELECT NEXT BOWLER', onAction: () => { setBowlerModalError(''); setShowNewBowlerModal(true); } };
+    else if (p1Missing || p2Missing) scoringState = { key: 'batter', label: 'WAITING FOR NEW BATTER', blocked: true, reason: 'Select the new batter before scoring.', action: 'SELECT NEW BATTER', onAction: () => { setNewBatterSlot(p1Missing ? 'player1' : 'player2'); setShowNewBatterModal(true); } };
+    else if (freshInnings) scoringState = { key: 'ready', label: 'READY TO START' };
+    else if (legalBallCount % bpo === 0) scoringState = { key: 'continue', label: 'READY TO CONTINUE' };
+    else scoringState = { key: 'live', label: 'SCORING LIVE' };
+    scoringBlockRef.current = scoringState.blocked ? scoringState.reason : null;
+    overDoneRef.current = handleOverCompleted;
     const currentOverBalls = isMongoDB(matchId) ? (legalBallCount > 0 && legalBallCount % bpo === 0 ? bpo : legalBallCount % bpo) : legalBallCount;
 
     return (
@@ -1019,9 +1131,38 @@ const MiniAdmin = () => {
                     onUpdate={(updatedMatch) => setMatch(updatedMatch)} 
                 />
             )}
+            {showOpeningModal && !showInningsStartModal && (
+                <InningsStartModal
+                    kicker={match.isSecondInnings ? '2ND INNINGS' : '1ST INNINGS'}
+                    title="Select Opening Players"
+                    confirmLabel="START SCORING"
+                    battingTeam={match.battingTeam}
+                    bowlingTeam={match.bowlingTeam}
+                    batters={teamSquadFor(match, match.battingTeam, match.battingSquad)}
+                    bowlers={teamSquadFor(match, match.bowlingTeam, match.bowlingSquad)}
+                    busy={openingBusy}
+                    error={openingError}
+                    onConfirm={confirmOpeningPlayers}
+                    onClose={() => setShowOpeningModal(false)}
+                />
+            )}
+            {showInningsStartModal && (
+                <InningsStartModal
+                    battingTeam={match.bowlingTeam}
+                    bowlingTeam={match.battingTeam}
+                    batters={teamSquadFor(match, match.bowlingTeam, match.bowlingSquad)}
+                    bowlers={teamSquadFor(match, match.battingTeam, match.battingSquad)}
+                    firstInnings={{ team: match.battingTeam, score: match.score || 0, wickets: match.wickets || 0, overs: `${Math.floor((match.legalBallCount || 0) / bpo)}.${(match.legalBallCount || 0) % bpo}` }}
+                    busy={inningsStartBusy}
+                    error={inningsStartError}
+                    onConfirm={confirmStartSecondInnings}
+                    onClose={() => setShowInningsStartModal(false)}
+                />
+            )}
             {showNewBatterModal && (
                 <NewBatterModal 
                     squad={match?.battingSquad || []}
+                    atCrease={[match?.player1?.name, match?.player2?.name]}
                     outPlayerName={outPlayerName}
                     slotLabel={newBatterSlot === 'player1' ? (match?.player1?.onStrike ? 'Striker' : 'Non-Striker') : (match?.player2?.onStrike ? 'Striker' : 'Non-Striker')}
                     onConfirm={handleNewBatterConfirm}
@@ -1032,6 +1173,11 @@ const MiniAdmin = () => {
                 <NewBowlerModal 
                     squad={match?.bowlingSquad || []}
                     history={match?.bowlerHistory || []}
+                    previousBowler={match?.lastOverBowler || ''}
+                    overInfo={match?.awaitingNextBowler || (legalBallCount > 0 && legalBallCount % bpo === 0)
+                        ? `OVER ${Math.floor(legalBallCount / bpo)} COMPLETED · ${match.battingTeam} ${match.score || 0}/${match.wickets || 0}`
+                        : ''}
+                    error={bowlerModalError}
                     onConfirm={handleNewBowlerConfirm}
                     onClose={() => setShowNewBowlerModal(false)}
                 />
@@ -1165,8 +1311,39 @@ const MiniAdmin = () => {
                         )}
 
 {/* Scoring pad: runs + undo on the left, wicket and extras parallel on the right */}
-                        <div className="ma-section-label">SCORING</div>
-                        <div className="ma-pad">
+                        <div className="ma-section-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                            <span>SCORING</span>
+                            <span style={{
+                                fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', padding: '3px 8px', borderRadius: 999,
+                                color: scoringState.blocked ? '#fde68a' : '#86efac',
+                                background: scoringState.blocked ? 'rgba(250,204,21,0.12)' : 'rgba(34,197,94,0.12)',
+                                border: `1px solid ${scoringState.blocked ? 'rgba(250,204,21,0.35)' : 'rgba(34,197,94,0.35)'}`,
+                            }}>{scoringState.label}</span>
+                        </div>
+                        <div className="ma-pad" style={{ position: 'relative' }}>
+                            {scoringState.blocked && (
+                                <div style={{
+                                    position: 'absolute', inset: 0, zIndex: 5, borderRadius: 12,
+                                    background: 'rgba(2,6,23,0.82)', backdropFilter: 'blur(3px)',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    gap: 10, padding: 16, textAlign: 'center',
+                                }}>
+                                    <div style={{ color: '#fde68a', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em' }}>{scoringState.reason}</div>
+                                    {scoringState.action && (
+                                        <button type="button" onClick={scoringState.onAction} style={{
+                                            padding: '10px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                                            background: 'linear-gradient(90deg, #16a34a, #22c55e)', color: '#fff',
+                                            fontWeight: 900, fontSize: 13, letterSpacing: '0.06em',
+                                        }}>{scoringState.action}</button>
+                                    )}
+                                    {!freshInnings && (
+                                        <button type="button" onClick={handleUndo} style={{
+                                            padding: '6px 12px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
+                                            border: '1px solid rgba(255,255,255,0.2)', color: '#cbd5e1', fontWeight: 700, fontSize: 11,
+                                        }}>↶ UNDO LAST BALL</button>
+                                    )}
+                                </div>
+                            )}
                             <div className="ma-pad-keys">
                                 <button className="ma-big-btn ma-btn-dot" onClick={() => debounce(() => addRun(0))}>•<small className="ma-key-sub">dot ball</small></button>
                                 <button className="ma-big-btn ma-btn-run" onClick={() => debounce(() => addRun(1))}>1<small className="ma-key-sub">single</small></button>
@@ -1472,19 +1649,7 @@ const MiniAdmin = () => {
                             <button
                                 className="ma-action-btn w-full mt-2"
                                 style={{ background: 'rgba(220,38,38,0.3)', color: '#fca5a5', borderColor: 'rgba(248,113,113,0.25)' }}
-                                onClick={() => {
-                                    if (match.isSecondInnings) { alert('Already in 2nd innings.'); return; }
-                                    if (window.confirm('Start 2nd Innings? Score will reset.\n1st Inn: ' + match.score + '-' + match.wickets)) {
-                                        push({
-                                            firstInningsScore: match.score, firstInningsWickets: match.wickets, firstInningsOvers: match.legalBallCount,
-                                            score: 0, wickets: 0, totalBalls: 0, currentOver: 0, overRuns: 0, recentBalls: [],
-                                            legalBallCount: 0, isSecondInnings: true, targetScore: 0,
-                                            player1: { name: '', runs: 0, balls: 0, onStrike: true },
-                                            player2: { name: '', runs: 0, balls: 0, onStrike: false },
-                                            eventTrigger: 'RESET_WINNER'
-                                        });
-                                    }
-                                }}
+                                onClick={handleNewInnings}
                             >⚠ RESET & START 2ND INNINGS</button>
                             <div className="ma-field-row" style={{ marginTop: 4 }}>
                                 <span className="ma-field-label">Super Over</span>
@@ -1512,6 +1677,7 @@ const MiniAdmin = () => {
                                     <option value="SHAKTI">🔥 Shakti</option>
                                 </optgroup>
                                 <optgroup label="✨ Premier Modern Themes">
+                                    <option value="ABUDHABI_T10">⚡ ABUDHABI T10 theme</option>
                                     <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
                                     <option value="NEW_IPL">🏏 Tata IPL Modern</option>
                                     <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
@@ -2222,6 +2388,7 @@ const MiniAdmin = () => {
                                     <option value="ELITE">🥂 Elite</option>
                                     <option value="FRANCHISE">🏏 Franchise</option>
                                     <option value="SHAKTI">🔥 Shakti</option>
+                                    <option value="ABUDHABI_T10">⚡ ABUDHABI T10 theme</option>
                                     <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
                                     <option value="NEW_IPL">🏏 Tata IPL Modern</option>
                                     <option value="IPL_2026">🏟️ IPL 2026 Stadium</option>

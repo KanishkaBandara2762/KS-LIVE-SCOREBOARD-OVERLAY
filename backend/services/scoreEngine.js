@@ -187,6 +187,15 @@ const createStateSnapshot = (match) => {
     penaltyRunsBatting: match.penaltyRunsBatting || 0,
     penaltyRunsFielding: match.penaltyRunsFielding || 0,
     deliveryHistoryLength: (match.deliveryHistory || []).length,
+    // Undo integrity: everything else a single delivery can change
+    bowlerHistory: (match.bowlerHistory || []).map(b => ({ ...(b.toObject ? b.toObject() : b) })),
+    battingSquad: (match.battingSquad || []).map(p => ({ ...(p.toObject ? p.toObject() : p) })),
+    perOverRunsLength: (match.perOverRuns || []).length,
+    lastWicketDismissal: match.lastWicketDismissal,
+    lastWicketFielder: match.lastWicketFielder,
+    currentPowerplay: match.currentPowerplay ?? null,
+    awaitingNextBowler: !!match.awaitingNextBowler,
+    lastOverBowler: match.lastOverBowler || '',
     timestamp: Date.now(),
   };
 };

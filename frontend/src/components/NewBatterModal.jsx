@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 
-const NewBatterModal = ({ squad, outPlayerName, slotLabel, onConfirm, onClose }) => {
+const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConfirm, onClose }) => {
   const [selected, setSelected] = useState('');
   const [customName, setCustomName] = useState('');
 
   // Extract squad list (handle objects or string names)
   const squadList = Array.isArray(squad) ? squad : [];
 
-  // Available players = squad minus dismissed ones, minus outPlayerName
+  // Available players = squad minus dismissed ones, minus outPlayerName,
+  // minus anyone already at the crease (a batter cannot be picked twice).
+  const crease = (atCrease || []).map(n => String(n || '').toUpperCase());
   const available = squadList.filter(p => {
     const name = typeof p === 'string' ? p : (p.name || '');
     const status = p.status || 'available';
-    return status !== 'out' && name.toUpperCase() !== (outPlayerName || '').toUpperCase();
+    return status !== 'out' && status !== 'batting' &&
+      name.toUpperCase() !== (outPlayerName || '').toUpperCase() &&
+      !crease.includes(name.toUpperCase());
   });
 
-  // If all are filtered out, fallback to all squad players
-  const displayPlayers = available.length > 0 ? available : squadList;
+  // No fallback to dismissed / at-crease players; the name box stays available.
+  const displayPlayers = available;
 
   const handleConfirm = () => {
     const name = (selected || customName).trim();

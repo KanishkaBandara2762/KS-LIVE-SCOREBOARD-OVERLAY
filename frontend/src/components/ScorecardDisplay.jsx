@@ -6,6 +6,7 @@ import { ref, onValue } from "firebase/database";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import BroadcastTicker from "./BroadcastTicker";
 import ModernOverlayThemes from "./ModernOverlayThemes";
+import VersusOverlay from "./VersusOverlay";
 import "./BroadcastScreens.css";
 import "./ks-premium.css";
 import "./ThemeNewKSColor.css";
@@ -193,7 +194,8 @@ const ScorecardDisplay = () => {
     KS_SPECIAL: { main: "theme-ks-special", accent: "theme-ks-special-accent", text: "text-teal-300", batsman: "theme-ks-special-bat", bowler: "from-gray-800 to-gray-900", border: "border-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.35)]", chase: "theme-ks-special-chase", animClass: "anim-ks-special" },
     WC2026: { main: "theme-wc2026", accent: "theme-wc2026-accent", text: "theme-wc2026-score", batsman: "theme-wc2026-bat", bowler: "theme-wc2026-bowler", border: "theme-wc2026-border", chase: "theme-wc2026-chase", isWC2026: true, animClass: "anim-wc2026" },
     SL_BROADCAST: { main: "theme-sl-broadcast2", accent: "theme-sl-broadcast-accent", text: "theme-sl-broadcast-score", batsman: "theme-sl-broadcast-bat", bowler: "theme-sl-broadcast-bowler", border: "theme-sl-broadcast-border", chase: "theme-sl-broadcast-chase", animClass: "anim-sl-broadcast" },
-    DC_BLUE: { main: "bg-blue-900", accent: "bg-cyan-400", text: "text-cyan-400", batsman: "bg-blue-950 text-white border-x border-blue-800", bowler: "from-blue-800 to-blue-950", border: "border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.3)]", chase: "bg-blue-950", animClass: "anim-ipl-gold" }
+    DC_BLUE: { main: "bg-blue-900", accent: "bg-cyan-400", text: "text-cyan-400", batsman: "bg-blue-950 text-white border-x border-blue-800", bowler: "from-blue-800 to-blue-950", border: "border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.3)]", chase: "bg-blue-950", animClass: "anim-ipl-gold" },
+    ABUDHABI_T10: { main: "theme-abudhabi-t10", isAbuDhabiT10: true, animClass: "anim-t10-entrance" }
   }), []);
 
   // ── Reusable animation trigger helper ──────────────────────────
@@ -814,6 +816,7 @@ const ScorecardDisplay = () => {
       isIpl2026: match?.themeID === 'IPL_2026',
       isApogee: match?.themeID === 'APOGEE',
       isDcBlue: match?.themeID === 'DC_BLUE',
+      isAbuDhabiT10: match?.themeID === 'ABUDHABI_T10' || match?.themeID === 'ABU_DHABI_T10',
     };
   }, [match?.themeID]);
 
@@ -908,68 +911,14 @@ const ScorecardDisplay = () => {
         <button onClick={() => window.open('/teams', '_blank')} className="bg-blue-600 text-white text-[10px] px-4 py-2 rounded-full font-black">TEAM MANAGER ↗</button>
       </div>
 
-      {/* 2. VERSUS OVERLAY — ICC-Style Cinematic */}
-      {match.showVersus && !winnerInfo && (() => {
-        const stage = match.bowlingPrefix?.toLowerCase().includes('final') ? 'final' : match.bowlingPrefix?.toLowerCase().includes('semi') ? 'semi' : 'league';
-        return (
-          <div className={`vs-screen vs-stage-${stage}`}>
-            {/* Background Effects */}
-            <div className="vs-bg-streaks" />
-            <div className="vs-fog" />
-            <div className="vs-flare" />
-            <div className="vs-bottom-fade" />
-
-            {/* 3D Rotating Light Beams */}
-            <div className="vs-beam-container">
-              <div className="vs-beam" />
-              <div className="vs-beam" />
-              <div className="vs-beam" />
-              <div className="vs-beam-glow" />
-            </div>
-
-            {/* Spark Particles — Finals Only */}
-            {stage === 'final' && (
-              <div className="vs-sparks">
-                {Array.from({ length: 12 }).map((_, i) => <div key={i} className="vs-spark" />)}
-              </div>
-            )}
-
-            {/* Stage Label */}
-            <div className="vs-stage-label">{match.bowlingPrefix || 'LEAGUE MATCH'}</div>
-
-            {/* Teams + VS */}
-            <div className="vs-content">
-              <div className="vs-team-a">
-                {match.battingLogo ? (
-                  <img src={getAbsoluteUrl(match.battingLogo)} className="vs-logo vs-logo-a" alt="Team A" />
-                ) : (
-                  <div className="vs-logo vs-logo-a vs-logo-placeholder" />
-                )}
-                <h2 className="vs-team-name">{match.battingTeam}</h2>
-              </div>
-
-              <div className="vs-text-container">
-                <div className="vs-text-glow" />
-                <span className="vs-text">VS</span>
-              </div>
-
-              <div className="vs-team-b">
-                {match.leagueLogo ? (
-                  <img src={getAbsoluteUrl(match.leagueLogo)} className="vs-logo vs-logo-b" alt="Team B" />
-                ) : (
-                  <div className="vs-logo vs-logo-b vs-logo-placeholder" />
-                )}
-                <h2 className="vs-team-name">{match.bowlingTeam}</h2>
-              </div>
-            </div>
-
-            {/* Bottom Info */}
-            <div className="vs-info-bar">
-              <p className="vs-info-text">{(typeof match.ticker === 'object' ? match.ticker?.message : match.ticker) || `${match.maxOvers} OVERS MATCH`}</p>
-            </div>
-          </div>
-        );
-      })()}
+      {/* 2. VERSUS OVERLAY — shared by every theme (see VersusOverlay.jsx) */}
+      {match.showVersus && !winnerInfo && (
+        <VersusOverlay
+          match={match}
+          teamALogoUrl={getAbsoluteUrl(match.battingLogo)}
+          teamBLogoUrl={getAbsoluteUrl(match.leagueLogo)}
+        />
+      )}
 
       {/* 2b. TOSS RESULT OVERLAY — Cinematic Broadcast Style */}
       {renderToss && (() => {
@@ -1946,6 +1895,140 @@ const ScorecardDisplay = () => {
                   <span style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '1px', color: '#fff' }}>{match.bowlingTeam ? match.bowlingTeam.substring(0, 3).toUpperCase() : 'BOWL'}</span>
                 </div>
 
+              </div>
+            );
+          })() : active.isAbuDhabiT10 ? (() => {
+            const bpo = match.ballsPerOver || 6;
+            const legalDeliveries = match.legalBallCount ?? match.totalBalls ?? 0;
+            const maxOvers = match.maxOvers || 10;
+            const oversStr = getOvers(legalDeliveries);
+            const totalMatchBalls = match.targetBalls > 0 ? match.targetBalls : maxOvers * bpo;
+            const remainBalls = match.manualBallsOverride
+              ? (match.manualBallsValue || 0)
+              : Math.max(0, totalMatchBalls - legalDeliveries);
+            const runsNeeded = match.isSecondInnings ? Math.max(0, (match.targetScore || 0) - match.score) : 0;
+            const crr = legalDeliveries > 0 ? (match.score / (legalDeliveries / bpo)).toFixed(2) : "0.00";
+
+            const striker = match.player1?.onStrike ? match.player1 : match.player2;
+            const nonStriker = match.player1?.onStrike ? match.player2 : match.player1;
+            const bowler = match.bowler;
+            const bowlerOversStr = bowler?.figures && bowler.figures !== '0-0 (0.0)'
+              ? bowler.figures.split(' ')[1]?.replace(/[()]/g, '') || getOvers(Math.round((bowler?.overs || 0) * (match.ballsPerOver || 6)))
+              : getOvers(Math.round((bowler?.overs || 0) * (match.ballsPerOver || 6)));
+
+            const teamShort = match.battingTeam ? (match.battingTeam.length <= 4 ? match.battingTeam.toUpperCase() : match.battingTeam.substring(0, 3).toUpperCase()) : 'BAT';
+
+            return (
+              <div className="t10-container anim-t10-entrance">
+                {/* Free hit live badge */}
+                {match.freeHitActive && (
+                  <div className="t10-freehit-pill">⚡ FREE HIT</div>
+                )}
+
+                {/* Event celebration banner (FOUR / SIX / WICKET) */}
+                {showEvent && ["FOUR", "SIX", "WICKET"].includes(eventType) && (
+                  <div className={`t10-event-banner t10-event-${eventType.toLowerCase()}`}>
+                    <span className="t10-event-title">{eventType}</span>
+                    {eventType === "WICKET" && eventWicketName && (
+                      <span className="t10-event-sub">{eventWicketName} {getHowOutText()}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Outer scaler for responsive fit across any resolution */}
+                <div className="t10-outer-scaler">
+                  <div className="relative w-[1920px] h-[135px] overflow-hidden bg-transparent text-white font-['Barlow'] select-none t10-figma-bar">
+                    {/* Background Navy */}
+                    <div className="absolute inset-y-0 left-[150px] w-[1620px]" style={{ background: '#05091D' }} />
+
+                    {/* Left Team Logo (Batting Team) */}
+                    <div className="absolute left-0 top-0 h-[135px] w-[150px] bg-[#2f5be0] flex items-center justify-center p-2">
+                      <TeamLogo src={getAbsoluteUrl(match.battingLogo)} teamName={match.battingTeam} size={120} style={{ maxHeight: '125px', maxWidth: '140px', objectFit: 'contain' }} />
+                    </div>
+
+                    {/* Left Player Information */}
+                    <div className="absolute left-[150px] top-0 h-[135px] w-[550px]">
+                      {/* Striker Row */}
+                      <div className="absolute left-0 w-full h-[44px] flex items-center top-[20px]">
+                        <span className="w-[330px] pl-[70px] text-[34px] font-bold tracking-wide leading-none flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                          {striker?.name || 'KANISHKA'}
+                          {striker?.onStrike && <span className="text-[#C6A12B] text-[24px]">★</span>}
+                        </span>
+                        <span className="w-[90px] text-[40px] font-bold leading-none tabular-nums text-right pr-4">
+                          {striker?.runs ?? 0}
+                        </span>
+                        <span className="text-[19px] font-semibold leading-none tabular-nums opacity-90 text-slate-300">
+                          {striker?.balls ?? 0}
+                        </span>
+                      </div>
+
+                      {/* Non-Striker Row */}
+                      <div className="absolute left-0 w-full h-[44px] flex items-center top-[72px]">
+                        <span className="w-[330px] pl-[70px] text-[34px] font-bold tracking-wide leading-none overflow-hidden text-ellipsis whitespace-nowrap">
+                          {nonStriker?.name || 'SANJU'}
+                        </span>
+                        <span className="w-[90px] text-[40px] font-bold leading-none tabular-nums text-right pr-4">
+                          {nonStriker?.runs ?? 0}
+                        </span>
+                        <span className="text-[19px] font-semibold leading-none tabular-nums opacity-90 text-slate-300">
+                          {nonStriker?.balls ?? 0}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Center White Lightning SVG */}
+                    <svg className="absolute left-[700px] top-0" width="520" height="135" viewBox="0 0 520 135">
+                      <polygon points="50,3 470,3 440,50 510,40 446,92 470,132 50,132 74,92 10,40 80,50" fill="#fff" />
+                      <polyline points="50,132 74,92 10,40 80,50 50,3" fill="none" stroke="#C6A12B" strokeWidth="5" strokeLinejoin="miter" />
+                      <polyline points="470,3 440,50 510,40 446,92 470,132" fill="none" stroke="#C6A12B" strokeWidth="5" strokeLinejoin="miter" />
+                      <line x1="50" y1="3" x2="470" y2="3" stroke="#C6A12B" strokeWidth="5" />
+                      <line x1="50" y1="132" x2="470" y2="132" stroke="#C6A12B" strokeWidth="5" />
+                    </svg>
+
+                    {/* Current Score */}
+                    <div className="absolute left-[780px] top-[14px] w-[360px] h-[64px] flex items-center justify-center gap-[40px] text-[#05091D] leading-none">
+                      <span className="font-['Roboto_Slab'] font-black text-[60px]">{teamShort}</span>
+                      <span className="font-['Roboto_Slab'] font-black text-[74px] tabular-nums">{match.score}-{match.wickets}</span>
+                    </div>
+
+                    {/* Target and Overs */}
+                    <div className="absolute left-[780px] top-[90px] w-[360px] flex justify-center gap-[30px] text-[#05091D] text-[25px] font-bold leading-none">
+                      <span>{match.isSecondInnings && match.targetScore > 0 ? `TARGET ${match.targetScore}` : `1ST INNINGS`}</span>
+                      <span>{oversStr} OVERS</span>
+                    </div>
+
+                    {/* Right Bowler Information */}
+                    <div className="absolute left-[1220px] top-[20px] w-[550px] h-[44px] flex items-center">
+                      <span className="w-[300px] text-center text-[34px] font-bold tracking-wide leading-none overflow-hidden text-ellipsis whitespace-nowrap">
+                        {bowler?.name || 'BOULT'}
+                      </span>
+                      <span className="w-[150px] text-[40px] font-bold leading-none tabular-nums text-right pr-4">
+                        {bowler?.wickets ?? 0}-{bowler?.runs ?? 0}
+                      </span>
+                      <span className="text-[19px] font-semibold leading-none tabular-nums opacity-90 text-slate-300">
+                        {bowlerOversStr}
+                      </span>
+                    </div>
+
+                    {/* Match Situation */}
+                    <div className="absolute left-[1230px] top-[72px] w-[530px] h-[44px] flex items-center justify-center whitespace-nowrap text-[30px] font-medium leading-none">
+                      {match.isSecondInnings ? (
+                        runsNeeded <= 0 ? (
+                          <span className="text-[#C6A12B] font-bold">{match.battingTeam ? match.battingTeam.toUpperCase() : 'BATTING TEAM'} WON</span>
+                        ) : (
+                          <span>To WIN <b className="font-bold text-white">{runsNeeded}</b> RUNS FROM <b className="font-bold text-white">{remainBalls}</b> BALLS</span>
+                        )
+                      ) : (
+                        <span>{match.tournamentName ? match.tournamentName.toUpperCase() : 'ABU DHABI T10'} • CRR <b className="font-bold text-white">{crr}</b></span>
+                      )}
+                    </div>
+
+                    {/* Right Team Logo (Bowling Team) */}
+                    <div className="absolute right-0 top-0 h-[135px] w-[150px] bg-[#cdb21f] flex items-center justify-center p-2">
+                      <TeamLogo src={getAbsoluteUrl(match.leagueLogo)} teamName={match.bowlingTeam} size={120} style={{ maxHeight: '125px', maxWidth: '140px', objectFit: 'contain' }} />
+                    </div>
+                  </div>
+                </div>
               </div>
             );
           })() : active.isApogee ? (() => {

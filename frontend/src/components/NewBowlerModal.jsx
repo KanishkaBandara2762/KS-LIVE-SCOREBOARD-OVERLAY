@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 
-const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
+const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '', overInfo = '', error = '' }) => {
   const [customName, setCustomName] = useState('');
+  const [localError, setLocalError] = useState('');
+  // The bowler who just completed an over cannot bowl the next one.
+  const isBlocked = (name) => !!previousBowler && String(name || '').trim().toUpperCase() === String(previousBowler).trim().toUpperCase();
 
   // Extract squad list (handle objects or strings)
   const squadList = Array.isArray(squad) ? squad : [];
@@ -19,13 +22,15 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
   });
   const previousBowlers = Array.from(uniqueHistoryMap.values());
 
-  const handleConfirmCustom = () => {
-    if (!customName.trim()) return;
-    onConfirm(customName.trim().toUpperCase());
+  const handleSelect = (name) => {
+    if (isBlocked(name)) { setLocalError(`${previousBowler} bowled the previous over and cannot bowl two overs in a row.`); return; }
+    setLocalError('');
+    onConfirm(name.trim().toUpperCase());
   };
 
-  const handleSelect = (name) => {
-    onConfirm(name.trim().toUpperCase());
+  const handleConfirmCustom = () => {
+    if (!customName.trim()) return;
+    handleSelect(customName);
   };
 
   return (
@@ -58,6 +63,15 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4 }}>
               Tap from squad, continue spell, or type name
             </p>
+            {overInfo && (
+              <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(250,204,21,0.08)', border: '1px solid rgba(250,204,21,0.25)', color: '#fde68a', fontSize: 12, fontWeight: 800 }}>
+                {overInfo}
+                {previousBowler && <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: 700, marginTop: 2 }}>PREVIOUS BOWLER: {previousBowler}</div>}
+              </div>
+            )}
+            {(localError || error) && (
+              <div style={{ marginTop: 8, color: '#fca5a5', fontSize: 12, fontWeight: 700 }}>{localError || error}</div>
+            )}
           </div>
           {onClose && (
             <button
@@ -81,12 +95,16 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
                 const name = typeof p === 'string' ? p : (p.name || '');
                 if (!name) return null;
                 const isSelected = customName.toUpperCase() === name.toUpperCase();
+                const blocked = isBlocked(name);
                 return (
                   <button 
                     key={i} 
                     type="button"
                     onClick={() => handleSelect(name)}
+                    disabled={blocked}
+                    title={blocked ? 'Bowled the previous over' : undefined}
                     style={{
+                      opacity: blocked ? 0.35 : 1,
                       display: 'flex', alignItems: 'center', gap: 6,
                       padding: '10px 12px', borderRadius: 10,
                       border: isSelected ? '1.5px solid #a78bfa' : '1px solid rgba(167, 139, 250, 0.25)',
@@ -127,7 +145,9 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose }) => {
                   key={i} 
                   type="button"
                   onClick={() => handleSelect(b.name)}
+                  disabled={isBlocked(b.name)}
                   style={{
+                    opacity: isBlocked(b.name) ? 0.35 : 1,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '9px 14px', borderRadius: 10,
                     border: '1px solid rgba(250,204,21,0.2)',

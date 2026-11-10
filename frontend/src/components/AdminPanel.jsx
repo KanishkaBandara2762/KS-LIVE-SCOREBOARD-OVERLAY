@@ -1106,6 +1106,7 @@ const legalBallCount = match.legalBallCount || 0;
                 <option value="SHAKTI">🔥 Shakti (Bold Contrast)</option>
               </optgroup>
               <optgroup label="✨ Premier Modern Themes">
+                <option value="ABUDHABI_T10">⚡ ABUDHABI T10 theme</option>
                 <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro (KS Signature)</option>
                 <option value="NEW_IPL">🏏 Tata IPL Modern (Franchise)</option>
                 <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
@@ -1627,6 +1628,7 @@ const legalBallCount = match.legalBallCount || 0;
                   <option value="ELITE">🥂 Elite</option>
                   <option value="FRANCHISE">🏏 Franchise</option>
                   <option value="SHAKTI">🔥 Shakti</option>
+                  <option value="ABUDHABI_T10">⚡ ABUDHABI T10 theme</option>
                   <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
                   <option value="NEW_IPL">🏏 Tata IPL Modern</option>
                   <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>

@@ -20,10 +20,18 @@ const {
   createPenaltyEvent, createSuperOverState, checkInningsEnd,
   PENALTY_REASONS,
 } = require('../services/cricketRules');
+const {
+  squadForTeam, teamKeyForName, logosForRoles, validatePlayerForRole,
+  upsertBowlerHistory, switchBowler, isPlaceholderName,
+  checkBowlerEligibility, scoringBlockReason,
+} = require('../services/inningsHelpers');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+
+// Ball-by-ball log cap (whole match). 1500 fits two full ODI innings incl. extras.
+const DELIVERY_HISTORY_CAP = 1500;
 
 // ── Helper: emit to all overlay AND admin listeners for this match ─────────────
 // Also emits to the tournament room if the match belongs to one,
@@ -230,6 +238,12 @@ const updateScore = async (req, res, next) => {
     // ── Get format-specific rules ─────────────────────────────────────────────
     const rules = getRulesForMatch(match);
 
+    // ── Mandatory players / next-bowler gate ─────────────────────────────────
+    const blockReason = scoringBlockReason(match);
+    if (blockReason) {
+      return res.status(409).json({ success: false, error: blockReason, code: 'SCORING_BLOCKED' });
+    }
+
     // ── Validate dismissal against delivery type (v3.0) ──────────────────────
     if (dismissalType) {
       const effectiveLegality = isStumpingFromWide || isRunOutFromWide ? 'wide'
@@ -310,13 +324,16 @@ const updateScore = async (req, res, next) => {
     const survivingKey = outKey === 'player1' ? 'player2' : 'player1';
 
     // Legal ball increments batter's ball count (not wides, not noball, not non-ball events)
-    const incrementBatterBalls = result.isLegalDelivery && deliveryToProcess !== 'noball' && !result.isNonBallEvent;
+    // A no-ball counts as a ball faced by the striker; a wide does not (MCC Laws).
+    const incrementBatterBalls = !result.isNonBallEvent && !result.isDead &&
+      (result.isLegalDelivery || deliveryToProcess === 'noball');
 
     let batterRunsToAdd = 0;
     let runsForStrikeRotation = 0;
 
     if (deliveryToProcess === 'wide') {
-      runsForStrikeRotation = 0;
+      // Runs physically completed on a wide (beyond the 1-run penalty) still cross the batters.
+      runsForStrikeRotation = runsForDelivery || 0;
     } else if (deliveryToProcess === 'noball') {
       batterRunsToAdd = runsForDelivery;
       runsForStrikeRotation = runsForDelivery;
@@ -427,7 +444,7 @@ const updateScore = async (req, res, next) => {
 
     const partnershipUpdate = { ...(match.partnership ? match.partnership.toObject?.() ?? match.partnership : {}) };
     partnershipUpdate.runs = (partnershipUpdate.runs || 0) + result.runsScored;
-    if (result.isLegalDelivery && deliveryToProcess !== 'noball') {
+    if (incrementBatterBalls) {
       partnershipUpdate.balls = (partnershipUpdate.balls || 0) + 1;
     }
     if (result.isWicket || result.isRetirementNotOut) {
@@ -583,30 +600,23 @@ const updateScore = async (req, res, next) => {
         ...(updateData.$push || {}),
         perOverRuns: currentOverRunsFinal,
       };
+      updateData.currentOver = Math.floor(result.newLegalBallCount / match.ballsPerOver);
+      updateData.lastOverBowler = updatedBowler.name;
+      const inningsBalls = (match.targetBalls > 0 && match.isSecondInnings) ? match.targetBalls
+        : (rules.maxOvers ? rules.maxOvers * match.ballsPerOver : 0);
+      const inningsOver = result.newWickets >= 10 || (inningsBalls > 0 && result.newLegalBallCount >= inningsBalls);
+      updateData.awaitingNextBowler = !inningsOver;
 
       // ── Auto-save current bowler to bowlerHistory at end of over ──────────────
       // This ensures bowler figures are tracked over-by-over correctly
-      if (updatedBowler.name && updatedBowler.name !== 'SELECT BOWLER' && updatedBowler.name !== 'BOWLER') {
-        const existingHistory = [...(match.bowlerHistory || [])].map(b => ({ ...b }));
-        const existingIdx = existingHistory.findIndex(
-          b => b.name && b.name.toUpperCase() === updatedBowler.name.toUpperCase()
+      // Live bowler figures already include earlier spells (switchBowler loads them),
+      // so upsert keeps one combined row per bowler and never shrinks a record.
+      if (!isPlaceholderName(updatedBowler.name)) {
+        updateData.bowlerHistory = upsertBowlerHistory(
+          match.bowlerHistory,
+          { ...updatedBowler, maidens: bowlerMaidensNew },
+          match.ballsPerOver,
         );
-        const bowlerRecord = {
-          name: updatedBowler.name,
-          legalBalls: updatedBowler.legalBalls,
-          overs: updatedBowler.overs,
-          maidens: bowlerMaidensNew,
-          runs: updatedBowler.runs,
-          wickets: updatedBowler.wickets,
-          economy: updatedBowler.economy,
-          figures: updatedBowler.figures,
-        };
-        if (existingIdx >= 0) {
-          existingHistory[existingIdx] = bowlerRecord;
-        } else {
-          existingHistory.push(bowlerRecord);
-        }
-        updateData.bowlerHistory = existingHistory;
       }
     }
 
@@ -639,7 +649,7 @@ const updateScore = async (req, res, next) => {
           mongoUpdate.$push[key] = val; // already in $each format
         } else if (key === 'deliveryHistory') {
           // Cap delivery history at 400 entries
-          mongoUpdate.$push[key] = { $each: [val], $slice: -400 };
+          mongoUpdate.$push[key] = { $each: [val], $slice: -DELIVERY_HISTORY_CAP };
         } else if (key === 'perOverRuns' || key === 'fallOfWickets') {
           mongoUpdate.$push[key] = val;
         } else {
@@ -710,6 +720,8 @@ const updateScore = async (req, res, next) => {
       freeHitActive: newFreeHitActive,
       currentPowerplay: newPowerplayPhase,
       bowlerCurrentOverRuns: bowlerCurrentOverRunsNew,
+      awaitingNextBowler: updateData.awaitingNextBowler ?? match.awaitingNextBowler ?? false,
+      lastOverBowler: updateData.lastOverBowler ?? match.lastOverBowler ?? '',
       timestamp: Date.now(),
     });
 
@@ -736,12 +748,63 @@ const updatePlayers = async (req, res, next) => {
       return res.status(403).json({ success: false, error: 'Access denied.' });
     }
 
+    // Squads sent with this request take part in the ownership check below.
+    const checkMatch = {
+      ...match.toObject(),
+      ...(battingSquad !== undefined ? { battingSquad } : {}),
+      ...(bowlingSquad !== undefined ? { bowlingSquad } : {}),
+    };
+    for (const [slot, role] of [[player1, 'batting'], [player2, 'batting'], [bowler, 'bowling']]) {
+      if (slot && slot.name !== undefined) {
+        const ownershipError = validatePlayerForRole(checkMatch, slot.name, role);
+        if (ownershipError) return res.status(400).json({ success: false, error: ownershipError });
+      }
+    }
+
+    const nextP1 = player1?.name !== undefined ? player1.name : match.player1?.name;
+    const nextP2 = player2?.name !== undefined ? player2.name : match.player2?.name;
+    if ((player1?.name !== undefined || player2?.name !== undefined) &&
+        !isPlaceholderName(nextP1) && String(nextP1).trim().toUpperCase() === String(nextP2 || '').trim().toUpperCase()) {
+      return res.status(400).json({ success: false, error: 'Striker and non-striker must be different players.' });
+    }
+    if (bowler?.name !== undefined && (match.awaitingNextBowler ||
+        String(bowler.name).trim().toUpperCase() !== String(match.bowler?.name || '').toUpperCase())) {
+      const eligibilityError = checkBowlerEligibility({ match, name: bowler.name, bowlerMaxOvers: getRulesForMatch(match).bowlerMaxOvers });
+      if (eligibilityError) return res.status(400).json({ success: false, error: eligibilityError });
+    }
+
     const updateData = {};
     if (player1 !== undefined) updateData.player1 = { ...match.player1.toObject(), ...player1 };
     if (player2 !== undefined) updateData.player2 = { ...match.player2.toObject(), ...player2 };
-    if (bowler !== undefined) updateData.bowler = { ...match.bowler.toObject(), ...bowler };
+    if (bowler !== undefined) {
+      const incomingName = bowler.name !== undefined ? String(bowler.name).trim() : match.bowler.name;
+      const nameChanged = String(incomingName || '').toUpperCase() !== String(match.bowler.name || '').toUpperCase();
+      if (nameChanged && !isPlaceholderName(incomingName)) {
+        // Real bowler change through the generic route: same accumulation rules as /change-bowler.
+        const switched = switchBowler({
+          history: match.bowlerHistory, currentBowler: match.bowler,
+          newBowlerName: incomingName, ballsPerOver: match.ballsPerOver,
+        });
+        updateData.bowler = switched.bowler;
+        updateData.bowlerHistory = switched.bowlerHistory;
+        updateData.awaitingNextBowler = false;
+      } else if (nameChanged) {
+        // Clearing to a placeholder (e.g. "Over Done"): bank the outgoing figures first.
+        updateData.bowlerHistory = upsertBowlerHistory(match.bowlerHistory, match.bowler, match.ballsPerOver);
+        updateData.bowler = { name: incomingName, legalBalls: 0, overs: 0, maidens: 0, runs: 0, wickets: 0, economy: 0, figures: '0-0 (0.0)' };
+      } else {
+        updateData.bowler = { ...match.bowler.toObject(), ...bowler };
+      }
+    }
     if (battingSquad !== undefined) updateData.battingSquad = battingSquad;
     if (bowlingSquad !== undefined) updateData.bowlingSquad = bowlingSquad;
+
+    // Remember squads against their permanent team (team1/team2) so innings
+    // switches always use the right players, even for non-tournament matches.
+    const battingKey = teamKeyForName(match, match.battingTeam);
+    const bowlingKey = teamKeyForName(match, match.bowlingTeam);
+    if (battingSquad !== undefined && battingKey && battingKey !== bowlingKey) updateData[`${battingKey}Squad`] = battingSquad;
+    if (bowlingSquad !== undefined && bowlingKey && battingKey !== bowlingKey) updateData[`${bowlingKey}Squad`] = bowlingSquad;
 
     const updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
@@ -755,6 +818,10 @@ const updatePlayers = async (req, res, next) => {
       player1: updatedMatch.player1,
       player2: updatedMatch.player2,
       bowler: updatedMatch.bowler,
+      bowlerHistory: updatedMatch.bowlerHistory,
+      battingSquad: updatedMatch.battingSquad,
+      bowlingSquad: updatedMatch.bowlingSquad,
+      awaitingNextBowler: updatedMatch.awaitingNextBowler,
       timestamp: Date.now(),
     });
 
@@ -1044,6 +1111,16 @@ const updateMatch = async (req, res, next) => {
         updateData.$set['overlaySettings.showMatchSituation'] = updates.showMatchSituation;
     }
 
+    // Keep each logo tied to its permanent team (team1Logo/team2Logo).
+    // Skipped when the same request also renames/swaps teams, to avoid guessing.
+    if (updates.battingTeam === undefined && updates.bowlingTeam === undefined) {
+      for (const [field, teamName] of [['battingLogo', match.battingTeam], ['leagueLogo', match.bowlingTeam]]) {
+        const v = updateData.$set[`overlaySettings.${field}`];
+        const key = teamKeyForName(match, teamName);
+        if (v !== undefined && key) updateData.$set[`${key}Logo`] = v;
+      }
+    }
+
     if (updates.eventTrigger !== undefined) {
         updateData.$set.eventTrigger = updates.eventTrigger;
         updateData.$set.eventTime = new Date();
@@ -1295,6 +1372,27 @@ const undoLastBall = async (req, res, next) => {
     if (previousState.lastWicketBalls !== undefined) restoreData.lastWicketBalls = previousState.lastWicketBalls;
     if (previousState.fallOfWickets) restoreData.fallOfWickets = previousState.fallOfWickets;
     if (previousState.battingScorecard) restoreData.battingScorecard = previousState.battingScorecard;
+    // v3.2 undo integrity — only present on snapshots taken after this upgrade
+    if (previousState.freeHitActive !== undefined) restoreData.freeHitActive = previousState.freeHitActive;
+    if (previousState.bowlerCurrentOverRuns !== undefined) restoreData.bowlerCurrentOverRuns = previousState.bowlerCurrentOverRuns;
+    if (previousState.penaltyRunsBatting !== undefined) restoreData.penaltyRunsBatting = previousState.penaltyRunsBatting;
+    if (previousState.penaltyRunsFielding !== undefined) restoreData.penaltyRunsFielding = previousState.penaltyRunsFielding;
+    if (Array.isArray(previousState.bowlerHistory)) restoreData.bowlerHistory = previousState.bowlerHistory;
+    if (Array.isArray(previousState.battingSquad)) restoreData.battingSquad = previousState.battingSquad;
+    if (previousState.lastWicketDismissal !== undefined) restoreData.lastWicketDismissal = previousState.lastWicketDismissal;
+    if (previousState.lastWicketFielder !== undefined) restoreData.lastWicketFielder = previousState.lastWicketFielder;
+    if (previousState.currentPowerplay !== undefined) restoreData.currentPowerplay = previousState.currentPowerplay;
+    if (previousState.awaitingNextBowler !== undefined) restoreData.awaitingNextBowler = previousState.awaitingNextBowler;
+    if (previousState.lastOverBowler !== undefined) restoreData.lastOverBowler = previousState.lastOverBowler;
+    if (typeof previousState.timestamp === 'number') {
+      // Drop every delivery logged after the snapshot (robust even when the log is capped).
+      restoreData.deliveryHistory = (match.deliveryHistory || []).filter(
+        d => typeof d.timestamp !== 'number' || d.timestamp < previousState.timestamp
+      );
+    }
+    if (typeof previousState.perOverRunsLength === 'number') {
+      restoreData.perOverRuns = (match.perOverRuns || []).slice(0, previousState.perOverRunsLength);
+    }
 
     const updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
@@ -1331,82 +1429,20 @@ const changeBowler = async (req, res, next) => {
       return res.status(403).json({ success: false, error: 'Access denied.' });
     }
 
-    // 1. Save current bowler to bowlerHistory (update or insert)
-    const currentBowler = match.bowler;
-    // Deduplicate existing bowlerHistory
-    const uniqueHistoryMap = new Map();
-    const rawHistory = match.bowlerHistory || [];
-    for (const b of rawHistory) {
-      if (!b?.name) continue;
-      const key = b.name.trim().toUpperCase();
-      const existing = uniqueHistoryMap.get(key);
-      if (!existing || (b.legalBalls || 0) > (existing.legalBalls || 0)) {
-        uniqueHistoryMap.set(key, { ...b });
-      }
-    }
-    let bowlerHistoryUpdate = Array.from(uniqueHistoryMap.values());
+    const ownershipError = validatePlayerForRole(match, bowlerName, 'bowling');
+    if (ownershipError) return res.status(400).json({ success: false, error: ownershipError });
+    const eligibilityError = checkBowlerEligibility({ match, name: bowlerName, bowlerMaxOvers: getRulesForMatch(match).bowlerMaxOvers });
+    if (eligibilityError) return res.status(400).json({ success: false, error: eligibilityError });
 
-    if (currentBowler && currentBowler.name && currentBowler.name !== 'SELECT BOWLER') {
-      const existingIdx = bowlerHistoryUpdate.findIndex(
-        b => b?.name?.toUpperCase() === currentBowler.name.toUpperCase()
-      );
-      const incomingLegalBalls = currentBowler.legalBalls || 0;
-      const bowlerData = {
-        name: currentBowler.name,
-        legalBalls: incomingLegalBalls,
-        overs: currentBowler.overs || 0,
-        maidens: currentBowler.maidens || 0,
-        runs: currentBowler.runs || 0,
-        wickets: currentBowler.wickets || 0,
-        economy: currentBowler.economy || 0,
-        figures: currentBowler.figures || '0-0 (0.0)',
-      };
-      if (existingIdx >= 0) {
-        // FIX: Only overwrite if new data is at least as complete as existing.
-        // This prevents a mid-over partial stat (fewer legalBalls) from wiping
-        // a previously completed over's accumulated figures stored in history.
-        const existingLegalBalls = bowlerHistoryUpdate[existingIdx].legalBalls || 0;
-        if (incomingLegalBalls >= existingLegalBalls) {
-          bowlerHistoryUpdate[existingIdx] = bowlerData;
-        }
-        // If incoming has fewer balls (stale), keep the history record untouched.
-      } else {
-        bowlerHistoryUpdate.push(bowlerData);
-      }
-    }
-
-    // 2. Check if new bowler has bowled before — load their previous stats
-    const newBowlerNameUpper = bowlerName.trim().toUpperCase();
-    const existingRecord = bowlerHistoryUpdate.find(
-      b => b?.name?.toUpperCase() === newBowlerNameUpper
-    );
-
-    let newBowlerData;
-    if (existingRecord) {
-      // Returning bowler — load their accumulated stats
-      newBowlerData = {
-        name: bowlerName.trim(),
-        legalBalls: existingRecord.legalBalls || 0,
-        overs: existingRecord.overs || 0,
-        maidens: existingRecord.maidens || 0,
-        runs: existingRecord.runs || 0,
-        wickets: existingRecord.wickets || 0,
-        economy: existingRecord.economy || 0,
-        figures: existingRecord.figures || '0-0 (0.0)',
-      };
-    } else {
-      // New bowler — start fresh
-      newBowlerData = {
-        name: bowlerName.trim(),
-        legalBalls: 0,
-        overs: 0,
-        maidens: 0,
-        runs: 0,
-        wickets: 0,
-        economy: 0,
-        figures: '0-0 (0.0)',
-      };
-    }
+    // Save the outgoing bowler and load a returning bowler's accumulated figures
+    // (second spell adds to the first — never resets).
+    const { bowler: newBowlerData, bowlerHistory: bowlerHistoryUpdate, isReturning } = switchBowler({
+      history: match.bowlerHistory,
+      currentBowler: match.bowler,
+      newBowlerName: bowlerName,
+      ballsPerOver: match.ballsPerOver,
+    });
+    const existingRecord = isReturning;
 
     const updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
@@ -1414,6 +1450,7 @@ const changeBowler = async (req, res, next) => {
         $set: {
           bowler: newBowlerData,
           bowlerHistory: bowlerHistoryUpdate,
+          awaitingNextBowler: false,
         },
       },
       { new: true }
@@ -1423,6 +1460,7 @@ const changeBowler = async (req, res, next) => {
       matchId: id,
       bowler: updatedMatch.bowler,
       bowlerHistory: updatedMatch.bowlerHistory,
+      awaitingNextBowler: false,
       timestamp: Date.now(),
     });
 
@@ -1461,15 +1499,27 @@ const startSecondInnings = async (req, res, next) => {
     const newBattingTeam = match.bowlingTeam;
     const newBowlingTeam = match.battingTeam;
 
-    // Swap squads — old bowling squad now bats
-    const newBattingSquad = (match.bowlingSquad || []).map(p => ({
-      ...(p.toObject ? p.toObject() : p),
-      status: 'available',
-    }));
-    const newBowlingSquad = (match.battingSquad || []).map(p => ({
-      ...(p.toObject ? p.toObject() : p),
-      status: 'available',
-    }));
+    // Squads come from each team's permanent record (team1Squad/team2Squad);
+    // older matches without those fall back to swapping the role squads.
+    const newBattingSquad = squadForTeam(match, newBattingTeam, match.bowlingSquad);
+    const newBowlingSquad = squadForTeam(match, newBowlingTeam, match.battingSquad);
+    const newLogos = logosForRoles(match, newBattingTeam);
+
+    // Optional opening selections from the "Start Second Innings" screen.
+    const { striker, nonStriker, openingBowler } = req.body || {};
+    const roleCheck = { ...match.toObject(), battingTeam: newBattingTeam, bowlingTeam: newBowlingTeam,
+      battingSquad: newBattingSquad, bowlingSquad: newBowlingSquad };
+    for (const [name, role] of [[striker, 'batting'], [nonStriker, 'batting'], [openingBowler, 'bowling']]) {
+      const err = name ? validatePlayerForRole(roleCheck, name, role) : null;
+      if (err) return res.status(400).json({ success: false, error: err });
+    }
+    if (striker && nonStriker && String(striker).trim().toUpperCase() === String(nonStriker).trim().toUpperCase()) {
+      return res.status(400).json({ success: false, error: 'Opening batsmen must be two different players.' });
+    }
+    const markBatting = (squad) => squad.map(pl => (
+      [striker, nonStriker].filter(Boolean).some(n => String(n).trim().toUpperCase() === String(pl.name || '').toUpperCase())
+        ? { ...pl, status: 'batting' } : pl
+    ));
 
     const updateData = {
       // Innings state
@@ -1482,7 +1532,12 @@ const startSecondInnings = async (req, res, next) => {
       manualTargetOverride: false,
       manualTargetValue: targetScore,
       firstInningsBattingScorecard: match.battingScorecard || [],
-      firstInningsBowlerHistory: match.bowlerHistory || [],
+      // Bank the live bowler so a mid-over innings end is not lost
+      firstInningsBowlerHistory: upsertBowlerHistory(match.bowlerHistory, match.bowler, match.ballsPerOver),
+      firstInningsFallOfWickets: match.fallOfWickets || [],
+      firstInningsExtras: match.extras ? (match.extras.toObject ? match.extras.toObject() : match.extras) : undefined,
+      firstInningsBattingTeam: match.battingTeam,
+      firstInningsBowlingTeam: match.bowlingTeam,
 
       // Reset score state
       score: 0,
@@ -1496,27 +1551,37 @@ const startSecondInnings = async (req, res, next) => {
       requiredRunRate: 0,
       matchStateHistory: [],
 
-      // Swap teams and logos
+      // Swap teams (logos are set on overlaySettings below)
       battingTeam: newBattingTeam,
       bowlingTeam: newBowlingTeam,
-      battingLogo: match.leagueLogo,
-      leagueLogo: match.battingLogo,
 
-      // Swap squads
-      battingSquad: newBattingSquad,
+      // Each team keeps its own players
+      battingSquad: markBatting(newBattingSquad),
       bowlingSquad: newBowlingSquad,
 
-      // Reset players and bowler
-      player1: { name: 'SELECT P1', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: true },
-      player2: { name: 'SELECT P2', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: false },
-      bowler: { name: 'SELECT BOWLER', legalBalls: 0, overs: 0, maidens: 0, runs: 0, wickets: 0, economy: 0, figures: '0-0 (0.0)' },
+      // Fresh openers (never reuse the first-innings batsmen)
+      player1: { name: striker ? String(striker).trim() : 'SELECT P1', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: true },
+      player2: { name: nonStriker ? String(nonStriker).trim() : 'SELECT P2', runs: 0, balls: 0, fours: 0, sixes: 0, onStrike: false },
+      bowler: { name: openingBowler ? String(openingBowler).trim() : 'SELECT BOWLER', legalBalls: 0, overs: 0, maidens: 0, runs: 0, wickets: 0, economy: 0, figures: '0-0 (0.0)' },
+
+      // Innings-scoped engine state
+      awaitingNextBowler: false,
+      lastOverBowler: '',
+      freeHitActive: false,
+      bowlerCurrentOverRuns: 0,
+      penaltyRunsBatting: 0,
+      penaltyRunsFielding: 0,
+      currentPowerplay: null,
+      lastWicketName: '',
+      lastWicketRuns: 0,
+      lastWicketBalls: 0,
 
       // Reset scorecard for 2nd innings
       battingScorecard: [],
       bowlerHistory: [],
       fallOfWickets: [],
       partnership: { runs: 0, balls: 0 },
-      extras: { wides: 0, noballs: 0, byes: 0, legbyes: 0, total: 0 },
+      extras: { wides: 0, noballs: 0, byes: 0, legbyes: 0, total: 0, penalties: 0 },
 
       // Status
       matchStatus: 'live',
@@ -1530,8 +1595,8 @@ const startSecondInnings = async (req, res, next) => {
       { 
         $set: {
           ...updateData,
-          'overlaySettings.battingLogo': match.overlaySettings?.leagueLogo || '',
-          'overlaySettings.leagueLogo': match.overlaySettings?.battingLogo || ''
+          'overlaySettings.battingLogo': newLogos.battingLogo,
+          'overlaySettings.leagueLogo': newLogos.leagueLogo,
         }
       },
       { new: true }
@@ -1542,8 +1607,8 @@ const startSecondInnings = async (req, res, next) => {
       { matchId: id },
       { 
         $set: {
-          battingLogo: match.overlaySettings?.leagueLogo || '',
-          leagueLogo: match.overlaySettings?.battingLogo || ''
+          battingLogo: newLogos.battingLogo,
+          leagueLogo: newLogos.leagueLogo,
         }
       }
     );
@@ -1612,9 +1677,14 @@ const uploadLogo = async (req, res, next) => {
     const logoUrl = `/uploads/logos/${req.file.filename}`;
     const fieldToUpdate = side === 'bowling' ? 'overlaySettings.leagueLogo' : 'overlaySettings.battingLogo';
 
+    // Also remember the logo against its permanent team so innings switches keep it.
+    const logoSet = { [fieldToUpdate]: logoUrl };
+    const roleTeamKey = teamKeyForName(match, side === 'bowling' ? match.bowlingTeam : match.battingTeam);
+    if (roleTeamKey) logoSet[`${roleTeamKey}Logo`] = logoUrl;
+
     const updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
-      { $set: { [fieldToUpdate]: logoUrl } },
+      { $set: logoSet },
       { new: true }
     );
 

@@ -13,6 +13,7 @@ import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
 const THEMES = [
+  { id: 'ABUDHABI_T10', label: '⚡ ABUDHABI T10 theme' },
   { id: 'ICC_GLOBAL', label: '🏆 ICC T20 Global Apex (World Cup)' },
   { id: 'SKY_HYPERION', label: '⚡ Sky Sports Hyperion Pro (UK)' },
   { id: 'JIO_TITAN', label: '👑 Jio Premier Titan (IPL Gold 4K)' },
