@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authApi } from "../../api";
 import OtpInput from "./OtpInput";
 import "./auth.css";
@@ -34,16 +34,19 @@ const passwordRules = (pw) => ({
  */
 export default function ForgotPassword() {
     const navigate = useNavigate();
-    const [step, setStep] = useState("email"); // email | code | password
-    const [email, setEmail] = useState("");
-    const [code, setCode] = useState("");
+    const location = useLocation();
+    // Coming from the login page: the code is already sent, so start at the code step.
+    const fromLogin = Boolean(location.state?.email);
+    const [step, setStep] = useState(fromLogin ? "code" : "email"); // email | code | password
+    const [email, setEmail] = useState(location.state?.email || "");
+    const [code, setCode] = useState(location.state?.prefillCode || ""); // filled from the verify link
     const [resetToken, setResetToken] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [notice, setNotice] = useState("");
-    const [cooldown, setCooldown] = useState(0);
+    const [notice, setNotice] = useState(location.state?.notice || "");
+    const [cooldown, setCooldown] = useState(fromLogin ? RESEND_COOLDOWN_SECONDS : 0);
 
     useEffect(() => {
         if (cooldown <= 0) return undefined;

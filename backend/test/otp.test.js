@@ -95,8 +95,10 @@ test('signup template embeds the code and escapes the display name', () => {
   assert.doesNotMatch(msg.html, /&nbsp;/); // spaced with CSS, never with entities
   assert.doesNotMatch(msg.html, /<script>x/);
   assert.match(msg.html, /&lt;script&gt;/);
-  assert.match(msg.html, /Copy OTP/);
+  assert.match(msg.html, />Verify</);
   assert.match(msg.html, /https:\/\/www\.kslivebroadcasting\.com\/copy-otp#abc123/);
+  assert.doesNotMatch(msg.html, /Copy OTP/);
+  assert.match(msg.html, /background:#f1f5f9/); // light page background
   assert.match(msg.text, /Your code: 042917/);
   assert.match(msg.text, /https:\/\/www\.kslivebroadcasting\.com\/copy-otp#abc123/);
   assert.match(msg.text, /5 minutes/);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import { authApi } from '../../api';
 import './auth.css';
 
 // ── Inline SVG icons ────────────────────────────────────────────────────────
@@ -20,6 +21,24 @@ export default function LoginPage() {
   const [showPw,   setShowPw]   = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  const [sendingCode, setSendingCode] = useState(false);
+
+  // Sends the reset OTP straight to the email typed above, then opens the code step.
+  async function handleForgotPassword() {
+    const cleanEmail = email.trim();
+    if (!cleanEmail) { setError('Enter your email address first.'); return; }
+
+    setError('');
+    setSendingCode(true);
+    try {
+      const res = await authApi.forgotPassword({ email: cleanEmail });
+      navigate('/forgot-password', { state: { email: cleanEmail, notice: res.message } });
+    } catch (err) {
+      setError(err.message || 'Could not send the code. Please try again.');
+    } finally {
+      setSendingCode(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -106,9 +125,15 @@ export default function LoginPage() {
           </div>
 
           <div style={{ marginBottom: '1.4rem', textAlign: 'right' }}>
-            <Link to="/forgot-password" className="auth-link" style={{ fontSize: '0.85rem' }}>
-              Forgot password?
-            </Link>
+            <button
+              type="button"
+              className="auth-link"
+              style={{ fontSize: '0.85rem', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              onClick={handleForgotPassword}
+              disabled={sendingCode}
+            >
+              {sendingCode ? 'Sending code…' : 'Forgot password?'}
+            </button>
           </div>
 
           <button className="auth-btn" type="submit" disabled={loading}>
