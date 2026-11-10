@@ -9,7 +9,7 @@ import { formatLkr, lkrToUsd, formatUsd } from "../utils/money";
 import { BroadcastingServices, ReviewsSection, ModernFooter } from './LandingExtras';
 import { HeroCarousel } from './HeroCarousel';
 import { FeaturesHub } from './FeaturesHub';
-import { Radio, Zap, Palette, Smartphone, Users, Lock, Hammer, Check, Quote, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Radio, Zap, Palette, Smartphone, Users, Lock, Hammer, Check, Quote, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const TESTIMONIALS = [
     {
@@ -314,7 +314,7 @@ export default function LandingPage() {
 
                 <ul className={`landing-nav-links ${mobileMenuOpen ? "open" : ""}`}>
                     <li><Link to="/live" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.liveScores")}</Link></li>
-                    <li><Link to="/auctions" onClick={() => setMobileMenuOpen(false)}><Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Explore Auctions</Link></li>
+                    <li><Link to="/auctions" onClick={() => setMobileMenuOpen(false)}>Explore Auctions</Link></li>
                     <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.features")}</a></li>
                     <li><a href="#themes" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.themes")}</a></li>
                     <li><a href="#plans" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.plans")}</a></li>
@@ -355,7 +355,7 @@ export default function LandingPage() {
                         to="/auctions"
                         className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black px-7 py-3.5 rounded-xl shadow-lg shadow-amber-500/30 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center gap-2.5 whitespace-nowrap text-sm tracking-wide uppercase"
                     >
-                        <span><Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Explore Auctions</span>
+                        <span>Explore Auctions</span>
                         <span className="text-base font-bold"><ArrowRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                     </Link>
                 </div>
@@ -490,8 +490,8 @@ export default function LandingPage() {
 
             {!showMore ? (
                 <div style={{textAlign: 'center', margin: '4rem 0'}}>
-                    <button onClick={() => setShowMore(true)} className="landing-btn-primary" style={{padding: '1rem 3rem', fontSize: '1.2rem', fontFamily: 'var(--font-serif)'}}>
-                        Discover All Features & Tools <ArrowDown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
+                    <button onClick={() => setShowMore(true)} className="landing-btn-primary" style={{padding: '1rem 3rem', fontSize: '1.2rem', fontFamily: 'var(--font-serif)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+                        Discover All Features & Tools
                     </button>
                 </div>
             ) : (

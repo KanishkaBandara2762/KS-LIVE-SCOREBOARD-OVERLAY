@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import './LandingExtras.css';
-import { School, Video, Trophy, Activity, Check, Star, Phone, MapPin, MessageSquare, Mail } from 'lucide-react';
+import { School, Trophy, Activity, Check, Star, Phone, MapPin, MessageSquare, Mail } from 'lucide-react';
 
 export function BroadcastingServices() {
     return (
         <section className="landing-broadcasting-section landing-reveal" id="broadcasting">
             <div className="broadcasting-content">
-                <div className="broadcasting-badge"><Video size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Professional Broadcasting Services</div>
+                <div className="broadcasting-badge">Professional Broadcasting Services</div>
                 <h2 className="landing-section-title">
                     Take Your Event to the <span>Next Level</span>
                 </h2>
