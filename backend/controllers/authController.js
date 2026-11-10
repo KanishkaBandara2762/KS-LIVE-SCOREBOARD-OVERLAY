@@ -522,9 +522,6 @@ const copyOtpCode = async (req, res, next) => {
   try {
     const { token } = req.body;
     const result = await revealOtpByCopyToken({ token });
-    res.set('Cache-Control', 'no-store');
-    res.set('Pragma', 'no-cache');
-    res.set('Referrer-Policy', 'no-referrer');
     res.json({
       success: true,
       code: result.code,

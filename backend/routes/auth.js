@@ -68,9 +68,18 @@ router.post(
 );
 
 // ── POST /otp/copy (exchange copy-link token for the active code) ───────────
+// No-store on every outcome so neither proxies nor the browser keep a copy.
+const noStore = (req, res, next) => {
+  res.set('Cache-Control', 'no-store, max-age=0');
+  res.set('Pragma', 'no-cache');
+  res.set('Referrer-Policy', 'no-referrer');
+  next();
+};
+
 router.post(
   '/otp/copy',
   otpRateLimit,
+  noStore,
   [
     body('token')
       .isString()
