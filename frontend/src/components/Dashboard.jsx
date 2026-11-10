@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Building2, Calendar, Check, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Rocket, Settings, Target, Trash2, TriangleAlert, Trophy, Users, X, Zap } from 'lucide-react';
+import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Rocket, Settings, Target, Trash2, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
 import TournamentTeamsModal from './TournamentTeamsModal';
@@ -886,6 +886,24 @@ const Dashboard = () => {
   const [tournaments, setTournaments] = useState([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
   const [showCreateTournament, setShowCreateTournament] = useState(false);
+  const [showMobileAccountMenu, setShowMobileAccountMenu] = useState(false);
+  const mobileAccountRef = useRef(null);
+
+  // Close the mobile account menu when the user taps outside it
+  useEffect(() => {
+    if (!showMobileAccountMenu) return undefined;
+    const handleOutsideTap = (event) => {
+      if (mobileAccountRef.current && !mobileAccountRef.current.contains(event.target)) {
+        setShowMobileAccountMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideTap);
+    document.addEventListener('touchstart', handleOutsideTap);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideTap);
+      document.removeEventListener('touchstart', handleOutsideTap);
+    };
+  }, [showMobileAccountMenu]);
   const [createdTournament, setCreatedTournament] = useState(null);
   const [showNextMatch, setShowNextMatch] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
@@ -1034,13 +1052,35 @@ const Dashboard = () => {
               {currentUser?.plan === 'free' ? 'Upgrade Plan' : 'Renew / Change Plan'}
             </button>
           )}
-          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }}>
-            <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create Tournament
+          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }} aria-label="Create Tournament">
+            <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <span className="dash-btn-label">Create Tournament</span>
           </button>
-          <button className="btn-create-match" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(148,163,184,0.45)' }}>
+          <button className="btn-create-match dash-desktop-only" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(148,163,184,0.45)' }}>
             <Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account
           </button>
-          <button className="btn-logout" onClick={handleLogout}>Sign Out</button>
+          <button className="btn-logout dash-desktop-only" onClick={handleLogout}>Sign Out</button>
+          <div className="dash-mobile-account" ref={mobileAccountRef}>
+            <button
+              type="button"
+              className="btn-create-match dash-mobile-account-trigger"
+              aria-haspopup="menu"
+              aria-label="Account menu"
+              aria-expanded={showMobileAccountMenu}
+              onClick={() => setShowMobileAccountMenu((open) => !open)}
+            >
+              <User size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <ChevronDown size="0.9em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
+            </button>
+            {showMobileAccountMenu && (
+              <div className="dash-mobile-account-menu" role="menu">
+                <button type="button" role="menuitem" onClick={() => { setShowMobileAccountMenu(false); navigate('/account'); }}>
+                  <Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account Settings
+                </button>
+                <button type="button" role="menuitem" className="dash-mobile-signout" onClick={() => { setShowMobileAccountMenu(false); handleLogout(); }}>
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

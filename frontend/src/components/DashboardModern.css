@@ -153,3 +153,140 @@
   .dashboard .tab-buttons { padding-left: 16px; padding-right: 16px; margin-left: 0; margin-right: 0; }
   .dashboard .dash-main { padding-bottom: 24px; }
 }
+
+/* ── Mobile header (≤ 768px): action buttons form a 2×2 grid so Sign Out stays on screen.
+   Desktop layout is unchanged. ── */
+@media (max-width: 768px) {
+  .dashboard .dash-header {
+    padding: 10px;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .dashboard .dash-header-left {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .dashboard .dash-header-left .dash-logo img {
+    height: 30px !important;
+  }
+
+  .dashboard .dash-logo-text {
+    display: none;
+  }
+
+  .dashboard .dash-user-info {
+    min-width: 0;
+  }
+
+  .dashboard .dash-plan-badge {
+    padding: 4px 8px;
+    font-size: 0.6rem;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .dashboard .dash-header-right {
+    flex: 0 0 auto;
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .dashboard .dash-header-right > button {
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 34px;
+    margin: 0 !important;
+    padding: 6px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .dashboard .dash-btn-label {
+    display: none;
+  }
+}
+
+/* Mobile-only account dropdown is hidden on desktop */
+.dashboard .dash-mobile-account {
+  display: none;
+}
+
+/* Mobile header polish (≤ 768px only) */
+@media (max-width: 768px) {
+  .dashboard .dash-header-right > .btn-logout {
+    color: #fca5a5;
+    border-color: rgba(248, 113, 113, 0.45);
+    background: rgba(239, 68, 68, 0.08);
+  }
+
+  /* Account + Sign Out move into a dropdown on mobile */
+  .dashboard .dash-desktop-only {
+    display: none !important;
+  }
+
+  .dashboard .dash-mobile-account {
+    display: block;
+    position: relative;
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+
+  .dashboard .dash-mobile-account-trigger {
+    width: 100%;
+    min-height: 40px;
+    margin: 0;
+    padding: 8px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    background: transparent;
+    color: inherit;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    box-shadow: none;
+  }
+
+  .dashboard .dash-mobile-account-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    background: rgba(8, 14, 30, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  }
+
+  .dashboard .dash-mobile-account-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .dashboard .dash-mobile-account-menu button:hover {
+    background: rgba(148, 163, 184, 0.12);
+  }
+
+  .dashboard .dash-mobile-account-menu .dash-mobile-signout {
+    color: #fca5a5;
+  }
+}

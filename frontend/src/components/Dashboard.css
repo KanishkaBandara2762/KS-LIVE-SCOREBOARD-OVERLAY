@@ -501,7 +501,7 @@
   .match-grid { grid-template-columns: 1fr; }
   .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
   .obs-guide { margin: 24px 16px 0; }
-  .dash-user-info { display: none; }
+  .dash-user-name { display: none; }
 }
 
 /* ── Tab buttons ─────────────────────────────────────────────── */
