@@ -29,6 +29,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const { refreshForMatch } = require('../services/tournamentStandings');
 
 // Ball-by-ball log cap (whole match). 1500 fits two full ODI innings incl. extras.
 const DELIVERY_HISTORY_CAP = 1500;
@@ -1203,6 +1204,12 @@ const updateMatch = async (req, res, next) => {
     const emitPayload = { matchId: id, timestamp: Date.now(), ...updatedMatch.toObject() };
     emitMatchUpdate(req, id, 'score:update', emitPayload);
 
+    // Group points table: finished matches (and corrections to them) recalculate standings.
+    const FINISHED = ['completed', 'abandoned'];
+    if (updatedMatch.tournamentId && (FINISHED.includes(updatedMatch.matchStatus) || FINISHED.includes(match.matchStatus))) {
+      refreshForMatch(updatedMatch._id, req.app.get('io'));
+    }
+
     res.json({ success: true, match: updatedMatch });
   } catch (err) {
     next(err);
@@ -1234,6 +1241,9 @@ const deleteMatch = async (req, res, next) => {
     ]);
 
     await User.findByIdAndUpdate(match.ownerUid, { $inc: { matchCount: -1 } });
+
+    // Unlink from any group fixture and rebuild that tournament's standings.
+    if (match.tournamentId) refreshForMatch(match._id, req.app.get('io'), { unlink: true });
 
     res.json({ success: true, message: 'Match deleted.' });
   } catch (err) {

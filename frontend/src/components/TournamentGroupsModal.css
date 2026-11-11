@@ -1,0 +1,64 @@
+/* KS LIVE — Groups & Points admin modal */
+.tg-card { max-width: 980px; width: 96%; max-height: 92vh; display: flex; flex-direction: column; padding: 24px; }
+.tg-loading { padding: 40px; text-align: center; color: var(--text-secondary, #b8c7e0); }
+.tg-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; border-bottom: 1px solid var(--border-default, rgba(255,255,255,0.1)); padding-bottom: 10px; }
+.tg-tab {
+  min-height: 36px; padding: 6px 14px; border-radius: var(--radius-pill, 999px); cursor: pointer; font-weight: 800; font-size: 13px;
+  background: transparent; border: 1px solid var(--border-blue, rgba(57,169,255,0.35)); color: var(--text-secondary, #b8c7e0);
+}
+.tg-tab.is-active { background: var(--brand-gold, #ffc928); color: var(--text-on-gold, #0a1630); border-color: var(--brand-gold, #ffc928); }
+.tg-body { overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; }
+.tg-section { display: flex; flex-direction: column; gap: 12px; }
+.tg-msg { padding: 8px 12px; border-radius: var(--radius-md, 10px); font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.tg-msg.is-ok { background: var(--tint-success, rgba(52,211,153,0.12)); color: #86efac; }
+.tg-msg.is-err { background: var(--tint-error, rgba(244,63,94,0.12)); color: #fca5a5; }
+.tg-h { margin: 10px 0 0; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-gold, #ffc928); }
+.tg-hint { margin: 0; font-size: 12px; color: var(--text-muted, #8aa0c0); }
+.tg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.tg-grid-sm { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.tg-grid label, .tg-block, .tg-inline, .tg-inn label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--text-secondary, #b8c7e0); }
+.tg-inline { flex-direction: row !important; align-items: center; gap: 8px !important; }
+.tg-num { width: 80px; }
+.tg-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tg-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-primary, #fff); cursor: pointer; }
+.tg-check input { width: 16px; height: 16px; accent-color: var(--brand-gold, #ffc928); }
+.tg-ic {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; border-radius: 8px; cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border-default, rgba(255,255,255,0.1)); color: var(--text-secondary, #b8c7e0);
+}
+.tg-ic:disabled { opacity: 0.35; cursor: not-allowed; }
+.tg-btn-sm { padding: 6px 10px !important; font-size: 12px !important; }
+.tg-danger { color: #fca5a5 !important; border-color: rgba(244,63,94,0.35) !important; }
+
+.tg-tb { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; counter-reset: tb; }
+.tg-tb li { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: var(--bg-elevated, #132650); font-size: 13px; color: var(--text-primary, #fff); counter-increment: tb; }
+.tg-tb li span { flex: 1; }
+.tg-tb li span::before { content: counter(tb) '. '; color: var(--brand-gold, #ffc928); font-weight: 900; }
+.tg-tb-last { opacity: 0.7; }
+
+.tg-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.tg-group { padding: 12px; border-radius: var(--radius-lg, 14px); background: var(--bg-elevated, #132650); border: 1px solid var(--border-blue, rgba(57,169,255,0.25)); display: flex; flex-direction: column; gap: 8px; }
+.tg-group-head { display: flex; gap: 6px; }
+.tg-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.tg-chips li { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 4px 4px 4px 10px; border-radius: 8px; background: rgba(255,255,255,0.04); font-size: 13px; font-weight: 700; color: var(--text-primary, #fff); }
+
+.tg-fx-sec { display: flex; flex-direction: column; gap: 6px; }
+.tg-fx { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--radius-md, 10px); background: var(--bg-elevated, #132650); border-left: 4px solid var(--brand-sky, #39a9ff); }
+.tg-fx.is-done { border-left-color: var(--brand-gold, #ffc928); }
+.tg-fx.is-review { border-left-color: #f43f5e; }
+.tg-fx-main { flex: 1; min-width: 220px; }
+.tg-fx-teams { color: var(--text-primary, #fff); font-size: 14px; }
+.tg-fx-teams span { color: var(--text-muted, #8aa0c0); margin: 0 4px; font-size: 12px; }
+.tg-fx-teams em { color: var(--text-muted, #8aa0c0); font-style: normal; font-size: 12px; }
+.tg-fx-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary, #b8c7e0); margin-top: 2px; }
+.tg-fx-status { color: var(--brand-gold-bright, #ffd84d); font-weight: 700; }
+.tg-fx-actions { display: flex; gap: 6px; align-items: center; }
+.tg-editor { flex-basis: 100%; display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border-default, rgba(255,255,255,0.1)); }
+.tg-inns { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.tg-inn { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.03); }
+.tg-inn b { grid-column: 1 / -1; color: var(--text-primary, #fff); font-size: 13px; }
+
+@media (max-width: 600px) {
+  .tg-card { padding: 14px; width: 100%; max-height: 96vh; }
+  .tg-fx-actions { width: 100%; justify-content: flex-end; }
+}

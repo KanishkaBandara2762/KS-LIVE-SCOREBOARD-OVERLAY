@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Radio, Rocket, Settings, Target, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
+import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, LayoutGrid, Lightbulb, Pause, Pencil, Radio, Rocket, Settings, Target, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
 import TournamentTeamsModal from './TournamentTeamsModal';
+import TournamentGroupsModal from './TournamentGroupsModal';
 import AuctionDashboardPanel from './auction/AuctionDashboardPanel';
 import { isAdminRole } from '../utils/roles';
 import './Dashboard.css';
@@ -249,6 +250,7 @@ function CreateTournamentModal({ onClose, onCreate }) {
   const [form, setForm] = useState({
     name: '',
     type: 'League',
+    groupStage: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -299,6 +301,11 @@ function CreateTournamentModal({ onClose, onCreate }) {
             </select>
           </div>
 
+          <label className="form-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+            <input type="checkbox" checked={form.groupStage} onChange={(e) => setForm((prev) => ({ ...prev, groupStage: e.target.checked }))} style={{ width: 18, height: 18, accentColor: 'var(--brand-gold)' }} />
+            <span>Group stage (groups, fixtures, points table &amp; NRR) — set up after adding teams</span>
+          </label>
+
           {error && <div className="form-error"><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {error}</div>}
 
           <div className="modal-actions">
@@ -314,7 +321,7 @@ function CreateTournamentModal({ onClose, onCreate }) {
 }
 
 // ── Next Match Modal ───────────────────────────────────────────────────────
-export function NextMatchModal({ tournament, onClose, onSubmit }) {
+export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }) {
   const file1Ref = React.useRef(null);
   const file2Ref = React.useRef(null);
   const [logo1, setLogo1] = React.useState(null);
@@ -325,20 +332,20 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 
   const [useTournamentTeams, setUseTournamentTeams] = React.useState(hasTeams);
   const [selectedTeam1Id, setSelectedTeam1Id] = React.useState(
-    hasTeams ? (tournamentTeams[0]._id || tournamentTeams[0].id) : ''
+    fixture ? String(fixture.team1Id) : hasTeams ? (tournamentTeams[0]._id || tournamentTeams[0].id) : ''
   );
   const [selectedTeam2Id, setSelectedTeam2Id] = React.useState(
-    hasTeams ? (tournamentTeams[1]._id || tournamentTeams[1].id) : ''
+    fixture ? String(fixture.team2Id) : hasTeams ? (tournamentTeams[1]._id || tournamentTeams[1].id) : ''
   );
 
   const selectedTeam1 = tournamentTeams.find(t => (t._id || t.id) === selectedTeam1Id) || null;
   const selectedTeam2 = tournamentTeams.find(t => (t._id || t.id) === selectedTeam2Id) || null;
 
   const [form, setForm] = React.useState({
-    team1Name: hasTeams ? (tournamentTeams[0]?.name || '') : '',
-    team2Name: hasTeams ? (tournamentTeams[1]?.name || '') : '',
-    maxOvers: 20,
-    ballsPerOver: 6,
+    team1Name: fixture ? (tournamentTeams.find(t => String(t._id || t.id) === String(fixture.team1Id))?.name || '') : hasTeams ? (tournamentTeams[0]?.name || '') : '',
+    team2Name: fixture ? (tournamentTeams.find(t => String(t._id || t.id) === String(fixture.team2Id))?.name || '') : hasTeams ? (tournamentTeams[1]?.name || '') : '',
+    maxOvers: fixture?.oversPerMatch || 20,
+    ballsPerOver: fixture?.ballsPerOver || 6,
     matchType: 'T20',
     tossWinner: 'team1',
     tossDecision: 'bat',
@@ -415,6 +422,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
         venueName: form.venueName,
         themeID: form.themeID,
         toss: { winner: tossWinnerName, decision: form.tossDecision, completed: true },
+        ...(fixture ? { fixtureId: fixture.fixtureId, matchTitle: form.matchTitle || fixture.label || form.matchType, venueName: form.venueName || fixture.venue || '' } : {}),
       };
 
       const result = await onSubmit(tournament.id || tournament._id, payload);
@@ -459,8 +467,14 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
           <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, var(--brand-electric), var(--brand-sky))', margin: '12px auto 0', borderRadius: '4px' }} />
         </div>
 
+        {fixture && (
+          <div style={{ padding: '10px 12px', borderRadius: '10px', background: 'var(--tint-gold)', border: '1px solid var(--border-gold)', color: 'var(--brand-gold)', fontWeight: 800, fontSize: '0.85rem', marginBottom: '16px' }}>
+            Fixture match{fixture.label ? ` · ${fixture.label}` : ''} — the result will update the points table.
+          </div>
+        )}
+
         {/* Team Selection Mode Toggle (if tournament has teams) */}
-        {hasTeams ? (
+        {hasTeams && !fixture ? (
           <div style={{ display: 'flex', background: 'rgba(0,0,0,0.35)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '20px' }}>
             <button
               type="button"
@@ -487,7 +501,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
               <Pencil size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Custom Names
             </button>
           </div>
-        ) : (
+        ) : fixture ? null : (
           <div style={{ background: 'rgba(22,119,255,0.08)', border: '1px solid rgba(22,119,255,0.2)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.8rem', color: 'var(--brand-sky)', marginBottom: '20px' }}>
             <Lightbulb size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <strong>Tip:</strong> Click <strong>Teams & Squads</strong> on the tournament card to add teams and players for 1-click squad selection!
           </div>
@@ -510,6 +524,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
               {useTournamentTeams && hasTeams ? (
                 <select
                   value={selectedTeam1Id}
+                  disabled={!!fixture}
                   onChange={(e) => handleSelectTeam1(e.target.value)}
                   className="form-select"
                   style={{ width: '100%', fontSize: '1rem', fontWeight: 700, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '10px' }}
@@ -575,6 +590,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
               {useTournamentTeams && hasTeams ? (
                 <select
                   value={selectedTeam2Id}
+                  disabled={!!fixture}
                   onChange={(e) => handleSelectTeam2(e.target.value)}
                   className="form-select"
                   style={{ width: '100%', fontSize: '1rem', fontWeight: 700, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '10px' }}
@@ -772,7 +788,7 @@ function MatchCard({ match, onOpen, onCopyUrl, isObsActive = true }) {
 }
 
 // ── Tournament Card ───────────────────────────────────────────────────────
-function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, isObsActive = true }) {
+function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, onGroups, isObsActive = true }) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
@@ -862,6 +878,9 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
         <button className="btn-secondary" style={{ padding: "8px 12px", fontSize: "0.8rem", fontWeight: 800, background: "rgba(22,119,255,0.15)", borderColor: "rgba(22,119,255,0.3)", color: "var(--brand-sky)" }} onClick={() => onManageTeams(tournament)}>
           <Users size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Teams & Squads ({tournament.teams?.length || 0})
         </button>
+        <button className="btn-secondary" style={{ padding: "8px 12px", fontSize: "0.8rem", fontWeight: 800, background: "var(--tint-gold)", borderColor: "var(--border-gold)", color: "var(--brand-gold)" }} onClick={() => onGroups(tournament)}>
+          <LayoutGrid size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Groups &amp; Points
+        </button>
         <button className="btn-mini" onClick={() => onStartNextMatch(tournament)}>
           <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Next Match
         </button>
@@ -909,6 +928,8 @@ const Dashboard = () => {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showTournamentTeams, setShowTournamentTeams] = useState(false);
   const [teamsModalTournament, setTeamsModalTournament] = useState(null);
+  const [groupsTournament, setGroupsTournament] = useState(null);
+  const [nextMatchFixture, setNextMatchFixture] = useState(null);
 
   useEffect(() => {
     if (getToken()) {
@@ -990,6 +1011,7 @@ const Dashboard = () => {
   const handleNextMatchModalClose = (newMatchId) => {
     setShowNextMatch(false);
     setSelectedTournament(null);
+    setNextMatchFixture(null);
     if (newMatchId) {
       if (isMongoDB(newMatchId)) {
         navigate(`/mini-admin/${newMatchId}`);
@@ -1208,9 +1230,11 @@ const Dashboard = () => {
                       setShowTournamentTeams(true);
                     }}
                     onStartNextMatch={(tourney) => {
+                      setNextMatchFixture(null);
                       setSelectedTournament(tourney);
                       setShowNextMatch(true);
                     }}
+                    onGroups={(tourney) => setGroupsTournament(tourney)}
                   />
                 ))}
               </div>
@@ -1297,9 +1321,27 @@ const Dashboard = () => {
         />
       )}
 
+      {/* Groups, fixtures, points table & knockouts */}
+      {groupsTournament && (
+        <TournamentGroupsModal
+          tournament={groupsTournament}
+          onClose={() => setGroupsTournament(null)}
+          onStartFixture={(fx, gs) => {
+            setNextMatchFixture({
+              fixtureId: String(fx._id || fx.id), team1Id: fx.team1Id, team2Id: fx.team2Id,
+              label: fx.label, venue: fx.venue, oversPerMatch: gs.oversPerMatch, ballsPerOver: gs.ballsPerOver,
+            });
+            setSelectedTournament(groupsTournament);
+            setGroupsTournament(null);
+            setShowNextMatch(true);
+          }}
+        />
+      )}
+
       {/* Start Next Match Modal */}
       {showNextMatch && selectedTournament && (
         <NextMatchModal
+          fixture={nextMatchFixture}
           tournament={selectedTournament}
           onClose={handleNextMatchModalClose}
           onSubmit={handleNextMatchSubmit}

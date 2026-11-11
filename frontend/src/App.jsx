@@ -34,6 +34,7 @@ import Pricing from "./components/Pricing";
 // ── Public Live Scores ───────────────────────────────────────────────────
 import PublicLiveMatches from "./components/PublicLiveMatches";
 import PublicMatchPreview from "./components/PublicMatchPreview";
+import PublicTournamentTable from "./components/PublicTournamentTable";
 
 // ── Auction module ───────────────────────────────────────────────────────
 import AuctionListPage from "./components/auction/AuctionListPage";
@@ -56,6 +57,7 @@ function App() {
             {/* Public live scores list & details */}
             <Route path="/live" element={<PublicLiveMatches />} />
             <Route path="/live/match/:idOrSlug" element={<PublicMatchPreview />} />
+            <Route path="/live/tournament/:tournamentId" element={<PublicTournamentTable />} />
 
             {/* OBS Overlay — per-match URL, never requires login so OBS works */}
             <Route path="/overlay/:matchId" element={<ScorecardDisplay />} />

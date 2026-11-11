@@ -39,6 +39,11 @@ const teamLogoUpload = multer({
 });
 
 const { hasActiveBroadcastingAccess } = require('../middleware/subscriptionCheck');
+const { router: groupStageRouter, publicStandings } = require('./tournamentGroups');
+const { recalculate: recalcGroupStage, emitStandings } = require('../services/tournamentStandings');
+
+// ── Public: read-only group points table ─────────────────────────────
+router.get('/public/:tournamentId/standings', publicStandings);
 
 // ── Public: Tournament details for OBS overlay ──────────────────────
 router.get('/public/:tournamentId', async (req, res, next) => {
@@ -83,6 +88,9 @@ router.get('/public/:tournamentId', async (req, res, next) => {
 
 // Secure all tournament routes with auth. Creation is free; OBS links cost 1 credit.
 router.use(authMiddleware);
+
+// ── Group stage, fixtures, points table & knockouts ──────────────────
+router.use('/:tournamentId/group-stage', groupStageRouter);
 
 // ── POST /:tournamentId/unlock-broadcast (1 credit, once per tournament) ────
 router.post('/:tournamentId/unlock-broadcast', async (req, res, next) => {
@@ -134,7 +142,7 @@ router.get('/:tournamentId', async (req, res, next) => {
 // ── POST /create ──────────────────────────────────────────────────────
 router.post('/create', async (req, res, next) => {
   try {
-    const { name, type } = req.body;
+    const { name, type, groupStage } = req.body;
 
     if (!name || !type) {
       return res.status(400).json({ success: false, error: 'Name and Type are required.' });
@@ -146,6 +154,7 @@ router.post('/create', async (req, res, next) => {
       clientId: req.user.id,
       teams: [],
       broadcastLocked: true,
+      ...(groupStage ? { groupStage: { enabled: true } } : {}),
     });
 
     res.status(201).json({
@@ -526,11 +535,24 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       themeID = 'ICC_GLOBAL',
       team1Squad: customTeam1Squad = null,
       team2Squad: customTeam2Squad = null,
+      fixtureId = null,
     } = req.body;
 
     const tournament = await Tournament.findOne({ _id: tournamentId, clientId: req.user.id });
     if (!tournament) {
       return res.status(404).json({ success: false, error: 'Tournament not found or access denied.' });
+    }
+
+    // Optional: start the match from a group/knockout fixture (links its result to the points table)
+    const fixture = fixtureId ? tournament.groupStage?.fixtures?.id(fixtureId) : null;
+    if (fixtureId && !fixture) {
+      return res.status(404).json({ success: false, error: 'Fixture not found.' });
+    }
+    if (fixture && fixture.matchId) {
+      return res.status(409).json({ success: false, error: 'This fixture already has a match.' });
+    }
+    if (fixture && (!fixture.team1Id || !fixture.team2Id)) {
+      return res.status(400).json({ success: false, error: 'Fixture teams are not decided yet.' });
     }
 
     // Auto-complete previous match
@@ -568,13 +590,17 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
     let team1Obj = null;
     let team2Obj = null;
 
-    if (team1Id) {
+    if (fixture) {
+      team1Obj = tournament.teams.id(fixture.team1Id);
+    } else if (team1Id) {
       team1Obj = tournament.teams.id(team1Id);
     } else {
       team1Obj = tournament.teams.find(t => t.name.toUpperCase() === team1Name.trim().toUpperCase());
     }
 
-    if (team2Id) {
+    if (fixture) {
+      team2Obj = tournament.teams.id(fixture.team2Id);
+    } else if (team2Id) {
       team2Obj = tournament.teams.id(team2Id);
     } else {
       team2Obj = tournament.teams.find(t => t.name.toUpperCase() === team2Name.trim().toUpperCase());
@@ -693,7 +719,16 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
     // Push match into tournament
     tournament.matches.push(newMatch._id);
     tournament.currentMatchId = newMatch._id;
+    if (fixture) fixture.matchId = newMatch._id;
     await tournament.save();
+
+    // The previous match may have just been auto-completed → refresh the points table
+    if (tournament.groupStage?.enabled) {
+      try {
+        const standings = await recalcGroupStage(tournament);
+        emitStandings(req.app.get('io'), tournament._id, standings);
+      } catch (e) { console.error('[GroupStage] refresh after next-match failed:', e.message); }
+    }
 
     // Increment user match count
     await User.findByIdAndUpdate(req.user.id, { $inc: { matchCount: 1 } });

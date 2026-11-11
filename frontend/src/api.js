@@ -163,6 +163,18 @@ export const tournamentsApi = {
   addPlayer: (tournamentId, teamId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players`, { method: 'POST', body: JSON.stringify(body) }),
   updatePlayer: (tournamentId, teamId, playerId, body) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`, { method: 'PUT', body: JSON.stringify(body) }),
   deletePlayer: (tournamentId, teamId, playerId) => apiRequest(`/api/tournaments/${tournamentId}/teams/${teamId}/players/${playerId}`, { method: 'DELETE' }),
+  // Group stage, fixtures, points table & knockouts
+  groupStage: (id) => apiRequest(`/api/tournaments/${id}/group-stage`),
+  saveGroupSettings: (id, body) => apiRequest(`/api/tournaments/${id}/group-stage/settings`, { method: 'PUT', body: JSON.stringify(body) }),
+  saveGroups: (id, groups) => apiRequest(`/api/tournaments/${id}/group-stage/groups`, { method: 'PUT', body: JSON.stringify({ groups }) }),
+  autoDistribute: (id, groupCount, shuffle = false) => apiRequest(`/api/tournaments/${id}/group-stage/auto-distribute`, { method: 'POST', body: JSON.stringify({ groupCount, shuffle }) }),
+  generateFixtures: (id, format) => apiRequest(`/api/tournaments/${id}/group-stage/fixtures/generate`, { method: 'POST', body: JSON.stringify({ format }) }),
+  addFixture: (id, body) => apiRequest(`/api/tournaments/${id}/group-stage/fixtures`, { method: 'POST', body: JSON.stringify(body) }),
+  updateFixture: (id, fixtureId, body) => apiRequest(`/api/tournaments/${id}/group-stage/fixtures/${fixtureId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteFixture: (id, fixtureId) => apiRequest(`/api/tournaments/${id}/group-stage/fixtures/${fixtureId}`, { method: 'DELETE' }),
+  generateKnockouts: (id, body) => apiRequest(`/api/tournaments/${id}/group-stage/knockouts`, { method: 'POST', body: JSON.stringify(body) }),
+  recalculateStandings: (id) => apiRequest(`/api/tournaments/${id}/group-stage/recalculate`, { method: 'POST' }),
+  publicStandings: (id) => apiRequest(`/api/tournaments/public/${id}/standings`),
 };
 
 // ── Subscriptions API ────────────────────────────────────────────────────────

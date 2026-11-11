@@ -328,5 +328,5 @@ const recommendMotm = (ranked, result) => {
 
 module.exports = {
   IMPACT_CONFIG, buildMatchStats, computeImpact, recommendMotm, describePlayer, shortFigures,
-  matchResult, formatOf, playerKey, norm, oversText,
+  matchResult, inningsTeams, formatOf, playerKey, norm, oversText,
 };
