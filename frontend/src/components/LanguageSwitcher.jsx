@@ -14,15 +14,15 @@ const LanguageSwitcher = ({ className = "", compact = false }) => {
           padding: compact ? "6px 10px" : "8px 12px",
           fontSize: compact ? 11 : 12,
           fontWeight: 700,
-          background: "#1e293b",
-          color: "#f8fafc",
-          border: "1px solid #334155",
+          background: "var(--bg-card)",
+          color: "var(--text-primary)",
+          border: "1px solid var(--bg-elevated)",
           outline: "none",
           cursor: "pointer"
         }}
       >
         {languages.map((item) => (
-          <option key={item.code} value={item.code} style={{ background: "#1e293b", color: "#f8fafc" }}>
+          <option key={item.code} value={item.code} style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
             {item.label}
           </option>
         ))}

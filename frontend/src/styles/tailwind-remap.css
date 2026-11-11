@@ -1,0 +1,235 @@
+/* GENERATED — KS LIVE token remap for Tailwind palette classes.
+   Scoped to .ks-tw (Tailwind-styled admin/public screens only), so overlay
+   routes and their themes are untouched. When a new Tailwind colour class
+   is added to one of those screens, add a matching rule here. */
+
+.ks-tw.bg-amber-400, .ks-tw .bg-amber-400 { background-color: var(--brand-gold); color: var(--text-on-gold) !important; }
+.ks-tw.bg-amber-500, .ks-tw .bg-amber-500 { background-color: var(--brand-gold); color: var(--text-on-gold) !important; }
+.ks-tw.bg-amber-500\/10, .ks-tw .bg-amber-500\/10 { background-color: color-mix(in srgb, var(--brand-gold) 10%, transparent); }
+.ks-tw.bg-amber-500\/20, .ks-tw .bg-amber-500\/20 { background-color: color-mix(in srgb, var(--brand-gold) 20%, transparent); }
+.ks-tw.bg-blue-200, .ks-tw .bg-blue-200 { background-color: var(--tint-blue); }
+.ks-tw.bg-blue-50, .ks-tw .bg-blue-50 { background-color: var(--tint-blue); }
+.ks-tw.bg-blue-500, .ks-tw .bg-blue-500 { background-color: var(--brand-electric); }
+.ks-tw.bg-blue-600, .ks-tw .bg-blue-600 { background-color: var(--brand-royal); }
+.ks-tw.bg-blue-900, .ks-tw .bg-blue-900 { background-color: var(--bg-elevated); }
+.ks-tw.bg-cyan-50, .ks-tw .bg-cyan-50 { background-color: var(--tint-blue); }
+.ks-tw.bg-cyan-500, .ks-tw .bg-cyan-500 { background-color: var(--brand-electric); }
+.ks-tw.bg-cyan-600, .ks-tw .bg-cyan-600 { background-color: var(--brand-royal); }
+.ks-tw.bg-emerald-100, .ks-tw .bg-emerald-100 { background-color: var(--tint-success); }
+.ks-tw.bg-emerald-500, .ks-tw .bg-emerald-500 { background-color: var(--status-success); }
+.ks-tw.bg-emerald-600, .ks-tw .bg-emerald-600 { background-color: var(--status-success); }
+.ks-tw.bg-fuchsia-600, .ks-tw .bg-fuchsia-600 { background-color: var(--brand-royal); }
+.ks-tw.bg-green-50, .ks-tw .bg-green-50 { background-color: var(--tint-success); }
+.ks-tw.bg-green-500, .ks-tw .bg-green-500 { background-color: var(--status-success); }
+.ks-tw.bg-green-600, .ks-tw .bg-green-600 { background-color: var(--status-success); }
+.ks-tw.bg-indigo-50, .ks-tw .bg-indigo-50 { background-color: var(--tint-blue); }
+.ks-tw.bg-indigo-50\/50, .ks-tw .bg-indigo-50\/50 { background-color: color-mix(in srgb, var(--tint-blue) 50%, transparent); }
+.ks-tw.bg-indigo-600, .ks-tw .bg-indigo-600 { background-color: var(--brand-royal); }
+.ks-tw.bg-orange-500, .ks-tw .bg-orange-500 { background-color: var(--status-warning); }
+.ks-tw.bg-purple-600, .ks-tw .bg-purple-600 { background-color: var(--brand-royal); }
+.ks-tw.bg-purple-700, .ks-tw .bg-purple-700 { background-color: var(--brand-royal); }
+.ks-tw.bg-red-100, .ks-tw .bg-red-100 { background-color: var(--tint-error); }
+.ks-tw.bg-red-200, .ks-tw .bg-red-200 { background-color: var(--tint-error); }
+.ks-tw.bg-red-400, .ks-tw .bg-red-400 { background-color: var(--status-error); }
+.ks-tw.bg-red-50, .ks-tw .bg-red-50 { background-color: var(--tint-error); }
+.ks-tw.bg-red-500, .ks-tw .bg-red-500 { background-color: var(--status-error); }
+.ks-tw.bg-red-500\/10, .ks-tw .bg-red-500\/10 { background-color: color-mix(in srgb, var(--status-error) 10%, transparent); }
+.ks-tw.bg-red-500\/20, .ks-tw .bg-red-500\/20 { background-color: color-mix(in srgb, var(--status-error) 20%, transparent); }
+.ks-tw.bg-red-600, .ks-tw .bg-red-600 { background-color: var(--status-error); }
+.ks-tw.bg-red-800, .ks-tw .bg-red-800 { background-color: #B91C1C; }
+.ks-tw.bg-slate-100, .ks-tw .bg-slate-100 { background-color: var(--bg-main); }
+.ks-tw.bg-slate-200, .ks-tw .bg-slate-200 { background-color: var(--bg-elevated); }
+.ks-tw.bg-slate-300, .ks-tw .bg-slate-300 { background-color: var(--bg-elevated); }
+.ks-tw.bg-slate-50, .ks-tw .bg-slate-50 { background-color: var(--bg-secondary); }
+.ks-tw.bg-slate-600, .ks-tw .bg-slate-600 { background-color: var(--bg-elevated); }
+.ks-tw.bg-slate-700, .ks-tw .bg-slate-700 { background-color: var(--bg-elevated); }
+.ks-tw.bg-slate-800, .ks-tw .bg-slate-800 { background-color: var(--bg-card); }
+.ks-tw.bg-slate-800\/40, .ks-tw .bg-slate-800\/40 { background-color: color-mix(in srgb, var(--bg-card) 40%, transparent); }
+.ks-tw.bg-slate-800\/80, .ks-tw .bg-slate-800\/80 { background-color: color-mix(in srgb, var(--bg-card) 80%, transparent); }
+.ks-tw.bg-slate-900, .ks-tw .bg-slate-900 { background-color: var(--bg-secondary); }
+.ks-tw.bg-slate-900\/40, .ks-tw .bg-slate-900\/40 { background-color: color-mix(in srgb, var(--bg-secondary) 40%, transparent); }
+.ks-tw.bg-slate-900\/50, .ks-tw .bg-slate-900\/50 { background-color: color-mix(in srgb, var(--bg-secondary) 50%, transparent); }
+.ks-tw.bg-slate-900\/60, .ks-tw .bg-slate-900\/60 { background-color: color-mix(in srgb, var(--bg-secondary) 60%, transparent); }
+.ks-tw.bg-slate-950, .ks-tw .bg-slate-950 { background-color: var(--bg-main); }
+.ks-tw.bg-slate-950\/20, .ks-tw .bg-slate-950\/20 { background-color: color-mix(in srgb, var(--bg-main) 20%, transparent); }
+.ks-tw.bg-slate-950\/40, .ks-tw .bg-slate-950\/40 { background-color: color-mix(in srgb, var(--bg-main) 40%, transparent); }
+.ks-tw.bg-slate-950\/50, .ks-tw .bg-slate-950\/50 { background-color: color-mix(in srgb, var(--bg-main) 50%, transparent); }
+.ks-tw.bg-slate-950\/80, .ks-tw .bg-slate-950\/80 { background-color: color-mix(in srgb, var(--bg-main) 80%, transparent); }
+.ks-tw.bg-teal-400, .ks-tw .bg-teal-400 { background-color: var(--brand-electric); }
+.ks-tw.bg-teal-500, .ks-tw .bg-teal-500 { background-color: var(--brand-electric); }
+.ks-tw.bg-teal-500\/10, .ks-tw .bg-teal-500\/10 { background-color: color-mix(in srgb, var(--brand-electric) 10%, transparent); }
+.ks-tw.bg-teal-500\/20, .ks-tw .bg-teal-500\/20 { background-color: color-mix(in srgb, var(--brand-electric) 20%, transparent); }
+.ks-tw.bg-teal-500\/5, .ks-tw .bg-teal-500\/5 { background-color: color-mix(in srgb, var(--brand-electric) 5%, transparent); }
+.ks-tw.bg-teal-600, .ks-tw .bg-teal-600 { background-color: var(--brand-royal); }
+.ks-tw.bg-white, .ks-tw .bg-white { background-color: var(--bg-card); }
+.ks-tw.bg-yellow-400, .ks-tw .bg-yellow-400 { background-color: var(--brand-gold); color: var(--text-on-gold) !important; }
+.ks-tw.bg-yellow-500, .ks-tw .bg-yellow-500 { background-color: var(--brand-gold); color: var(--text-on-gold) !important; }
+.ks-tw.border-amber-300, .ks-tw .border-amber-300 { border-color: var(--border-gold); }
+.ks-tw.border-amber-500\/30, .ks-tw .border-amber-500\/30 { border-color: color-mix(in srgb, var(--border-gold) 30%, transparent); }
+.ks-tw.border-amber-600, .ks-tw .border-amber-600 { border-color: var(--border-gold); }
+.ks-tw.border-blue-100, .ks-tw .border-blue-100 { border-color: var(--border-blue); }
+.ks-tw.border-blue-200, .ks-tw .border-blue-200 { border-color: var(--border-blue); }
+.ks-tw.border-blue-300, .ks-tw .border-blue-300 { border-color: var(--border-blue); }
+.ks-tw.border-blue-500, .ks-tw .border-blue-500 { border-color: var(--brand-electric); }
+.ks-tw.border-blue-500\/20, .ks-tw .border-blue-500\/20 { border-color: color-mix(in srgb, var(--brand-electric) 20%, transparent); }
+.ks-tw.border-blue-500\/30, .ks-tw .border-blue-500\/30 { border-color: color-mix(in srgb, var(--brand-electric) 30%, transparent); }
+.ks-tw.border-blue-700, .ks-tw .border-blue-700 { border-color: var(--brand-electric); }
+.ks-tw.border-cyan-200, .ks-tw .border-cyan-200 { border-color: var(--border-blue); }
+.ks-tw.border-cyan-300, .ks-tw .border-cyan-300 { border-color: var(--border-blue); }
+.ks-tw.border-emerald-200, .ks-tw .border-emerald-200 { border-color: rgba(34, 197, 94, 0.45); }
+.ks-tw.border-emerald-300, .ks-tw .border-emerald-300 { border-color: rgba(34, 197, 94, 0.45); }
+.ks-tw.border-emerald-800, .ks-tw .border-emerald-800 { border-color: rgba(34, 197, 94, 0.45); }
+.ks-tw.border-fuchsia-700, .ks-tw .border-fuchsia-700 { border-color: var(--brand-electric); }
+.ks-tw.border-green-200, .ks-tw .border-green-200 { border-color: rgba(34, 197, 94, 0.45); }
+.ks-tw.border-green-600, .ks-tw .border-green-600 { border-color: rgba(34, 197, 94, 0.45); }
+.ks-tw.border-green-800, .ks-tw .border-green-800 { border-color: rgba(34, 197, 94, 0.45); }
+.ks-tw.border-indigo-100, .ks-tw .border-indigo-100 { border-color: var(--border-blue); }
+.ks-tw.border-indigo-100\/50, .ks-tw .border-indigo-100\/50 { border-color: color-mix(in srgb, var(--border-blue) 50%, transparent); }
+.ks-tw.border-indigo-200, .ks-tw .border-indigo-200 { border-color: var(--border-blue); }
+.ks-tw.border-orange-700, .ks-tw .border-orange-700 { border-color: var(--border-gold); }
+.ks-tw.border-red-100, .ks-tw .border-red-100 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-red-200, .ks-tw .border-red-200 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-red-300, .ks-tw .border-red-300 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-red-500, .ks-tw .border-red-500 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-red-500\/20, .ks-tw .border-red-500\/20 { border-color: color-mix(in srgb, rgba(239, 68, 68, 0.45) 20%, transparent); }
+.ks-tw.border-red-500\/25, .ks-tw .border-red-500\/25 { border-color: color-mix(in srgb, rgba(239, 68, 68, 0.45) 25%, transparent); }
+.ks-tw.border-red-500\/30, .ks-tw .border-red-500\/30 { border-color: color-mix(in srgb, rgba(239, 68, 68, 0.45) 30%, transparent); }
+.ks-tw.border-red-500\/40, .ks-tw .border-red-500\/40 { border-color: color-mix(in srgb, rgba(239, 68, 68, 0.45) 40%, transparent); }
+.ks-tw.border-red-600, .ks-tw .border-red-600 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-red-700, .ks-tw .border-red-700 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-red-800, .ks-tw .border-red-800 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-red-950, .ks-tw .border-red-950 { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.border-slate-100, .ks-tw .border-slate-100 { border-color: var(--border-default); }
+.ks-tw.border-slate-200, .ks-tw .border-slate-200 { border-color: var(--border-default); }
+.ks-tw.border-slate-300, .ks-tw .border-slate-300 { border-color: var(--border-default); }
+.ks-tw.border-slate-700, .ks-tw .border-slate-700 { border-color: var(--border-default); }
+.ks-tw.border-slate-800, .ks-tw .border-slate-800 { border-color: var(--border-default); }
+.ks-tw.border-slate-950, .ks-tw .border-slate-950 { border-color: var(--border-subtle); }
+.ks-tw.border-teal-300, .ks-tw .border-teal-300 { border-color: var(--border-blue); }
+.ks-tw.border-teal-400, .ks-tw .border-teal-400 { border-color: var(--brand-electric); }
+.ks-tw.border-teal-400\/30, .ks-tw .border-teal-400\/30 { border-color: color-mix(in srgb, var(--brand-electric) 30%, transparent); }
+.ks-tw.border-teal-500, .ks-tw .border-teal-500 { border-color: var(--brand-electric); }
+.ks-tw.border-teal-500\/20, .ks-tw .border-teal-500\/20 { border-color: color-mix(in srgb, var(--brand-electric) 20%, transparent); }
+.ks-tw.border-teal-500\/25, .ks-tw .border-teal-500\/25 { border-color: color-mix(in srgb, var(--brand-electric) 25%, transparent); }
+.ks-tw.border-teal-500\/30, .ks-tw .border-teal-500\/30 { border-color: color-mix(in srgb, var(--brand-electric) 30%, transparent); }
+.ks-tw.border-teal-500\/40, .ks-tw .border-teal-500\/40 { border-color: color-mix(in srgb, var(--brand-electric) 40%, transparent); }
+.ks-tw.border-teal-800, .ks-tw .border-teal-800 { border-color: var(--brand-electric); }
+.ks-tw.border-yellow-400, .ks-tw .border-yellow-400 { border-color: var(--border-gold); }
+.ks-tw.border-yellow-600, .ks-tw .border-yellow-600 { border-color: var(--border-gold); }
+.ks-tw.focus\:border-blue-400:focus, .ks-tw .focus\:border-blue-400:focus { border-color: var(--brand-electric); }
+.ks-tw.focus\:border-indigo-400:focus, .ks-tw .focus\:border-indigo-400:focus { border-color: var(--brand-electric); }
+.ks-tw.focus\:border-red-400:focus, .ks-tw .focus\:border-red-400:focus { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.focus\:border-teal-400:focus, .ks-tw .focus\:border-teal-400:focus { border-color: var(--brand-electric); }
+.ks-tw.focus\:ring-teal-400:focus, .ks-tw .focus\:ring-teal-400:focus { --tw-ring-color: var(--brand-electric); }
+.ks-tw.from-amber-400, .ks-tw .from-amber-400 { --tw-gradient-from: var(--brand-gold) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.from-emerald-50, .ks-tw .from-emerald-50 { --tw-gradient-from: var(--tint-success) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.from-indigo-600, .ks-tw .from-indigo-600 { --tw-gradient-from: var(--brand-royal) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.from-red-400, .ks-tw .from-red-400 { --tw-gradient-from: var(--status-error) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.from-slate-900, .ks-tw .from-slate-900 { --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.from-slate-950, .ks-tw .from-slate-950 { --tw-gradient-from: var(--bg-main) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.from-teal-400, .ks-tw .from-teal-400 { --tw-gradient-from: var(--brand-electric) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.from-teal-600, .ks-tw .from-teal-600 { --tw-gradient-from: var(--brand-royal) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw .group:hover .group-hover\:bg-teal-500\/50 { background-color: color-mix(in srgb, var(--brand-electric) 50%, transparent); }
+.ks-tw .group:hover .group-hover\:text-white { color: var(--text-primary); }
+.ks-tw.hover\:bg-amber-500\/30:hover, .ks-tw .hover\:bg-amber-500\/30:hover { background-color: color-mix(in srgb, var(--brand-gold) 30%, transparent); }
+.ks-tw.hover\:bg-blue-100:hover, .ks-tw .hover\:bg-blue-100:hover { background-color: var(--tint-blue); }
+.ks-tw.hover\:bg-blue-50:hover, .ks-tw .hover\:bg-blue-50:hover { background-color: var(--tint-blue); }
+.ks-tw.hover\:bg-blue-500:hover, .ks-tw .hover\:bg-blue-500:hover { background-color: var(--brand-electric); }
+.ks-tw.hover\:bg-blue-700:hover, .ks-tw .hover\:bg-blue-700:hover { background-color: var(--brand-royal); }
+.ks-tw.hover\:bg-cyan-100:hover, .ks-tw .hover\:bg-cyan-100:hover { background-color: var(--tint-blue); }
+.ks-tw.hover\:bg-cyan-600:hover, .ks-tw .hover\:bg-cyan-600:hover { background-color: var(--brand-royal); }
+.ks-tw.hover\:bg-cyan-700:hover, .ks-tw .hover\:bg-cyan-700:hover { background-color: var(--brand-royal); }
+.ks-tw.hover\:bg-emerald-500:hover, .ks-tw .hover\:bg-emerald-500:hover { background-color: var(--status-success); }
+.ks-tw.hover\:bg-emerald-700:hover, .ks-tw .hover\:bg-emerald-700:hover { background-color: #15803D; }
+.ks-tw.hover\:bg-green-500:hover, .ks-tw .hover\:bg-green-500:hover { background-color: var(--status-success); }
+.ks-tw.hover\:bg-green-600:hover, .ks-tw .hover\:bg-green-600:hover { background-color: var(--status-success); }
+.ks-tw.hover\:bg-green-700:hover, .ks-tw .hover\:bg-green-700:hover { background-color: #15803D; }
+.ks-tw.hover\:bg-indigo-500:hover, .ks-tw .hover\:bg-indigo-500:hover { background-color: var(--brand-electric); }
+.ks-tw.hover\:bg-indigo-700:hover, .ks-tw .hover\:bg-indigo-700:hover { background-color: var(--brand-royal); }
+.ks-tw.hover\:bg-red-500:hover, .ks-tw .hover\:bg-red-500:hover { background-color: var(--status-error); }
+.ks-tw.hover\:bg-red-500\/30:hover, .ks-tw .hover\:bg-red-500\/30:hover { background-color: color-mix(in srgb, var(--status-error) 30%, transparent); }
+.ks-tw.hover\:bg-red-600:hover, .ks-tw .hover\:bg-red-600:hover { background-color: var(--status-error); }
+.ks-tw.hover\:bg-red-700:hover, .ks-tw .hover\:bg-red-700:hover { background-color: #B91C1C; }
+.ks-tw.hover\:bg-slate-600:hover, .ks-tw .hover\:bg-slate-600:hover { background-color: var(--bg-elevated); }
+.ks-tw.hover\:bg-slate-700:hover, .ks-tw .hover\:bg-slate-700:hover { background-color: var(--bg-elevated); }
+.ks-tw.hover\:bg-slate-800:hover, .ks-tw .hover\:bg-slate-800:hover { background-color: var(--bg-card); }
+.ks-tw.hover\:bg-slate-900\/60:hover, .ks-tw .hover\:bg-slate-900\/60:hover { background-color: color-mix(in srgb, var(--bg-secondary) 60%, transparent); }
+.ks-tw.hover\:bg-slate-950\/50:hover, .ks-tw .hover\:bg-slate-950\/50:hover { background-color: color-mix(in srgb, var(--bg-main) 50%, transparent); }
+.ks-tw.hover\:bg-slate-950\/80:hover, .ks-tw .hover\:bg-slate-950\/80:hover { background-color: color-mix(in srgb, var(--bg-main) 80%, transparent); }
+.ks-tw.hover\:bg-teal-400:hover, .ks-tw .hover\:bg-teal-400:hover { background-color: var(--brand-electric); }
+.ks-tw.hover\:bg-teal-700:hover, .ks-tw .hover\:bg-teal-700:hover { background-color: var(--brand-royal); }
+.ks-tw.hover\:bg-yellow-400:hover, .ks-tw .hover\:bg-yellow-400:hover { background-color: var(--brand-gold); color: var(--text-on-gold) !important; }
+.ks-tw.hover\:border-red-300:hover, .ks-tw .hover\:border-red-300:hover { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.hover\:border-red-400:hover, .ks-tw .hover\:border-red-400:hover { border-color: rgba(239, 68, 68, 0.45); }
+.ks-tw.hover\:border-teal-500\/40:hover, .ks-tw .hover\:border-teal-500\/40:hover { border-color: color-mix(in srgb, var(--brand-electric) 40%, transparent); }
+.ks-tw.hover\:from-amber-500:hover, .ks-tw .hover\:from-amber-500:hover { --tw-gradient-from: var(--brand-gold) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.hover\:from-indigo-700:hover, .ks-tw .hover\:from-indigo-700:hover { --tw-gradient-from: var(--brand-royal) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.hover\:from-slate-950:hover, .ks-tw .hover\:from-slate-950:hover { --tw-gradient-from: var(--bg-main) var(--tw-gradient-from-position); --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.ks-tw.hover\:text-indigo-800:hover, .ks-tw .hover\:text-indigo-800:hover { color: var(--brand-sky); }
+.ks-tw.hover\:text-red-400:hover, .ks-tw .hover\:text-red-400:hover { color: #F87171; }
+.ks-tw.hover\:text-red-500:hover, .ks-tw .hover\:text-red-500:hover { color: #F87171; }
+.ks-tw.hover\:text-red-600:hover, .ks-tw .hover\:text-red-600:hover { color: #FCA5A5; }
+.ks-tw.hover\:text-slate-600:hover, .ks-tw .hover\:text-slate-600:hover { color: var(--text-secondary); }
+.ks-tw.hover\:text-teal-300:hover, .ks-tw .hover\:text-teal-300:hover { color: var(--brand-sky); }
+.ks-tw.hover\:text-white:hover, .ks-tw .hover\:text-white:hover { color: var(--text-primary); }
+.ks-tw.hover\:to-indigo-800:hover, .ks-tw .hover\:to-indigo-800:hover { --tw-gradient-to: var(--bg-elevated) var(--tw-gradient-to-position); }
+.ks-tw.hover\:to-slate-900:hover, .ks-tw .hover\:to-slate-900:hover { --tw-gradient-to: var(--bg-secondary) var(--tw-gradient-to-position); }
+.ks-tw.hover\:to-yellow-600:hover, .ks-tw .hover\:to-yellow-600:hover { --tw-gradient-to: var(--brand-gold) var(--tw-gradient-to-position); }
+.ks-tw.placeholder-slate-400::placeholder, .ks-tw .placeholder-slate-400::placeholder { color: var(--text-muted); }
+.ks-tw.placeholder-slate-500::placeholder, .ks-tw .placeholder-slate-500::placeholder { color: var(--text-secondary); }
+.ks-tw.ring-blue-500, .ks-tw .ring-blue-500 { --tw-ring-color: var(--brand-electric); }
+.ks-tw.text-amber-300, .ks-tw .text-amber-300 { color: var(--brand-gold-bright); }
+.ks-tw.text-amber-400, .ks-tw .text-amber-400 { color: var(--brand-gold); }
+.ks-tw.text-blue-300, .ks-tw .text-blue-300 { color: var(--brand-sky); }
+.ks-tw.text-blue-400, .ks-tw .text-blue-400 { color: var(--brand-sky); }
+.ks-tw.text-blue-500\/50, .ks-tw .text-blue-500\/50 { color: color-mix(in srgb, var(--brand-sky) 50%, transparent); }
+.ks-tw.text-blue-600, .ks-tw .text-blue-600 { color: var(--brand-sky); }
+.ks-tw.text-blue-700, .ks-tw .text-blue-700 { color: var(--brand-sky); }
+.ks-tw.text-cyan-300, .ks-tw .text-cyan-300 { color: var(--brand-sky); }
+.ks-tw.text-cyan-400, .ks-tw .text-cyan-400 { color: var(--brand-sky); }
+.ks-tw.text-cyan-700, .ks-tw .text-cyan-700 { color: var(--brand-sky); }
+.ks-tw.text-emerald-200, .ks-tw .text-emerald-200 { color: #86EFAC; }
+.ks-tw.text-emerald-600, .ks-tw .text-emerald-600 { color: #86EFAC; }
+.ks-tw.text-emerald-700, .ks-tw .text-emerald-700 { color: #86EFAC; }
+.ks-tw.text-emerald-800, .ks-tw .text-emerald-800 { color: #86EFAC; }
+.ks-tw.text-fuchsia-300, .ks-tw .text-fuchsia-300 { color: var(--brand-sky); }
+.ks-tw.text-green-700, .ks-tw .text-green-700 { color: #86EFAC; }
+.ks-tw.text-indigo-600, .ks-tw .text-indigo-600 { color: var(--brand-sky); }
+.ks-tw.text-indigo-700, .ks-tw .text-indigo-700 { color: var(--brand-sky); }
+.ks-tw.text-orange-400, .ks-tw .text-orange-400 { color: var(--status-warning); }
+.ks-tw.text-red-200, .ks-tw .text-red-200 { color: #FCA5A5; }
+.ks-tw.text-red-300, .ks-tw .text-red-300 { color: #FCA5A5; }
+.ks-tw.text-red-400, .ks-tw .text-red-400 { color: #F87171; }
+.ks-tw.text-red-500, .ks-tw .text-red-500 { color: #F87171; }
+.ks-tw.text-red-500\/50, .ks-tw .text-red-500\/50 { color: color-mix(in srgb, #F87171 50%, transparent); }
+.ks-tw.text-red-600, .ks-tw .text-red-600 { color: #FCA5A5; }
+.ks-tw.text-red-700, .ks-tw .text-red-700 { color: #FCA5A5; }
+.ks-tw.text-slate-100, .ks-tw .text-slate-100 { color: var(--text-primary); }
+.ks-tw.text-slate-200, .ks-tw .text-slate-200 { color: var(--text-primary); }
+.ks-tw.text-slate-300, .ks-tw .text-slate-300 { color: var(--text-secondary); }
+.ks-tw.text-slate-400, .ks-tw .text-slate-400 { color: var(--text-muted); }
+.ks-tw.text-slate-500, .ks-tw .text-slate-500 { color: var(--text-secondary); }
+.ks-tw.text-slate-600, .ks-tw .text-slate-600 { color: var(--text-secondary); }
+.ks-tw.text-slate-700, .ks-tw .text-slate-700 { color: var(--text-primary); }
+.ks-tw.text-slate-800, .ks-tw .text-slate-800 { color: var(--text-primary); }
+.ks-tw.text-slate-950, .ks-tw .text-slate-950 { color: var(--text-primary); }
+.ks-tw.text-teal-200, .ks-tw .text-teal-200 { color: var(--brand-sky); }
+.ks-tw.text-teal-300, .ks-tw .text-teal-300 { color: var(--brand-sky); }
+.ks-tw.text-teal-400, .ks-tw .text-teal-400 { color: var(--brand-sky); }
+.ks-tw.text-teal-400\/90, .ks-tw .text-teal-400\/90 { color: color-mix(in srgb, var(--brand-sky) 90%, transparent); }
+.ks-tw.text-white, .ks-tw .text-white { color: var(--text-primary); }
+.ks-tw.text-yellow-400, .ks-tw .text-yellow-400 { color: var(--brand-gold); }
+.ks-tw.to-emerald-400, .ks-tw .to-emerald-400 { --tw-gradient-to: var(--status-success) var(--tw-gradient-to-position); }
+.ks-tw.to-indigo-700, .ks-tw .to-indigo-700 { --tw-gradient-to: var(--brand-royal) var(--tw-gradient-to-position); }
+.ks-tw.to-orange-400, .ks-tw .to-orange-400 { --tw-gradient-to: var(--status-warning) var(--tw-gradient-to-position); }
+.ks-tw.to-red-200, .ks-tw .to-red-200 { --tw-gradient-to: var(--tint-error) var(--tw-gradient-to-position); }
+.ks-tw.to-slate-900, .ks-tw .to-slate-900 { --tw-gradient-to: var(--bg-secondary) var(--tw-gradient-to-position); }
+.ks-tw.to-slate-950, .ks-tw .to-slate-950 { --tw-gradient-to: var(--bg-main) var(--tw-gradient-to-position); }
+.ks-tw.to-teal-200, .ks-tw .to-teal-200 { --tw-gradient-to: var(--tint-blue) var(--tw-gradient-to-position); }
+.ks-tw.to-teal-400, .ks-tw .to-teal-400 { --tw-gradient-to: var(--brand-electric) var(--tw-gradient-to-position); }
+.ks-tw.to-teal-50, .ks-tw .to-teal-50 { --tw-gradient-to: var(--tint-blue) var(--tw-gradient-to-position); }
+.ks-tw.to-yellow-500, .ks-tw .to-yellow-500 { --tw-gradient-to: var(--brand-gold) var(--tw-gradient-to-position); }
+.ks-tw.to-zinc-900, .ks-tw .to-zinc-900 { --tw-gradient-to: var(--bg-secondary) var(--tw-gradient-to-position); }
+.ks-tw.to-zinc-950, .ks-tw .to-zinc-950 { --tw-gradient-to: var(--bg-main) var(--tw-gradient-to-position); }
+.ks-tw.via-slate-900, .ks-tw .via-slate-900 { --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--bg-secondary) var(--tw-gradient-via-position), var(--tw-gradient-to); }
+.ks-tw.via-slate-950, .ks-tw .via-slate-950 { --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--bg-main) var(--tw-gradient-via-position), var(--tw-gradient-to); }

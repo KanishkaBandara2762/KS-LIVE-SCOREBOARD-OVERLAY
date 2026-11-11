@@ -108,7 +108,7 @@ export default function PublicLiveMatches() {
   const totalMatchesCount = filteredLive.length + filteredUpcoming.length + filteredRecent.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-zinc-900 text-white font-sans selection:bg-teal-500 selection:text-black">
+    <div className="ks-app ks-tw min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-zinc-900 text-white font-sans selection:bg-teal-500 selection:text-black">
       {/* Premium Header */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-slate-950/80 border-b border-white/10 shadow-lg px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">

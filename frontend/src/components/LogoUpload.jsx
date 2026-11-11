@@ -94,12 +94,12 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
   }, []);
 
   const label = side === 'bowling' ? 'Bowling Team' : 'Batting Team';
-  const colorBadge = side === 'bowling' ? '#a78bfa' : '#4ade80';
+  const colorBadge = side === 'bowling' ? 'var(--brand-sky)' : '#4ade80';
 
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{
-        fontSize: 10, fontWeight: 700, color: colorBadge,
+        fontSize: 12, fontWeight: 700, color: colorBadge,
         letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6,
       }}>{label} Logo</div>
       <div
@@ -112,7 +112,7 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
           padding: '10px 12px',
           border: `1.5px dashed ${dragging ? colorBadge : 'rgba(255,255,255,0.15)'}`,
           borderRadius: 10,
-          background: dragging ? `${colorBadge}18` : 'rgba(255,255,255,0.03)',
+          background: dragging ? 'var(--tint-sky)' : 'rgba(255,255,255,0.03)',
           cursor: 'pointer',
           transition: 'all 0.15s',
           position: 'relative',
@@ -136,10 +136,10 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
           }}>🖼️</div>
         )}
         <div style={{ flex: 1 }}>
-          <div style={{ color: '#fff', fontSize: 11, fontWeight: 600 }}>
+          <div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>
             {uploading ? '⏳ Uploading...' : dragging ? 'Drop to upload' : 'Click or drag logo'}
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>PNG, JPG, WebP, SVG (max 3MB)</div>
+          <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>PNG, JPG, WebP, SVG (max 3MB)</div>
         </div>
         {preview && (
           <button
@@ -147,13 +147,13 @@ const LogoUpload = ({ matchId, side, currentUrl, onUploaded, isMongoDB }) => {
             style={{
               width: 18, height: 18, borderRadius: '50%',
               background: 'rgba(255,0,0,0.3)', border: 'none',
-              color: '#fff', fontSize: 10, cursor: 'pointer',
+              color: '#fff', fontSize: 12, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}>✕</button>
         )}
       </div>
-      {error && <div style={{ color: '#f87171', fontSize: 10, marginTop: 4 }}>{error}</div>}
+      {error && <div style={{ color: '#f87171', fontSize: 12, marginTop: 4 }}>{error}</div>}
       <input
         ref={fileRef}
         type="file"

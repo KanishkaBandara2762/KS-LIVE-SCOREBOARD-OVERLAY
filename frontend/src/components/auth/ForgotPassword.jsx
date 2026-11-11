@@ -32,7 +32,7 @@ export default function ForgotPassword() {
     }
 
     return (
-        <div className="auth-page">
+        <div className="auth-page ks-app">
             <div className="auth-card">
 
                 <div className="auth-logo">

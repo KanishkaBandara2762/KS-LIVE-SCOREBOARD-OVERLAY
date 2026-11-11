@@ -50,7 +50,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
 
   return (
     <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ color: '#38bdf8', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
+      <div style={{ color: 'var(--brand-sky)', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
         🎯 OVERTHROW SCORING (LAW 19.8)
       </div>
 
@@ -68,10 +68,10 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
             style={{
               padding: '7px 4px',
               borderRadius: 6,
-              border: deliveryType === dl.id ? '2px solid #38bdf8' : '1px solid #334155',
-              background: deliveryType === dl.id ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.04)',
+              border: deliveryType === dl.id ? '2px solid var(--brand-sky)' : '1px solid var(--bg-elevated)',
+              background: deliveryType === dl.id ? 'rgba(57,169,255,0.2)' : 'rgba(255,255,255,0.04)',
               color: '#fff',
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
             }}
@@ -89,8 +89,8 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
           style={{
             padding: '8px',
             borderRadius: 6,
-            border: fromBat ? '2px solid #38bdf8' : '1px solid #334155',
-            background: fromBat ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.04)',
+            border: fromBat ? '2px solid var(--brand-sky)' : '1px solid var(--bg-elevated)',
+            background: fromBat ? 'rgba(57,169,255,0.2)' : 'rgba(255,255,255,0.04)',
             color: '#fff',
             fontSize: 12,
             fontWeight: 700,
@@ -105,8 +105,8 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
           style={{
             padding: '8px',
             borderRadius: 6,
-            border: !fromBat ? '2px solid #38bdf8' : '1px solid #334155',
-            background: !fromBat ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.04)',
+            border: !fromBat ? '2px solid var(--brand-sky)' : '1px solid var(--bg-elevated)',
+            background: !fromBat ? 'rgba(57,169,255,0.2)' : 'rgba(255,255,255,0.04)',
             color: '#fff',
             fontSize: 12,
             fontWeight: 700,
@@ -119,7 +119,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
 
       {/* Runs completed before throw */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: 6 }}>
-        <span style={{ color: '#cbd5e1', fontSize: 12 }}>Runs completed before throw:</span>
+        <span style={{ color: 'var(--text-primary)', fontSize: 12 }}>Runs completed before throw:</span>
         <div style={{ display: 'flex', gap: 4 }}>
           {[0, 1, 2, 3, 4].map(r => (
             <button
@@ -128,8 +128,8 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
               onClick={() => setRunsBefore(r)}
               style={{
                 width: 32, height: 28, borderRadius: 4,
-                border: runsBefore === r ? '2px solid #38bdf8' : '1px solid #475569',
-                background: runsBefore === r ? 'rgba(56,189,248,0.25)' : '#1e293b',
+                border: runsBefore === r ? '2px solid var(--brand-sky)' : '1px solid var(--text-muted)',
+                background: runsBefore === r ? 'rgba(57,169,255,0.25)' : 'var(--bg-card)',
                 color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
               }}
             >
@@ -141,16 +141,16 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
 
       {/* Ball reached boundary toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: 6 }}>
-        <span style={{ color: '#cbd5e1', fontSize: 12 }}>Did ball reach boundary?</span>
+        <span style={{ color: 'var(--text-primary)', fontSize: 12 }}>Did ball reach boundary?</span>
         <button
           type="button"
           onClick={() => setIsBoundary(!isBoundary)}
           style={{
             padding: '4px 12px',
             borderRadius: 6,
-            border: isBoundary ? '2px solid #4ade80' : '1px solid #475569',
-            background: isBoundary ? 'rgba(74,222,128,0.2)' : '#1e293b',
-            color: isBoundary ? '#4ade80' : '#94a3b8',
+            border: isBoundary ? '2px solid #4ade80' : '1px solid var(--text-muted)',
+            background: isBoundary ? 'rgba(74,222,128,0.2)' : 'var(--bg-card)',
+            color: isBoundary ? '#4ade80' : 'var(--text-secondary)',
             fontSize: 12,
             fontWeight: 700,
             cursor: 'pointer',
@@ -163,7 +163,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
       {/* If no boundary: runs after throw */}
       {!isBoundary && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: 6 }}>
-          <span style={{ color: '#cbd5e1', fontSize: 12 }}>Runs completed after throw:</span>
+          <span style={{ color: 'var(--text-primary)', fontSize: 12 }}>Runs completed after throw:</span>
           <div style={{ display: 'flex', gap: 4 }}>
             {[0, 1, 2, 3, 4].map(r => (
               <button
@@ -172,8 +172,8 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
                 onClick={() => setRunsAfter(r)}
                 style={{
                   width: 32, height: 28, borderRadius: 4,
-                  border: runsAfter === r ? '2px solid #38bdf8' : '1px solid #475569',
-                  background: runsAfter === r ? 'rgba(56,189,248,0.25)' : '#1e293b',
+                  border: runsAfter === r ? '2px solid var(--brand-sky)' : '1px solid var(--text-muted)',
+                  background: runsAfter === r ? 'rgba(57,169,255,0.25)' : 'var(--bg-card)',
                   color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 }}
               >
@@ -185,12 +185,12 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
       )}
 
       {/* Summary / Preview Badge */}
-      <div style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: 8, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ color: '#93c5fd', fontSize: 12 }}>
+      <div style={{ background: 'rgba(57,169,255,0.1)', border: '1px solid rgba(57,169,255,0.3)', borderRadius: 8, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ color: 'var(--brand-sky)', fontSize: 12 }}>
           {isBoundary ? `${runsBefore} completed + 4 boundary` : `${runsBefore} + ${runsAfter} completed`}
           {extraPenalty > 0 ? ` + 1 ${deliveryType.toUpperCase()}` : ''}
         </span>
-        <span style={{ color: '#38bdf8', fontSize: 16, fontWeight: 900 }}>
+        <span style={{ color: 'var(--brand-sky)', fontSize: 16, fontWeight: 900 }}>
           TOTAL: {grandTotal} RUNS
         </span>
       </div>
@@ -210,7 +210,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
           padding: '10px 0',
           borderRadius: 8,
           border: 'none',
-          background: loading ? '#475569' : 'linear-gradient(135deg, #0284c7, #38bdf8)',
+          background: loading ? 'var(--text-muted)' : 'linear-gradient(135deg, #0284c7, var(--brand-sky))',
           color: '#fff',
           fontWeight: 700,
           fontSize: 13,

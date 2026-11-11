@@ -76,9 +76,9 @@
 
     color: rgba(255, 255, 255, 0.8);
 
-    background: rgba(0, 210, 190, 0.06);
+    background: rgba(57,169,255,0.06);
 
-    border-color: rgba(0, 210, 190, 0.15);
+    border-color: rgba(57,169,255,0.15);
 
 }
 
@@ -86,13 +86,13 @@
 
 .showcase-tab.active {
 
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.15), rgba(0, 150, 255, 0.1));
+    background: linear-gradient(135deg, rgba(57,169,255,0.15), rgba(22,119,255,0.1));
 
-    border-color: rgba(0, 210, 190, 0.4);
+    border-color: rgba(57,169,255,0.4);
 
-    color: #00d2be;
+    color: var(--brand-sky);
 
-    box-shadow: 0 0 20px rgba(0, 210, 190, 0.12);
+    box-shadow: 0 0 20px rgba(57,169,255,0.12);
 
 }
 
@@ -150,7 +150,7 @@
 
     overflow: hidden;
 
-    border: 1px solid rgba(0, 210, 190, 0.12);
+    border: 1px solid rgba(57,169,255,0.12);
 
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
 
@@ -166,7 +166,7 @@
 
     transform: scale(1.03);
 
-    box-shadow: 0 16px 60px rgba(0, 210, 190, 0.15), 0 8px 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 16px 60px rgba(57,169,255,0.15), 0 8px 40px rgba(0, 0, 0, 0.5);
 
 }
 
@@ -250,7 +250,7 @@
 
 .showcase-info h3 span {
 
-    background: linear-gradient(90deg, #00d2be, #0096ff);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric));
 
     -webkit-background-clip: text;
 
@@ -318,7 +318,7 @@
 
     border-radius: 7px;
 
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.15), rgba(0, 150, 255, 0.1));
+    background: linear-gradient(135deg, rgba(57,169,255,0.15), rgba(22,119,255,0.1));
 
     display: flex;
 
@@ -392,7 +392,7 @@
 
     border-radius: 12px;
 
-    box-shadow: 0 0 80px rgba(0, 210, 190, 0.15);
+    box-shadow: 0 0 80px rgba(57,169,255,0.15);
 
     animation: lightboxZoom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -566,7 +566,7 @@
 
     color: rgba(255, 255, 255, 0.8);
 
-    background: rgba(0, 210, 190, 0.06);
+    background: rgba(57,169,255,0.06);
 
 }
 
@@ -574,13 +574,13 @@
 
 .themes-filter-btn.active {
 
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
 
     border-color: transparent;
 
     color: #fff;
 
-    box-shadow: 0 2px 12px rgba(0, 210, 190, 0.3);
+    box-shadow: 0 2px 12px rgba(57,169,255,0.3);
 
 }
 
@@ -698,9 +698,9 @@
 
     transform: translateY(-8px) scale(1.02);
 
-    box-shadow: 0 20px 60px rgba(0, 210, 190, 0.12), 0 0 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 60px rgba(57,169,255,0.12), 0 0 30px rgba(0, 0, 0, 0.4);
 
-    border-color: rgba(0, 210, 190, 0.3);
+    border-color: rgba(57,169,255,0.3);
 
 }
 
@@ -718,7 +718,7 @@
 
     border-radius: 17px;
 
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.2), transparent, rgba(0, 150, 255, 0.2));
+    background: linear-gradient(135deg, rgba(57,169,255,0.2), transparent, rgba(22,119,255,0.2));
 
     z-index: -1;
 
@@ -804,7 +804,7 @@
 
 .theme-card-ribbon.new {
 
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
 
     color: #fff;
 
@@ -814,7 +814,7 @@
 
 .theme-card-ribbon.premium {
 
-    background: linear-gradient(135deg, #f59e0b, #eab308);
+    background: linear-gradient(135deg, var(--status-warning), var(--brand-gold));
 
     color: #000;
 
@@ -824,7 +824,7 @@
 
 .theme-card-ribbon.tournament {
 
-    background: linear-gradient(135deg, #a855f7, #6366f1);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-royal));
 
     color: #fff;
 
@@ -912,11 +912,11 @@
 
     border-radius: 9px;
 
-    background: rgba(0, 210, 190, 0.08);
+    background: rgba(57,169,255,0.08);
 
-    border: 1px solid rgba(0, 210, 190, 0.2);
+    border: 1px solid rgba(57,169,255,0.2);
 
-    color: #00d2be;
+    color: var(--brand-sky);
 
     font-size: 0.85rem;
 
@@ -934,9 +934,9 @@
 
 .theme-card-preview-btn:hover {
 
-    background: rgba(0, 210, 190, 0.15);
+    background: rgba(57,169,255,0.15);
 
-    box-shadow: 0 4px 18px rgba(0, 210, 190, 0.15);
+    box-shadow: 0 4px 18px rgba(57,169,255,0.15);
 
 }
 
@@ -1008,7 +1008,7 @@
 
     height: 3px;
 
-    background: linear-gradient(90deg, var(--sol-color-1, #00d2be), var(--sol-color-2, #0096ff));
+    background: linear-gradient(90deg, var(--sol-color-1, var(--brand-sky)), var(--sol-color-2, var(--brand-electric)));
 
     border-radius: 18px 18px 0 0;
 
@@ -1022,7 +1022,7 @@
 
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 
-    border-color: rgba(0, 210, 190, 0.2);
+    border-color: rgba(57,169,255,0.2);
 
 }
 
@@ -1052,7 +1052,7 @@
 
 .solution-icon.school {
 
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.15), rgba(0, 150, 255, 0.1));
+    background: linear-gradient(135deg, rgba(57,169,255,0.15), rgba(22,119,255,0.1));
 
 }
 
@@ -1060,7 +1060,7 @@
 
 .solution-icon.club {
 
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(99, 102, 241, 0.1));
+    background: linear-gradient(135deg, rgba(57,169,255,0.15), rgba(18,75,145,0.1));
 
 }
 
@@ -1068,7 +1068,7 @@
 
 .solution-icon.pro {
 
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 179, 8, 0.1));
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(255,201,40,0.1));
 
 }
 
@@ -1140,7 +1140,7 @@
 
 .solution-check {
 
-    color: #00d2be;
+    color: var(--brand-sky);
 
     font-size: 0.8rem;
 
@@ -1172,13 +1172,13 @@
 
     padding: 0.9rem 2.4rem;
 
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.12), rgba(0, 150, 255, 0.08));
+    background: linear-gradient(135deg, rgba(57,169,255,0.12), rgba(22,119,255,0.08));
 
-    border: 1px solid rgba(0, 210, 190, 0.3);
+    border: 1px solid rgba(57,169,255,0.3);
 
     border-radius: 12px;
 
-    color: #00d2be;
+    color: var(--brand-sky);
 
     font-family: 'Inter', sans-serif;
 
@@ -1196,9 +1196,9 @@
 
 .solutions-cta-btn:hover {
 
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.2), rgba(0, 150, 255, 0.15));
+    background: linear-gradient(135deg, rgba(57,169,255,0.2), rgba(22,119,255,0.15));
 
-    box-shadow: 0 8px 30px rgba(0, 210, 190, 0.15);
+    box-shadow: 0 8px 30px rgba(57,169,255,0.15);
 
     transform: translateY(-2px);
 

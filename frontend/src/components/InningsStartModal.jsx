@@ -49,7 +49,7 @@ const InningsStartModal = ({
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
           <div>
-            <div style={{ color: '#facc15', fontSize: 10, fontWeight: 800, letterSpacing: '0.18em' }}>{kicker}</div>
+            <div style={{ color: 'var(--brand-gold)', fontSize: 12, fontWeight: 800, letterSpacing: '0.18em' }}>{kicker}</div>
             <h3 style={{ color: '#fff', fontSize: 17, fontWeight: 800, margin: '4px 0 0', textTransform: 'uppercase' }}>
               {title}
             </h3>
@@ -61,18 +61,18 @@ const InningsStartModal = ({
           <div style={summaryStyle}>
             <span>{firstInnings.team}</span>
             <strong>{firstInnings.score}/{firstInnings.wickets} ({firstInnings.overs})</strong>
-            <span style={{ color: '#facc15' }}>TARGET {firstInnings.score + 1}</span>
+            <span style={{ color: 'var(--brand-gold)' }}>TARGET {firstInnings.score + 1}</span>
           </div>
         )}
 
         <div style={teamRowStyle}>
           {battingLogo ? <img src={battingLogo} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : null}
           <div>
-            <div style={{ color: '#22d3ee', fontSize: 10, fontWeight: 800, letterSpacing: '0.12em' }}>BATTING</div>
+            <div style={{ color: 'var(--brand-sky)', fontSize: 12, fontWeight: 800, letterSpacing: '0.12em' }}>BATTING</div>
             <div style={{ color: '#fff', fontWeight: 800 }}>{battingTeam}</div>
           </div>
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <div style={{ color: '#f97316', fontSize: 10, fontWeight: 800, letterSpacing: '0.12em' }}>BOWLING</div>
+            <div style={{ color: 'var(--status-warning)', fontSize: 12, fontWeight: 800, letterSpacing: '0.12em' }}>BOWLING</div>
             <div style={{ color: '#fff', fontWeight: 800 }}>{bowlingTeam}</div>
           </div>
         </div>
@@ -106,19 +106,19 @@ const overlayStyle = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(12px)', padding: 16,
 };
 const cardStyle = {
-  background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', border: '1px solid rgba(255,255,255,0.12)',
+  background: 'var(--bg-secondary)', border: '1px solid rgba(255,255,255,0.12)',
   borderRadius: 16, padding: '24px 22px', width: '100%', maxWidth: 420, boxShadow: '0 32px 64px rgba(0,0,0,0.6)',
   maxHeight: '92vh', overflowY: 'auto',
 };
-const closeStyle = { background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', padding: 4 };
-const labelStyle = { color: 'rgba(255,255,255,0.55)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 6, textTransform: 'uppercase' };
+const closeStyle = { background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer', padding: 4 };
+const labelStyle = { color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 6, textTransform: 'uppercase' };
 const fieldStyle = {
   width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)',
   background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 14, fontWeight: 700, outline: 'none',
 };
 const summaryStyle = {
   display: 'flex', justifyContent: 'space-between', gap: 8, padding: '10px 12px', marginBottom: 12, borderRadius: 10,
-  background: 'rgba(250,204,21,0.08)', border: '1px solid rgba(250,204,21,0.25)', color: '#e2e8f0', fontSize: 12, fontWeight: 700,
+  background: 'rgba(255,201,40,0.08)', border: '1px solid rgba(255,201,40,0.25)', color: 'var(--text-primary)', fontSize: 12, fontWeight: 700,
 };
 const teamRowStyle = {
   display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', marginBottom: 16, borderRadius: 10,
@@ -127,7 +127,7 @@ const teamRowStyle = {
 const errorStyle = { color: '#fca5a5', fontSize: 12, fontWeight: 700, margin: '4px 0 12px' };
 const confirmStyle = {
   width: '100%', padding: '12px', borderRadius: 10, border: 'none', fontWeight: 900, letterSpacing: '0.08em',
-  background: 'linear-gradient(90deg, #16a34a, #22c55e)', color: '#fff', fontSize: 14,
+  background: 'var(--brand-gold)', color: 'var(--text-on-gold)', fontSize: 14,
 };
 
 export default InningsStartModal;

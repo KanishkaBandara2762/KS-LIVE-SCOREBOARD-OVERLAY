@@ -1,155 +1,275 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   DASHBOARD — modern visual layer
-   Loaded after Dashboard.css. Only restyles existing classes (no layout or
-   behaviour changes).
+   DASHBOARD — KS LIVE blue + gold layer
+   Loaded after Dashboard.css. Restyles existing classes only (no behaviour
+   changes). Colours, radius and type come from src/styles/theme.css.
    ══════════════════════════════════════════════════════════════════════════ */
 
 .dashboard {
-  background:
-    radial-gradient(1200px 500px at 85% -10%, rgba(56, 189, 248, 0.12), transparent 60%),
-    radial-gradient(900px 500px at -10% 30%, rgba(99, 102, 241, 0.10), transparent 60%),
-    #040914;
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  color: #e2e8f0;
+  background: var(--bg-main);
+  font-family: var(--font-ui);
+  color: var(--text-primary);
 }
 
-/* Header: glass bar with soft border */
+.dashboard h1, .dashboard h2, .dashboard h3, .dashboard h4,
+.dashboard .dash-logo-text,
+.dashboard .tournament-title,
+.dashboard .modal-title {
+  font-family: var(--font-ui);
+  font-style: normal;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
 .dashboard .dash-header {
   position: sticky;
   top: 0;
   z-index: 40;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  background: rgba(8, 14, 30, 0.72);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: inset 0 -2px 0 var(--brand-royal);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.dashboard .dash-logo-text {
-  background: linear-gradient(90deg, #f8fafc, #7dd3fc);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-weight: 900;
-}
+.dashboard .dash-logo-text { color: var(--text-primary); font-weight: 900; letter-spacing: 0.02em; }
+.dashboard .dash-logo-text span { color: var(--brand-gold); }
 
 .dashboard .dash-plan-badge {
-  border-radius: 999px;
-  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.2px;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  color: #7dd3fc;
+  background: var(--tint-sky);
+  border: 1px solid var(--border-blue);
+  color: var(--brand-sky);
 }
 
-/* Buttons */
+/* ── Buttons ────────────────────────────────────────────────────────────── */
 .dashboard .btn-create-match,
-.dashboard .btn-logout {
-  border-radius: 12px;
-  font-weight: 800;
-  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+.dashboard .btn-primary,
+.dashboard .btn-secondary,
+.dashboard .btn-logout,
+.dashboard .btn-open,
+.dashboard .btn-overlay,
+.dashboard .btn-delete,
+.dashboard .btn-copy,
+.dashboard .btn-mini {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease, border-color 0.15s ease, filter 0.15s ease, transform 0.08s ease;
 }
+.dashboard .btn-create-match,
+.dashboard .btn-primary,
+.dashboard .btn-secondary,
+.dashboard .btn-logout { min-height: var(--control-h); }
 
+.dashboard .btn-create-match:active,
+.dashboard .btn-primary:active,
+.dashboard .btn-secondary:active,
+.dashboard .btn-open:active { transform: translateY(1px); }
+
+.dashboard .btn-create-match:focus-visible,
+.dashboard .btn-primary:focus-visible,
+.dashboard .btn-secondary:focus-visible,
+.dashboard .btn-logout:focus-visible,
+.dashboard .btn-tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Primary = gold */
+.dashboard .btn-create-match,
+.dashboard .btn-primary {
+  background: var(--brand-gold);
+  color: var(--text-on-gold);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
 .dashboard .btn-create-match:hover,
-.dashboard .btn-logout:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-}
+.dashboard .btn-primary:hover:not(:disabled) { background: var(--brand-gold-bright); filter: none; transform: none; }
+.dashboard .btn-primary:disabled { background: #2A3B52; color: var(--text-muted); opacity: 1; }
 
-.dashboard .btn-create-match {
-  box-shadow: 0 8px 22px rgba(250, 204, 21, 0.18);
+/* Secondary = royal blue */
+.dashboard .btn-secondary,
+.dashboard .btn-open {
+  background: var(--brand-royal);
+  color: var(--text-primary);
+  border: 1px solid transparent;
 }
+.dashboard .btn-secondary:hover,
+.dashboard .btn-open:hover { background: #175AAD; color: var(--text-primary); }
 
-/* Stats: cards with gradient numbers */
+/* Ghost actions */
+.dashboard .btn-logout,
+.dashboard .btn-copy,
+.dashboard .btn-mini,
+.dashboard .btn-overlay {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+.dashboard .btn-logout:hover,
+.dashboard .btn-copy:hover,
+.dashboard .btn-mini:hover,
+.dashboard .btn-overlay:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+/* Destructive */
+.dashboard .btn-delete {
+  background: var(--tint-error);
+  color: #FCA5A5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.dashboard .btn-delete:hover { background: var(--status-error); color: #fff; }
+
+/* ── Stat cards ─────────────────────────────────────────────────────────── */
 .dashboard .dash-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
-  padding: 0 32px;
+  padding: 24px 32px 8px;
 }
 
 .dashboard .stat-item {
-  border-radius: 16px;
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.85), rgba(8, 13, 28, 0.85));
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  margin: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-top: 3px solid var(--brand-royal);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 20px;
+  gap: 6px;
+  transition: border-color 0.15s ease;
 }
-
-.dashboard .stat-item:hover {
-  transform: translateY(-2px);
-  border-color: rgba(56, 189, 248, 0.35);
-}
+.dashboard .stat-item:hover { background: var(--bg-card); border-color: var(--border-blue); border-top-color: var(--brand-sky); transform: none; }
 
 .dashboard .stat-num {
-  background: linear-gradient(135deg, #f8fafc, #7dd3fc);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-weight: 900;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--brand-gold);
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .dashboard .stat-label {
-  letter-spacing: 0.6px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-size: 0.7rem;
-  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
-.dashboard .stat-item-info {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(37, 99, 235, 0.18));
-  border-color: rgba(56, 189, 248, 0.4);
-}
+.dashboard .stat-item-info { background: var(--bg-elevated); border-top-color: var(--brand-sky); }
+.dashboard .stat-item-info .stat-num { color: var(--brand-sky); }
 
-/* Tabs: pill segmented control */
+/* ── Tabs: segmented control ────────────────────────────────────────────── */
 .dashboard .tab-buttons {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 6px;
   padding: 6px;
-  margin: 0 32px 22px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  margin: 16px 32px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
 }
 
 .dashboard .btn-tab {
-  border-radius: 10px;
-  padding: 9px 16px;
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-family: var(--font-ui);
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-secondary);
   background: transparent;
-  border: none;
-  transition: background 0.2s ease, color 0.2s ease;
+  border: 1px solid transparent;
+  box-shadow: none;
 }
-
-.dashboard .btn-tab:hover { color: #e2e8f0; background: rgba(255, 255, 255, 0.05); }
-
+.dashboard .btn-tab:hover { color: var(--text-primary); background: var(--bg-card); }
 .dashboard .btn-tab.active {
-  color: #04111f;
-  background: linear-gradient(135deg, #7dd3fc, #38bdf8);
-  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+  color: var(--brand-gold);
+  background: var(--bg-elevated);
+  border-color: var(--border-gold);
+  box-shadow: none;
 }
 
-/* Main content gutters */
+/* ── Content ────────────────────────────────────────────────────────────── */
 .dashboard .dash-main { padding: 0 32px 32px; }
 
-/* Search */
-.dashboard .dash-search {
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #e2e8f0;
+.dashboard .dash-search,
+.dashboard .form-input,
+.dashboard .form-select {
+  min-height: var(--control-h);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+}
+.dashboard .dash-search::placeholder,
+.dashboard .form-input::placeholder { color: var(--text-muted); }
+.dashboard .dash-search:focus,
+.dashboard .form-input:focus,
+.dashboard .form-select:focus {
+  outline: none;
+  border-color: var(--brand-sky);
+  box-shadow: var(--focus-ring);
 }
 
-.dashboard .dash-search:focus {
-  outline: none;
-  border-color: rgba(56, 189, 248, 0.6);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+/* Cards */
+.dashboard .match-card,
+.dashboard .tournament-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
+.dashboard .match-card:hover,
+.dashboard .tournament-card:hover { border-color: var(--border-blue); transform: none; box-shadow: var(--shadow-md); }
+.dashboard .match-card::before,
+.dashboard .tournament-card::before { background: var(--brand-royal); }
+
+.dashboard .tournament-title { color: var(--text-primary); font-weight: 800; }
+.dashboard .match-card-score,
+.dashboard .live-score { color: var(--brand-gold); font-variant-numeric: tabular-nums; }
+.dashboard .team-name.batting { color: var(--text-primary); }
+.dashboard .team-name.bowling { color: var(--text-secondary); }
+
+.dashboard .status-badge {
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.dashboard .obs-url,
+.dashboard .match-card-url {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+/* ── Modals ─────────────────────────────────────────────────────────────── */
+.dashboard .modal-backdrop {
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.dashboard .modal-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+.dashboard .modal-title { color: var(--text-primary); font-weight: 800; }
 
 @media (max-width: 768px) {
+  .dashboard .dash-header-left,
+  .dashboard .dash-header-right { flex-wrap: wrap; gap: 8px; min-width: 0; }
+  .dashboard .dash-header-right > * { flex: 1 1 auto; }
   .dashboard .dash-main,
-  .dashboard .dash-stats,
-  .dashboard .tab-buttons { padding-left: 16px; padding-right: 16px; margin-left: 0; margin-right: 0; }
+  .dashboard .dash-stats { padding-left: 16px; padding-right: 16px; }
+  .dashboard .tab-buttons { margin-left: 16px; margin-right: 16px; display: flex; }
+  .dashboard .btn-tab { flex: 1 1 auto; }
+  .dashboard .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .dashboard .dash-main { padding-bottom: 24px; }
 }

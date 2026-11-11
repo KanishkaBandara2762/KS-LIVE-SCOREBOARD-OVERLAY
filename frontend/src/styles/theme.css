@@ -1,0 +1,259 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   KS LIVE — Blue + Gold design system
+   Single source of truth for colours, type, spacing, radius and shadows.
+
+   Overlay safety: this file only declares CSS custom properties on :root
+   and rules scoped to `.ks-app` / `.ks-*` classes. It never styles `body`,
+   `html` or bare elements, so the OBS overlay routes (/overlay/...) keep
+   their transparent background and their own fonts.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Inter is loaded in index.html (font file only; no styles applied globally). */
+
+:root {
+  /* Brand */
+  --brand-navy-deep: #071426;
+  --brand-navy-dark: #0B1F38;
+  --brand-royal: #124B91;
+  --brand-electric: #1677FF;
+  --brand-sky: #39A9FF;
+  --brand-gold: #FFC928;
+  --brand-gold-bright: #FFD84D;
+
+  /* Backgrounds */
+  --bg-main: #071426;
+  --bg-secondary: #0B1F38;
+  --bg-card: #102640;
+  --bg-elevated: #153452;
+  --bg-input: #0A1B31;
+  --bg-overlay: rgba(4, 12, 24, 0.78);
+
+  /* Text */
+  --text-primary: #F5F8FF;
+  --text-secondary: #A8B8CC;
+  --text-muted: #71839B;
+  --text-gold: #FFC928;
+  --text-on-gold: #071426;
+
+  /* Status */
+  --status-success: #22C55E;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #39A9FF;
+
+  /* Tints (low-alpha fills for pills, selected rows, focus rings) */
+  --tint-gold: rgba(255, 201, 40, 0.12);
+  --tint-gold-strong: rgba(255, 201, 40, 0.22);
+  --tint-blue: rgba(22, 119, 255, 0.14);
+  --tint-sky: rgba(57, 169, 255, 0.12);
+  --tint-success: rgba(34, 197, 94, 0.14);
+  --tint-warning: rgba(245, 158, 11, 0.14);
+  --tint-error: rgba(239, 68, 68, 0.14);
+
+  /* Borders */
+  --border-subtle: rgba(168, 184, 204, 0.14);
+  --border-default: rgba(168, 184, 204, 0.22);
+  --border-strong: rgba(168, 184, 204, 0.36);
+  --border-gold: rgba(255, 201, 40, 0.55);
+  --border-blue: rgba(57, 169, 255, 0.4);
+
+  /* Typography */
+  --font-ui: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --fs-3xl: 36px;
+  --fs-score: 48px;
+
+  /* Spacing (4px scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* Shadows (kept soft and controlled) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --focus-ring: 0 0 0 3px rgba(57, 169, 255, 0.45);
+  --focus-ring-gold: 0 0 0 3px rgba(255, 201, 40, 0.35);
+
+  /* Controls */
+  --control-h-sm: 36px;
+  --control-h: 44px;
+  --control-h-lg: 52px;
+}
+
+/* ── App shell ─────────────────────────────────────────────────────────── */
+/* Screens set their own background; .ks-app only sets type and text colour.
+   (Component CSS is bundled before this file, so keep this rule minimal.) */
+.ks-app {
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.ks-app h1, .ks-app h2, .ks-app h3, .ks-app h4 { font-weight: 800; letter-spacing: -0.01em; }
+.ks-app .ks-num, .ks-num { font-variant-numeric: tabular-nums; }
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.ks-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-h);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, filter 0.15s ease, transform 0.08s ease;
+}
+.ks-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ks-btn:active:not(:disabled) { transform: translateY(1px); }
+.ks-btn:disabled { background: #2A3B52; color: var(--text-muted); border-color: transparent; cursor: not-allowed; }
+
+.ks-btn-primary { background: var(--brand-gold); color: var(--text-on-gold); }
+.ks-btn-primary:hover:not(:disabled) { background: var(--brand-gold-bright); }
+.ks-btn-secondary { background: var(--brand-royal); color: var(--text-primary); }
+.ks-btn-secondary:hover:not(:disabled) { background: #175AAD; }
+.ks-btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border-default); }
+.ks-btn-ghost:hover:not(:disabled) { background: var(--bg-elevated); color: var(--text-primary); }
+.ks-btn-danger { background: var(--status-error); color: #fff; }
+.ks-btn-danger:hover:not(:disabled) { filter: brightness(1.08); }
+.ks-btn-sm { min-height: var(--control-h-sm); padding: 0 var(--space-3); font-size: var(--fs-sm); border-radius: var(--radius-sm); }
+.ks-btn-lg { min-height: var(--control-h-lg); padding: 0 var(--space-6); font-size: var(--fs-lg); }
+.ks-btn-block { width: 100%; }
+
+/* Active / selected choice (e.g. picking a player or a toss option) */
+.ks-choice {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+}
+.ks-choice:hover { border-color: var(--border-blue); }
+.ks-choice.is-active, .ks-choice[aria-pressed='true'] {
+  background: var(--bg-elevated);
+  border-color: var(--brand-gold);
+  box-shadow: inset 0 0 0 1px var(--brand-gold);
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+.ks-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+.ks-card-elevated { background: var(--bg-elevated); }
+
+/* ── Inputs ────────────────────────────────────────────────────────────── */
+.ks-input, .ks-select {
+  width: 100%;
+  min-height: var(--control-h);
+  padding: 0 var(--space-3);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+}
+.ks-input::placeholder { color: var(--text-muted); }
+.ks-input:focus, .ks-select:focus { outline: none; border-color: var(--brand-sky); box-shadow: var(--focus-ring); }
+
+/* ── Status pills ──────────────────────────────────────────────────────── */
+.ks-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.ks-pill-live { background: var(--tint-error); color: #FCA5A5; border-color: rgba(239, 68, 68, 0.4); }
+.ks-pill-success { background: var(--tint-success); color: #86EFAC; border-color: rgba(34, 197, 94, 0.4); }
+.ks-pill-warning { background: var(--tint-warning); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4); }
+.ks-pill-info { background: var(--tint-sky); color: var(--brand-sky); border-color: var(--border-blue); }
+.ks-pill-gold { background: var(--tint-gold); color: var(--brand-gold); border-color: var(--border-gold); }
+
+/* ── Modals ────────────────────────────────────────────────────────────── */
+.ks-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.ks-modal {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-ui);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+.ks-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ks-table th {
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+}
+.ks-table td { padding: var(--space-3); border-bottom: 1px solid var(--border-subtle); color: var(--text-primary); }
+.ks-table tr.is-selected td { background: var(--tint-blue); }
+
+/* ── Headings use Inter inside the app ─────────────────────────────────────
+   LandingPage.css sets a global serif `h1, h2, h3 { … !important }`. The OBS
+   overlays were built with that rule in place, so it stays global; app
+   screens opt back into Inter here. Overlay theme previews embedded in app
+   screens (.ltp-root) keep the original serif headings. */
+.ks-app :is(h1, h2, h3, h4, h5, h6) { font-family: var(--font-ui) !important; font-style: normal; }
+.ks-app .ltp-root :is(h1, h2, h3) { font-family: 'Times New Roman', Times, serif !important; }
+
+/* ── Form fields on Tailwind-styled screens (.ks-tw) ─────────────────────
+   Fields without their own background would fall back to the browser's
+   white, which is unreadable on the dark theme. */
+.ks-tw :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select, textarea) {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.ks-tw :where(input, select, textarea):focus { outline: none; border-color: var(--brand-sky); box-shadow: var(--focus-ring); }
+.ks-tw :where(input, textarea)::placeholder { color: var(--text-muted); }

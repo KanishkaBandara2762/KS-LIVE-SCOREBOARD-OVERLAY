@@ -1046,7 +1046,7 @@ const MiniAdmin = () => {
     }, [match?.legalBallCount, match?.totalBalls, match?.player1?.name, match?.player2?.name, match?.bowler?.name, match?.isSecondInnings, showInningsStartModal, matchId]);
 
     // ── Loading ───────────────────────────────────────────────────
-    if (!match) return <div className="ma-root"><div className="ma-loading">Connecting…</div></div>;
+    if (!match) return <div className="ma-root ks-app"><div className="ma-loading">Connecting…</div></div>;
 
 
     const striker = match.player1?.onStrike ? match.player1 : match.player2;
@@ -1122,7 +1122,7 @@ const MiniAdmin = () => {
     const currentOverBalls = isMongoDB(matchId) ? (legalBallCount > 0 && legalBallCount % bpo === 0 ? bpo : legalBallCount % bpo) : legalBallCount;
 
     return (
-        <div className="ma-root">
+        <div className="ma-root ks-app">
             {showTossModal && (
                 <TossModal 
                     matchId={matchId} 
@@ -1192,14 +1192,14 @@ const MiniAdmin = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button 
                         onClick={() => setShowFormatModal(true)}
-                        style={{ background: '#eab308', color: '#000', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                        style={{ background: 'var(--brand-gold)', color: '#000', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                         title="Configure Match Format & Rules"
                     >
                         ⚙ RULES
                     </button>
                     <button 
                         onClick={() => window.open(`/control-room/${matchId}`, '_blank')}
-                        style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                        style={{ background: 'var(--brand-electric)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
                         DESKTOP CONTROL ROOM ↗
                     </button>
@@ -1260,7 +1260,7 @@ const MiniAdmin = () => {
                                 <div className="ma-player-info">
                                     <span className="ma-player-icon">🏏</span>
                                     <span className="ma-player-name">{striker?.name || 'SELECT STRIKER'}</span>
-                                    <span style={{ fontSize: '10px', color: '#facc15', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--brand-gold)', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
                                 </div>
                                 <span className="ma-player-stat">{striker?.runs ?? 0}({striker?.balls ?? 0})</span>
                             </div>
@@ -1278,7 +1278,7 @@ const MiniAdmin = () => {
                                 <div className="ma-player-info">
                                     <span className="ma-player-icon" style={{ opacity: 0.5 }}>🏏</span>
                                     <span className="ma-player-name" style={{ color: 'rgba(255,255,255,0.7)' }}>{nonStriker?.name || 'SELECT NON-STRIKER'}</span>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
                                 </div>
                                 <span className="ma-player-stat">{nonStriker?.runs ?? 0}({nonStriker?.balls ?? 0})</span>
                             </div>
@@ -1291,10 +1291,10 @@ const MiniAdmin = () => {
                             >
                                 <div className="ma-player-info">
                                     <span className="ma-player-icon">🎳</span>
-                                    <span className="ma-player-name" style={{ color: '#a78bfa' }}>{match.bowler?.name || 'SELECT BOWLER'}</span>
-                                    <span style={{ fontSize: '10px', color: '#a78bfa', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
+                                    <span className="ma-player-name" style={{ color: 'var(--brand-sky)' }}>{match.bowler?.name || 'SELECT BOWLER'}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--brand-sky)', opacity: 0.8, marginLeft: '6px' }}>✏️</span>
                                 </div>
-                                <span className="ma-player-stat" style={{ color: '#c4b5fd' }}>{match.bowler?.figures || ''}</span>
+                                <span className="ma-player-stat" style={{ color: 'var(--brand-sky)' }}>{match.bowler?.figures || ''}</span>
                             </div>
                         </div>
 
@@ -1314,32 +1314,32 @@ const MiniAdmin = () => {
                         <div className="ma-section-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                             <span>SCORING</span>
                             <span style={{
-                                fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', padding: '3px 8px', borderRadius: 999,
-                                color: scoringState.blocked ? '#fde68a' : '#86efac',
-                                background: scoringState.blocked ? 'rgba(250,204,21,0.12)' : 'rgba(34,197,94,0.12)',
-                                border: `1px solid ${scoringState.blocked ? 'rgba(250,204,21,0.35)' : 'rgba(34,197,94,0.35)'}`,
+                                fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', padding: '3px 8px', borderRadius: 999,
+                                color: scoringState.blocked ? 'var(--brand-gold-bright)' : '#86efac',
+                                background: scoringState.blocked ? 'rgba(255,201,40,0.12)' : 'rgba(34,197,94,0.12)',
+                                border: `1px solid ${scoringState.blocked ? 'rgba(255,201,40,0.35)' : 'rgba(34,197,94,0.35)'}`,
                             }}>{scoringState.label}</span>
                         </div>
                         <div className="ma-pad" style={{ position: 'relative' }}>
                             {scoringState.blocked && (
                                 <div style={{
                                     position: 'absolute', inset: 0, zIndex: 5, borderRadius: 12,
-                                    background: 'rgba(2,6,23,0.82)', backdropFilter: 'blur(3px)',
+                                    background: 'rgba(7,20,38,0.82)', backdropFilter: 'blur(3px)',
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                     gap: 10, padding: 16, textAlign: 'center',
                                 }}>
-                                    <div style={{ color: '#fde68a', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em' }}>{scoringState.reason}</div>
+                                    <div style={{ color: 'var(--brand-gold-bright)', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em' }}>{scoringState.reason}</div>
                                     {scoringState.action && (
                                         <button type="button" onClick={scoringState.onAction} style={{
                                             padding: '10px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                                            background: 'linear-gradient(90deg, #16a34a, #22c55e)', color: '#fff',
+                                            background: 'var(--brand-gold)', color: 'var(--text-on-gold)',
                                             fontWeight: 900, fontSize: 13, letterSpacing: '0.06em',
                                         }}>{scoringState.action}</button>
                                     )}
                                     {!freshInnings && (
                                         <button type="button" onClick={handleUndo} style={{
                                             padding: '6px 12px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
-                                            border: '1px solid rgba(255,255,255,0.2)', color: '#cbd5e1', fontWeight: 700, fontSize: 11,
+                                            border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-primary)', fontWeight: 700, fontSize: 12,
                                         }}>↶ UNDO LAST BALL</button>
                                     )}
                                 </div>
@@ -1429,11 +1429,11 @@ const MiniAdmin = () => {
                                             <button
                                                 className={`ma-ro-who-btn${runOutPlayer === 'striker' ? ' selected' : ''}`}
                                                 onClick={() => setRunOutPlayer('striker')}
-                                            >Striker<br/><span style={{fontSize:'9px',opacity:0.7}}>{striker?.name || '--'}</span></button>
+                                            >Striker<br/><span style={{fontSize: '12px',opacity:0.7}}>{striker?.name || '--'}</span></button>
                                             <button
                                                 className={`ma-ro-who-btn${runOutPlayer === 'non-striker' ? ' selected' : ''}`}
                                                 onClick={() => setRunOutPlayer('non-striker')}
-                                            >Non-Str<br/><span style={{fontSize:'9px',opacity:0.7}}>{nonStriker?.name || '--'}</span></button>
+                                            >Non-Str<br/><span style={{fontSize: '12px',opacity:0.7}}>{nonStriker?.name || '--'}</span></button>
                                         </div>
                                     </div>
                                 </div>
@@ -1455,7 +1455,7 @@ const MiniAdmin = () => {
 
                         {/* Recent balls */}
                         <div className="ma-balls-row">
-                            {(match.recentBalls || []).length === 0 && <span style={{color:'rgba(255,255,255,0.12)',fontSize:'9px'}}>No balls bowled yet</span>}
+                            {(match.recentBalls || []).length === 0 && <span style={{color:'rgba(255,255,255,0.12)',fontSize: '12px'}}>No balls bowled yet</span>}
                             {(match.recentBalls || []).map((b, i) => (
                                 <span key={i} className={`ma-ball ${b === 'W' ? 'ma-ball-w' : b === '•' ? 'ma-ball-dot' : typeof b === 'string' && b.startsWith('NB') ? 'ma-ball-nb' : ''}`}>{b}</span>
                             ))}
@@ -1491,7 +1491,7 @@ const MiniAdmin = () => {
 
                         {/* ─── v3.0 ADVANCED CRICKET CONTROLS ───────────────── */}
                         <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div className="ma-section-label" style={{ opacity: 0.8, color: '#facc15' }}>
+                            <div className="ma-section-label" style={{ opacity: 0.8, color: 'var(--brand-gold)' }}>
                                 ADVANCED SCORING & RULES
                             </div>
 
@@ -1566,7 +1566,7 @@ const MiniAdmin = () => {
                             </div>
                             <button
                                 className="ma-over-btn ma-over-wait"
-                                style={{ cursor: 'pointer', color: '#60a5fa', borderColor: 'rgba(96,165,250,0.2)' }}
+                                style={{ cursor: 'pointer', color: 'var(--brand-sky)', borderColor: 'rgba(57,169,255,0.2)' }}
                                 onClick={() => push({ battingTeam: match.bowlingTeam, bowlingTeam: match.battingTeam, battingLogo: match.leagueLogo, leagueLogo: match.battingLogo })}
                             >↔ SWAP TEAMS</button>
                         </div>
@@ -1690,12 +1690,12 @@ const MiniAdmin = () => {
                             <div className="ma-grid-2">
                                 <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
                                 <button className={`ma-status-btn ${match.showSummary ? 'active-break' : ''}`} onClick={() => push({ showSummary: !match.showSummary })}>Summary</button>
-                                <button className={`ma-status-btn ${match.showToss ? 'active-break' : ''}`} onClick={() => push({ showToss: !match.showToss })} style={match.showToss ? { background: 'rgba(245,158,11,0.3)', color: '#fcd34d', borderColor: 'rgba(252,211,77,0.25)' } : {}}>Toss Result</button>
+                                <button className={`ma-status-btn ${match.showToss ? 'active-break' : ''}`} onClick={() => push({ showToss: !match.showToss })} style={match.showToss ? { background: 'rgba(245,158,11,0.3)', color: 'var(--brand-gold-bright)', borderColor: 'rgba(255,201,40,0.25)' } : {}}>Toss Result</button>
                                 <button className={`ma-status-btn ${match.showMatchSituation ? 'active-break' : ''}`} onClick={() => push({ showMatchSituation: !match.showMatchSituation })}>Situation</button>
                             </div>
                             <button
                                 className="ma-over-btn ma-over-wait"
-                                style={{ cursor: 'pointer', color: '#22d3ee', borderColor: 'rgba(34,211,238,0.25)' }}
+                                style={{ cursor: 'pointer', color: 'var(--brand-sky)', borderColor: 'rgba(57,169,255,0.25)' }}
                                 onClick={() => push({ eventTrigger: 'SHOW_BANNER' })}
                             >✨ SHOW BANNER</button>
                         </div>
@@ -1704,16 +1704,16 @@ const MiniAdmin = () => {
                         <div className="ma-card">
                             <div className="ma-card-title">Allowed Extras</div>
                             <div className="ma-status-grid">
-                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#fb923c', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'var(--status-warning)', fontWeight:700, fontSize:12, cursor:'pointer' }}>
                                     <input type="checkbox" checked={match.extrasConfig?.wd !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, wd: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> Wides
                                 </label>
-                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#fdba74', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'var(--status-warning)', fontWeight:700, fontSize:12, cursor:'pointer' }}>
                                     <input type="checkbox" checked={match.extrasConfig?.nb !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, nb: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> No Balls
                                 </label>
-                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#a78bfa', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'var(--brand-sky)', fontWeight:700, fontSize:12, cursor:'pointer' }}>
                                     <input type="checkbox" checked={match.extrasConfig?.lb !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, lb: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> Leg Byes
                                 </label>
-                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'#67e8f9', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                                <label style={{ display:'flex', alignItems:'center', gap:8, color:'var(--brand-sky)', fontWeight:700, fontSize:12, cursor:'pointer' }}>
                                     <input type="checkbox" checked={match.extrasConfig?.b !== false} onChange={e => push({ extrasConfig: { ...match.extrasConfig, b: e.target.checked } })} style={{ transform:'scale(1.5)' }} /> Byes
                                 </label>
                             </div>
@@ -1938,7 +1938,7 @@ const MiniAdmin = () => {
                                         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
                                             <button
                                                 className="ma-btn-action"
-                                                style={{ flex: 1, background: '#d97706', color: '#fff', borderRadius: 8, padding: '10px 0', fontWeight: 900, fontSize: 13, border: 'none', cursor: 'pointer' }}
+                                                style={{ flex: 1, background: 'var(--status-warning)', color: '#fff', borderRadius: 8, padding: '10px 0', fontWeight: 900, fontSize: 13, border: 'none', cursor: 'pointer' }}
                                                 onClick={() => {
                                                     pushOverlay({ showPlayerOfMatch: true, potmName, potmTeam, potmFigures }, ['showPlayerOfMatch']);
                                                     setShowPotmModal(false);
@@ -1946,7 +1946,7 @@ const MiniAdmin = () => {
                                             >👑 SHOW ON OBS</button>
                                             <button
                                                 className="ma-btn-action"
-                                                style={{ flex: 1, background: '#374151', color: '#fff', borderRadius: 8, padding: '10px 0', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer' }}
+                                                style={{ flex: 1, background: 'var(--bg-elevated)', color: '#fff', borderRadius: 8, padding: '10px 0', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer' }}
                                                 onClick={() => { pushOverlay({ showPlayerOfMatch: false }); setShowPotmModal(false); }}
                                             >HIDE</button>
                                         </div>
@@ -1969,17 +1969,17 @@ const MiniAdmin = () => {
                                 <div className="ma-obs-url">{obsUrl}</div>
                                 <button
                                     className="ma-obs-copy"
-                                    style={{ background: obsCopied ? '#10b981' : '#0ea5e9', color: '#fff' }}
+                                    style={{ background: obsCopied ? 'var(--status-success)' : 'var(--brand-sky)', color: '#fff' }}
                                     onClick={copyOBSLink}
                                 >{obsCopied ? '✔ COPIED!' : '📋 COPY'}</button>
                                 <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} />
                             </div>
                             <button className="ma-preview-toggle" onClick={() => setShowLivePreview(p => !p)}>
-                                <div className="ma-preview-dot" style={{ background: showLivePreview ? '#10b981' : '#475569', animation: showLivePreview ? 'pulse 1.5s infinite' : 'none' }} />
+                                <div className="ma-preview-dot" style={{ background: showLivePreview ? 'var(--status-success)' : 'var(--text-muted)', animation: showLivePreview ? 'pulse 1.5s infinite' : 'none' }} />
                                 {showLivePreview ? 'HIDE OVERLAY PREVIEW' : 'SHOW OVERLAY PREVIEW'}
                             </button>
                             {showLivePreview && (
-                                <div style={{ position:'relative', width:'100%', paddingTop:'56.25%', background:'#000', borderRadius:8, border:'1px solid #334155', overflow:'hidden', marginTop:6 }}>
+                                <div style={{ position:'relative', width:'100%', paddingTop:'56.25%', background:'#000', borderRadius:8, border:'1px solid var(--bg-elevated)', overflow:'hidden', marginTop:6 }}>
                                     <iframe src={overlayUrl} title="Overlay Preview" style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', border:'none', pointerEvents:'none' }} />
                                 </div>
                             )}
@@ -2008,7 +2008,7 @@ const MiniAdmin = () => {
                                 >{tickerVisible ? '🔴 HIDE TICKER' : '🟢 SHOW TICKER'}</button>
                             </div>
                             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px', background:'rgba(255,255,255,0.03)', borderRadius:6 }}>
-                                <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontWeight:700 }}>AUTO REPEAT</span>
+                                <span style={{ fontSize: 12, color:'rgba(255,255,255,0.4)', fontWeight:700 }}>AUTO REPEAT</span>
                                 <div style={{ display:'flex', gap:4 }}>
                                     <button className={`ma-ticker-btn ${!tickerAutoRepeat ? 'ma-ticker-hide' : ''}`} style={{ padding:'6px 12px' }} onClick={() => pushTicker({ autoRepeat: false })}>OFF</button>
                                     <button className={`ma-ticker-btn ${tickerAutoRepeat ? 'ma-ticker-show' : ''}`} style={{ padding:'6px 12px' }} onClick={() => pushTicker({ autoRepeat: true })}>ON</button>
@@ -2159,7 +2159,7 @@ const MiniAdmin = () => {
                                             style={{
                                                 padding: '9px 10px',
                                                 borderRadius: 8,
-                                                border: wicketDismissedBatter === 'striker' ? '2px solid #ef4444' : '1px solid #475569',
+                                                border: wicketDismissedBatter === 'striker' ? '2px solid var(--status-error)' : '1px solid var(--text-muted)',
                                                 background: wicketDismissedBatter === 'striker' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
                                                 color: '#fff',
                                                 fontSize: 12,
@@ -2169,7 +2169,7 @@ const MiniAdmin = () => {
                                             }}
                                         >
                                             🏏 {match?.player1?.onStrike ? match?.player1?.name : match?.player2?.name}
-                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>(Striker)</div>
+                                            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>(Striker)</div>
                                         </button>
                                         <button
                                             type="button"
@@ -2177,7 +2177,7 @@ const MiniAdmin = () => {
                                             style={{
                                                 padding: '9px 10px',
                                                 borderRadius: 8,
-                                                border: wicketDismissedBatter === 'nonStriker' ? '2px solid #ef4444' : '1px solid #475569',
+                                                border: wicketDismissedBatter === 'nonStriker' ? '2px solid var(--status-error)' : '1px solid var(--text-muted)',
                                                 background: wicketDismissedBatter === 'nonStriker' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
                                                 color: '#fff',
                                                 fontSize: 12,
@@ -2187,7 +2187,7 @@ const MiniAdmin = () => {
                                             }}
                                         >
                                             🏃 {match?.player1?.onStrike ? match?.player2?.name : match?.player1?.name}
-                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>(Non-Striker)</div>
+                                            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>(Non-Striker)</div>
                                         </button>
                                     </div>
                                 </div>
@@ -2195,7 +2195,7 @@ const MiniAdmin = () => {
 
                             {/* Caught & Bowled auto-catcher notice */}
                             {wicketDismissal === 'Caught & Bowled' && (
-                                <div style={{ padding: '8px 12px', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 8, fontSize: 12, color: '#93c5fd' }}>
+                                <div style={{ padding: '8px 12px', background: 'rgba(22,119,255,0.12)', border: '1px solid rgba(22,119,255,0.3)', borderRadius: 8, fontSize: 12, color: 'var(--brand-sky)' }}>
                                     🎯 Catcher automatically credited to bowler: <b>{match?.bowler?.name || 'Current Bowler'}</b>
                                 </div>
                             )}
@@ -2230,9 +2230,9 @@ const MiniAdmin = () => {
                                         id="stumped-wide-check" 
                                         checked={wicketStumpedWide} 
                                         onChange={(e) => setWicketStumpedWide(e.target.checked)} 
-                                        style={{ width: 16, height: 16, accentColor: '#ef4444', cursor: 'pointer' }}
+                                        style={{ width: 16, height: 16, accentColor: 'var(--status-error)', cursor: 'pointer' }}
                                     />
-                                    <label htmlFor="stumped-wide-check" style={{ color: '#facc15', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                                    <label htmlFor="stumped-wide-check" style={{ color: 'var(--brand-gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                                         Stumped from Wide Delivery (+1 Extra, No legal ball counted)
                                     </label>
                                 </div>
@@ -2256,10 +2256,10 @@ const MiniAdmin = () => {
                                                     style={{
                                                         padding: '8px 4px',
                                                         borderRadius: 6,
-                                                        border: wicketDeliveryLegality === dl.id ? '2px solid #3b82f6' : '1px solid #475569',
-                                                        background: wicketDeliveryLegality === dl.id ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.04)',
+                                                        border: wicketDeliveryLegality === dl.id ? '2px solid var(--brand-electric)' : '1px solid var(--text-muted)',
+                                                        background: wicketDeliveryLegality === dl.id ? 'rgba(22,119,255,0.25)' : 'rgba(255,255,255,0.04)',
                                                         color: '#fff',
-                                                        fontSize: 11,
+                                                        fontSize: 12,
                                                         fontWeight: 700,
                                                         cursor: 'pointer',
                                                     }}
@@ -2282,7 +2282,7 @@ const MiniAdmin = () => {
                                                         flex: 1,
                                                         padding: '8px 0',
                                                         borderRadius: 6,
-                                                        border: wicketRunsCompleted === num ? '2px solid #22c55e' : '1px solid #475569',
+                                                        border: wicketRunsCompleted === num ? '2px solid var(--status-success)' : '1px solid var(--text-muted)',
                                                         background: wicketRunsCompleted === num ? 'rgba(34,197,94,0.25)' : 'rgba(255,255,255,0.04)',
                                                         color: '#fff',
                                                         fontSize: 13,
@@ -2300,7 +2300,7 @@ const MiniAdmin = () => {
 
                             {/* Non-ball event explanation */}
                             {['Timed Out', 'Retired Out', 'Retired Hurt', 'Absent Hurt', 'Run Out (Mankad)'].includes(wicketDismissal) && (
-                                <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, fontSize: 11, color: '#fcd34d' }}>
+                                <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, fontSize: 12, color: 'var(--brand-gold-bright)' }}>
                                     ℹ️ <b>No ball consumed:</b> Occurs between balls / before delivery. Legal balls count and over will not increment.
                                     {wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? ' Total team wickets will NOT increase (Not Out).' : ' Bowler receives 0 wicket credit.'}
                                 </div>
@@ -2310,7 +2310,7 @@ const MiniAdmin = () => {
                                 <button 
                                     type="button" 
                                     onClick={() => setShowWicketPanel(false)} 
-                                    style={{ background:'transparent', border:'1px solid #475569', color:'#cbd5e1', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}
+                                    style={{ background:'transparent', border:'1px solid var(--text-muted)', color:'var(--text-primary)', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}
                                 >
                                     Cancel
                                 </button>
@@ -2318,7 +2318,7 @@ const MiniAdmin = () => {
                                     type="button" 
                                     onClick={() => handleWicket()} 
                                     style={{ 
-                                        background: wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? '#3b82f6' : '#ef4444', 
+                                        background: wicketDismissal === 'Retired Hurt' || wicketDismissal === 'Absent Hurt' ? 'var(--brand-electric)' : 'var(--status-error)', 
                                         border:'none', 
                                         color:'#fff', 
                                         borderRadius:6, 
@@ -2397,8 +2397,8 @@ const MiniAdmin = () => {
                                 </select>
                             </div>
                             <div className="ma-modal-footer">
-                                <button type="button" onClick={() => setShowNextMatch(false)} style={{ background:'transparent', border:'1px solid #475569', color:'#cbd5e1', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}>Cancel</button>
-                                <button type="submit" style={{ background:'#eab308', border:'none', color:'#0f172a', borderRadius:6, padding:'8px 16px', fontWeight:900, cursor:'pointer' }}>🚀 Switch Match</button>
+                                <button type="button" onClick={() => setShowNextMatch(false)} style={{ background:'transparent', border:'1px solid var(--text-muted)', color:'var(--text-primary)', borderRadius:6, padding:'8px 14px', fontWeight:'bold', cursor:'pointer' }}>Cancel</button>
+                                <button type="submit" style={{ background:'var(--brand-gold)', border:'none', color:'var(--bg-main)', borderRadius:6, padding:'8px 16px', fontWeight:900, cursor:'pointer' }}>🚀 Switch Match</button>
                             </div>
                         </form>
                     </div>

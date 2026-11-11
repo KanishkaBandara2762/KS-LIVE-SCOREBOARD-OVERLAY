@@ -1,6 +1,6 @@
 .features-hub-wrapper {
     padding: 4rem 1.5rem;
-    background-color: #0f172a;
+    background-color: var(--bg-main);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     max-width: 1200px;
     margin: 0 auto;
@@ -15,12 +15,12 @@
 }
 
 .hub-title span {
-    color: #14b8a6;
+    color: var(--brand-sky);
 }
 
 .hub-subtitle {
     text-align: center;
-    color: #94a3b8;
+    color: var(--text-secondary);
     margin-bottom: 3rem;
 }
 
@@ -32,7 +32,7 @@
 }
 
 .hub-category-card {
-    background-color: #1e293b;
+    background-color: var(--bg-card);
     border: 1px solid rgba(255,255,255,0.05);
     border-radius: 12px;
     padding: 1.5rem;
@@ -43,7 +43,7 @@
     font-family: var(--font-serif);
     color: white;
     font-size: 1.4rem;
-    border-bottom: 2px solid #14b8a6;
+    border-bottom: 2px solid var(--brand-sky);
     padding-bottom: 0.5rem;
     margin-bottom: 1.5rem;
     display: inline-block;
@@ -63,20 +63,20 @@
 
 .item-icon {
     font-size: 1.5rem;
-    background: rgba(20, 184, 166, 0.1);
+    background: rgba(57,169,255,0.1);
     padding: 0.5rem;
     border-radius: 8px;
     line-height: 1;
 }
 
 .item-text h4 {
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1rem;
     margin-bottom: 0.25rem;
 }
 
 .item-text p {
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 0.85rem;
     line-height: 1.4;
 }
@@ -88,7 +88,7 @@
 }
 
 .preview-card {
-    background: #020617;
+    background: var(--bg-main);
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid rgba(255,255,255,0.05);
@@ -98,7 +98,7 @@
     color: white;
     padding: 1rem;
     text-align: center;
-    background: #1e293b;
+    background: var(--bg-card);
     font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 1px;

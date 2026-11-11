@@ -35,16 +35,16 @@ export default function BroadcastStatus({ expiresAt, locked, onExpire, compact =
 
   if (!expiry) {
     return locked ? (
-      <span style={{ ...base, color: "#f59e0b" }}>🔒 1 credit to share</span>
+      <span style={{ ...base, color: "var(--status-warning)" }}>🔒 1 credit to share</span>
     ) : null;
   }
 
   const remaining = expiry - now;
   if (remaining <= 0) {
-    return <span style={{ ...base, color: "#f59e0b" }}>⏰ OBS link expired · 1 credit to renew</span>;
+    return <span style={{ ...base, color: "var(--status-warning)" }}>⏰ OBS link expired · 1 credit to renew</span>;
   }
   return (
-    <span style={{ ...base, color: remaining < 60 * 60 * 1000 ? "#f97316" : "#34d399" }}>
+    <span style={{ ...base, color: remaining < 60 * 60 * 1000 ? "var(--status-warning)" : "#34d399" }}>
       ⏱ OBS link: {formatRemaining(remaining)} left
     </span>
   );

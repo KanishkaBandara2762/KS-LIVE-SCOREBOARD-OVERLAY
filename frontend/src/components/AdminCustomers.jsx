@@ -129,8 +129,8 @@ const AdminCustomers = () => {
     } catch (err) {}
   };
 
-  if (loading) return <div className="admin-container">Loading Admin Panel...</div>;
-  if (error) return <div className="admin-container">Error: {error}</div>;
+  if (loading) return <div className="admin-container ks-app">Loading Admin Panel...</div>;
+  if (error) return <div className="admin-container ks-app">Error: {error}</div>;
 
   // ── Executive Dashboard Metrics ───────────────────────────────────────────
   const completedPayments = payments.filter(p => p.status === 'completed');
@@ -171,7 +171,7 @@ const AdminCustomers = () => {
   };
 
   return (
-    <div className="admin-container">
+    <div className="admin-container ks-app">
       <div className="admin-header-bar">
         <h1>Admin SaaS Dashboard</h1>
         <div className="admin-header-actions">

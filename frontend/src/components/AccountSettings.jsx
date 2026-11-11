@@ -130,7 +130,7 @@ export default function AccountSettings() {
     setPayment((prev) => ({ ...prev, bankDetails: { ...prev.bankDetails, [key]: value } }));
 
   return (
-    <div className="acct-page">
+    <div className="acct-page ks-app">
       <header className="acct-header">
         <button type="button" className="acct-back" onClick={goBack}>← Back</button>
         <div className="acct-title">

@@ -84,7 +84,7 @@ const Pricing = () => {
     : "";
 
   return (
-    <div className="pricing-container">
+    <div className="pricing-container ks-app">
       <div className="pricing-header">
         <Link to="/dashboard" className="pricing-back">← Dashboard</Link>
         <h1>Choose Your KS Live Plan</h1>

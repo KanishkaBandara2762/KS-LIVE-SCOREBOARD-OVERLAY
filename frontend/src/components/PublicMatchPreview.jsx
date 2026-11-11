@@ -437,7 +437,7 @@ export default function PublicMatchPreview() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center gap-4">
+      <div className="ks-app ks-tw min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
         <p className="text-slate-400 text-sm animate-pulse">Syncing live scoreboard...</p>
       </div>
@@ -446,7 +446,7 @@ export default function PublicMatchPreview() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-6 text-center">
+      <div className="ks-app ks-tw min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-6 text-center">
         <span className="text-5xl">🏏</span>
         <h2 className="text-2xl font-bold mt-4 text-red-400">Match Unavailable</h2>
         <p className="text-slate-400 text-sm max-w-md mt-2">{error}</p>
@@ -459,7 +459,7 @@ export default function PublicMatchPreview() {
 
   if (isPrivate) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-zinc-950 text-white flex flex-col items-center justify-center px-6 text-center">
+      <div className="ks-app ks-tw min-h-screen bg-gradient-to-b from-slate-900 to-zinc-950 text-white flex flex-col items-center justify-center px-6 text-center">
         <div className="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl mb-6 shadow-inner animate-pulse">
           🔒
         </div>
@@ -499,7 +499,7 @@ export default function PublicMatchPreview() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white font-sans selection:bg-teal-500 selection:text-black">
+    <div className="ks-app ks-tw min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white font-sans selection:bg-teal-500 selection:text-black">
       {/* Sticky Score Bar */}
       <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <Link to="/live" className="flex items-center gap-2 text-teal-400 hover:text-teal-300 font-bold text-sm transition-colors">

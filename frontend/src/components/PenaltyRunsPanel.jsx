@@ -49,7 +49,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
 
   return (
     <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ color: '#facc15', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
+      <div style={{ color: 'var(--brand-gold)', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
         🏏 PENALTY RUNS
       </div>
 
@@ -63,8 +63,8 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
             style={{
               padding: '9px 10px',
               borderRadius: 8,
-              border: awardedTo === side ? '2px solid #f97316' : '1px solid #475569',
-              background: awardedTo === side ? 'rgba(249,115,22,0.18)' : 'rgba(255,255,255,0.04)',
+              border: awardedTo === side ? '2px solid var(--status-warning)' : '1px solid var(--text-muted)',
+              background: awardedTo === side ? 'rgba(245,158,11,0.18)' : 'rgba(255,255,255,0.04)',
               color: '#fff',
               fontSize: 12,
               fontWeight: 700,
@@ -79,7 +79,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
 
       {/* Runs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ color: '#94a3b8', fontSize: 12, minWidth: 60 }}>Runs:</span>
+        <span style={{ color: 'var(--text-secondary)', fontSize: 12, minWidth: 60 }}>Runs:</span>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {[5, 1, 2, 3, 4, 6, 7, 10].map(r => (
             <button
@@ -89,8 +89,8 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
               style={{
                 padding: '5px 12px',
                 borderRadius: 6,
-                border: runs === r ? '2px solid #f97316' : '1px solid #475569',
-                background: runs === r ? 'rgba(249,115,22,0.18)' : 'rgba(255,255,255,0.04)',
+                border: runs === r ? '2px solid var(--status-warning)' : '1px solid var(--text-muted)',
+                background: runs === r ? 'rgba(245,158,11,0.18)' : 'rgba(255,255,255,0.04)',
                 color: '#fff',
                 fontSize: 12,
                 fontWeight: 700,
@@ -108,7 +108,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
             onChange={e => setRuns(Math.max(1, parseInt(e.target.value, 10) || 5))}
             style={{
               width: 52, padding: '4px 6px', borderRadius: 6,
-              border: '1px solid #475569', background: '#1e293b',
+              border: '1px solid var(--text-muted)', background: 'var(--bg-card)',
               color: '#fff', fontSize: 12, textAlign: 'center',
             }}
           />
@@ -117,13 +117,13 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
 
       {/* Reason */}
       <div>
-        <span style={{ color: '#94a3b8', fontSize: 12, display: 'block', marginBottom: 4 }}>Reason:</span>
+        <span style={{ color: 'var(--text-secondary)', fontSize: 12, display: 'block', marginBottom: 4 }}>Reason:</span>
         <select
           value={reason}
           onChange={e => setReason(e.target.value)}
           style={{
             width: '100%', padding: '7px 10px', borderRadius: 8,
-            border: '1px solid #334155', background: '#1e293b',
+            border: '1px solid var(--bg-elevated)', background: 'var(--bg-card)',
             color: '#fff', fontSize: 12,
           }}
         >
@@ -147,7 +147,7 @@ const PenaltyRunsPanel = ({ matchId, onConfirm }) => {
           padding: '10px 0',
           borderRadius: 8,
           border: 'none',
-          background: loading ? '#475569' : 'linear-gradient(135deg,#f97316,#ef4444)',
+          background: loading ? 'var(--text-muted)' : 'linear-gradient(135deg,var(--status-warning),var(--status-error))',
           color: '#fff',
           fontWeight: 700,
           fontSize: 13,

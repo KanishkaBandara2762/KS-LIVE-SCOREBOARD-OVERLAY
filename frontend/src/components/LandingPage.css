@@ -3,8 +3,8 @@
 :root {
   --font-serif: 'Times New Roman', Times, serif;
   --font-sans: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
-  --color-dark: #0f172a;
-  --color-card-bg: #1e293b;
+  --color-dark: var(--bg-main);
+  --color-card-bg: var(--bg-card);
 }
 
 .landing-page {
@@ -65,13 +65,13 @@
   gap: 1rem;
   padding-bottom: 1rem;
   scrollbar-width: thin;
-  scrollbar-color: rgba(20, 184, 166, 0.5) transparent;
+  scrollbar-color: rgba(57,169,255,0.5) transparent;
 }
 .landing-showcase-matches::-webkit-scrollbar {
   height: 6px;
 }
 .landing-showcase-matches::-webkit-scrollbar-thumb {
-  background: rgba(20, 184, 166, 0.5);
+  background: rgba(57,169,255,0.5);
   border-radius: 10px;
 }
 .landing-showcase-card {
@@ -84,7 +84,7 @@
   transition: border-color 0.2s;
 }
 .landing-showcase-card:hover {
-  border-color: rgba(20, 184, 166, 0.4);
+  border-color: rgba(57,169,255,0.4);
 }
 /* ============================================================
    LandingPage.css — KS Live Welcome Page
@@ -96,13 +96,13 @@
 /* ─── CSS Variables ─────────────────────────────────────────── */
 :root {
     --landing-bg: #05080f;
-    --landing-teal: #00d2be;
-    --landing-blue: #0096ff;
+    --landing-teal: var(--brand-sky);
+    --landing-blue: var(--brand-electric);
     --landing-text: #f0f4f8;
     --landing-muted: rgba(255, 255, 255, 0.5);
     --landing-card-bg: rgba(255, 255, 255, 0.03);
-    --landing-card-border: rgba(0, 210, 190, 0.15);
-    --landing-glow: rgba(0, 210, 190, 0.12);
+    --landing-card-border: rgba(57,169,255,0.15);
+    --landing-glow: rgba(57,169,255,0.12);
 }
 
 /* ─── CINEMATIC INTRO OVERLAY ───────────────────────────────── */
@@ -134,7 +134,7 @@
 .landing-intro-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
     border-radius: 20px;
     display: flex;
     align-items: center;
@@ -143,7 +143,7 @@
     opacity: 0;
     transform: scale(0.3);
     animation: logoIconReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
-    box-shadow: 0 0 60px rgba(0, 210, 190, 0.4), 0 0 120px rgba(0, 210, 190, 0.15);
+    box-shadow: 0 0 60px rgba(57,169,255,0.4), 0 0 120px rgba(57,169,255,0.15);
 }
 
 .landing-intro-text {
@@ -151,7 +151,7 @@
     font-size: 3.2rem;
     font-weight: 900;
     letter-spacing: 2px;
-    background: linear-gradient(90deg, #00d2be, #0096ff, #00d2be);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric), var(--brand-sky));
     background-size: 200% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -185,7 +185,7 @@
     background: linear-gradient(90deg,
             transparent 0%,
             rgba(255, 255, 255, 0.05) 30%,
-            rgba(0, 210, 190, 0.25) 50%,
+            rgba(57,169,255,0.25) 50%,
             rgba(255, 255, 255, 0.05) 70%,
             transparent 100%);
     transform: skewX(-20deg);
@@ -205,7 +205,7 @@
     position: absolute;
     width: 3px;
     height: 3px;
-    background: #00d2be;
+    background: var(--brand-sky);
     border-radius: 50%;
     opacity: 0;
     animation: particleFly 1.5s ease-out forwards;
@@ -305,8 +305,8 @@
     position: fixed;
     inset: 0;
     background:
-        radial-gradient(ellipse at 15% 20%, rgba(0, 210, 190, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 85% 80%, rgba(0, 150, 255, 0.05) 0%, transparent 50%);
+        radial-gradient(ellipse at 15% 20%, rgba(57,169,255,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 80%, rgba(22,119,255,0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
 }
@@ -324,7 +324,7 @@
     padding: 1rem 2.5rem;
     background: rgba(5, 8, 15, 0.85);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 210, 190, 0.08);
+    border-bottom: 1px solid rgba(57,169,255,0.08);
     transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -343,7 +343,7 @@
 .landing-nav-logo {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
     border-radius: 9px;
     display: flex;
     align-items: center;
@@ -354,7 +354,7 @@
 .landing-nav-name {
     font-size: 1.2rem;
     font-weight: 800;
-    background: linear-gradient(90deg, #00d2be, #0096ff);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -384,15 +384,15 @@
 }
 
 .landing-nav-links a:hover {
-    color: #00d2be;
-    background: rgba(0, 210, 190, 0.08);
+    color: var(--brand-sky);
+    background: rgba(57,169,255,0.08);
 }
 
 .landing-nav-auction {
     padding: 0.5rem 1.1rem;
-    background: linear-gradient(135deg, rgba(234, 179, 8, 0.18), rgba(249, 115, 22, 0.18));
-    border: 1px solid rgba(234, 179, 8, 0.45);
-    color: #facc15 !important;
+    background: linear-gradient(135deg, rgba(255,201,40,0.18), rgba(245,158,11,0.18));
+    border: 1px solid rgba(255,201,40,0.45);
+    color: var(--brand-gold) !important;
     border-radius: 8px;
     font-weight: 700 !important;
     font-size: 0.88rem;
@@ -401,34 +401,34 @@
     align-items: center;
     gap: 6px;
     transition: all 0.25s ease;
-    box-shadow: 0 0 12px rgba(234, 179, 8, 0.15);
+    box-shadow: 0 0 12px rgba(255,201,40,0.15);
 }
 
 .landing-nav-auction:hover {
-    background: linear-gradient(135deg, #eab308, #f97316) !important;
-    color: #0f172a !important;
-    border-color: #facc15;
-    box-shadow: 0 4px 18px rgba(234, 179, 8, 0.45);
+    background: linear-gradient(135deg, var(--brand-gold), var(--status-warning)) !important;
+    color: var(--bg-main) !important;
+    border-color: var(--brand-gold);
+    box-shadow: 0 4px 18px rgba(255,201,40,0.45);
     transform: translateY(-1px);
 }
 
 .landing-nav-cta {
     padding: 0.55rem 1.4rem;
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
     color: #fff !important;
     border-radius: 8px;
     font-weight: 700 !important;
     font-size: 0.88rem;
     text-decoration: none;
     transition: opacity 0.25s, transform 0.2s, box-shadow 0.25s;
-    box-shadow: 0 4px 18px rgba(0, 210, 190, 0.3);
+    box-shadow: 0 4px 18px rgba(57,169,255,0.3);
 }
 
 .landing-nav-cta:hover {
     opacity: 0.92;
     transform: translateY(-1px);
-    box-shadow: 0 6px 24px rgba(0, 210, 190, 0.45);
-    background: linear-gradient(135deg, #00d2be, #0096ff) !important;
+    box-shadow: 0 6px 24px rgba(57,169,255,0.45);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric)) !important;
     color: #fff !important;
 }
 
@@ -469,9 +469,9 @@
     gap: 0.4rem;
     padding: 0.35rem 1rem;
     border-radius: 999px;
-    background: rgba(0, 210, 190, 0.1);
-    border: 1px solid rgba(0, 210, 190, 0.25);
-    color: #00d2be;
+    background: rgba(57,169,255,0.1);
+    border: 1px solid rgba(57,169,255,0.25);
+    color: var(--brand-sky);
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -491,7 +491,7 @@
 }
 
 .landing-hero h1 span {
-    background: linear-gradient(90deg, #00d2be, #0096ff);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -518,7 +518,7 @@
 
 .landing-btn-primary {
     padding: 0.85rem 2.2rem;
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -527,21 +527,21 @@
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.25s;
-    box-shadow: 0 4px 22px rgba(0, 210, 190, 0.35);
+    box-shadow: 0 4px 22px rgba(57,169,255,0.35);
     text-decoration: none;
     display: inline-block;
 }
 
 .landing-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 210, 190, 0.5);
+    box-shadow: 0 8px 32px rgba(57,169,255,0.5);
 }
 
 .landing-btn-secondary {
     padding: 0.85rem 2.2rem;
     background: transparent;
-    color: #00d2be;
-    border: 1px solid rgba(0, 210, 190, 0.35);
+    color: var(--brand-sky);
+    border: 1px solid rgba(57,169,255,0.35);
     border-radius: 10px;
     font-size: 1rem;
     font-weight: 600;
@@ -553,7 +553,7 @@
 }
 
 .landing-btn-secondary:hover {
-    background: rgba(0, 210, 190, 0.08);
+    background: rgba(57,169,255,0.08);
     transform: translateY(-2px);
 }
 
@@ -586,7 +586,7 @@
 }
 
 .landing-section-title span {
-    background: linear-gradient(90deg, #00d2be, #0096ff);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -634,15 +634,15 @@
 
 .landing-feature-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 12px 40px rgba(0, 210, 190, 0.12);
-    border-color: rgba(0, 210, 190, 0.3);
+    box-shadow: 0 12px 40px rgba(57,169,255,0.12);
+    border-color: rgba(57,169,255,0.3);
 }
 
 .landing-feature-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.15), rgba(0, 150, 255, 0.1));
-    border: 1px solid rgba(0, 210, 190, 0.25);
+    background: linear-gradient(135deg, rgba(57,169,255,0.15), rgba(22,119,255,0.1));
+    border: 1px solid rgba(57,169,255,0.25);
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -695,8 +695,8 @@
 
 .landing-obs-box {
     margin-top: 1.5rem;
-    border: 1px solid rgba(0, 210, 190, 0.18);
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.08), rgba(0, 150, 255, 0.05));
+    border: 1px solid rgba(57,169,255,0.18);
+    background: linear-gradient(135deg, rgba(57,169,255,0.08), rgba(22,119,255,0.05));
     border-radius: 18px;
     padding: 1.5rem;
     display: flex;
@@ -710,7 +710,7 @@
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #00d2be;
+    color: var(--brand-sky);
     margin-bottom: 0.45rem;
 }
 
@@ -746,7 +746,7 @@
     position: relative;
     z-index: 1;
     padding: 5rem 2rem;
-    background: linear-gradient(180deg, transparent 0%, rgba(0, 210, 190, 0.03) 50%, transparent 100%);
+    background: linear-gradient(180deg, transparent 0%, rgba(57,169,255,0.03) 50%, transparent 100%);
 }
 
 .landing-stats-grid {
@@ -769,13 +769,13 @@
 
 .landing-stat-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 210, 190, 0.1);
+    box-shadow: 0 8px 30px rgba(57,169,255,0.1);
 }
 
 .landing-stat-number {
     font-size: 3rem;
     font-weight: 900;
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -825,12 +825,12 @@
 }
 
 .landing-testimonial-inner:hover {
-    box-shadow: 0 8px 40px rgba(0, 210, 190, 0.08);
+    box-shadow: 0 8px 40px rgba(57,169,255,0.08);
 }
 
 .landing-testimonial-quote {
     font-size: 1.5rem;
-    color: rgba(0, 210, 190, 0.2);
+    color: rgba(57,169,255,0.2);
     margin-bottom: 0.5rem;
     line-height: 1;
 }
@@ -853,7 +853,7 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #00d2be, #0096ff);
+    background: linear-gradient(135deg, var(--brand-sky), var(--brand-electric));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -894,13 +894,13 @@
 }
 
 .landing-testimonial-dot.active {
-    background: #00d2be;
+    background: var(--brand-sky);
     transform: scale(1.25);
-    box-shadow: 0 0 10px rgba(0, 210, 190, 0.5);
+    box-shadow: 0 0 10px rgba(57,169,255,0.5);
 }
 
 .landing-testimonial-dot:hover {
-    background: rgba(0, 210, 190, 0.5);
+    background: rgba(57,169,255,0.5);
 }
 
 /* Arrow navigation */
@@ -916,7 +916,7 @@
     height: 42px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 210, 190, 0.2);
+    border: 1px solid rgba(57,169,255,0.2);
     color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
     display: flex;
@@ -927,9 +927,9 @@
 }
 
 .landing-testimonial-arrow:hover {
-    background: rgba(0, 210, 190, 0.12);
-    color: #00d2be;
-    border-color: rgba(0, 210, 190, 0.4);
+    background: rgba(57,169,255,0.12);
+    color: var(--brand-sky);
+    border-color: rgba(57,169,255,0.4);
 }
 
 /* ─── PLANS SUMMARY SECTION ───────────────────────────────────── */
@@ -991,19 +991,19 @@
 
 /* Popular Card (Monthly) - Teal highlights */
 .landing-plan-card.popular {
-    border-color: rgba(0, 210, 190, 0.35);
-    background: linear-gradient(180deg, rgba(0, 210, 190, 0.05) 0%, rgba(5, 8, 15, 0.4) 100%);
-    box-shadow: 0 10px 30px rgba(0, 210, 190, 0.05);
+    border-color: rgba(57,169,255,0.35);
+    background: linear-gradient(180deg, rgba(57,169,255,0.05) 0%, rgba(5, 8, 15, 0.4) 100%);
+    box-shadow: 0 10px 30px rgba(57,169,255,0.05);
 }
 
 .landing-plan-card.popular::before {
-    background: radial-gradient(circle at top, rgba(0, 210, 190, 0.15), transparent 70%);
+    background: radial-gradient(circle at top, rgba(57,169,255,0.15), transparent 70%);
     opacity: 1;
 }
 
 .landing-plan-card.popular:hover {
-    border-color: #00d2be;
-    box-shadow: 0 20px 40px rgba(0, 210, 190, 0.15), 0 0 50px rgba(0, 210, 190, 0.05);
+    border-color: var(--brand-sky);
+    box-shadow: 0 20px 40px rgba(57,169,255,0.15), 0 0 50px rgba(57,169,255,0.05);
 }
 
 /* Best Value Card (Annual) - Gold highlights */
@@ -1032,7 +1032,7 @@
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
-    background: linear-gradient(90deg, #00d2be, #0096ff);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric));
     color: #05080f;
     font-size: 0.72rem;
     font-weight: 700;
@@ -1040,7 +1040,7 @@
     border-radius: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    box-shadow: 0 4px 12px rgba(0, 210, 190, 0.3);
+    box-shadow: 0 4px 12px rgba(57,169,255,0.3);
 }
 
 .landing-plan-best-value-badge {
@@ -1162,17 +1162,17 @@
 }
 
 .landing-plan-btn.popular-btn {
-    background: linear-gradient(90deg, rgba(0, 210, 190, 0.15), rgba(0, 150, 255, 0.15));
-    border-color: rgba(0, 210, 190, 0.4);
-    color: #00d2be;
-    box-shadow: 0 4px 15px rgba(0, 210, 190, 0.1);
+    background: linear-gradient(90deg, rgba(57,169,255,0.15), rgba(22,119,255,0.15));
+    border-color: rgba(57,169,255,0.4);
+    color: var(--brand-sky);
+    box-shadow: 0 4px 15px rgba(57,169,255,0.1);
 }
 
 .landing-plan-btn.popular-btn:hover {
-    background: linear-gradient(90deg, #00d2be, #0096ff);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric));
     color: #05080f;
     border-color: transparent;
-    box-shadow: 0 8px 25px rgba(0, 210, 190, 0.3);
+    box-shadow: 0 8px 25px rgba(57,169,255,0.3);
 }
 
 .landing-plan-btn.best-value-btn {
@@ -1201,8 +1201,8 @@
     max-width: 700px;
     margin: 0 auto;
     padding: 3.5rem 2.5rem;
-    background: linear-gradient(135deg, rgba(0, 210, 190, 0.08), rgba(0, 150, 255, 0.06));
-    border: 1px solid rgba(0, 210, 190, 0.2);
+    background: linear-gradient(135deg, rgba(57,169,255,0.08), rgba(22,119,255,0.06));
+    border: 1px solid rgba(57,169,255,0.2);
     border-radius: 24px;
     backdrop-filter: blur(12px);
 }
@@ -1214,7 +1214,7 @@
 }
 
 .landing-cta-box h2 span {
-    background: linear-gradient(90deg, #00d2be, #0096ff);
+    background: linear-gradient(90deg, var(--brand-sky), var(--brand-electric));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1238,7 +1238,7 @@
 }
 
 .landing-footer a {
-    color: #00d2be;
+    color: var(--brand-sky);
     text-decoration: none;
 }
 
@@ -1283,7 +1283,7 @@
         flex-direction: column;
         background: rgba(5, 8, 15, 0.97);
         backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(0, 210, 190, 0.1);
+        border-bottom: 1px solid rgba(57,169,255,0.1);
         padding: 1rem;
         gap: 0.2rem;
     }
@@ -1341,3 +1341,20 @@
 }
 
 
+
+/* ══ KS LIVE blue + gold layer (tokens from src/styles/theme.css) ═══════ */
+.landing-btn-primary,
+.landing-nav-cta {
+    background: var(--brand-gold);
+    color: var(--text-on-gold) !important;
+    border-radius: var(--radius-md);
+    box-shadow: none;
+}
+.landing-btn-primary:hover,
+.landing-nav-cta:hover {
+    background: var(--brand-gold-bright) !important;
+    color: var(--text-on-gold) !important;
+    box-shadow: none;
+}
+.landing-btn-secondary { border-color: var(--border-blue); color: var(--brand-sky); border-radius: var(--radius-md); }
+.landing-nav { background: rgba(11, 31, 56, 0.92); border-bottom: 1px solid var(--border-subtle); }

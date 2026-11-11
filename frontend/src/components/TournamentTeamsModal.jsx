@@ -9,10 +9,10 @@ const getAbsoluteUrl = (url) => {
 };
 
 const ROLE_OPTIONS = [
-  { value: 'All-Rounder', label: '⭐ All-Rounder', color: '#facc15', bg: 'rgba(250, 204, 21, 0.12)' },
-  { value: 'Batsman', label: '🏏 Batsman', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.12)' },
-  { value: 'Bowler', label: '🎯 Bowler', color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.12)' },
-  { value: 'Wicket-Keeper', label: '🧤 Wicket-Keeper', color: '#34d399', bg: 'rgba(52, 211, 153, 0.12)' },
+  { value: 'All-Rounder', label: '⭐ All-Rounder', color: 'var(--brand-gold)', bg: 'rgba(255,201,40,0.12)' },
+  { value: 'Batsman', label: '🏏 Batsman', color: 'var(--brand-sky)', bg: 'rgba(57,169,255,0.12)' },
+  { value: 'Bowler', label: '🎯 Bowler', color: '#FCA5A5', bg: 'rgba(239,68,68,0.12)' },
+  { value: 'Wicket-Keeper', label: '🧤 Wicket-Keeper', color: '#86EFAC', bg: 'rgba(34,197,94,0.12)' },
 ];
 
 export default function TournamentTeamsModal({ tournament, onClose, onUpdated }) {
@@ -287,7 +287,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                 Tournament Teams & Squads
               </h2>
             </div>
-            <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
               {currentTournament.name} • {teams.length} Teams Configured
             </p>
           </div>
@@ -312,14 +312,14 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
           {/* Left Column: Teams List */}
           <div style={{ display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 TEAMS ({teams.length})
               </span>
               <button
                 type="button"
                 onClick={() => setShowAddTeam(!showAddTeam)}
                 style={{
-                  background: showAddTeam ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                  background: showAddTeam ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, var(--brand-electric), var(--brand-royal))',
                   color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
                 }}
               >
@@ -329,7 +329,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
 
             {/* Add Team Inline Form */}
             {showAddTeam && (
-              <form onSubmit={handleAddTeam} style={{ background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.25)', borderRadius: '10px', padding: '12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <form onSubmit={handleAddTeam} style={{ background: 'rgba(22,119,255,0.08)', border: '1px solid rgba(22,119,255,0.25)', borderRadius: '10px', padding: '12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   {/* Logo Picker */}
                   <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -341,7 +341,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                         height: '48px',
                         borderRadius: '8px',
                         background: teamLogoPreview ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.06)',
-                        border: `1px dashed ${teamLogoPreview ? '#3b82f6' : 'rgba(255,255,255,0.25)'}`,
+                        border: `1px dashed ${teamLogoPreview ? 'var(--brand-electric)' : 'rgba(255,255,255,0.25)'}`,
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -356,7 +356,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                       ) : (
                         <>
                           <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🛡️</span>
-                          <span style={{ fontSize: '0.55rem', color: '#94a3b8', fontWeight: 700, marginTop: '2px' }}>+ Logo</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, marginTop: '2px' }}>+ Logo</span>
                         </>
                       )}
                     </div>
@@ -372,10 +372,10 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                           width: '18px',
                           height: '18px',
                           borderRadius: '50%',
-                          background: '#ef4444',
+                          background: 'var(--status-error)',
                           color: '#fff',
                           border: 'none',
-                          fontSize: '10px',
+                          fontSize: '12px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -421,7 +421,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                 <button
                   type="submit"
                   disabled={loading}
-                  style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ background: 'var(--brand-electric)', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
                 >
                   {loading ? 'Creating...' : 'Save Team'}
                 </button>
@@ -431,7 +431,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
             {/* Teams Items */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflowY: 'auto' }}>
               {teams.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 8px', color: '#64748b', fontSize: '0.85rem' }}>
+                <div style={{ textAlign: 'center', padding: '24px 8px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                   No teams added yet.<br />Click <strong>+ Add Team</strong> to begin!
                 </div>
               ) : (
@@ -446,8 +446,8 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
-                        background: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${isSelected ? 'rgba(59, 130, 246, 0.4)' : 'rgba(255,255,255,0.05)'}`,
+                        background: isSelected ? 'rgba(22,119,255,0.15)' : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${isSelected ? 'rgba(22,119,255,0.4)' : 'rgba(255,255,255,0.05)'}`,
                         transition: 'all 0.15s'
                       }}
                     >
@@ -468,18 +468,18 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                           />
                         ) : (
                           <span style={{
-                            background: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.1)',
-                            color: '#fff', fontWeight: 800, fontSize: '0.7rem', padding: '2px 6px',
+                            background: isSelected ? 'var(--brand-electric)' : 'rgba(255,255,255,0.1)',
+                            color: '#fff', fontWeight: 800, fontSize: '0.75rem', padding: '2px 6px',
                             borderRadius: '4px', letterSpacing: '0.05em', flexShrink: 0
                           }}>
                             {t.shortName || t.name.slice(0, 3).toUpperCase()}
                           </span>
                         )}
                         <div style={{ overflow: 'hidden' }}>
-                          <div style={{ color: isSelected ? '#fff' : '#cbd5e1', fontWeight: 700, fontSize: '0.85rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          <div style={{ color: isSelected ? '#fff' : 'var(--text-primary)', fontWeight: 700, fontSize: '0.85rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                             {t.name}
                           </div>
-                          <div style={{ color: '#64748b', fontSize: '0.7rem' }}>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                             {pCount} {pCount === 1 ? 'player' : 'players'}
                           </div>
                         </div>
@@ -487,7 +487,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); handleDeleteTeam(tId, t.name); }}
-                        style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px', fontSize: '0.85rem' }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', fontSize: '0.85rem' }}
                         title="Delete Team"
                       >
                         🗑
@@ -502,7 +502,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
           {/* Right Column: Squad & Players of Selected Team */}
           <div style={{ display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '18px', overflowY: 'auto' }}>
             {!selectedTeam ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#64748b', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                 Select a team from the left to manage players.
               </div>
             ) : (
@@ -550,8 +550,8 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#facc15' }}>{selectedTeam.name}</span>
-                        <span style={{ background: 'rgba(250,204,21,0.15)', color: '#facc15', border: '1px solid rgba(250,204,21,0.3)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 800 }}>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--brand-gold)' }}>{selectedTeam.name}</span>
+                        <span style={{ background: 'rgba(255,201,40,0.15)', color: 'var(--brand-gold)', border: '1px solid rgba(255,201,40,0.3)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 800 }}>
                           {selectedTeam.shortName || selectedTeam.name.slice(0, 3).toUpperCase()}
                         </span>
                         <button
@@ -561,10 +561,10 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                           style={{
                             background: 'rgba(255,255,255,0.07)',
                             border: '1px solid rgba(255,255,255,0.15)',
-                            color: '#cbd5e1',
+                            color: 'var(--text-primary)',
                             borderRadius: '6px',
                             padding: '2px 8px',
-                            fontSize: '0.7rem',
+                            fontSize: '0.75rem',
                             fontWeight: 600,
                             cursor: 'pointer',
                           }}
@@ -572,7 +572,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                           {uploadingLogo ? 'Uploading...' : (selectedTeam.logo ? 'Change Logo' : '+ Add Logo')}
                         </button>
                       </div>
-                      <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                         Roster: {selectedTeam.players?.length || 0} players registered
                       </span>
                     </div>
@@ -583,9 +583,9 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                     type="button"
                     onClick={() => setShowBulkAdd(!showBulkAdd)}
                     style={{
-                      background: showBulkAdd ? 'rgba(255,255,255,0.1)' : 'rgba(234, 179, 8, 0.15)',
-                      color: showBulkAdd ? '#fff' : '#facc15',
-                      border: '1px solid rgba(234, 179, 8, 0.3)',
+                      background: showBulkAdd ? 'rgba(255,255,255,0.1)' : 'rgba(255,201,40,0.15)',
+                      color: showBulkAdd ? '#fff' : 'var(--brand-gold)',
+                      border: '1px solid rgba(255,201,40,0.3)',
                       borderRadius: '8px', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
                     }}
                   >
@@ -595,8 +595,8 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
 
                 {/* Bulk Import Box */}
                 {showBulkAdd && (
-                  <form onSubmit={handleBulkAdd} style={{ background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.25)', borderRadius: '10px', padding: '14px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#facc15', textTransform: 'uppercase' }}>
+                  <form onSubmit={handleBulkAdd} style={{ background: 'rgba(255,201,40,0.06)', border: '1px solid rgba(255,201,40,0.25)', borderRadius: '10px', padding: '14px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-gold)', textTransform: 'uppercase' }}>
                       ⚡ Paste Squad Player Names (comma or line separated):
                     </label>
                     <textarea
@@ -607,8 +607,8 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                       style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '0.85rem', resize: 'vertical' }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      <button type="button" onClick={() => setShowBulkAdd(false)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#cbd5e1', borderRadius: '6px', padding: '6px 12px', fontSize: '0.75rem', cursor: 'pointer' }}>Cancel</button>
-                      <button type="submit" disabled={loading} style={{ background: '#facc15', color: '#000', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
+                      <button type="button" onClick={() => setShowBulkAdd(false)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-primary)', borderRadius: '6px', padding: '6px 12px', fontSize: '0.75rem', cursor: 'pointer' }}>Cancel</button>
+                      <button type="submit" disabled={loading} style={{ background: 'var(--brand-gold)', color: '#000', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
                         {loading ? 'Adding...' : 'Add All to Squad'}
                       </button>
                     </div>
@@ -627,7 +627,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                   <select
                     value={playerRole}
                     onChange={e => setPlayerRole(e.target.value)}
-                    style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '0.8rem' }}
+                    style={{ background: 'var(--bg-main)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 10px', borderRadius: '6px', fontSize: '0.8rem' }}
                   >
                     {ROLE_OPTIONS.map(r => (
                       <option key={r.value} value={r.value}>{r.label}</option>
@@ -643,7 +643,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                   <button
                     type="submit"
                     disabled={loading}
-                    style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    style={{ background: 'var(--brand-electric)', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
                   >
                     + Add
                   </button>
@@ -652,7 +652,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                 {/* Players List Table */}
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                   {(!selectedTeam.players || selectedTeam.players.length === 0) ? (
-                    <div style={{ textAlign: 'center', padding: '36px 12px', color: '#64748b', fontSize: '0.85rem' }}>
+                    <div style={{ textAlign: 'center', padding: '36px 12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       No players in this squad yet.<br />
                       Type a player name above or click <strong>⚡ Bulk Import Names</strong> to add your team roster!
                     </div>
@@ -671,14 +671,14 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, width: '20px' }}>
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700, width: '20px' }}>
                                 #{index + 1}
                               </span>
                               <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 600 }}>
                                 {p.name}
                               </span>
                               {p.jerseyNumber && (
-                                <span style={{ color: '#94a3b8', fontSize: '0.75rem', background: 'rgba(255,255,255,0.06)', padding: '1px 5px', borderRadius: '4px' }}>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', background: 'rgba(255,255,255,0.06)', padding: '1px 5px', borderRadius: '4px' }}>
                                   #{p.jerseyNumber}
                                 </span>
                               )}
@@ -688,14 +688,14 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                               <span style={{
                                 color: roleMeta.color, background: roleMeta.bg,
                                 fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
-                                border: `1px solid ${roleMeta.color}33`
+                                border: '1px solid var(--border-default)'
                               }}>
                                 {roleMeta.label}
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleDeletePlayer(pId, p.name)}
-                                style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem', padding: '2px 6px' }}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.85rem', padding: '2px 6px' }}
                                 title="Remove Player"
                               >
                                 ✕

@@ -35,7 +35,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
       backdropFilter: 'blur(16px)',
     }}>
       <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'var(--bg-secondary)',
         border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: 20,
         padding: '36px 32px',
@@ -58,7 +58,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
           <>
             <div style={{ marginBottom: 20 }}>
               <div style={{
-                color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 700,
+                color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 700,
                 letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
               }}>WHO WON THE TOSS?</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -66,9 +66,9 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                   <button key={team} onClick={() => setTossWinner(team)} style={{
                     padding: '14px 8px',
                     borderRadius: 10,
-                    border: tossWinner === team ? '2px solid #facc15' : '1px solid rgba(255,255,255,0.12)',
-                    background: tossWinner === team ? 'rgba(250,204,21,0.15)' : 'rgba(255,255,255,0.04)',
-                    color: tossWinner === team ? '#facc15' : '#fff',
+                    border: tossWinner === team ? '2px solid var(--brand-gold)' : '1px solid rgba(255,255,255,0.12)',
+                    background: tossWinner === team ? 'rgba(255,201,40,0.15)' : 'rgba(255,255,255,0.04)',
+                    color: tossWinner === team ? 'var(--brand-gold)' : '#fff',
                     fontWeight: 700, fontSize: 13, cursor: 'pointer',
                     transition: 'all 0.15s',
                     textTransform: 'uppercase',
@@ -82,8 +82,8 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
               disabled={!tossWinner}
               style={{
                 width: '100%', padding: '14px',
-                background: tossWinner ? 'linear-gradient(90deg, #facc15, #f59e0b)' : 'rgba(255,255,255,0.06)',
-                color: tossWinner ? '#000' : 'rgba(255,255,255,0.3)',
+                background: tossWinner ? 'var(--brand-gold)' : 'rgba(255,255,255,0.06)',
+                color: tossWinner ? 'var(--text-on-gold)' : 'rgba(255,255,255,0.3)',
                 border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 13,
                 cursor: tossWinner ? 'pointer' : 'not-allowed',
                 letterSpacing: '0.08em',
@@ -95,12 +95,12 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
           <>
             <div style={{
               textAlign: 'center', marginBottom: 16,
-              color: '#facc15', fontWeight: 700, fontSize: 14,
+              color: 'var(--brand-gold)', fontWeight: 700, fontSize: 14,
             }}>{tossWinner} won the toss</div>
 
             <div style={{ marginBottom: 20 }}>
               <div style={{
-                color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 700,
+                color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 700,
                 letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
               }}>CHOSE TO...</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -123,9 +123,9 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                 background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)',
                 borderRadius: 10, padding: '12px 16px', marginBottom: 16, textAlign: 'center',
               }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, marginBottom: 4 }}>RESULT</div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>RESULT</div>
                 <div style={{ color: '#4ade80', fontWeight: 700, fontSize: 14 }}>🏏 {getBattingTeam()} BATS FIRST</div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>🎳 {getBowlingTeam()} BOWLS</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>🎳 {getBowlingTeam()} BOWLS</div>
               </div>
             )}
 
@@ -140,8 +140,8 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                 disabled={!tossDecision}
                 style={{
                   padding: '12px',
-                  background: tossDecision ? 'linear-gradient(90deg, #22c55e, #16a34a)' : 'rgba(255,255,255,0.06)',
-                  color: tossDecision ? '#fff' : 'rgba(255,255,255,0.3)',
+                  background: tossDecision ? 'var(--brand-gold)' : 'rgba(255,255,255,0.06)',
+                  color: tossDecision ? 'var(--text-on-gold)' : 'rgba(255,255,255,0.3)',
                   border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12,
                   cursor: tossDecision ? 'pointer' : 'not-allowed',
                   letterSpacing: '0.08em',

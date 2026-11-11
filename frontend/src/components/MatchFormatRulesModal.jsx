@@ -88,18 +88,18 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
     }}>
       <div style={{
-        background: '#0f172a', border: '1px solid #334155', borderRadius: 12,
+        background: 'var(--bg-main)', border: '1px solid var(--bg-elevated)', borderRadius: 12,
         maxWidth: 480, width: '100%', padding: 20, display: 'flex', flexDirection: 'column', gap: 14,
         boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, color: '#facc15', fontSize: 16, fontWeight: 800 }}>
+          <h3 style={{ margin: 0, color: 'var(--brand-gold)', fontSize: 16, fontWeight: 800 }}>
             ⚙ MATCH FORMAT & PLAYING CONDITIONS
           </h3>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer' }}
           >
             ✕
           </button>
@@ -107,7 +107,7 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
 
         {/* Format Select */}
         <div>
-          <label style={{ display: 'block', color: '#cbd5e1', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+          <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
             Select Match Format / Competition:
           </label>
           <select
@@ -123,7 +123,7 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
             }}
             style={{
               width: '100%', padding: '9px 12px', borderRadius: 8,
-              background: '#1e293b', border: '1px solid #475569',
+              background: 'var(--bg-card)', border: '1px solid var(--text-muted)',
               color: '#fff', fontSize: 13,
             }}
           >
@@ -137,7 +137,7 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
         {selectedFormat === 'CUSTOM' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
-              <label style={{ color: '#94a3b8', fontSize: 11, display: 'block', marginBottom: 4 }}>Total Overs:</label>
+              <label style={{ color: 'var(--text-secondary)', fontSize: 12, display: 'block', marginBottom: 4 }}>Total Overs:</label>
               <input
                 type="number"
                 min={1}
@@ -146,12 +146,12 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
                 onChange={e => setMaxOvers(parseInt(e.target.value, 10) || 20)}
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: 6,
-                  background: '#1e293b', border: '1px solid #475569', color: '#fff', fontSize: 12,
+                  background: 'var(--bg-card)', border: '1px solid var(--text-muted)', color: '#fff', fontSize: 12,
                 }}
               />
             </div>
             <div>
-              <label style={{ color: '#94a3b8', fontSize: 11, display: 'block', marginBottom: 4 }}>Max Overs / Bowler:</label>
+              <label style={{ color: 'var(--text-secondary)', fontSize: 12, display: 'block', marginBottom: 4 }}>Max Overs / Bowler:</label>
               <input
                 type="number"
                 min={1}
@@ -160,7 +160,7 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
                 onChange={e => setBowlerLimit(parseInt(e.target.value, 10) || 4)}
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: 6,
-                  background: '#1e293b', border: '1px solid #475569', color: '#fff', fontSize: 12,
+                  background: 'var(--bg-card)', border: '1px solid var(--text-muted)', color: '#fff', fontSize: 12,
                 }}
               />
             </div>
@@ -170,14 +170,14 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
         {/* Free Hit Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: 8 }}>
           <div>
-            <div style={{ color: '#f1f5f9', fontSize: 12, fontWeight: 700 }}>Free Hit on No-Ball</div>
-            <div style={{ color: '#94a3b8', fontSize: 11 }}>Next delivery is free hit after every no-ball</div>
+            <div style={{ color: 'var(--text-primary)', fontSize: 12, fontWeight: 700 }}>Free Hit on No-Ball</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>Next delivery is free hit after every no-ball</div>
           </div>
           <input
             type="checkbox"
             checked={freeHitEnabled}
             onChange={e => setFreeHitEnabled(e.target.checked)}
-            style={{ width: 18, height: 18, accentColor: '#f97316', cursor: 'pointer' }}
+            style={{ width: 18, height: 18, accentColor: 'var(--status-warning)', cursor: 'pointer' }}
           />
         </div>
 
@@ -193,8 +193,8 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
             type="button"
             onClick={onClose}
             style={{
-              flex: 1, padding: '10px', borderRadius: 8, background: '#334155',
-              border: 'none', color: '#cbd5e1', fontWeight: 600, fontSize: 12, cursor: 'pointer',
+              flex: 1, padding: '10px', borderRadius: 8, background: 'var(--bg-elevated)',
+              border: 'none', color: 'var(--text-primary)', fontWeight: 600, fontSize: 12, cursor: 'pointer',
             }}
           >
             Cancel
@@ -205,7 +205,7 @@ const MatchFormatRulesModal = ({ matchId, currentFormat, isOpen, onClose, onUpda
             disabled={loading}
             style={{
               flex: 2, padding: '10px', borderRadius: 8,
-              background: loading ? '#475569' : 'linear-gradient(135deg, #eab308, #ca8a04)',
+              background: loading ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--brand-gold), var(--brand-gold))',
               border: 'none', color: '#000', fontWeight: 800, fontSize: 13,
               cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: 0.5,
             }}

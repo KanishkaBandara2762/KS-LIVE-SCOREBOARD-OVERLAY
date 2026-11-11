@@ -44,9 +44,9 @@ const getAbsoluteUrl = (url) => {
 };
 
 const STATUS_COLORS = {
-  live: { bg: '#22c55e', text: '#fff', label: '🔴 LIVE' },
+  live: { bg: 'var(--status-success)', text: '#fff', label: '🔴 LIVE' },
   ended: { bg: '#6b7280', text: '#fff', label: '🏁 ENDED' },
-  break: { bg: '#3b82f6', text: '#fff', label: '⏸ BREAK' },
+  break: { bg: 'var(--brand-electric)', text: '#fff', label: '⏸ BREAK' },
 };
 
 // ── Create Match Modal ────────────────────────────────────────────────────
@@ -146,24 +146,24 @@ function CreateMatchModal({ onClose, onCreate }) {
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-card" style={{ maxWidth: '500px', padding: '32px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em', margin: 0, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em', margin: 0, background: 'linear-gradient(135deg, var(--brand-sky), var(--brand-sky))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             CREATE A NEW MATCH
           </h2>
-          <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', margin: '12px auto 0', borderRadius: '4px' }} />
+          <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, var(--brand-electric), var(--brand-sky))', margin: '12px auto 0', borderRadius: '4px' }} />
         </div>
         
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Team A Name</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Team A Name</label>
               <input name="team1Name" value={form.team1Name} onChange={handleChange} placeholder="e.g. COLOMBO KINGS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
               <div 
                 onClick={() => file1Ref.current?.click()} 
-                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(59,130,246,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(59,130,246,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(22,119,255,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(22,119,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
                 {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
               </div>
@@ -172,58 +172,58 @@ function CreateMatchModal({ onClose, onCreate }) {
           </div>
 
           <div style={{ textAlign: 'center', margin: '-16px 0', position: 'relative', zIndex: 2 }}>
-            <span style={{ background: '#0d1b35', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: '#facc15', border: '1px solid rgba(234,179,8,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
+            <span style={{ background: '#0d1b35', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--brand-gold)', border: '1px solid rgba(255,201,40,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
               <div 
                 onClick={() => file2Ref.current?.click()} 
-                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(167,139,250,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(167,139,250,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(57,169,255,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(57,169,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
                 {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
               </div>
               <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em', textAlign: 'right' }}>Team B Name</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em', textAlign: 'right' }}>Team B Name</label>
               <input name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="e.g. KANDY TUSKERS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'right' }} />
             </div>
           </div>
 
           <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
               <input type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Balls/Over</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Balls/Over</label>
               <input type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
             </div>
           </div>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Toss Won By</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Toss Won By</span>
               <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
-                <button type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team1' ? '#3b82f6' : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team A</button>
-                <button type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team2' ? '#8b5cf6' : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team B</button>
+                <button type="button" onClick={() => setForm({...form, tossWinner: 'team1'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team1' ? 'var(--brand-electric)' : 'transparent', color: form.tossWinner === 'team1' ? '#fff' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team A</button>
+                <button type="button" onClick={() => setForm({...form, tossWinner: 'team2'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossWinner === 'team2' ? 'var(--brand-sky)' : 'transparent', color: form.tossWinner === 'team2' ? '#fff' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Team B</button>
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opted To</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opted To</span>
               <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
-                <button type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bat' ? '#22c55e' : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bat</button>
-                <button type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bowl' ? '#ef4444' : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bowl</button>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bat' ? 'var(--status-success)' : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bat</button>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bowl' ? 'var(--status-error)' : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bowl</button>
               </div>
             </div>
           </div>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Match Type</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Match Type</label>
             <select name="matchType" value={form.matchType} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
               <option value="Group">Group Stage</option>
               <option value="Knockout">Knockout</option>
@@ -452,11 +452,11 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-card" style={{ maxWidth: '540px', padding: '32px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em', margin: 0, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em', margin: 0, background: 'linear-gradient(135deg, var(--brand-sky), var(--brand-sky))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             START NEXT MATCH
           </h2>
-          <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tournament.name}</div>
-          <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', margin: '12px auto 0', borderRadius: '4px' }} />
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{tournament.name}</div>
+          <div style={{ width: '60px', height: '4px', background: 'linear-gradient(90deg, var(--brand-electric), var(--brand-sky))', margin: '12px auto 0', borderRadius: '4px' }} />
         </div>
 
         {/* Team Selection Mode Toggle (if tournament has teams) */}
@@ -467,8 +467,8 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
               onClick={() => setUseTournamentTeams(true)}
               style={{
                 flex: 1, padding: '8px 12px', border: 'none', borderRadius: '8px',
-                background: useTournamentTeams ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
-                color: useTournamentTeams ? '#fff' : '#94a3b8',
+                background: useTournamentTeams ? 'linear-gradient(135deg, var(--brand-electric), var(--brand-royal))' : 'transparent',
+                color: useTournamentTeams ? '#fff' : 'var(--text-secondary)',
                 fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
@@ -480,7 +480,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
               style={{
                 flex: 1, padding: '8px 12px', border: 'none', borderRadius: '8px',
                 background: !useTournamentTeams ? 'rgba(255,255,255,0.1)' : 'transparent',
-                color: !useTournamentTeams ? '#fff' : '#94a3b8',
+                color: !useTournamentTeams ? '#fff' : 'var(--text-secondary)',
                 fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
@@ -488,7 +488,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
             </button>
           </div>
         ) : (
-          <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.8rem', color: '#93c5fd', marginBottom: '20px' }}>
+          <div style={{ background: 'rgba(22,119,255,0.08)', border: '1px solid rgba(22,119,255,0.2)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.8rem', color: 'var(--brand-sky)', marginBottom: '20px' }}>
             💡 <strong>Tip:</strong> Click <strong>Teams & Squads</strong> on the tournament card to add teams and players for 1-click squad selection!
           </div>
         )}
@@ -499,9 +499,9 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Team A (Home)</label>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Team A (Home)</label>
                 {useTournamentTeams && selectedTeam1 && (
-                  <span style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: 700, background: 'rgba(59,130,246,0.12)', padding: '1px 6px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--brand-sky)', fontWeight: 700, background: 'rgba(22,119,255,0.12)', padding: '1px 6px', borderRadius: '4px' }}>
                     {selectedTeam1.players?.length || 0} players loaded
                   </span>
                 )}
@@ -533,10 +533,10 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
               <div 
                 onClick={() => file1Ref.current?.click()} 
-                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(59,130,246,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(59,130,246,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(22,119,255,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(22,119,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
                 {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
               </div>
@@ -546,16 +546,16 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 
           {/* VS Divider */}
           <div style={{ textAlign: 'center', margin: '-14px 0', position: 'relative', zIndex: 2 }}>
-            <span style={{ background: '#0d1b35', padding: '4px 14px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: '#facc15', border: '1px solid rgba(234,179,8,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
+            <span style={{ background: '#0d1b35', padding: '4px 14px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--brand-gold)', border: '1px solid rgba(255,201,40,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>VS</span>
           </div>
 
           {/* Team B Box */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</label>
               <div 
                 onClick={() => file2Ref.current?.click()} 
-                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(167,139,250,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(167,139,250,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
+                style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(57,169,255,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(57,169,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
                 {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
               </div>
@@ -565,11 +565,11 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 {useTournamentTeams && selectedTeam2 && (
-                  <span style={{ fontSize: '0.7rem', color: '#a78bfa', fontWeight: 700, background: 'rgba(167,139,250,0.12)', padding: '1px 6px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--brand-sky)', fontWeight: 700, background: 'rgba(57,169,255,0.12)', padding: '1px 6px', borderRadius: '4px' }}>
                     {selectedTeam2.players?.length || 0} players loaded
                   </span>
                 )}
-                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginLeft: 'auto' }}>Team B (Away)</label>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginLeft: 'auto' }}>Team B (Away)</label>
               </div>
 
               {useTournamentTeams && hasTeams ? (
@@ -601,12 +601,12 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
           {/* Overs & Balls */}
           <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Overs</label>
               <input type="number" name="maxOvers" value={form.maxOvers} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Balls/Over</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Balls/Over</label>
               <input type="number" name="ballsPerOver" value={form.ballsPerOver} onChange={handleChange} className="form-input" style={{ fontSize: '1.2rem', fontWeight: 800, textAlign: 'center', background: 'rgba(0,0,0,0.2)' }} />
             </div>
           </div>
@@ -614,15 +614,15 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
           {/* Toss Box */}
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Toss Won By</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Toss Won By</span>
               <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px', maxWidth: '65%' }}>
                 <button
                   type="button"
                   onClick={() => setForm({...form, tossWinner: 'team1'})}
                   style={{
                     padding: '8px 16px', borderRadius: '8px', border: 'none',
-                    background: form.tossWinner === 'team1' ? '#3b82f6' : 'transparent',
-                    color: form.tossWinner === 'team1' ? '#fff' : '#94a3b8',
+                    background: form.tossWinner === 'team1' ? 'var(--brand-electric)' : 'transparent',
+                    color: form.tossWinner === 'team1' ? '#fff' : 'var(--text-secondary)',
                     fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                   }}
@@ -635,8 +635,8 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
                   onClick={() => setForm({...form, tossWinner: 'team2'})}
                   style={{
                     padding: '8px 16px', borderRadius: '8px', border: 'none',
-                    background: form.tossWinner === 'team2' ? '#8b5cf6' : 'transparent',
-                    color: form.tossWinner === 'team2' ? '#fff' : '#94a3b8',
+                    background: form.tossWinner === 'team2' ? 'var(--brand-sky)' : 'transparent',
+                    color: form.tossWinner === 'team2' ? '#fff' : 'var(--text-secondary)',
                     fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                   }}
@@ -648,16 +648,16 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opted To</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opted To</span>
               <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px' }}>
-                <button type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bat' ? '#22c55e' : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bat</button>
-                <button type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bowl' ? '#ef4444' : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : '#94a3b8', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bowl</button>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bat'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bat' ? 'var(--status-success)' : 'transparent', color: form.tossDecision === 'bat' ? '#fff' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bat</button>
+                <button type="button" onClick={() => setForm({...form, tossDecision: 'bowl'})} style={{ padding: '8px 24px', borderRadius: '8px', border: 'none', background: form.tossDecision === 'bowl' ? 'var(--status-error)' : 'transparent', color: form.tossDecision === 'bowl' ? '#fff' : 'var(--text-secondary)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>Bowl</button>
               </div>
             </div>
           </div>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Match Type</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Match Type</label>
             <select name="matchType" value={form.matchType} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
               <option value="Group">Group Stage</option>
               <option value="Knockout">Knockout</option>
@@ -669,7 +669,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
           </div>
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Theme</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Theme</label>
             <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
               {THEMES.map(t => (
                 <option key={t.id} value={t.id}>{t.label}</option>
@@ -681,7 +681,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
             <button type="button" className="btn-secondary" style={{ flex: 1, padding: '14px', borderRadius: '12px', fontWeight: 700 }} onClick={() => onClose()}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={loading} style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 800, background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', boxShadow: '0 4px 15px rgba(59,130,246,0.4)' }}>
+            <button type="submit" className="btn-primary" disabled={loading} style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 800, background: 'linear-gradient(135deg, var(--brand-electric), var(--brand-sky))', border: 'none', boxShadow: '0 4px 15px rgba(22,119,255,0.4)' }}>
               {loading ? '⏳ Starting Match...' : '🚀 Start Next Match'}
             </button>
           </div>
@@ -820,7 +820,7 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
         </div>
         <div className="meta-row">
           <span>Teams:</span>
-          <strong style={{ color: tournament.teams?.length ? "#60a5fa" : "#94a3b8" }}>{tournament.teams?.length || 0} teams</strong>
+          <strong style={{ color: tournament.teams?.length ? "var(--brand-sky)" : "var(--text-secondary)" }}>{tournament.teams?.length || 0} teams</strong>
         </div>
         <div className="meta-row">
           <span>Total Matches:</span>
@@ -854,9 +854,9 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
             </button>
           </>
         ) : (
-          <span style={{ fontSize: '0.85rem', color: '#64748b', alignSelf: 'center', flex: 1, textAlign: 'center' }}>No live match active.</span>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', alignSelf: 'center', flex: 1, textAlign: 'center' }}>No live match active.</span>
         )}
-        <button className="btn-secondary" style={{ padding: "8px 12px", fontSize: "0.8rem", fontWeight: 800, background: "rgba(59,130,246,0.15)", borderColor: "rgba(59,130,246,0.3)", color: "#60a5fa" }} onClick={() => onManageTeams(tournament)}>
+        <button className="btn-secondary" style={{ padding: "8px 12px", fontSize: "0.8rem", fontWeight: 800, background: "rgba(22,119,255,0.15)", borderColor: "rgba(22,119,255,0.3)", color: "var(--brand-sky)" }} onClick={() => onManageTeams(tournament)}>
           👥 Teams & Squads ({tournament.teams?.length || 0})
         </button>
         <button className="btn-mini" onClick={() => onStartNextMatch(tournament)}>
@@ -1006,7 +1006,7 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="dashboard">
+    <div className="dashboard ks-app">
       {/* Header */}
       <header className="dash-header">
         <div className="dash-header-left">
@@ -1023,19 +1023,19 @@ const Dashboard = () => {
         </div>
         <div className="dash-header-right">
           {isAdminRole(currentUser?.role) && (
-            <button className="btn-create-match" onClick={() => navigate('/admin/customers')} style={{ marginRight: '10px', background: '#38bdf8', color: '#000' }}>
+            <button className="btn-create-match" onClick={() => navigate('/admin/customers')} style={{ marginRight: '10px', background: 'var(--brand-sky)', color: '#000' }}>
               Super Admin
             </button>
           )}
           {!isAdminRole(currentUser?.role) && (
-            <button className="btn-create-match" onClick={() => navigate('/pricing')} style={{ marginRight: '10px', background: '#eab308', color: '#000' }}>
+            <button className="btn-create-match" onClick={() => navigate('/pricing')} style={{ marginRight: '10px', background: 'var(--brand-gold)', color: '#000' }}>
               {currentUser?.plan === 'free' ? 'Upgrade Plan' : 'Renew / Change Plan'}
             </button>
           )}
-          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }}>
+          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
             🏆 Create Tournament
           </button>
-          <button className="btn-create-match" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(148,163,184,0.45)' }}>
+          <button className="btn-create-match" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(168,184,204,0.45)' }}>
             ⚙ Account
           </button>
           <button className="btn-logout" onClick={handleLogout}>Sign Out</button>
@@ -1060,6 +1060,14 @@ const Dashboard = () => {
         <div className="stat-item">
           <span className="stat-num">{matches.filter(m => m.status === 'live').length}</span>
           <span className="stat-label">Live Matches</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-num">{matches.filter(m => m.status === 'completed').length}</span>
+          <span className="stat-label">Completed</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-num">{tournaments.reduce((n, t) => n + (Array.isArray(t.teams) ? t.teams.length : 0), 0)}</span>
+          <span className="stat-label">Teams</span>
         </div>
         <div className="stat-item stat-item-info">
           <span className="stat-num">{isAdminRole(currentUser?.role) ? '∞' : (currentUser?.matchCredits ?? 0)}</span>
@@ -1091,12 +1099,12 @@ const Dashboard = () => {
           onChange={(e) => setSearch(e.target.value)}
         />
         {activeTab === 'tournaments' && (
-          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000', whiteSpace: 'nowrap' }}>
+          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000', whiteSpace: 'nowrap' }}>
             🏆 New Tournament
           </button>
         )}
         {activeTab === 'matches' && (
-          <button className="btn-create-match" onClick={() => setShowCreate(true)} style={{ background: '#facc15', color: '#000', whiteSpace: 'nowrap' }}>
+          <button className="btn-create-match" onClick={() => setShowCreate(true)} style={{ background: 'var(--brand-gold)', color: '#000', whiteSpace: 'nowrap' }}>
             🏏 New Match
           </button>
         )}
@@ -1136,7 +1144,7 @@ const Dashboard = () => {
                   : 'Try clearing your search term.'}
                 </p>
                 {tournaments.length === 0 && (
-                  <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }}>
+                  <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
                     🏆 Create First Tournament
                   </button>
                 )}
@@ -1191,7 +1199,7 @@ const Dashboard = () => {
                   : 'Try clearing your search or filter.'}
                 </p>
                 {matches.length === 0 && (
-                  <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: '#facc15', color: '#000' }}>
+                  <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
                     🏆 Create Tournament
                   </button>
                 )}

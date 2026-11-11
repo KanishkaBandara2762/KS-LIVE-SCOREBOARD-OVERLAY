@@ -35,7 +35,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
       backdropFilter: 'blur(12px)',
     }}>
       <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'var(--bg-secondary)',
         border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: 16,
         padding: '28px 24px',
@@ -50,7 +50,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
               color: '#fff', fontSize: 16, fontWeight: 800,
               margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em',
             }}>CHOOSE BATTER</h3>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, margin: '4px 0 0' }}>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, margin: '4px 0 0' }}>
               {slotLabel || 'Incoming Player'} — Tap from squad or type name
             </p>
           </div>
@@ -58,7 +58,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
             <button
               type="button"
               onClick={onClose}
-              style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', padding: 4 }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer', padding: 4 }}
             >✕</button>
           )}
         </div>
@@ -68,13 +68,13 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
             background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
             borderRadius: 8, padding: '6px 12px', marginBottom: 14, textAlign: 'center',
           }}>
-            <span style={{ color: '#f87171', fontSize: 11, fontWeight: 700 }}>OUT: {outPlayerName}</span>
+            <span style={{ color: '#f87171', fontSize: 12, fontWeight: 700 }}>OUT: {outPlayerName}</span>
           </div>
         )}
 
         {/* Squad list */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ color: '#facc15', fontSize: 10, fontWeight: 800, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          <div style={{ color: 'var(--brand-gold)', fontSize: 12, fontWeight: 800, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             ⚡ TEAM SQUAD PLAYERS ({displayPlayers.length})
           </div>
 
@@ -94,9 +94,9 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
                     width: '100%', textAlign: 'left',
                     padding: '10px 12px',
                     borderRadius: 10,
-                    border: isSelected ? '1.5px solid #facc15' : '1px solid rgba(255,255,255,0.08)',
-                    background: isSelected ? 'rgba(250,204,21,0.15)' : 'rgba(255,255,255,0.03)',
-                    color: isSelected ? '#facc15' : '#fff',
+                    border: isSelected ? '1.5px solid var(--brand-gold)' : '1px solid rgba(255,255,255,0.08)',
+                    background: isSelected ? 'rgba(255,201,40,0.15)' : 'rgba(255,255,255,0.03)',
+                    color: isSelected ? 'var(--brand-gold)' : '#fff',
                     fontWeight: isSelected ? 800 : 600,
                     fontSize: 13, cursor: 'pointer',
                     transition: 'all 0.12s',
@@ -104,17 +104,17 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ opacity: 0.4, fontSize: 11 }}>{i + 1}.</span>
+                    <span style={{ opacity: 0.4, fontSize: 12 }}>{i + 1}.</span>
                     <span style={{ textTransform: 'uppercase' }}>{name}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {isRetiredHurt && (
-                      <span style={{ fontSize: 9, color: '#38bdf8', background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
+                      <span style={{ fontSize: 12, color: 'var(--brand-sky)', background: 'rgba(57,169,255,0.15)', border: '1px solid rgba(57,169,255,0.3)', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
                         RETIRED HURT
                       </span>
                     )}
                     {role && (
-                      <span style={{ fontSize: 10, opacity: 0.6, background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 4 }}>
+                      <span style={{ fontSize: 12, opacity: 0.6, background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 4 }}>
                         {role}
                       </span>
                     )}
@@ -131,7 +131,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
 
         {/* Custom name input */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 700, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             OR TYPE CUSTOM NAME
           </div>
           <input
@@ -170,8 +170,8 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
             disabled={!selected && !customName.trim()}
             style={{
               padding: '12px',
-              background: (selected || customName.trim()) ? 'linear-gradient(90deg, #facc15, #f59e0b)' : 'rgba(255,255,255,0.06)',
-              color: (selected || customName.trim()) ? '#000' : 'rgba(255,255,255,0.3)',
+              background: (selected || customName.trim()) ? 'var(--brand-gold)' : 'rgba(255,255,255,0.06)',
+              color: (selected || customName.trim()) ? 'var(--text-on-gold)' : 'rgba(255,255,255,0.3)',
               border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12,
               cursor: (selected || customName.trim()) ? 'pointer' : 'not-allowed',
               letterSpacing: '0.06em',

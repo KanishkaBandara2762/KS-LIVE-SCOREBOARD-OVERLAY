@@ -822,35 +822,35 @@ const legalBallCount = match.legalBallCount || 0;
   const isOverReady = legalBallCount >= match.ballsPerOver;
 
   return (
-    <div className="p-8 bg-slate-100 min-h-screen font-sans text-slate-800 uppercase">
+    <div className="ks-app ks-tw p-8 bg-slate-100 min-h-screen font-sans text-slate-800 uppercase">
       <div className="max-w-6xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden border border-slate-200">
 
         {/* HEADER NAVIGATION */}
-        <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
-          <div className="flex items-center gap-4">
+        <div className="bg-slate-900 p-4 text-white flex flex-wrap gap-3 justify-between items-center">
+          <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <img src="/ks_logo.png" alt="KS Logo" className="h-7 w-auto object-contain" />
-            <h1 className="font-bold tracking-tighter text-yellow-400 text-xl italic">{t("admin.header")}</h1>
+            <h1 className="font-bold tracking-tighter text-yellow-400 text-xl">{t("admin.header")}</h1>
           </div>
-            <div className="flex gap-2 ml-4">
-              <button onClick={async () => { if (await ensureBroadcastLink({ matchId: matchDbId, locked: match.broadcastLocked || Boolean(match.tournamentId) })) window.open(`/overlay/${matchDbId}`, '_blank'); }} className="text-[10px] bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay ↗</button>
+            <div className="flex flex-wrap gap-2 ml-4">
+              <button onClick={async () => { if (await ensureBroadcastLink({ matchId: matchDbId, locked: match.broadcastLocked || Boolean(match.tournamentId) })) window.open(`/overlay/${matchDbId}`, '_blank'); }} className="text-xs bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay ↗</button>
               {match.tournamentId && (
-                <button onClick={async () => { if (await ensureBroadcastLink({ tournamentId: match.tournamentId, locked: true })) window.open(`/overlay/tournament/${match.tournamentId}`, '_blank'); }} className="text-[10px] bg-amber-500/20 text-amber-300 px-3 py-1 rounded hover:bg-amber-500/30 font-black border border-amber-500/30">Tournament Overlay ↗</button>
+                <button onClick={async () => { if (await ensureBroadcastLink({ tournamentId: match.tournamentId, locked: true })) window.open(`/overlay/tournament/${match.tournamentId}`, '_blank'); }} className="text-xs bg-amber-500/20 text-amber-300 px-3 py-1 rounded hover:bg-amber-500/30 font-black border border-amber-500/30">Tournament Overlay ↗</button>
               )}
-              <button onClick={() => window.open(`/teams/${matchDbId}`, '_blank')} className="text-[10px] bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Teams ↗</button>
-              <button onClick={() => window.open(`/mini-admin/${matchDbId}`, 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-[10px] bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini ⚡</button>
-              <button onClick={() => navigate('/dashboard')} className="text-[10px] bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-500 font-black text-white">← Dashboard</button>
+              <button onClick={() => window.open(`/teams/${matchDbId}`, '_blank')} className="text-xs bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Teams ↗</button>
+              <button onClick={() => window.open(`/mini-admin/${matchDbId}`, 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-xs bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini ⚡</button>
+              <button onClick={() => navigate('/dashboard')} className="text-xs bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-500 font-black text-white">← Dashboard</button>
             </div>
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center">
             <LanguageSwitcher compact />
-            <button onClick={() => navigate('/account')} className="bg-slate-700 text-white px-3 py-1 rounded text-[10px] font-black shadow-lg">⚙ Account</button>
+            <button onClick={() => navigate('/account')} className="bg-slate-700 text-white px-3 py-1 rounded text-xs font-black shadow-lg">⚙ Account</button>
             {match.tournamentId && (
-              <button onClick={() => setShowNextMatch(true)} className="bg-yellow-500 px-3 py-1 rounded text-[10px] font-black shadow-lg text-black animate-pulse">🚀 NEXT MATCH</button>
+              <button onClick={() => setShowNextMatch(true)} className="bg-yellow-500 px-3 py-1 rounded text-xs font-black shadow-lg text-black animate-pulse">🚀 NEXT MATCH</button>
             )}
-            <button onClick={handleNewMatch} className="bg-blue-600 px-3 py-1 rounded text-[10px] font-black shadow-lg">Match</button>
-            <button onClick={handleNewInnings} className="bg-orange-500 px-3 py-1 rounded text-[10px] font-black shadow-lg">Innings</button>
-            <button onClick={handleSuperOver} className="bg-red-500 px-3 py-1 rounded text-[10px] font-black shadow-lg">Super Over</button>
+            <button onClick={handleNewMatch} className="bg-blue-600 px-3 py-1 rounded text-xs font-black shadow-lg">Match</button>
+            <button onClick={handleNewInnings} className="bg-orange-500 px-3 py-1 rounded text-xs font-black shadow-lg">Innings</button>
+            <button onClick={handleSuperOver} className="bg-red-500 px-3 py-1 rounded text-xs font-black shadow-lg">Super Over</button>
             <button onClick={handleUndo} className="bg-white/10 px-4 py-1 rounded text-xs font-bold border border-white/20">Undo (U)</button>
           </div>
         </div>
@@ -860,9 +860,9 @@ const legalBallCount = match.legalBallCount || 0;
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-black tracking-[0.15em] text-slate-300">LIVE OVERLAY MONITOR</span>
+              <span className="text-xs font-black tracking-[0.15em] text-slate-300">LIVE OVERLAY MONITOR</span>
             </div>
-            <button onClick={() => setShowLivePreview(p => !p)} className="text-[10px] font-bold px-3 py-1 bg-white/10 text-white hover:bg-white/20 rounded border border-white/10">
+            <button onClick={() => setShowLivePreview(p => !p)} className="text-xs font-bold px-3 py-1 bg-white/10 text-white hover:bg-white/20 rounded border border-white/10">
               {showLivePreview ? "Hide Preview ▲" : "Show Preview ▼"}
             </button>
           </div>
@@ -874,7 +874,7 @@ const legalBallCount = match.legalBallCount || 0;
                 className="absolute top-0 left-0 w-full h-full"
                 style={{ border: 'none', pointerEvents: 'none' }}
               />
-              <div className="absolute bottom-2 right-2 bg-black/75 backdrop-blur px-2.5 py-1 rounded text-[8px] tracking-[0.1em] text-slate-400 border border-white/10 pointer-events-none">
+              <div className="absolute bottom-2 right-2 bg-black/75 backdrop-blur px-2.5 py-1 rounded text-xs tracking-[0.1em] text-slate-400 border border-white/10 pointer-events-none">
                 RESOLUTION SCALED TO VIEWPORT
               </div>
             </div>
@@ -888,27 +888,27 @@ const legalBallCount = match.legalBallCount || 0;
             {/* Added safely: overlay access helper without changing the existing overlay layout */}
             <div className="rounded border border-cyan-200 bg-cyan-50 p-3 text-left">
               <div className="flex items-center justify-between gap-3">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-cyan-700">{t("admin.overlayAccess")}</h3>
+                <h3 className="text-xs font-black uppercase tracking-widest text-cyan-700">{t("admin.overlayAccess")}</h3>
                 <button
                   type="button"
                   onClick={handleCopyOverlayUrl}
-                  className="rounded bg-cyan-600 px-2.5 py-1 text-[10px] font-black uppercase text-white hover:bg-cyan-700"
+                  className="rounded bg-cyan-600 px-2.5 py-1 text-xs font-black uppercase text-white hover:bg-cyan-700"
                 >
                   {overlayCopied ? t("common.copied") : t("common.copy")}
                 </button>
               </div>
-              <p className="mt-2 text-[10px] font-bold text-slate-600">{t("admin.overlayInstruction")}</p>
+              <p className="mt-2 text-xs font-bold text-slate-600">{t("admin.overlayInstruction")}</p>
               <input
                 readOnly
                 value={overlayUrl}
-                className="mt-2 w-full rounded border border-cyan-200 bg-white p-2 text-[11px] font-bold text-slate-700"
+                className="mt-2 w-full rounded border border-cyan-200 bg-white p-2 text-xs font-bold text-slate-700"
               />
               <div className="mt-3 flex items-center justify-between gap-3">
-                <div className="text-[10px] font-black uppercase text-slate-600">Match Key: <span className="text-cyan-700">{match.matchKey || "----"}</span></div>
+                <div className="text-xs font-black uppercase text-slate-600">Match Key: <span className="text-cyan-700">{match.matchKey || "----"}</span></div>
                 <button
                   type="button"
                   onClick={handleRegenerateMatchKey}
-                  className="rounded border border-cyan-300 bg-white px-2.5 py-1 text-[10px] font-black uppercase text-cyan-700 hover:bg-cyan-100"
+                  className="rounded border border-cyan-300 bg-white px-2.5 py-1 text-xs font-black uppercase text-cyan-700 hover:bg-cyan-100"
                 >
                   New Key
                 </button>
@@ -919,12 +919,12 @@ const legalBallCount = match.legalBallCount || 0;
             <div className="rounded border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 text-left shadow-sm">
               <div className="flex items-center gap-2 mb-2.5">
                 <span className="text-base">🔄</span>
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-800">OBS Overlay Refresh</h3>
+                <h3 className="text-xs font-black uppercase tracking-widest text-emerald-800">OBS Overlay Refresh</h3>
                 {refreshStatus === 'success' && (
-                  <span className="ml-auto text-[9px] font-black text-emerald-600 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full animate-pulse">✅ Success</span>
+                  <span className="ml-auto text-xs font-black text-emerald-600 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full animate-pulse">✅ Success</span>
                 )}
                 {refreshStatus === 'failed' && (
-                  <span className="ml-auto text-[9px] font-black text-red-600 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full">❌ Failed</span>
+                  <span className="ml-auto text-xs font-black text-red-600 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full">❌ Failed</span>
                 )}
               </div>
 
@@ -934,7 +934,7 @@ const legalBallCount = match.legalBallCount || 0;
                   type="button"
                   id="refresh-main-overlay-btn"
                   onClick={() => handleRefreshOverlay('main')}
-                  className="flex flex-col items-center justify-center gap-0.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded py-2 px-1 text-[9px] font-black uppercase tracking-wider shadow-md border-b-2 border-emerald-800 transition-all"
+                  className="flex flex-col items-center justify-center gap-0.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded py-2 px-1 text-xs font-black uppercase tracking-wider shadow-md border-b-2 border-emerald-800 transition-all"
                 >
                   <span className="text-base leading-none">📺</span>
                   <span>Refresh Main</span>
@@ -944,7 +944,7 @@ const legalBallCount = match.legalBallCount || 0;
                   type="button"
                   id="refresh-ballbyball-overlay-btn"
                   onClick={() => handleRefreshOverlay('ballByBall')}
-                  className="flex flex-col items-center justify-center gap-0.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white rounded py-2 px-1 text-[9px] font-black uppercase tracking-wider shadow-md border-b-2 border-teal-800 transition-all"
+                  className="flex flex-col items-center justify-center gap-0.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white rounded py-2 px-1 text-xs font-black uppercase tracking-wider shadow-md border-b-2 border-teal-800 transition-all"
                 >
                   <span className="text-base leading-none">🏏</span>
                   <span>Refresh Ball</span>
@@ -955,8 +955,8 @@ const legalBallCount = match.legalBallCount || 0;
               {/* Auto-refresh toggle */}
               <div className="flex items-center justify-between bg-white/70 border border-emerald-200 rounded px-2 py-1.5 mb-2">
                 <div>
-                  <p className="text-[9px] font-black text-emerald-800 uppercase tracking-wider">Auto-Refresh</p>
-                  <p className="text-[8px] font-medium text-slate-500">Every 30 seconds</p>
+                  <p className="text-xs font-black text-emerald-800 uppercase tracking-wider">Auto-Refresh</p>
+                  <p className="text-xs font-medium text-slate-500">Every 30 seconds</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -971,7 +971,7 @@ const legalBallCount = match.legalBallCount || 0;
               </div>
 
               {/* Last refresh time */}
-              <div className="flex items-center justify-between text-[9px] font-bold text-slate-500">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-500">
                 <span>Last Refresh:</span>
                 <span className={`font-black ${
                   lastRefreshTime ? 'text-emerald-700' : 'text-slate-400'
@@ -987,7 +987,7 @@ const legalBallCount = match.legalBallCount || 0;
             {isMongoDB(matchDbId) && (
               <div className="rounded border border-indigo-200 bg-indigo-50/50 p-3 text-left space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-700">🟢 Public Live Preview</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-indigo-700">🟢 Public Live Preview</h3>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -998,24 +998,24 @@ const legalBallCount = match.legalBallCount || 0;
                     <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                   </label>
                 </div>
-                <p className="text-[10px] font-medium text-slate-500 leading-tight">
+                <p className="text-xs font-medium text-slate-500 leading-tight">
                   Allow anyone to view this match live. Uncheck to lock visibility.
                 </p>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-indigo-700 tracking-wider uppercase block">Custom URL Slug</label>
+                  <label className="text-xs font-black text-indigo-700 tracking-wider uppercase block">Custom URL Slug</label>
                   <div className="flex gap-1.5">
                     <input
                       type="text"
                       value={localSlug}
                       onChange={(e) => setLocalSlug(e.target.value)}
                       placeholder="e.g. final-2026"
-                      className="w-full rounded border border-indigo-200 bg-white px-2 py-1 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-indigo-400"
+                      className="w-full rounded border border-indigo-200 bg-white px-2 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-400"
                     />
                     <button
                       type="button"
                       onClick={handleSaveSlug}
-                      className="rounded bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase text-white hover:bg-indigo-700 transition"
+                      className="rounded bg-indigo-600 px-3 py-1 text-xs font-black uppercase text-white hover:bg-indigo-700 transition"
                     >
                       Save
                     </button>
@@ -1024,11 +1024,11 @@ const legalBallCount = match.legalBallCount || 0;
 
                 <div className="pt-2 border-t border-indigo-100/50">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Shareable Preview Link</span>
+                    <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Shareable Preview Link</span>
                     <button
                       type="button"
                       onClick={handleCopyPublicUrl}
-                      className="text-[9px] font-black uppercase text-indigo-600 hover:text-indigo-800 transition"
+                      className="text-xs font-black uppercase text-indigo-600 hover:text-indigo-800 transition"
                     >
                       {publicCopied ? "Copied!" : "Copy"}
                     </button>
@@ -1036,14 +1036,14 @@ const legalBallCount = match.legalBallCount || 0;
                   <input
                     readOnly
                     value={`${window.location.origin}/live/match/${match.slug || matchDbId}`}
-                    className="mt-1 w-full rounded border border-slate-200 bg-white/70 p-1.5 text-[10px] font-mono text-slate-600 select-all"
+                    className="mt-1 w-full rounded border border-slate-200 bg-white/70 p-1.5 text-xs font-mono text-slate-600 select-all"
                   />
                 </div>
 
                 <button
                   type="button"
                   onClick={() => window.open(`/live/match/${match.slug || matchDbId}`, '_blank')}
-                  className="w-full py-1.5 rounded bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-black text-[10px] uppercase tracking-wider hover:from-indigo-700 hover:to-indigo-800 shadow-sm flex items-center justify-center gap-1 transition"
+                  className="w-full py-1.5 rounded bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-black text-xs uppercase tracking-wider hover:from-indigo-700 hover:to-indigo-800 shadow-sm flex items-center justify-center gap-1 transition"
                 >
                   📡 Preview Live Dashboard
                 </button>
@@ -1052,7 +1052,7 @@ const legalBallCount = match.legalBallCount || 0;
             
             <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded border border-slate-100">
               <div className="flex flex-col text-left">
-                <label className="text-[9px] font-black text-slate-500 tracking-wider">FORMAT</label>
+                <label className="text-xs font-black text-slate-500 tracking-wider">FORMAT</label>
                 <select className="border p-1.5 rounded text-xs font-bold" value={match.matchType || "T20"} onChange={(e) => setMatch({ ...match, matchType: e.target.value })}>
                   <option value="T20">T20</option><option value="ODI">ODI</option>
                   <option value="Test">Test</option><option value="T10">T10</option>
@@ -1060,27 +1060,27 @@ const legalBallCount = match.legalBallCount || 0;
                 </select>
               </div>
               <div className="flex flex-col text-left">
-                <label className="text-[9px] font-black text-slate-500 tracking-wider">STAGE/TITLE</label>
+                <label className="text-xs font-black text-slate-500 tracking-wider">STAGE/TITLE</label>
                 <input type="text" className="border p-1.5 rounded text-xs font-bold" placeholder="FINAL" value={match.matchTitle || match.bowlingPrefix || ""} onChange={(e) => setMatch({ ...match, matchTitle: e.target.value, bowlingPrefix: e.target.value })} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded">
-              <div><label className="text-[8px] font-bold">OVERS</label><input type="number" className="w-full border p-2 rounded text-center" value={match.maxOvers} onChange={(e) => setMatch({ ...match, maxOvers: parseInt(e.target.value) })} /></div>
-              <div><label className="text-[8px] font-bold">BPO</label><input type="number" className="w-full border p-2 rounded text-center" value={match.ballsPerOver} onChange={(e) => setMatch({ ...match, ballsPerOver: parseInt(e.target.value) })} /></div>
+              <div><label className="text-xs font-bold">OVERS</label><input type="number" className="w-full border p-2 rounded text-center" value={match.maxOvers} onChange={(e) => setMatch({ ...match, maxOvers: parseInt(e.target.value) })} /></div>
+              <div><label className="text-xs font-bold">BPO</label><input type="number" className="w-full border p-2 rounded text-center" value={match.ballsPerOver} onChange={(e) => setMatch({ ...match, ballsPerOver: parseInt(e.target.value) })} /></div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded">
               <div className="flex flex-col text-left col-span-2">
-                <label className="text-[8px] font-bold block mb-1">INNINGS TYPE</label>
+                <label className="text-xs font-bold block mb-1">INNINGS TYPE</label>
                 <select className="w-full border p-1 rounded text-xs font-bold bg-white" value={match.isSecondInnings ? "2" : "1"} onChange={(e) => setMatch({ ...match, isSecondInnings: e.target.value === "2" })}>
                   <option value="1">1st Innings</option>
                   <option value="2">2nd Innings</option>
                 </select>
               </div>
               <div className="col-span-2 mt-1 pt-2 border-t text-left">
-                <label className="text-[8px] font-bold block mb-1">ALLOWED EXTRAS</label>
-                <div className="grid grid-cols-2 gap-1 text-[9px] font-bold text-slate-600">
+                <label className="text-xs font-bold block mb-1">ALLOWED EXTRAS</label>
+                <div className="grid grid-cols-2 gap-1 text-xs font-bold text-slate-600">
                   <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={match.extrasConfig?.wd !== false} onChange={(e)=>setMatch({...match, extrasConfig: {...match.extrasConfig, wd: e.target.checked}})} /> Wides</label>
                   <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={match.extrasConfig?.nb !== false} onChange={(e)=>setMatch({...match, extrasConfig: {...match.extrasConfig, nb: e.target.checked}})} /> No Balls</label>
                   <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={match.extrasConfig?.b !== false} onChange={(e)=>setMatch({...match, extrasConfig: {...match.extrasConfig, b: e.target.checked}})} /> Byes</label>
@@ -1119,7 +1119,7 @@ const legalBallCount = match.legalBallCount || 0;
 
             <div className={`p-3 rounded border transition ${match.isSecondInnings ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Target Chase</h3>
+                <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest">Target Chase</h3>
                 <input type="checkbox" checked={match.isSecondInnings} onChange={(e) => setMatch({ ...match, isSecondInnings: e.target.checked })} />
               </div>
               <input type="number" className="w-full border p-2 rounded text-sm font-black text-blue-700 text-center" value={match.targetScore} onChange={(e) => setMatch({ ...match, targetScore: parseInt(e.target.value) || 0 })} placeholder="Set Target" />
@@ -1127,37 +1127,37 @@ const legalBallCount = match.legalBallCount || 0;
 
             {/* MATCH STATUS SECTION */}
             <div className="space-y-2 pt-3 border-t mt-2">
-              <h3 className="text-[9px] font-black text-slate-400 tracking-widest uppercase">📡 Match Status</h3>
+              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase">📡 Match Status</h3>
               <div className="grid grid-cols-2 gap-1.5">
-                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Live' || !match.matchStatus ? "bg-red-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Live" })}>🔴 LIVE</button>
-                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Break' ? "bg-blue-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Break" })}>⏸ BREAK</button>
-                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Innings Break' ? "bg-amber-500 text-black shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Innings Break" })}>🔄 INN BREAK</button>
-                <button className={`py-1.5 rounded text-[10px] font-black ${match.matchStatus === 'Rain Delay' ? "bg-blue-900 border border-blue-500 text-cyan-300 shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Rain Delay" })}>☔ RAIN</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Live' || !match.matchStatus ? "bg-red-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Live" })}>🔴 LIVE</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Break' ? "bg-blue-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Break" })}>⏸ BREAK</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Innings Break' ? "bg-amber-500 text-black shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Innings Break" })}>🔄 INN BREAK</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Rain Delay' ? "bg-blue-900 border border-blue-500 text-cyan-300 shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Rain Delay" })}>☔ RAIN</button>
               </div>
-              <button className={`w-full py-1.5 mt-1 rounded text-[10px] font-black ${match.matchStatus === 'Match Ended' ? "bg-purple-700 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Match Ended" })}>🏁 MATCH ENDED</button>
+              <button className={`w-full py-1.5 mt-1 rounded text-xs font-black ${match.matchStatus === 'Match Ended' ? "bg-purple-700 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Match Ended" })}>🏁 MATCH ENDED</button>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setMatch({ ...match, showVersus: !match.showVersus })} className={`py-2 rounded font-bold text-[10px] ${match.showVersus ? 'bg-blue-600 text-white' : 'bg-slate-200'}`}>Versus Tab</button>
-              <button onClick={toggleSummary} className={`py-2 rounded font-bold text-[10px] ${match.showSummary ? 'bg-green-600 text-white' : 'bg-slate-200'}`}>Summary (M)</button>
+              <button onClick={() => setMatch({ ...match, showVersus: !match.showVersus })} className={`py-2 rounded font-bold text-xs ${match.showVersus ? 'bg-blue-600 text-white' : 'bg-slate-200'}`}>Versus Tab</button>
+              <button onClick={toggleSummary} className={`py-2 rounded font-bold text-xs ${match.showSummary ? 'bg-green-600 text-white' : 'bg-slate-200'}`}>Summary (M)</button>
             </div>
             <button
               onClick={() => setMatch({ ...match, showToss: !match.showToss })}
-              className={`w-full py-2 rounded font-bold text-[10px] transition ${
+              className={`w-full py-2 rounded font-bold text-xs transition ${
                 match.showToss ? 'bg-amber-500 text-white shadow-lg' : 'bg-slate-200'
               }`}
             >
               {match.showToss ? '🪙 HIDE TOSS RESULT' : '🪙 SHOW TOSS RESULT'}
             </button>
-            <button onClick={() => setMatch({ ...match, showMatchSituation: !match.showMatchSituation })} className={`w-full py-2 rounded font-bold text-[10px] transition ${match.showMatchSituation ? 'bg-purple-600 text-white shadow-lg' : 'bg-slate-200'}`}>Show Match Situation</button>
-            <button onClick={() => setMatch({ ...match, overlayMode: match.overlayMode === 'full' ? 'simple' : 'full' })} className={`w-full py-2 rounded font-bold text-[10px] transition ${match.overlayMode === 'simple' ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-200'}`}>Switch Overlay: {match.overlayMode === 'full' ? 'FULL' : 'SIMPLE'}</button>
+            <button onClick={() => setMatch({ ...match, showMatchSituation: !match.showMatchSituation })} className={`w-full py-2 rounded font-bold text-xs transition ${match.showMatchSituation ? 'bg-purple-600 text-white shadow-lg' : 'bg-slate-200'}`}>Show Match Situation</button>
+            <button onClick={() => setMatch({ ...match, overlayMode: match.overlayMode === 'full' ? 'simple' : 'full' })} className={`w-full py-2 rounded font-bold text-xs transition ${match.overlayMode === 'simple' ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-200'}`}>Switch Overlay: {match.overlayMode === 'full' ? 'FULL' : 'SIMPLE'}</button>
 
             {/* ── MATCH INFO & BANNER ──────────────────────── */}
             <div className="space-y-2 pt-3 border-t mt-3 bg-indigo-50 p-3 rounded border border-indigo-100">
               <div className="flex justify-between items-center mb-1">
-                <h3 className="text-[9px] font-black text-indigo-700 tracking-widest uppercase">ℹ️ Match Info & Banner</h3>
+                <h3 className="text-xs font-black text-indigo-700 tracking-widest uppercase">ℹ️ Match Info & Banner</h3>
                 <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded border shadow-sm">
-                   <label className="text-[8px] font-black text-slate-500 uppercase">Auto Show</label>
+                   <label className="text-xs font-black text-slate-500 uppercase">Auto Show</label>
                    <input 
                      type="checkbox" 
                      className="ml-1" 
@@ -1172,10 +1172,10 @@ const legalBallCount = match.legalBallCount || 0;
               <input type="text" className="w-full border p-1.5 rounded text-xs font-bold" placeholder="Sponsor Text (e.g. Dream11)" value={tourneyData.sponsor} onChange={(e) => setTourneyData({...tourneyData, sponsor: e.target.value})} />
               
               <div className="grid grid-cols-2 gap-2 mt-1">
-                <button onClick={handleSaveMatchInfo} className="bg-indigo-600 text-white py-2 rounded text-[10px] font-black shadow-md hover:bg-indigo-700 transition">
+                <button onClick={handleSaveMatchInfo} className="bg-indigo-600 text-white py-2 rounded text-xs font-black shadow-md hover:bg-indigo-700 transition">
                   💾 Save / Update
                 </button>
-                <button onClick={handleShowBanner} className="bg-cyan-500 text-white py-2 rounded text-[10px] font-black shadow-md hover:bg-cyan-600 transition">
+                <button onClick={handleShowBanner} className="bg-cyan-500 text-white py-2 rounded text-xs font-black shadow-md hover:bg-cyan-600 transition">
                   ✨ SHOW BANNER
                 </button>
               </div>
@@ -1183,7 +1183,7 @@ const legalBallCount = match.legalBallCount || 0;
 
             {/* ── BROADCAST TICKER CONTROLS ──────────────────────── */}
             <div className="space-y-2 pt-3 border-t mt-2">
-              <h3 className="text-[9px] font-black text-slate-400 tracking-widest uppercase">📺 Broadcast Ticker</h3>
+              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase">📺 Broadcast Ticker</h3>
               <input
                 type="text"
                 className="w-full border p-2 rounded text-xs font-bold bg-slate-50 uppercase"
@@ -1193,7 +1193,7 @@ const legalBallCount = match.legalBallCount || 0;
               />
               <div className="grid grid-cols-2 gap-2">
                 <select
-                  className="border rounded text-[10px] p-1.5 font-black bg-white uppercase"
+                  className="border rounded text-xs p-1.5 font-black bg-white uppercase"
                   value={tickerMode}
                   onChange={(e) => { setTickerMode(e.target.value); pushTicker({ mode: e.target.value }); }}
                 >
@@ -1201,7 +1201,7 @@ const legalBallCount = match.legalBallCount || 0;
                   <option value="breaking">🔴 Breaking News</option>
                 </select>
                 <select
-                  className="border rounded text-[10px] p-1.5 font-black bg-white uppercase"
+                  className="border rounded text-xs p-1.5 font-black bg-white uppercase"
                   value={tickerPreset}
                   onChange={(e) => { setTickerPreset(e.target.value); pushTicker({ preset: e.target.value }); }}
                 >
@@ -1213,13 +1213,13 @@ const legalBallCount = match.legalBallCount || 0;
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => pushTicker({ message: tickerMsg })}
-                  className="bg-slate-700 text-white py-2 rounded text-[10px] font-black hover:bg-slate-800 transition"
+                  className="bg-slate-700 text-white py-2 rounded text-xs font-black hover:bg-slate-800 transition"
                 >
                   💾 Save Message
                 </button>
                 <button
                   onClick={() => { const newVis = !tickerVisible; setTickerVisible(newVis); pushTicker({ visible: newVis }); }}
-                  className={`py-2 rounded text-[10px] font-black transition ${tickerVisible
+                  className={`py-2 rounded text-xs font-black transition ${tickerVisible
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : 'bg-green-500 text-white hover:bg-green-600'
                     }`}
@@ -1231,7 +1231,7 @@ const legalBallCount = match.legalBallCount || 0;
 
             {/* ── TEAM LOGO UPLOAD ─────────────────────────────────────── */}
             <div className="space-y-3 pt-2 border-t">
-              <h3 className="text-[9px] font-black text-slate-400 tracking-widest uppercase">🖼️ Team Logos</h3>
+              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase">🖼️ Team Logos</h3>
 
               {/* Hidden file inputs */}
               <input ref={fileInputA} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onChange={(e) => handleLogoUpload(e, 'A')} />
@@ -1244,7 +1244,7 @@ const legalBallCount = match.legalBallCount || 0;
                   <div className="w-12 h-12 rounded-full border-2 border-blue-200 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                     {match.battingLogo
                       ? <img src={getAbsoluteUrl(match.battingLogo)} className="w-full h-full object-contain" alt="A" onError={(e) => { e.target.style.display='none'; }} />
-                      : <span className="text-blue-300 text-[9px] font-black">LOGO A</span>}
+                      : <span className="text-blue-300 text-xs font-black">LOGO A</span>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <input
@@ -1258,7 +1258,7 @@ const legalBallCount = match.legalBallCount || 0;
                         id="upload-logo-a-btn"
                         onClick={() => fileInputA.current?.click()}
                         disabled={logoUploadStatus.A === 'uploading'}
-                        className={`flex-1 py-1 rounded text-[9px] font-black uppercase transition border ${
+                        className={`flex-1 py-1 rounded text-xs font-black uppercase transition border ${
                           logoUploadStatus.A === 'uploading' ? 'bg-blue-200 text-blue-400 border-blue-200 cursor-wait' :
                           logoUploadStatus.A === 'success'   ? 'bg-green-500 text-white border-green-600' :
                           logoUploadStatus.A === 'error'     ? 'bg-red-100 text-red-600 border-red-300' :
@@ -1274,7 +1274,7 @@ const legalBallCount = match.legalBallCount || 0;
                         <button
                           type="button"
                           onClick={() => setMatch(prev => ({ ...prev, battingLogo: '' }))}
-                          className="px-2 py-1 rounded text-[9px] font-black bg-white border border-blue-200 text-blue-400 hover:text-red-500 hover:border-red-300 transition"
+                          className="px-2 py-1 rounded text-xs font-black bg-white border border-blue-200 text-blue-400 hover:text-red-500 hover:border-red-300 transition"
                           title="Remove logo"
                         >
                           ✕
@@ -1282,7 +1282,7 @@ const legalBallCount = match.legalBallCount || 0;
                       )}
                     </div>
                     {logoUploadStatus.A === 'error' && logoUploadError.A && (
-                      <p className="text-[8px] text-red-500 font-bold mt-0.5 leading-tight">{logoUploadError.A}</p>
+                      <p className="text-xs text-red-500 font-bold mt-0.5 leading-tight">{logoUploadError.A}</p>
                     )}
                   </div>
                 </div>
@@ -1295,7 +1295,7 @@ const legalBallCount = match.legalBallCount || 0;
                   <div className="w-12 h-12 rounded-full border-2 border-red-200 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                     {match.leagueLogo
                       ? <img src={getAbsoluteUrl(match.leagueLogo)} className="w-full h-full object-contain" alt="B" onError={(e) => { e.target.style.display='none'; }} />
-                      : <span className="text-red-300 text-[9px] font-black">LOGO B</span>}
+                      : <span className="text-red-300 text-xs font-black">LOGO B</span>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <input
@@ -1309,7 +1309,7 @@ const legalBallCount = match.legalBallCount || 0;
                         id="upload-logo-b-btn"
                         onClick={() => fileInputB.current?.click()}
                         disabled={logoUploadStatus.B === 'uploading'}
-                        className={`flex-1 py-1 rounded text-[9px] font-black uppercase transition border ${
+                        className={`flex-1 py-1 rounded text-xs font-black uppercase transition border ${
                           logoUploadStatus.B === 'uploading' ? 'bg-red-200 text-red-400 border-red-200 cursor-wait' :
                           logoUploadStatus.B === 'success'   ? 'bg-green-500 text-white border-green-600' :
                           logoUploadStatus.B === 'error'     ? 'bg-red-100 text-red-600 border-red-300' :
@@ -1325,7 +1325,7 @@ const legalBallCount = match.legalBallCount || 0;
                         <button
                           type="button"
                           onClick={() => setMatch(prev => ({ ...prev, leagueLogo: '', eventTrigger: prev.eventTrigger, eventTime: prev.eventTime }))}
-                          className="px-2 py-1 rounded text-[9px] font-black bg-white border border-red-200 text-red-400 hover:text-red-600 hover:border-red-400 transition"
+                          className="px-2 py-1 rounded text-xs font-black bg-white border border-red-200 text-red-400 hover:text-red-600 hover:border-red-400 transition"
                           title="Remove logo"
                         >
                           ✕
@@ -1333,13 +1333,13 @@ const legalBallCount = match.legalBallCount || 0;
                       )}
                     </div>
                     {logoUploadStatus.B === 'error' && logoUploadError.B && (
-                      <p className="text-[8px] text-red-500 font-bold mt-0.5 leading-tight">{logoUploadError.B}</p>
+                      <p className="text-xs text-red-500 font-bold mt-0.5 leading-tight">{logoUploadError.B}</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              <p className="text-[8px] text-slate-400 font-medium leading-tight">PNG / JPG / WEBP · Max 5 MB · Auto-compressed for OBS</p>
+              <p className="text-xs text-slate-400 font-medium leading-tight">PNG / JPG / WEBP · Max 5 MB · Auto-compressed for OBS</p>
             </div>
           </div>
 
@@ -1347,7 +1347,7 @@ const legalBallCount = match.legalBallCount || 0;
           <div className="space-y-4 border-r pr-4">
             <h2 className="font-bold text-blue-600 border-b pb-1 uppercase text-xs tracking-widest">{t("admin.section.activeSquad")}</h2>
             <div className="bg-slate-50 p-2 rounded border border-blue-100">
-              <label className="text-[8px] font-black text-slate-400 uppercase">Striker</label>
+              <label className="text-xs font-black text-slate-400 uppercase">Striker</label>
               <ComboboxPlayerInput 
                 options={match.battingSquad} 
                 className="w-full bg-white border p-2 rounded font-black text-sm uppercase focus:outline-blue-500" 
@@ -1356,7 +1356,7 @@ const legalBallCount = match.legalBallCount || 0;
               />
             </div>
             <div className="bg-slate-50 p-2 rounded border border-blue-100">
-              <label className="text-[8px] font-black text-slate-400 uppercase">Non-Striker</label>
+              <label className="text-xs font-black text-slate-400 uppercase">Non-Striker</label>
               <ComboboxPlayerInput 
                 options={match.battingSquad} 
                 className="w-full bg-white border p-2 rounded font-black text-sm uppercase focus:outline-blue-500" 
@@ -1366,7 +1366,7 @@ const legalBallCount = match.legalBallCount || 0;
             </div>
             <button onClick={swapStrike} className="w-full py-2 bg-yellow-400 font-black text-xs rounded shadow-md border-b-4 border-yellow-600 active:translate-y-1 text-black">Swap Strike (S)</button>
             <div className="pt-4 border-t">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 text-center">Active Bowler</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1 text-center">Active Bowler</label>
               <ComboboxPlayerInput 
                 options={match.bowlingSquad} 
                 className="w-full border p-2 rounded font-black text-sm bg-slate-50 border-red-200 shadow-inner text-red-600 uppercase focus:outline-red-500" 
@@ -1386,24 +1386,24 @@ const legalBallCount = match.legalBallCount || 0;
             </div>
             {(match.extrasConfig?.wd !== false || match.extrasConfig?.nb !== false) && (
               <div className="p-3 bg-slate-50 rounded border border-slate-200 text-center">
-                <p className="text-[9px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Extras Engine</p>
+                <p className="text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Extras Engine</p>
                 <div className="flex gap-2 mb-3">
-                  <select className="bg-white border rounded text-[10px] p-1 font-black" value={customExtraType} onChange={(e) => setCustomExtraType(e.target.value)}>
+                  <select className="bg-white border rounded text-xs p-1 font-black" value={customExtraType} onChange={(e) => setCustomExtraType(e.target.value)}>
                     {match.extrasConfig?.wd !== false && <option value="WD">WIDE</option>}
                     {match.extrasConfig?.nb !== false && <option value="NB">NO BALL</option>}
                   </select>
                   <div className="flex gap-1">
                     {[0, 1, 2, 3, 4].map(num => (
-                      <button key={num} onClick={() => setCustomExtraRuns(num)} className={`px-2 py-1 border rounded text-[10px] font-black transition ${customExtraRuns === num ? 'bg-blue-600 text-white' : 'bg-white'}`}>{num}</button>
+                      <button key={num} onClick={() => setCustomExtraRuns(num)} className={`px-2 py-1 border rounded text-xs font-black transition ${customExtraRuns === num ? 'bg-blue-600 text-white' : 'bg-white'}`}>{num}</button>
                     ))}
                   </div>
                 </div>
-                <button onClick={() => addExtra(customExtraType, customExtraRuns)} className="w-full bg-orange-500 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-4 border-orange-700 active:translate-y-0.5">Add {customExtraType} + {customExtraRuns}</button>
+                <button onClick={() => addExtra(customExtraType, customExtraRuns)} className="w-full bg-orange-500 text-white py-2 rounded font-black text-xs uppercase shadow-md border-b-4 border-orange-700 active:translate-y-0.5">Add {customExtraType} + {customExtraRuns}</button>
               </div>
             )}
             {match.extrasConfig?.lb !== false && (
               <div className="p-3 bg-green-50 rounded border border-green-200 text-center">
-                <p className="text-[9px] font-bold text-green-700 uppercase mb-2 tracking-widest">Leg Byes</p>
+                <p className="text-xs font-bold text-green-700 uppercase mb-2 tracking-widest">Leg Byes</p>
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 2, 3, 4].map((r) => (
                     <button key={r} onClick={() => addLegBye(r)} className="bg-green-600 text-white py-2 rounded font-black text-xs shadow-md border-b-4 border-green-800 active:translate-y-0.5 hover:bg-green-700 transition">LB +{r}</button>
@@ -1413,34 +1413,34 @@ const legalBallCount = match.legalBallCount || 0;
             )}
             {showRunOutPanel ? (
               <div className="p-3 bg-red-50 border border-red-200 rounded text-center">
-                <p className="text-[9px] font-bold text-red-700 uppercase mb-2 tracking-widest">Run Out Config</p>
+                <p className="text-xs font-bold text-red-700 uppercase mb-2 tracking-widest">Run Out Config</p>
                 <div className="flex gap-2 justify-center mb-3">
                   <div className="flex flex-col text-left">
-                    <label className="text-[10px] font-bold text-red-600">Runs Completed</label>
-                    <select className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" value={runOutRuns} onChange={(e) => setRunOutRuns(parseInt(e.target.value))}>
+                    <label className="text-xs font-bold text-red-600">Runs Completed</label>
+                    <select className="border border-red-300 rounded p-1 text-xs font-black outline-none" value={runOutRuns} onChange={(e) => setRunOutRuns(parseInt(e.target.value))}>
                       {[0, 1, 2, 3].map(n => <option key={n} value={n}>{n} Runs</option>)}
                     </select>
                   </div>
                   <div className="flex flex-col text-left">
-                    <label className="text-[10px] font-bold text-red-600">Who is Out?</label>
-                    <select className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" value={runOutPlayer} onChange={(e) => setRunOutPlayer(e.target.value)}>
+                    <label className="text-xs font-bold text-red-600">Who is Out?</label>
+                    <select className="border border-red-300 rounded p-1 text-xs font-black outline-none" value={runOutPlayer} onChange={(e) => setRunOutPlayer(e.target.value)}>
                       <option value="striker">Striker</option>
                       <option value="non-striker">Non-Striker</option>
                     </select>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setShowRunOutPanel(false)} className="flex-1 bg-white text-red-600 border border-red-200 py-2 rounded font-black text-[10px] uppercase shadow-sm">Cancel</button>
-                  <button onClick={handleRunOut} className="flex-1 bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-2 border-red-800 active:translate-y-px">Confirm Run Out</button>
+                  <button onClick={() => setShowRunOutPanel(false)} className="flex-1 bg-white text-red-600 border border-red-200 py-2 rounded font-black text-xs uppercase shadow-sm">Cancel</button>
+                  <button onClick={handleRunOut} className="flex-1 bg-red-600 text-white py-2 rounded font-black text-xs uppercase shadow-md border-b-2 border-red-800 active:translate-y-px">Confirm Run Out</button>
                 </div>
               </div>
             ) : showWicketPanel ? (
               <div className="p-3 bg-red-50 border border-red-200 rounded text-center">
-                <p className="text-[9px] font-bold text-red-700 uppercase mb-2 tracking-widest">Wicket Details</p>
+                <p className="text-xs font-bold text-red-700 uppercase mb-2 tracking-widest">Wicket Details</p>
                 <div className="flex flex-col gap-2 mb-3">
                   <div className="flex flex-col text-left">
-                    <label className="text-[10px] font-bold text-red-600">How Out?</label>
-                    <select className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" value={wicketDismissal} onChange={(e) => setWicketDismissal(e.target.value)}>
+                    <label className="text-xs font-bold text-red-600">How Out?</label>
+                    <select className="border border-red-300 rounded p-1 text-xs font-black outline-none" value={wicketDismissal} onChange={(e) => setWicketDismissal(e.target.value)}>
                       <option value="Bowled">Bowled</option>
                       <option value="Caught">Caught</option>
                       <option value="Stumped">Stumped</option>
@@ -1452,12 +1452,12 @@ const legalBallCount = match.legalBallCount || 0;
                   </div>
                   {(wicketDismissal === 'Caught' || wicketDismissal === 'Stumped') && (
                     <div className="flex flex-col text-left">
-                      <label className="text-[10px] font-bold text-red-600">Fielder Name</label>
+                      <label className="text-xs font-bold text-red-600">Fielder Name</label>
                       <input 
                         list="bowling-squad-list"
                         type="text" 
                         placeholder="Type or select fielder..." 
-                        className="border border-red-300 rounded p-1 text-[11px] font-black outline-none" 
+                        className="border border-red-300 rounded p-1 text-xs font-black outline-none" 
                         value={wicketFielder} 
                         onChange={(e) => setWicketFielder(e.target.value)} 
                       />
@@ -1470,8 +1470,8 @@ const legalBallCount = match.legalBallCount || 0;
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setShowWicketPanel(false)} className="flex-1 bg-white text-red-600 border border-red-200 py-2 rounded font-black text-[10px] uppercase shadow-sm">Cancel</button>
-                  <button onClick={() => handleWicket(wicketDismissal, wicketFielder)} className="flex-1 bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase shadow-md border-b-2 border-red-800 active:translate-y-px">Confirm Wicket</button>
+                  <button onClick={() => setShowWicketPanel(false)} className="flex-1 bg-white text-red-600 border border-red-200 py-2 rounded font-black text-xs uppercase shadow-sm">Cancel</button>
+                  <button onClick={() => handleWicket(wicketDismissal, wicketFielder)} className="flex-1 bg-red-600 text-white py-2 rounded font-black text-xs uppercase shadow-md border-b-2 border-red-800 active:translate-y-px">Confirm Wicket</button>
                 </div>
               </div>
             ) : (
@@ -1483,15 +1483,15 @@ const legalBallCount = match.legalBallCount || 0;
               </div>
             )}
 
-            <div className="bg-slate-900 p-4 rounded shadow-2xl border-t-4 border-yellow-400 text-white italic">
+            <div className="bg-slate-900 p-4 rounded shadow-2xl border-t-4 border-yellow-400 text-white">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-[8px] uppercase font-black tracking-widest text-slate-400">THIS OVER</p>
+                  <p className="text-xs uppercase font-black tracking-widest text-slate-400">THIS OVER</p>
                   <p className="text-xl font-black text-yellow-400">{match.overRuns} Runs</p>
                 </div>
                 <div className="text-right">
                   <h3 className="text-4xl font-black">{match.score}-{match.wickets}</h3>
-                  <p className="text-[10px] font-black uppercase text-slate-400">OVERS: {Math.floor(match.totalBalls / match.ballsPerOver)}.{match.totalBalls % match.ballsPerOver}</p>
+                  <p className="text-xs font-black uppercase text-slate-400">OVERS: {Math.floor(match.totalBalls / match.ballsPerOver)}.{match.totalBalls % match.ballsPerOver}</p>
                 </div>
               </div>
               {match.isSecondInnings && (
@@ -1521,14 +1521,14 @@ const legalBallCount = match.legalBallCount || 0;
             <div className="bg-slate-800 p-3 rounded shadow-lg border border-slate-700 text-white">
               <div className="flex justify-between items-center">
                 <div className="text-center flex-1">
-                  <p className="text-[8px] uppercase font-black tracking-widest text-slate-400">CRR</p>
+                  <p className="text-xs uppercase font-black tracking-widest text-slate-400">CRR</p>
                   <p className="text-xl font-black text-cyan-400">
                     {match.totalBalls > 0 ? (match.score / (match.totalBalls / 6)).toFixed(2) : "0.00"}
                   </p>
                 </div>
                 <div className="w-px h-10 bg-slate-600"></div>
                 <div className="text-center flex-1">
-                  <p className="text-[8px] uppercase font-black tracking-widest text-slate-400">RRR</p>
+                  <p className="text-xs uppercase font-black tracking-widest text-slate-400">RRR</p>
                   <p className="text-xl font-black text-orange-400">
                     {match.isSecondInnings && remainingBalls > 0
                       ? ((match.targetScore - match.score) / (remainingBalls / 6)).toFixed(2)
@@ -1577,18 +1577,18 @@ const legalBallCount = match.legalBallCount || 0;
             }} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col text-left">
-                  <label className="text-[10px] font-bold text-slate-400 mb-1">BATTING TEAM</label>
+                  <label className="text-xs font-bold text-slate-400 mb-1">BATTING TEAM</label>
                   <input name="battingTeam" required placeholder="e.g. COLOMBIA XI" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <label className="text-[10px] font-bold text-slate-400 mb-1">BOWLING TEAM</label>
+                  <label className="text-xs font-bold text-slate-400 mb-1">BOWLING TEAM</label>
                   <input name="bowlingTeam" required placeholder="e.g. VAVUNIYA LIONS" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white" />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="flex flex-col text-left">
-                  <label className="text-[10px] font-bold text-slate-400 mb-1">FORMAT</label>
+                  <label className="text-xs font-bold text-slate-400 mb-1">FORMAT</label>
                   <select name="matchType" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white">
                     <option value="T20">T20</option>
                     <option value="T10">T10</option>
@@ -1598,22 +1598,22 @@ const legalBallCount = match.legalBallCount || 0;
                   </select>
                 </div>
                 <div className="flex flex-col text-left">
-                  <label className="text-[10px] font-bold text-slate-400 mb-1">MAX OVERS</label>
+                  <label className="text-xs font-bold text-slate-400 mb-1">MAX OVERS</label>
                   <input name="maxOvers" type="number" defaultValue="20" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <label className="text-[10px] font-bold text-slate-400 mb-1">BALLS/OVER</label>
+                  <label className="text-xs font-bold text-slate-400 mb-1">BALLS/OVER</label>
                   <input name="ballsPerOver" type="number" defaultValue="6" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white" />
                 </div>
               </div>
 
               <div className="flex flex-col text-left">
-                <label className="text-[10px] font-bold text-slate-400 mb-1">STAGE / MATCH TITLE</label>
+                <label className="text-xs font-bold text-slate-400 mb-1">STAGE / MATCH TITLE</label>
                 <input name="matchTitle" placeholder="e.g. GRAND FINAL" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white" />
               </div>
 
               <div className="flex flex-col text-left">
-                <label className="text-[10px] font-bold text-slate-400 mb-1">OVERLAY THEME</label>
+                <label className="text-xs font-bold text-slate-400 mb-1">OVERLAY THEME</label>
                 <select name="themeID" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white">
                   <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex</option>
                   <option value="SKY_HYPERION">⚡ Sky Sports Hyperion Pro</option>

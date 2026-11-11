@@ -45,38 +45,38 @@ const SuperOverPanel = ({ matchId, team1, team2, isSuperOverActive, onStarted })
       {isSuperOverActive ? (
         <div style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: 8, padding: '10px 12px', color: '#f472b6', fontSize: 12 }}>
           ⚡ <b>SUPER OVER IN PROGRESS!</b>
-          <div style={{ marginTop: 4, color: '#fbcfe8', fontSize: 11 }}>
+          <div style={{ marginTop: 4, color: '#fbcfe8', fontSize: 12 }}>
             Max 2 wickets, 1 over. Scoreboard overlay displays the Super Over live.
           </div>
         </div>
       ) : (
         <>
-          <div style={{ color: '#94a3b8', fontSize: 11 }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
             In case of a tie, initiate a 1-over tiebreaker (2 wickets max). Main match stats are protected and preserved.
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
-              <label style={{ color: '#cbd5e1', fontSize: 11, display: 'block', marginBottom: 4 }}>Batting First:</label>
+              <label style={{ color: 'var(--text-primary)', fontSize: 12, display: 'block', marginBottom: 4 }}>Batting First:</label>
               <input
                 type="text"
                 value={battingTeam}
                 onChange={e => setBattingTeam(e.target.value.toUpperCase())}
                 style={{
                   width: '100%', padding: '7px 10px', borderRadius: 6,
-                  background: '#1e293b', border: '1px solid #475569', color: '#fff', fontSize: 12,
+                  background: 'var(--bg-card)', border: '1px solid var(--text-muted)', color: '#fff', fontSize: 12,
                 }}
               />
             </div>
             <div>
-              <label style={{ color: '#cbd5e1', fontSize: 11, display: 'block', marginBottom: 4 }}>Bowling First:</label>
+              <label style={{ color: 'var(--text-primary)', fontSize: 12, display: 'block', marginBottom: 4 }}>Bowling First:</label>
               <input
                 type="text"
                 value={bowlingTeam}
                 onChange={e => setBowlingTeam(e.target.value.toUpperCase())}
                 style={{
                   width: '100%', padding: '7px 10px', borderRadius: 6,
-                  background: '#1e293b', border: '1px solid #475569', color: '#fff', fontSize: 12,
+                  background: 'var(--bg-card)', border: '1px solid var(--text-muted)', color: '#fff', fontSize: 12,
                 }}
               />
             </div>
@@ -96,7 +96,7 @@ const SuperOverPanel = ({ matchId, team1, team2, isSuperOverActive, onStarted })
               padding: '10px 0',
               borderRadius: 8,
               border: 'none',
-              background: loading ? '#475569' : 'linear-gradient(135deg, #db2777, #f43f5e)',
+              background: loading ? 'var(--text-muted)' : 'linear-gradient(135deg, #db2777, #f43f5e)',
               color: '#fff',
               fontWeight: 800,
               fontSize: 13,

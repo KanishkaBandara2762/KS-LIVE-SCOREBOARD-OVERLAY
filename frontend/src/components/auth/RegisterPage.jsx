@@ -22,7 +22,7 @@ function getStrength(pw) {
   if (passed <= 1) return { pct: 25,  color: '#ff5050', label: 'Weak' };
   if (passed === 2) return { pct: 50,  color: '#ff8c00', label: 'Fair' };
   if (passed === 3) return { pct: 75,  color: '#5be37e', label: 'Strong' };
-  return               { pct: 100, color: '#00d2be', label: 'Very Strong' };
+  return               { pct: 100, color: 'var(--brand-sky)', label: 'Very Strong' };
 }
 
 export default function RegisterPage() {
@@ -63,7 +63,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-page ks-app">
       <div className="auth-card">
 
         <div className="auth-logo">

@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-page ks-app">
       <div className="auth-card">
 
         {/* Branding */}

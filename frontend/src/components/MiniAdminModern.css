@@ -1,227 +1,390 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   MINI ADMIN — modern "glass control room" layer
+   MINI ADMIN — KS LIVE blue + gold scoring console
    Loaded after MiniAdmin.css. Restyles existing ma-* classes only; no
-   markup or behaviour changes. Larger touch targets, clearer hierarchy,
-   colour-coded scoring actions.
+   markup or behaviour changes. All colours come from src/styles/theme.css.
+   Gold = score, runs, wickets, active choices. Blue = panels and navigation.
    ══════════════════════════════════════════════════════════════════════════ */
 
 .ma-root {
-  --ma-bg: #070a14;
-  --ma-glass: rgba(18, 24, 44, 0.72);
-  --ma-glass-border: rgba(148, 163, 184, 0.16);
-  --ma-amber: #fbbf24;
-  --ma-green: #22c55e;
-  --ma-teal: #2dd4bf;
-  --ma-blue: #38bdf8;
-  --ma-red: #ef4444;
-  --ma-text: #e2e8f0;
-  --ma-muted: #94a3b8;
+  --ma-bg: var(--bg-main);
+  --ma-glass: var(--bg-card);
+  --ma-glass-border: var(--border-subtle);
+  --ma-amber: var(--brand-gold);
+  --ma-green: var(--status-success);
+  --ma-teal: var(--brand-sky);
+  --ma-blue: var(--brand-sky);
+  --ma-red: var(--status-error);
+  --ma-text: var(--text-primary);
+  --ma-muted: var(--text-secondary);
 
-  background:
-    radial-gradient(900px 400px at 100% -10%, rgba(56, 189, 248, 0.10), transparent 60%),
-    radial-gradient(700px 400px at -10% 110%, rgba(251, 191, 36, 0.08), transparent 60%),
-    var(--ma-bg);
-  color: var(--ma-text);
-  font-size: 13px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Header */
+/* ── Header ─────────────────────────────────────────────────────────────── */
 .ma-header {
-  background: rgba(7, 10, 20, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: inset 0 -2px 0 var(--brand-royal);
   padding: 10px 16px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .ma-logo {
-  background: linear-gradient(90deg, #fde68a, #fbbf24);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: 0.12em;
 }
 
-/* Cards */
+.ma-header button {
+  min-height: 32px;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0 12px !important;
+}
+
+/* ── Score hero ─────────────────────────────────────────────────────────── */
+.ma-score-bar {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.ma-team-name {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 800;
+  max-width: 220px;
+}
+
+.ma-vs-line {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.ma-score-big {
+  color: var(--brand-gold);
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-score-overs {
+  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ma-chase-bar {
+  border-radius: var(--radius-md);
+  background: var(--tint-gold);
+  border: 1px solid var(--border-gold);
+  color: var(--brand-gold-bright);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Info strip: compact stat chips */
+.ma-info-strip {
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 8px 16px;
+  gap: 6px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ma-info-strip b { color: var(--text-primary); font-weight: 800; }
+
+/* ── Batters & bowler panels ────────────────────────────────────────────── */
+.ma-players-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  gap: 4px;
+}
+
+.ma-players-card .ma-divider { display: none; }
+
+.ma-player-row {
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border-left: 4px solid var(--brand-royal);
+  transition: background-color 0.15s ease;
+}
+.ma-player-row:hover { background: var(--bg-elevated); }
+
+.ma-player-name {
+  font-size: 15px;
+  font-weight: 700;
+  font-style: normal;
+  color: var(--text-primary);
+  max-width: 200px;
+}
+
+.ma-player-stat {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Striker: gold marker so it is obvious who faces the next ball */
+.ma-striker-row {
+  border-left-color: var(--brand-gold);
+  background: linear-gradient(90deg, var(--tint-gold), var(--bg-secondary) 60%);
+}
+.ma-striker-row .ma-player-name { color: var(--brand-gold); }
+.ma-striker-row .ma-player-stat { color: var(--brand-gold); }
+
+/* Bowler row (last row in the card) */
+.ma-players-card .ma-player-row:last-child { border-left-color: var(--brand-sky); }
+
+/* ── Cards & labels ─────────────────────────────────────────────────────── */
 .ma-card {
-  background: var(--ma-glass);
-  border: 1px solid var(--ma-glass-border);
-  border-radius: 16px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .ma-card-title {
-  color: var(--ma-muted);
-  font-size: 11px;
+  color: var(--text-secondary);
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .ma-section-label,
 .ma-field-label,
-.ma-modal-label {
-  color: var(--ma-muted);
+.ma-modal-label,
+.ma-runout-group-label,
+.ma-player-input-label {
+  color: var(--text-secondary);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
-/* Inputs & selects */
+/* ── Inputs & selects ───────────────────────────────────────────────────── */
 .ma-inp,
 .ma-sel,
 .ma-modal-inp {
-  background: rgba(2, 6, 23, 0.65);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 12px;
-  color: var(--ma-text);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 40px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .ma-inp:focus,
 .ma-sel:focus,
 .ma-modal-inp:focus {
   outline: none;
-  border-color: var(--ma-amber);
-  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.18);
+  border-color: var(--brand-sky);
+  box-shadow: var(--focus-ring);
 }
 
-/* Bottom tab bar: segmented, icon + label */
+/* ── Bottom tab bar ─────────────────────────────────────────────────────── */
 .ma-tab-bar {
   gap: 6px;
   padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
-  background: rgba(7, 10, 20, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .ma-tab {
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 10px 4px 12px;
-  color: rgba(226, 232, 240, 0.45);
-  font-size: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
-
-.ma-tab:active { transform: scale(0.96); }
-
+.ma-tab:hover { color: var(--text-secondary); }
+.ma-tab:active { transform: scale(0.97); }
 .ma-tab.active {
-  color: var(--ma-amber);
-  background: linear-gradient(180deg, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0.04));
-  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+  color: var(--brand-gold);
+  background: var(--bg-elevated);
+  box-shadow: inset 0 0 0 1px var(--border-gold);
 }
 
-/* Primary scoring buttons: bigger, rounded, press feedback */
+/* ── Scoring buttons ────────────────────────────────────────────────────── */
 .ma-big-btn,
 .ma-ticker-btn,
 .ma-over-btn,
 .ma-extra-btn,
 .ma-chip-btn,
 .ma-status-btn,
-.ma-action-btn {
-  border-radius: 16px;
+.ma-action-btn,
+.ma-ctrl-btn,
+.ma-wicket-btn,
+.ma-qb {
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
   font-weight: 800;
   letter-spacing: 0.02em;
-  transition: transform 0.12s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.1s ease, filter 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .ma-big-btn:active,
 .ma-extra-btn:active,
-.ma-over-btn:active,
+.ma-over-btn:active:not(:disabled),
 .ma-action-btn:active,
 .ma-chip-btn:active,
 .ma-ticker-btn:active,
-.ma-status-btn:active {
-  transform: scale(0.96);
+.ma-status-btn:active,
+.ma-ctrl-btn:active,
+.ma-wicket-btn:active,
+.ma-qb:active {
+  transform: scale(0.97);
 }
 
 .ma-big-btn:hover,
 .ma-extra-btn:hover,
-.ma-action-btn:hover { filter: brightness(1.08); }
+.ma-action-btn:hover,
+.ma-ctrl-btn:hover,
+.ma-wicket-btn:hover { filter: brightness(1.1); }
 
-/* Colour language for scoring */
+.ma-big-btn:focus-visible,
+.ma-extra-btn:focus-visible,
+.ma-wicket-btn:focus-visible,
+.ma-ctrl-btn:focus-visible,
+.ma-over-btn:focus-visible,
+.ma-tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Run keys */
+.ma-btn-dot { background: var(--bg-elevated) !important; color: var(--text-secondary) !important; border: 1px solid var(--border-default) !important; }
 .ma-btn-run,
-.ma-qb-run { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; color: #fff !important; box-shadow: 0 8px 22px rgba(37, 99, 235, 0.3); }
+.ma-qb-run { background: var(--brand-royal) !important; color: var(--text-primary) !important; border: 1px solid rgba(57, 169, 255, 0.25) !important; box-shadow: none; }
 .ma-btn-four,
-.ma-qb-four { background: linear-gradient(135deg, #34d399, #16a34a) !important; color: #03150b !important; box-shadow: 0 8px 22px rgba(34, 197, 94, 0.3); }
+.ma-qb-four { background: var(--brand-electric) !important; color: #fff !important; border: 1px solid transparent !important; box-shadow: none; }
 .ma-btn-six,
-.ma-qb-six { background: linear-gradient(135deg, #fde68a, #f59e0b) !important; color: #1c1400 !important; box-shadow: 0 8px 22px rgba(245, 158, 11, 0.3); }
+.ma-qb-six { background: var(--brand-gold) !important; color: var(--text-on-gold) !important; border: 1px solid transparent !important; box-shadow: none; }
 .ma-wicket-btn,
-.ma-qb-wkt { background: linear-gradient(135deg, #f87171, #dc2626) !important; color: #fff !important; box-shadow: 0 8px 22px rgba(239, 68, 68, 0.3); }
+.ma-qb-wkt { background: var(--status-error) !important; color: #fff !important; border: 1px solid transparent !important; box-shadow: none; }
+
+/* Extras: blue panel keys */
 .ma-btn-wd,
 .ma-btn-nb,
 .ma-btn-lb,
-.ma-btn-bye { background: rgba(56, 189, 248, 0.12) !important; border: 1px solid rgba(56, 189, 248, 0.35) !important; color: #bae6fd !important; }
+.ma-btn-bye { background: var(--bg-card) !important; border: 1px solid var(--border-blue) !important; color: var(--brand-sky) !important; }
+.ma-btn-nb { color: var(--brand-gold-bright) !important; border-color: var(--border-gold) !important; }
+
+/* Undo / reset: ghost */
 .ma-btn-undo,
 .ma-qb-undo,
-.ma-btn-reset { background: rgba(148, 163, 184, 0.12) !important; border: 1px solid rgba(148, 163, 184, 0.3) !important; color: #cbd5e1 !important; }
+.ma-btn-reset { background: transparent !important; border: 1px solid var(--border-strong) !important; color: var(--text-primary) !important; }
 
-/* Score hero */
-.ma-score-big {
-  background: linear-gradient(135deg, #ffffff, #fde68a);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-weight: 900;
+/* Swap strike / run out */
+.ma-btn-swap { background: var(--bg-card) !important; border: 1px solid var(--border-blue) !important; color: var(--brand-sky) !important; }
+.ma-btn-ro { background: var(--tint-error) !important; border: 1px solid rgba(239, 68, 68, 0.45) !important; color: #FCA5A5 !important; }
+.ma-ctrl-btn { min-height: 48px; font-size: 14px; }
+
+/* Over done */
+.ma-over-btn { min-height: 52px; font-size: 15px; }
+.ma-over-ready { background: var(--brand-gold) !important; color: var(--text-on-gold) !important; border-color: transparent !important; }
+.ma-over-wait { background: var(--bg-card) !important; color: var(--text-muted) !important; border: 1px solid var(--border-subtle) !important; }
+
+/* Selected states inside run-out / wicket panels */
+.ma-ro-num-btn,
+.ma-ro-who-btn,
+.ma-dismissal-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  font-size: 14px;
 }
-
-.ma-score-overs { color: var(--ma-muted); font-weight: 700; }
-
-.ma-chase-bar {
-  border-radius: 999px;
-  background: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  color: #fde68a;
-  font-weight: 800;
+.ma-ro-num-btn.selected,
+.ma-ro-who-btn.selected,
+.ma-dismissal-btn.selected,
+.ma-dismissal-btn.active {
+  background: var(--bg-elevated);
+  border-color: var(--brand-gold);
+  box-shadow: inset 0 0 0 1px var(--brand-gold);
+  color: var(--brand-gold);
 }
+.ma-runout-panel {
+  background: var(--bg-card);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-lg);
+}
+.ma-ro-confirm { background: var(--status-error) !important; color: #fff !important; border-radius: var(--radius-md); min-height: 44px; }
+.ma-ro-cancel { background: transparent !important; border: 1px solid var(--border-strong) !important; color: var(--text-secondary) !important; border-radius: var(--radius-md); min-height: 44px; }
 
-/* Ball tracker: round badges */
+/* ── Over-by-over balls ─────────────────────────────────────────────────── */
 .ma-ball,
 .ma-ball-dot,
 .ma-ball-nb,
-.ma-ball-w {
+.ma-ball-w,
+.ma-ball-wd,
+.ma-ball-lb {
   border-radius: 50%;
-  font-weight: 900;
+  font-weight: 800;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.ma-ball { min-width: 32px; height: 32px; background: var(--bg-elevated); color: var(--text-primary); }
+.ma-balls-row { gap: 6px; }
+.ma-ball-dot { color: var(--text-muted); }
+.ma-ball-4 { background: var(--brand-electric); color: #fff; border: none; }
+.ma-ball-6 { background: var(--brand-gold); color: var(--text-on-gold); border: none; }
+.ma-ball-w { background: var(--status-error); color: #fff; border: none; }
+
+/* Quick score bar: same colour language as the pad */
+.ma-qb-dot { background: var(--bg-elevated); color: var(--text-secondary); }
+.ma-qb-nb { background: var(--tint-gold); color: var(--brand-gold-bright); border-color: var(--border-gold); }
+.ma-qb-over { background: var(--brand-gold); color: var(--text-on-gold); border-color: transparent; }
+
+/* ── Alerts ─────────────────────────────────────────────────────────────── */
+.ma-over-alert {
+  border-radius: var(--radius-md);
+  background: var(--tint-warning);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #FCD34D;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-/* Modals: glass sheet */
+/* ── Modals ─────────────────────────────────────────────────────────────── */
 .ma-modal-overlay {
-  background: rgba(2, 6, 23, 0.7);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .ma-modal-card {
-  background: linear-gradient(170deg, rgba(18, 24, 44, 0.98), rgba(7, 10, 20, 0.98));
-  border: 1px solid rgba(251, 191, 36, 0.25);
-  border-radius: 20px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
 }
 
-.ma-modal-title { color: #fde68a; font-weight: 900; }
+.ma-modal-title { color: var(--brand-gold); font-size: 16px; font-weight: 800; }
 
-/* Info strip & status */
-.ma-info-strip {
-  border-radius: 12px;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-}
-
-.ma-over-alert {
-  border-radius: 12px;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-}
-
-/* Subtle entrance for cards on first paint */
-.ma-content .ma-card { animation: maFadeUp 0.35s ease both; }
+/* ── Motion ─────────────────────────────────────────────────────────────── */
+.ma-content .ma-card { animation: maFadeUp 0.25s ease both; }
 @keyframes maFadeUp {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -231,7 +394,7 @@
   .ma-big-btn { animation: none !important; transition: none !important; }
 }
 
-/* ── Scoring pad: calculator keys + wicket/extras beside them ──────────── */
+/* ── Scoring pad: number keys + wicket/extras beside them ───────────────── */
 .ma-pad {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
@@ -246,7 +409,7 @@
   gap: 10px;
 }
 
-.ma-pad-keys .ma-big-btn { min-height: 64px; font-size: 22px; }
+.ma-pad-keys .ma-big-btn { min-height: 68px; font-size: 26px; }
 
 .ma-pad-undo {
   grid-column: 1 / -1;
@@ -266,18 +429,19 @@
   margin: 0;
 }
 
-.ma-pad-side .ma-wicket-btn { flex: 1.6; }
+.ma-pad-side .ma-wicket-btn { flex: 1.6; font-size: 17px; }
+.ma-pad-side .ma-extra-btn { font-size: 16px; min-height: 48px; }
 
-/* More extras: one row per extra type, compact chips */
+/* More extras: one row per extra type */
 .ma-more-extras {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 12px;
   margin-bottom: 12px;
-  border-radius: 14px;
-  background: rgba(2, 6, 23, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
 }
 
 .ma-more-row {
@@ -289,25 +453,64 @@
 
 .ma-more-label {
   min-width: 56px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.06em;
-  color: var(--ma-muted, #94a3b8);
+  color: var(--text-secondary);
 }
 
 .ma-more-row .ma-extra-btn {
   flex: 1 1 56px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 10px;
+  font-size: 15px;
 }
 
 /* Small descriptions under key labels (e.g. WD = wide) */
 .ma-key-sub {
   display: block;
-  margin-top: 3px;
-  font-size: 10px;
+  margin-top: 4px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  opacity: 0.75;
+  opacity: 0.8;
   line-height: 1.1;
 }
+
+/* ── Wider screens: centre the console and give it more room ────────────── */
+@media (min-width: 900px) {
+  .ma-score-tab,
+  .ma-match-tab,
+  .ma-lineup-tab,
+  .ma-more-tab,
+  .ma-graphics-tab {
+    max-width: 880px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+  .ma-score-big { font-size: 52px; }
+}
+
+@media (max-width: 380px) {
+  .ma-score-big { font-size: 36px; }
+  .ma-pad-keys .ma-big-btn { min-height: 60px; font-size: 22px; }
+}
+
+/* ── Graphics tab: buttons wrap instead of overflowing on phones ────────── */
+.ma-gfx-btn-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.ma-gfx-btn {
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  white-space: normal;
+  line-height: 1.2;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+}
+.ma-gfx-btn:hover { background: var(--bg-elevated); border-color: var(--border-blue); color: var(--text-primary); }
+.ma-gfx-btn.active { background: var(--bg-elevated); border-color: var(--brand-gold); box-shadow: inset 0 0 0 1px var(--brand-gold); color: var(--brand-gold); }
+.ma-gfx-btn-gold { background: var(--tint-gold); border-color: var(--border-gold); color: var(--brand-gold); }
+.ma-gfx-btn-gold:hover { background: var(--tint-gold-strong); }

@@ -7,11 +7,11 @@
   padding: 28px;
   border-radius: 20px;
   background:
-    radial-gradient(900px 300px at 0% 0%, rgba(56, 189, 248, 0.14), transparent 60%),
-    linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(8, 13, 28, 0.95));
-  border: 1px solid rgba(148, 163, 184, 0.18);
+    radial-gradient(900px 300px at 0% 0%, rgba(57,169,255,0.14), transparent 60%),
+    linear-gradient(160deg, rgba(11,31,56,0.95), rgba(11,31,56,0.95));
+  border: 1px solid rgba(168,184,204,0.18);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .credit-panel-head {
@@ -33,7 +33,7 @@
 .credit-panel-head p {
   margin: 0;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .credit-balance {
@@ -42,30 +42,30 @@
   align-items: center;
   padding: 12px 22px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(37, 99, 235, 0.2));
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: linear-gradient(135deg, rgba(57,169,255,0.2), rgba(22,119,255,0.2));
+  border: 1px solid rgba(57,169,255,0.4);
 }
 
 .credit-balance-num {
   font-size: 2rem;
   font-weight: 900;
   line-height: 1;
-  color: #7dd3fc;
+  color: var(--brand-sky);
 }
 
 .credit-balance-lbl {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-top: 4px;
 }
 
 .credit-empty {
   padding: 18px;
   text-align: center;
-  color: #94a3b8;
-  border: 1px dashed rgba(148, 163, 184, 0.3);
+  color: var(--text-secondary);
+  border: 1px dashed rgba(168,184,204,0.3);
   border-radius: 12px;
 }
 
@@ -81,20 +81,20 @@
   flex-direction: column;
   padding: 24px;
   border-radius: 18px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(11,31,56,0.7);
+  border: 1px solid rgba(168,184,204,0.2);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .credit-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(56, 189, 248, 0.5);
+  border-color: rgba(57,169,255,0.5);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
 }
 
 .credit-card.is-featured {
-  border-color: rgba(250, 204, 21, 0.55);
-  background: linear-gradient(180deg, rgba(120, 83, 10, 0.35), rgba(15, 23, 42, 0.8));
+  border-color: rgba(255,201,40,0.55);
+  background: linear-gradient(180deg, rgba(120, 83, 10, 0.35), rgba(11,31,56,0.8));
 }
 
 .credit-ribbon {
@@ -103,9 +103,9 @@
   right: 18px;
   padding: 4px 12px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #facc15, #f59e0b);
+  background: linear-gradient(90deg, var(--brand-gold), var(--status-warning));
   color: #1c1400;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -115,7 +115,7 @@
   margin: 0 0 14px;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .credit-count {
@@ -128,7 +128,7 @@
   font-size: 3rem;
   font-weight: 900;
   line-height: 1;
-  background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+  background: linear-gradient(135deg, var(--brand-sky), var(--brand-sky));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -136,23 +136,23 @@
 
 .credit-count-lbl {
   font-size: 0.95rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-weight: 700;
 }
 
 .credit-price {
   margin: 10px 0 12px;
   font-weight: 800;
-  color: #f1f5f9;
+  color: var(--text-primary);
 }
 
-.credit-currency { font-size: 1rem; color: #94a3b8; margin-right: 2px; }
+.credit-currency { font-size: 1rem; color: var(--text-secondary); margin-right: 2px; }
 .credit-amount { font-size: 1.6rem; }
 
 .credit-desc {
   margin: 0 0 12px;
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -164,7 +164,7 @@
   flex-direction: column;
   gap: 8px;
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: var(--text-primary);
 }
 
 .credit-features li::before {
@@ -182,7 +182,7 @@
   gap: 8px;
   padding: 12px 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(135deg, var(--status-success), var(--status-success));
   color: #fff;
   font-weight: 800;
   text-decoration: none;
@@ -196,11 +196,11 @@
   margin-top: 22px;
   padding: 14px 18px;
   border-radius: 12px;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(57,169,255,0.08);
+  border: 1px solid rgba(57,169,255,0.25);
   font-size: 0.88rem;
   line-height: 1.6;
-  color: #cbd5e1;
+  color: var(--text-primary);
 }
 
 /* ── Owner footer ─────────────────────────────────────────────────────── */
@@ -213,13 +213,13 @@
   margin: 32px 0 8px;
   padding: 22px 26px;
   border-radius: 18px;
-  background: linear-gradient(120deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9));
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #e2e8f0;
+  background: linear-gradient(120deg, rgba(11,31,56,0.95), rgba(16,38,64,0.9));
+  border: 1px solid rgba(168,184,204,0.2);
+  color: var(--text-primary);
 }
 
 .owner-footer h4 { margin: 0 0 4px; font-size: 1.05rem; font-weight: 800; }
-.owner-footer p { margin: 0; font-size: 0.88rem; color: #94a3b8; }
+.owner-footer p { margin: 0; font-size: 0.88rem; color: var(--text-secondary); }
 
 .owner-footer-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
@@ -236,7 +236,7 @@
 }
 
 .owner-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.owner-btn-wa { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.owner-btn-wa { background: linear-gradient(135deg, var(--status-success), var(--status-success)); }
 .owner-btn-fb { background: linear-gradient(135deg, #1877f2, #0d5dd6); }
 
 /* ── Compact balance bar + plan selection ─────────────────────────────── */
@@ -250,22 +250,22 @@
   padding: 14px 20px;
   margin-bottom: 18px;
   border-radius: 14px;
-  background: linear-gradient(120deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.9));
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: linear-gradient(120deg, rgba(57,169,255,0.12), rgba(11,31,56,0.9));
+  border: 1px solid rgba(57,169,255,0.3);
 }
 
 .credit-bar-info { display: flex; flex-direction: column; gap: 2px; }
-.credit-bar-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #7dd3fc; }
-.credit-bar-text { font-size: 0.88rem; color: #cbd5e1; }
+.credit-bar-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--brand-sky); }
+.credit-bar-text { font-size: 0.88rem; color: var(--text-primary); }
 
-.credit-select-head h3 { margin: 0 0 4px; font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
-.credit-select-head p { margin: 0 0 14px; font-size: 0.85rem; color: #94a3b8; }
+.credit-select-head h3 { margin: 0 0 4px; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+.credit-select-head p { margin: 0 0 14px; font-size: 0.85rem; color: var(--text-secondary); }
 
 .credit-card { text-align: left; font: inherit; color: inherit; cursor: pointer; position: relative; }
 .credit-card.is-selected {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.45), 0 16px 36px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(180deg, rgba(14, 116, 144, 0.35), rgba(15, 23, 42, 0.85));
+  border-color: var(--brand-sky);
+  box-shadow: 0 0 0 2px rgba(57,169,255,0.45), 0 16px 36px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(180deg, rgba(14, 116, 144, 0.35), rgba(11,31,56,0.85));
 }
 
 .credit-check {
@@ -280,9 +280,9 @@
   justify-content: center;
   font-weight: 900;
   color: #04111f;
-  background: #38bdf8;
+  background: var(--brand-sky);
 }
-.credit-check:empty { background: rgba(148, 163, 184, 0.2); border: 1px solid rgba(148, 163, 184, 0.35); }
+.credit-check:empty { background: rgba(168,184,204,0.2); border: 1px solid rgba(168,184,204,0.35); }
 
 .credit-summary {
   display: flex;
@@ -293,12 +293,12 @@
   margin-top: 18px;
   padding: 16px 20px;
   border-radius: 14px;
-  background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(7,20,38,0.6);
+  border: 1px solid rgba(57,169,255,0.35);
 }
-.credit-summary-label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
-.credit-summary strong { color: #f8fafc; }
-.credit-summary-meta { color: #94a3b8; font-size: 0.88rem; }
+.credit-summary-label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); }
+.credit-summary strong { color: var(--text-primary); }
+.credit-summary-meta { color: var(--text-secondary); font-size: 0.88rem; }
 
 .credit-summary .credit-cta { margin-top: 0; cursor: pointer; border: none; font: inherit; }
 
@@ -311,4 +311,4 @@
 
 .credit-price { flex-wrap: wrap; align-items: baseline; gap: 6px; }
 .credit-price .credit-amount { font-size: 1.35rem; }
-.credit-price-usd { font-size: 0.85rem; font-weight: 700; color: #94a3b8; }
+.credit-price-usd { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); }

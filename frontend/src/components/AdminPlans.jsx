@@ -146,12 +146,12 @@ const AdminPlans = ({ apiUrl, plans, onChanged }) => {
         <tbody>
           {plans.map((p) => (
             <tr key={p._id}>
-              <td>{p.name} <small style={{ color: '#94a3b8' }}>({p.slug})</small></td>
+              <td>{p.name} <small style={{ color: 'var(--text-secondary)' }}>({p.slug})</small></td>
               <td>{p.credits}</td>
               <td>
                 {formatLkr(p.priceLkr)}
                 {rate && lkrToUsd(p.priceLkr, rate) !== null && (
-                  <small style={{ color: '#94a3b8' }}> ({formatUsd(lkrToUsd(p.priceLkr, rate))})</small>
+                  <small style={{ color: 'var(--text-secondary)' }}> ({formatUsd(lkrToUsd(p.priceLkr, rate))})</small>
                 )}
               </td>
               <td>
@@ -173,7 +173,7 @@ const AdminPlans = ({ apiUrl, plans, onChanged }) => {
             </tr>
           ))}
           {plans.length === 0 && (
-            <tr><td colSpan={6} style={{ textAlign: 'center', color: '#94a3b8' }}>No plans yet. Run the seeder or add one.</td></tr>
+            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>No plans yet. Run the seeder or add one.</td></tr>
           )}
         </tbody>
       </table>

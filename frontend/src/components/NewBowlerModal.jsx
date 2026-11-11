@@ -41,7 +41,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
       backdropFilter: 'blur(16px)',
     }}>
       <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'var(--bg-secondary)',
         border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: 20,
         padding: '30px 26px',
@@ -60,13 +60,13 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
               color: '#fff', fontSize: 18, fontWeight: 800,
               letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0,
             }}>CHOOSE BOWLER</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4 }}>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>
               Tap from squad, continue spell, or type name
             </p>
             {overInfo && (
-              <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(250,204,21,0.08)', border: '1px solid rgba(250,204,21,0.25)', color: '#fde68a', fontSize: 12, fontWeight: 800 }}>
+              <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,201,40,0.08)', border: '1px solid rgba(255,201,40,0.25)', color: 'var(--brand-gold-bright)', fontSize: 12, fontWeight: 800 }}>
                 {overInfo}
-                {previousBowler && <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: 700, marginTop: 2 }}>PREVIOUS BOWLER: {previousBowler}</div>}
+                {previousBowler && <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: 700, marginTop: 2 }}>PREVIOUS BOWLER: {previousBowler}</div>}
               </div>
             )}
             {(localError || error) && (
@@ -77,7 +77,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
             <button
               type="button"
               onClick={onClose}
-              style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', padding: 4 }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer', padding: 4 }}
             >✕</button>
           )}
         </div>
@@ -86,7 +86,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
         {squadList.length > 0 && (
           <div style={{ marginBottom: 20 }}>
             <div style={{
-              color: '#a78bfa', fontSize: 10, fontWeight: 800,
+              color: 'var(--brand-sky)', fontSize: 12, fontWeight: 800,
               letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10,
             }}>⚡ TEAM SQUAD BOWLERS ({squadList.length})</div>
             
@@ -107,22 +107,22 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
                       opacity: blocked ? 0.35 : 1,
                       display: 'flex', alignItems: 'center', gap: 6,
                       padding: '10px 12px', borderRadius: 10,
-                      border: isSelected ? '1.5px solid #a78bfa' : '1px solid rgba(167, 139, 250, 0.25)',
-                      background: isSelected ? 'rgba(167, 139, 250, 0.25)' : 'rgba(167, 139, 250, 0.08)',
+                      border: isSelected ? '1.5px solid var(--brand-gold)' : '1px solid rgba(57,169,255,0.25)',
+                      background: isSelected ? 'var(--bg-elevated)' : 'rgba(57,169,255,0.08)',
                       color: '#fff', fontSize: 12, fontWeight: 700,
                       cursor: 'pointer', transition: 'all 0.15s',
                       textAlign: 'left'
                     }}
                     onMouseOver={e => {
-                      e.currentTarget.style.background = 'rgba(167, 139, 250, 0.2)';
-                      e.currentTarget.style.borderColor = '#a78bfa';
+                      e.currentTarget.style.background = 'rgba(57,169,255,0.2)';
+                      e.currentTarget.style.borderColor = 'var(--brand-sky)';
                     }}
                     onMouseOut={e => {
-                      e.currentTarget.style.background = isSelected ? 'rgba(167, 139, 250, 0.25)' : 'rgba(167, 139, 250, 0.08)';
-                      e.currentTarget.style.borderColor = isSelected ? '#a78bfa' : 'rgba(167, 139, 250, 0.25)';
+                      e.currentTarget.style.background = isSelected ? 'var(--bg-elevated)' : 'rgba(57,169,255,0.08)';
+                      e.currentTarget.style.borderColor = isSelected ? 'var(--brand-gold)' : 'rgba(57,169,255,0.25)';
                     }}
                   >
-                    <span style={{ fontSize: 11 }}>🏏</span>
+                    <span style={{ fontSize: 12 }}>🏏</span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{name}</span>
                   </button>
                 );
@@ -135,7 +135,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
         {previousBowlers.length > 0 && (
           <div style={{ marginBottom: 20 }}>
             <div style={{
-              color: '#facc15', fontSize: 10, fontWeight: 800,
+              color: 'var(--brand-gold)', fontSize: 12, fontWeight: 800,
               letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10,
             }}>🔄 RECENT BOWLERS (CONTINUE SPELL)</div>
             
@@ -150,22 +150,22 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
                     opacity: isBlocked(b.name) ? 0.35 : 1,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '9px 14px', borderRadius: 10,
-                    border: '1px solid rgba(250,204,21,0.2)',
-                    background: 'rgba(250,204,21,0.06)',
+                    border: '1px solid rgba(255,201,40,0.2)',
+                    background: 'rgba(255,201,40,0.06)',
                     color: '#fff', fontSize: 13, fontWeight: 700,
                     cursor: 'pointer', transition: 'all 0.15s',
                   }}
                   onMouseOver={e => {
-                    e.currentTarget.style.background = 'rgba(250,204,21,0.15)';
-                    e.currentTarget.style.borderColor = '#facc15';
+                    e.currentTarget.style.background = 'rgba(255,201,40,0.15)';
+                    e.currentTarget.style.borderColor = 'var(--brand-gold)';
                   }}
                   onMouseOut={e => {
-                    e.currentTarget.style.background = 'rgba(250,204,21,0.06)';
-                    e.currentTarget.style.borderColor = 'rgba(250,204,21,0.2)';
+                    e.currentTarget.style.background = 'rgba(255,201,40,0.06)';
+                    e.currentTarget.style.borderColor = 'rgba(255,201,40,0.2)';
                   }}
                 >
-                  <span style={{ color: '#facc15', textTransform: 'uppercase' }}>{b.name}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 600 }}>
+                  <span style={{ color: 'var(--brand-gold)', textTransform: 'uppercase' }}>{b.name}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600 }}>
                     {b.figures || ''}
                   </span>
                 </button>
@@ -177,7 +177,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
         {/* Custom Input */}
         <div>
           <div style={{
-            color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: 700,
+            color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 700,
             letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8,
           }}>OR TYPE CUSTOM BOWLER NAME</div>
           
@@ -223,8 +223,8 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
                 onClick={handleConfirmCustom}
                 disabled={!customName.trim()}
                 style={{
-                  background: customName.trim() ? 'linear-gradient(to right, #8b5cf6, #7c3aed)' : 'rgba(255,255,255,0.06)',
-                  color: customName.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+                  background: customName.trim() ? 'var(--brand-gold)' : 'rgba(255,255,255,0.06)',
+                  color: customName.trim() ? 'var(--text-on-gold)' : 'rgba(255,255,255,0.3)',
                   border: 'none', 
                   padding: '12px', 
                   cursor: customName.trim() ? 'pointer' : 'not-allowed', 

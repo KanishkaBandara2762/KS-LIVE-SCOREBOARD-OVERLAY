@@ -1,9 +1,9 @@
 .pricing-container {
   min-height: 100vh;
-  background-color: #0f172a;
+  background-color: var(--bg-main);
   color: #fff;
   padding: 4rem 2rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-ui);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,14 +18,14 @@
   font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 1rem;
-  background: linear-gradient(to right, #38bdf8, #818cf8);
+  background: linear-gradient(to right, var(--brand-sky), #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .pricing-header p {
   font-size: 1.125rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .pricing-grid {
@@ -43,12 +43,12 @@
 }
 
 .pricing-card {
-  background-color: #1e293b;
+  background-color: var(--bg-card);
   border-radius: 1rem;
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  border: 1px solid #334155;
+  border: 1px solid var(--bg-elevated);
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -59,13 +59,13 @@
 }
 
 .pricing-card.popular {
-  border: 2px solid #38bdf8;
+  border: 2px solid var(--brand-sky);
   transform: scale(1.05);
   z-index: 10;
 }
 
 .pricing-card.best-value {
-  border: 2px solid #fbbf24;
+  border: 2px solid var(--brand-gold);
 }
 
 .popular-badge, .best-value-badge {
@@ -82,20 +82,20 @@
 }
 
 .popular-badge {
-  background-color: #38bdf8;
-  color: #0f172a;
+  background-color: var(--brand-sky);
+  color: var(--bg-main);
 }
 
 .best-value-badge {
-  background-color: #fbbf24;
-  color: #0f172a;
+  background-color: var(--brand-gold);
+  color: var(--bg-main);
 }
 
 .pricing-card-header h3 {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .price {
@@ -107,7 +107,7 @@
 .price .currency {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--text-primary);
 }
 
 .price .amount {
@@ -118,7 +118,7 @@
 
 .price .period {
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-left: 0.5rem;
 }
 
@@ -136,18 +136,18 @@
   display: flex;
   align-items: center;
   margin-bottom: 1rem;
-  color: #cbd5e1;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
 .check {
-  color: #38bdf8;
+  color: var(--brand-sky);
   font-weight: bold;
   margin-right: 0.75rem;
 }
 
 .best-value .check {
-  color: #fbbf24;
+  color: var(--brand-gold);
 }
 
 .pricing-card-footer {
@@ -163,13 +163,13 @@
   text-align: center;
   border: none;
   cursor: pointer;
-  background-color: #334155;
+  background-color: var(--bg-elevated);
   color: #fff;
   transition: background-color 0.2s;
 }
 
 .btn-subscribe:hover:not(:disabled) {
-  background-color: #475569;
+  background-color: var(--text-muted);
 }
 
 .btn-subscribe:disabled {
@@ -178,21 +178,21 @@
 }
 
 .popular-btn {
-  background-color: #38bdf8;
-  color: #0f172a;
+  background-color: var(--brand-sky);
+  color: var(--bg-main);
 }
 
 .popular-btn:hover:not(:disabled) {
-  background-color: #0ea5e9;
+  background-color: var(--brand-sky);
 }
 
 .best-value-btn {
-  background-color: #fbbf24;
-  color: #0f172a;
+  background-color: var(--brand-gold);
+  color: var(--bg-main);
 }
 
 .best-value-btn:hover:not(:disabled) {
-  background-color: #f59e0b;
+  background-color: var(--status-warning);
 }
 
 /* ── Premium Contact Modal ── */
@@ -202,7 +202,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(15, 23, 42, 0.75);
+  background-color: rgba(11,31,56,0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
@@ -213,7 +213,7 @@
 }
 
 .pricing-modal {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-main) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.5rem;
   width: 90%;
@@ -231,7 +231,7 @@
   right: 1.25rem;
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 2rem;
   cursor: pointer;
   transition: color 0.2s;
@@ -247,7 +247,7 @@
   font-weight: 800;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
-  background: linear-gradient(to right, #38bdf8, #818cf8);
+  background: linear-gradient(to right, var(--brand-sky), #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -260,19 +260,19 @@
 
 .plan-price-info {
   font-size: 1.125rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
 .price-highlight {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #fbbf24;
+  color: var(--brand-gold);
 }
 
 .contact-instruction {
   font-size: 0.95rem;
-  color: #cbd5e1;
+  color: var(--text-primary);
   line-height: 1.6;
   margin-bottom: 2rem;
 }
@@ -346,7 +346,7 @@
   border-radius: 0.5rem;
   font-weight: 700;
   font-size: 0.95rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -356,14 +356,14 @@
 }
 
 .modal-tab-btn.active {
-  background-color: #38bdf8;
-  color: #0f172a;
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+  background-color: var(--brand-sky);
+  color: var(--bg-main);
+  box-shadow: 0 4px 12px rgba(57,169,255,0.2);
 }
 
 /* Bank Details Card */
 .bank-details-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(11,31,56,0.6);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 1rem;
   padding: 1.25rem;
@@ -389,16 +389,16 @@
 }
 
 .bank-detail-label {
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .bank-detail-val {
-  color: #cbd5e1;
+  color: var(--text-primary);
 }
 
 .highlight-acc {
-  color: #fbbf24;
+  color: var(--brand-gold);
   font-size: 1.15rem;
   font-family: monospace;
 }
@@ -418,12 +418,12 @@
   background-color: #fff;
   padding: 8px;
   border-radius: 0.75rem;
-  border: 3px solid rgba(56, 189, 248, 0.4);
+  border: 3px solid rgba(57,169,255,0.4);
 }
 
 .qr-caption {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* Footer Reminder */
@@ -435,13 +435,13 @@
 
 .screenshot-reminder {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.5;
   text-align: left;
 }
 
 .screenshot-reminder strong {
-  color: #eab308;
+  color: var(--brand-gold);
 }
 
 /* Animations */
@@ -485,3 +485,33 @@
 .pricing-header {
   position: relative;
 }
+
+/* ══ KS LIVE blue + gold layer (tokens from src/styles/theme.css) ═══════ */
+.pricing-header h1 {
+  background: none;
+  -webkit-text-fill-color: var(--text-primary);
+  color: var(--text-primary);
+}
+.pricing-back { color: var(--brand-sky); opacity: 1; }
+@media (max-width: 900px) {
+  .pricing-back { position: static; display: inline-block; margin-bottom: 16px; }
+}
+.pricing-modal-header h2 {
+  background: none;
+  -webkit-text-fill-color: var(--text-primary);
+  color: var(--text-primary);
+}
+.pricing-card.popular { border-color: var(--brand-gold); }
+.btn-subscribe {
+  min-height: var(--control-h-lg);
+  border-radius: var(--radius-md);
+  background-color: var(--brand-royal);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.btn-subscribe:hover:not(:disabled) { background-color: #175AAD; }
+.pricing-card.popular .btn-subscribe,
+.popular-btn { background-color: var(--brand-gold); color: var(--text-on-gold); }
+.pricing-card.popular .btn-subscribe:hover:not(:disabled),
+.popular-btn:hover:not(:disabled) { background-color: var(--brand-gold-bright); }
+.popular-badge { background: var(--brand-gold); color: var(--text-on-gold); }

@@ -265,7 +265,7 @@ export default function LandingPage() {
     const counts = [count0, count1, count2, count3];
 
     return (
-        <div className="landing-page">
+        <div className="landing-page ks-app">
             {!introComplete && (
                 <div className="landing-intro-overlay">
                     <div className="landing-intro-logo-wrap">
