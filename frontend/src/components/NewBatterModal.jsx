@@ -25,7 +25,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
   const handleConfirm = () => {
     const name = (selected || customName).trim();
     if (!name) return;
-    onConfirm(name.toUpperCase());
+    onConfirm(name.trim());
   };
 
   return (
@@ -90,7 +90,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
                   key={i}
                   type="button"
                   onClick={() => { setSelected(name); setCustomName(''); }}
-                  onDoubleClick={() => onConfirm(name.toUpperCase())}
+                  onDoubleClick={() => onConfirm(name)}
                   style={{
                     width: '100%', textAlign: 'left',
                     padding: '10px 12px',
@@ -139,7 +139,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
             type="text"
             placeholder="Type player name..."
             value={customName}
-            onChange={e => { setCustomName(e.target.value.toUpperCase()); setSelected(''); }}
+            onChange={e => { setCustomName(e.target.value); setSelected(''); }}
             onKeyDown={e => e.key === 'Enter' && handleConfirm()}
             style={{
               width: '100%', boxSizing: 'border-box',

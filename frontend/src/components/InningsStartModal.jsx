@@ -19,13 +19,13 @@ const PlayerPicker = ({ label, players, value, onChange, exclude = [] }) => {
       <div style={labelStyle}>{label}</div>
       {hasSquad ? (
         <select value={value} onChange={(e) => onChange(e.target.value)} style={fieldStyle}>
-          <option value="">— Select —</option>
-          {options.map((n) => <option key={n} value={n}>{n}</option>)}
+          <option value="" style={{ color: '#000' }}>— Select —</option>
+          {options.map((n) => <option key={n} value={n} style={{ color: '#000' }}>{n}</option>)}
         </select>
       ) : (
         <input
           value={value}
-          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          onChange={(e) => onChange(e.target.value)}
           placeholder="No squad saved — type player name"
           style={fieldStyle}
         />

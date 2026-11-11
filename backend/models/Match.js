@@ -161,6 +161,7 @@ const overlaySettingsSchema = new mongoose.Schema(
     customText: { type: String, default: '' },
     show4or6Animation: { type: Boolean, default: true },
     scoreboardOnly: { type: Boolean, default: false },
+    overlayHidden: { type: Boolean, default: false },  // Hide All: hides the whole overlay on OBS
     // Tournament cards
     showTournamentMostRuns: { type: Boolean, default: false },
     showTournamentMostWickets: { type: Boolean, default: false },
@@ -229,6 +230,7 @@ const squadPlayerSchema = new mongoose.Schema(
     id: { type: String, default: () => uuidv4() },
     name: { type: String, required: true },
     role: { type: String, default: 'All-Rounder' },
+    jerseyNumber: { type: Number, default: null },
     photo: { type: String, default: '' },
     status: { type: String, enum: ['available', 'batting', 'out', 'retired'], default: 'available' },
     battingOrder: { type: Number, default: 0 },

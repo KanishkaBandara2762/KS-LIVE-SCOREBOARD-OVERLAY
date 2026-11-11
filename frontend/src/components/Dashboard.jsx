@@ -453,8 +453,12 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
     }
   };
 
-  const logo1Preview = logo1 ? URL.createObjectURL(logo1) : null;
-  const logo2Preview = logo2 ? URL.createObjectURL(logo2) : null;
+  const logo1Preview = logo1
+    ? URL.createObjectURL(logo1)
+    : (useTournamentTeams && selectedTeam1?.logo ? getAbsoluteUrl(selectedTeam1.logo) : null);
+  const logo2Preview = logo2
+    ? URL.createObjectURL(logo2)
+    : (useTournamentTeams && selectedTeam2?.logo ? getAbsoluteUrl(selectedTeam2.logo) : null);
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -486,7 +490,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
                 fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Choose Tournament Teams ({tournamentTeams.length})
+              Choose Tournament Teams ({tournamentTeams.length})
             </button>
             <button
               type="button"
@@ -498,7 +502,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
                 fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              <Pencil size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Custom Names
+              Custom Names
             </button>
           </div>
         ) : fixture ? null : (
@@ -708,7 +712,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
 }
 
 // ── Match Card ────────────────────────────────────────────────────────────
-function MatchCard({ match, onOpen, onCopyUrl, isObsActive = true }) {
+function MatchCard({ match, onOpen, onCopyUrl, onSetOnAir, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
   const statusInfo = STATUS_COLORS[match.status] || STATUS_COLORS.live;
   const overlayUrl = `${window.location.origin}/overlay/${match.matchId}`;
@@ -738,10 +742,25 @@ function MatchCard({ match, onOpen, onCopyUrl, isObsActive = true }) {
           <span className="vs-chip">VS</span>
           <span className="team-name bowling">{match.bowlingTeam || 'TEAM B'}</span>
         </div>
-        <span className="status-badge" style={{ background: statusInfo.bg, color: statusInfo.text }}>
-          {statusInfo.Icon && <statusInfo.Icon size="1em" style={{ verticalAlign: '-0.125em', color: statusInfo.iconColor, marginRight: '0.35em' }} aria-hidden="true" />}
-          {statusInfo.label}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {match.tournamentId && (
+            <button
+              type="button"
+              onClick={() => !match.isOnAir && onSetOnAir?.(match)}
+              title={match.isOnAir ? 'On air: the tournament OBS link shows this match' : 'Put this match on air (other matches in this tournament go off air)'}
+              style={{
+                padding: '3px 10px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800,
+                cursor: match.isOnAir ? 'default' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
+                background: match.isOnAir ? 'rgba(220,38,38,0.2)' : 'rgba(255,255,255,0.08)',
+                color: match.isOnAir ? 'var(--status-error)' : 'rgba(255,255,255,0.5)',
+                border: match.isOnAir ? '1px solid rgba(220,38,38,0.4)' : '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: match.isOnAir ? 'var(--status-error)' : 'rgba(255,255,255,0.35)' }} />
+              {match.isOnAir ? 'ON AIR' : 'OFF AIR'}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="match-card-meta">
@@ -759,27 +778,24 @@ function MatchCard({ match, onOpen, onCopyUrl, isObsActive = true }) {
         </div>
       )}
 
-      <div className="match-card-url">
-        <span className="obs-label">OBS URL:</span>
-        <code className="obs-url">/overlay/{match.matchId}</code>
-        <button className="btn-copy" onClick={handleCopy}>
-          {copied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copied!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copy</>}
-        </button>
-      </div>
+      {!match.tournamentId && (
+        <div className="match-card-url">
+          <span className="obs-label">OBS URL:</span>
+          <code className="obs-url">/overlay/{match.matchId}</code>
+          <button className="btn-copy" onClick={handleCopy}>
+            {copied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copied!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copy</>}
+          </button>
+        </div>
+      )}
       <div style={{ marginTop: 6 }}>
         <BroadcastStatus expiresAt={obs.expiresAt} locked={obsLocked} onExpire={() => setObs((o) => ({ ...o }))} />
       </div>
 
       <div className="match-card-actions">
-        <button className="btn-open" onClick={() => onOpen(match.matchId)}>
-          <Gamepad2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Open Admin
-        </button>
         <button className="btn-overlay border border-teal-500/20" onClick={() => window.open(`/live/match/${match.slug || match.matchId}`, '_blank')}>
           <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Preview Live
         </button>
-        <button className="btn-mini" onClick={() =>
-          window.open(`/mini-admin/${match.matchId}`, 'KS_Mini', 'width=480,height=850,resizable=yes')
-        }>
+        <button className="btn-mini" onClick={() => { window.location.href = `/mini-admin/${match.matchId}`; }}>
           <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Mini
         </button>
       </div>
@@ -984,6 +1000,16 @@ const Dashboard = () => {
     await fetchTournaments();
   };
 
+  const handleSetOnAir = async (match) => {
+    try {
+      const tId = typeof match.tournamentId === 'object' ? (match.tournamentId?.id || match.tournamentId?._id) : match.tournamentId;
+      await tournamentsApi.setOnAir(tId, match.matchId);
+      fetchMatches();
+    } catch (err) {
+      alert(err.message || 'Failed to set match on air');
+    }
+  };
+
   const handleNextMatchSubmit = async (tournamentId, matchData) => {
     const res = await tournamentsApi.nextMatch(tournamentId, matchData);
     await fetchTournaments();
@@ -1131,14 +1157,6 @@ const Dashboard = () => {
           <span className="stat-num">{matches.filter(m => m.status === 'completed').length}</span>
           <span className="stat-label">Completed</span>
         </div>
-        <div className="stat-item">
-          <span className="stat-num">{tournaments.reduce((n, t) => n + (Array.isArray(t.teams) ? t.teams.length : 0), 0)}</span>
-          <span className="stat-label">Teams</span>
-        </div>
-        <div className="stat-item stat-item-info">
-          <span className="stat-num">{isAdminRole(currentUser?.role) ? <InfinityIcon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> :(currentUser?.matchCredits ?? 0)}</span>
-          <span className="stat-label">Match Credits</span>
-        </div>
       </div>
 
       {/* Navigation Tabs */}
@@ -1275,16 +1293,33 @@ const Dashboard = () => {
             )}
 
             {!loading && !error && filteredMatches.length > 0 && (
-              <div className="match-grid">
-                {filteredMatches.map((match) => (
-                  <MatchCard
-                    key={match.matchId}
-                    match={match}
-                    isObsActive={isObsActive}
-                    onOpen={handleOpen}
-                    onCopyUrl={(id) => navigator.clipboard.writeText(`${window.location.origin}/overlay/${id}`)}
-                  />
-                ))}
+              <div>
+              {Object.values(filteredMatches.reduce((groups, match) => {
+                const key = match.tournamentId ? String(match.tournamentId) : 'standalone';
+                if (!groups[key]) {
+                  groups[key] = { key, name: match.tournamentId ? (match.tournamentName || 'Tournament') : 'Single Matches', matches: [] };
+                }
+                groups[key].matches.push(match);
+                return groups;
+              }, {})).map((group) => (
+                <div key={group.key} style={{ marginBottom: '24px' }}>
+                  <h3 style={{ color: 'var(--brand-gold)', fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>
+                    {group.name} <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>({group.matches.length})</span>
+                  </h3>
+                  <div className="match-grid">
+                    {group.matches.map((match) => (
+                      <MatchCard
+                        key={match.matchId}
+                        match={match}
+                        isObsActive={isObsActive}
+                        onOpen={handleOpen}
+                        onSetOnAir={handleSetOnAir}
+                        onCopyUrl={(id) => navigator.clipboard.writeText(`${window.location.origin}/overlay/${id}`)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
               </div>
             )}
           </>

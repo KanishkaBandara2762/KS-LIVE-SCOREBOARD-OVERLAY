@@ -199,6 +199,36 @@ router.get('/matches', async (req, res, next) => {
   }
 });
 
+// Super admin: list tournaments across all users
+router.get('/tournaments', async (req, res, next) => {
+  try {
+    const Tournament = require('../models/Tournament');
+    const tournaments = await Tournament.find()
+      .select('name clientId matches broadcastExpiresAt createdAt')
+      .populate('clientId', 'email displayName')
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+    res.json({ success: true, tournaments });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Super admin: delete any tournament (its matches are kept, same as owner delete)
+router.delete('/tournaments/:tournamentId', async (req, res, next) => {
+  try {
+    const Tournament = require('../models/Tournament');
+    const tournament = await Tournament.findByIdAndDelete(req.params.tournamentId);
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+    res.json({ success: true, message: 'Tournament deleted successfully.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.put('/activate-session/:clientId', async (req, res, next) => {
   try {
     const { sessionType, durationDays } = req.body;
