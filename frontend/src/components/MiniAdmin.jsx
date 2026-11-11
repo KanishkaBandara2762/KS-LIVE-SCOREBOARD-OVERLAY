@@ -255,19 +255,28 @@ const MiniAdmin = () => {
     // Always use the real hostname/IP — OBS blocks WebSockets to 'localhost'
     // so we replace it with the actual network IP the browser is currently using.
     const overlayUrl = typeof window !== "undefined" ? `${window.location.origin}/overlay/${matchId}` : `/overlay/${matchId}`;
+    // Tournament matches share one OBS link (the tournament overlay); standalone matches use their own
+    const obsPath = matchTournamentId ? `/overlay/tournament/${matchTournamentId}` : `/overlay/${matchId}`;
     const obsUrl = typeof window !== "undefined"
         ? (import.meta.env.PROD
-            ? `${window.location.origin}/overlay/${matchId}`
-            : `${window.location.protocol}//${window.location.hostname}:${window.location.port || 5173}/overlay/${matchId}`)
-        : `/overlay/${matchId}`;
+            ? `${window.location.origin}${obsPath}`
+            : `${window.location.protocol}//${window.location.hostname}:${window.location.port || 5173}${obsPath}`)
+        : obsPath;
 
     const obsExpiresAt = obsOverride ? obsOverride.expiresAt : (match?.broadcastExpiresAt ?? null);
     const obsLockedNow = obsOverride
         ? isBroadcastLocked({ broadcastLocked: obsOverride.locked, broadcastExpiresAt: obsOverride.expiresAt })
         : isBroadcastLocked({ broadcastLocked: match?.broadcastLocked, broadcastExpiresAt: match?.broadcastExpiresAt });
 
+    // Generate the OBS link (one credit, 24h). Tournament matches generate it for the whole tournament.
+    const generateOBSLink = async () => {
+        const res = await ensureBroadcastLink({ matchId, tournamentId: matchTournamentId || undefined, locked: obsLockedNow });
+        if (!res) return;
+        setObsOverride({ expiresAt: res.broadcastExpiresAt ?? null, locked: false });
+    };
+
     const copyOBSLink = async () => {
-        const res = await ensureBroadcastLink({ matchId, locked: obsLockedNow });
+        const res = await ensureBroadcastLink({ matchId, tournamentId: matchTournamentId || undefined, locked: obsLockedNow });
         if (!res) return;
         setObsOverride({ expiresAt: res.broadcastExpiresAt ?? null, locked: false });
         navigator.clipboard.writeText(obsUrl).then(() => {
@@ -2001,15 +2010,23 @@ const MiniAdmin = () => {
                         {/* OBS Link */}
                         <div className="ma-card">
                             <div className="ma-card-title">OBS Browser Source</div>
-                            <div className="ma-obs-row">
-                                <div className="ma-obs-url">{obsUrl}</div>
+                            {obsLockedNow ? (
                                 <button
                                     className="ma-obs-copy"
-                                    style={{ background: obsCopied ? 'var(--status-success)' : 'var(--brand-sky)', color: '#fff' }}
-                                    onClick={copyOBSLink}
-                                >{obsCopied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> COPIED!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> COPY</>}</button>
-                                <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} />
-                            </div>
+                                    style={{ width: '100%', background: 'var(--brand-gold)', color: '#000' }}
+                                    onClick={generateOBSLink}
+                                >GENERATE {matchTournamentId ? 'TOURNAMENT ' : ''}OBS LINK</button>
+                            ) : (
+                                <div className="ma-obs-row">
+                                    <div className="ma-obs-url">{obsUrl}</div>
+                                    <button
+                                        className="ma-obs-copy"
+                                        style={{ background: obsCopied ? 'var(--status-success)' : 'var(--brand-sky)', color: '#fff' }}
+                                        onClick={copyOBSLink}
+                                    >{obsCopied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> COPIED!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> COPY</>}</button>
+                                    <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} />
+                                </div>
+                            )}
                             <button className="ma-preview-toggle" onClick={() => setShowLivePreview(p => !p)}>
                                 <div className="ma-preview-dot" style={{ background: showLivePreview ? 'var(--status-success)' : 'var(--text-muted)', animation: showLivePreview ? 'pulse 1.5s infinite' : 'none' }} />
                                 {showLivePreview ? 'HIDE OVERLAY PREVIEW' : 'SHOW OVERLAY PREVIEW'}
