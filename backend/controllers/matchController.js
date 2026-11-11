@@ -1083,7 +1083,7 @@ const updateMatch = async (req, res, next) => {
     
     const overlayFields = [
       'themeID', 'overlayMode', 'showVersus', 'showSummary', 'showMatchSituation', 'showToss',
-      'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo',
+      'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo', 'overlayHidden',
       // Broadcast Graphics Panel v3.1
       'showPlayerOfMatch', 'showPartnership', 'showSquadList', 'squadListTeam',
       'showMatchWon', 'showNeedRun', 'showNeedRunStrip', 'showLastOut',

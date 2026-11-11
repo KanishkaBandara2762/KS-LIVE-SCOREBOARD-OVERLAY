@@ -161,6 +161,7 @@ const overlaySettingsSchema = new mongoose.Schema(
     customText: { type: String, default: '' },
     show4or6Animation: { type: Boolean, default: true },
     scoreboardOnly: { type: Boolean, default: false },
+    overlayHidden: { type: Boolean, default: false },  // Hide All: hides the whole overlay on OBS
     // Tournament cards
     showTournamentMostRuns: { type: Boolean, default: false },
     showTournamentMostWickets: { type: Boolean, default: false },
