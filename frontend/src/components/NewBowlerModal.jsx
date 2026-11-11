@@ -26,7 +26,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
   const handleSelect = (name) => {
     if (isBlocked(name)) { setLocalError(`${previousBowler} bowled the previous over and cannot bowl two overs in a row.`); return; }
     setLocalError('');
-    onConfirm(name.trim().toUpperCase());
+    onConfirm(name.trim());
   };
 
   const handleConfirmCustom = () => {
@@ -187,7 +187,7 @@ const NewBowlerModal = ({ squad, history, onConfirm, onClose, previousBowler = '
               type="text"
               value={customName}
               placeholder="e.g. LASITH MALINGA"
-              onChange={e => setCustomName(e.target.value.toUpperCase())}
+              onChange={e => setCustomName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleConfirmCustom()}
               autoFocus
               style={{

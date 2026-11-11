@@ -505,6 +505,46 @@ router.delete('/:tournamentId/teams/:teamId/players/:playerId', async (req, res,
   }
 });
 
+// ── POST /:tournamentId/on-air ─────────────────────────────────────────
+// Sets the one match that the tournament OBS link shows. Setting another
+// match on air automatically takes the previous one off air, because the
+// tournament only has one currentMatchId.
+router.post('/:tournamentId/on-air', async (req, res, next) => {
+  try {
+    const { tournamentId } = req.params;
+    const { matchId } = req.body;
+
+    if (!matchId) {
+      return res.status(400).json({ success: false, error: 'matchId is required.' });
+    }
+
+    const tournament = await Tournament.findOne({ _id: tournamentId, clientId: req.user.id });
+    if (!tournament) {
+      return res.status(404).json({ success: false, error: 'Tournament not found or access denied.' });
+    }
+
+    const match = await Match.findOne({ matchId, tournamentId: tournament._id, ownerUid: req.user.id });
+    if (!match) {
+      return res.status(404).json({ success: false, error: 'Match not found in this tournament.' });
+    }
+
+    tournament.currentMatchId = match._id;
+    await tournament.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      const room = `tournament:${tournamentId}`;
+      const payload = { tournamentId, currentMatchId: match.matchId, match: match.toObject() };
+      io.of('/overlay').to(room).emit('matchSwitched', payload);
+      io.of('/admin').to(room).emit('matchSwitched', payload);
+    }
+
+    res.json({ success: true, currentMatchId: match.matchId });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── POST /:tournamentId/next-match ─────────────────────────────────────
 router.post('/:tournamentId/next-match', async (req, res, next) => {
   try {
@@ -628,19 +668,20 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
     let matchSummary = '';
 
     if (toss && toss.winner) {
+      const winnerIsTeam1 = String(toss.winner).trim().toUpperCase() === String(actualTeam1Name).trim().toUpperCase();
       if (toss.decision === 'bat') {
         actualBattingTeam = toss.winner;
-        actualBowlingTeam = (toss.winner === actualTeam1Name) ? actualTeam2Name : actualTeam1Name;
+        actualBowlingTeam = winnerIsTeam1 ? actualTeam2Name : actualTeam1Name;
         matchSummary = `${toss.winner} won the toss and elected to bat first.`;
       } else {
         actualBowlingTeam = toss.winner;
-        actualBattingTeam = (toss.winner === actualTeam1Name) ? actualTeam2Name : actualTeam1Name;
+        actualBattingTeam = winnerIsTeam1 ? actualTeam2Name : actualTeam1Name;
         matchSummary = `${toss.winner} won the toss and elected to bowl first, ${actualBattingTeam} will bat first.`;
       }
     }
 
     // Assign batting and bowling squads based on who is batting first
-    const isTeam1Batting = (actualBattingTeam === actualTeam1Name);
+    const isTeam1Batting = String(actualBattingTeam).trim().toUpperCase() === String(actualTeam1Name).trim().toUpperCase();
     const initialBattingSquad = isTeam1Batting ? resolvedTeam1Squad : resolvedTeam2Squad;
     const initialBowlingSquad = isTeam1Batting ? resolvedTeam2Squad : resolvedTeam1Squad;
 

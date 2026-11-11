@@ -3,13 +3,14 @@ import { getToken } from '../api';
 import AdminPlans from './AdminPlans';
 import { useNavigate } from 'react-router-dom';
 import './AdminCustomers.css';
-import { Settings, Download, Zap, Globe, Eye, Trash2 } from 'lucide-react';
+import { ArrowLeft, Settings, Download, Zap, Globe, Eye, Trash2, Trophy } from 'lucide-react';
 
 const AdminCustomers = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [payments, setPayments] = useState([]);
   const [globalMatches, setGlobalMatches] = useState([]);
+  const [tournaments, setTournaments] = useState([]);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -113,6 +114,35 @@ const AdminCustomers = () => {
     }
   };
 
+  const fetchTournaments = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/tournaments`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await response.json();
+      if (data.success) setTournaments(data.tournaments);
+    } catch (err) {
+      console.error('Failed to load tournaments:', err);
+    }
+  };
+
+  useEffect(() => { fetchTournaments(); }, []);
+
+  const handleDeleteTournament = async (tournament) => {
+    if (!window.confirm(`Delete tournament "${tournament.name}"? Its matches will be kept. This cannot be undone.`)) return;
+    try {
+      const response = await fetch(`${API_URL}/api/admin/tournaments/${tournament._id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.error || 'Delete failed');
+      fetchTournaments();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const handleToggleActive = async (userId, currentState) => {
     try {
       const token = getToken();
@@ -174,7 +204,10 @@ const AdminCustomers = () => {
   return (
     <div className="admin-container ks-app">
       <div className="admin-header-bar">
-        <h1>Admin SaaS Dashboard</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={() => navigate('/dashboard')} className="btn-export"><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Back</button>
+          <h1>Admin SaaS Dashboard</h1>
+        </div>
         <div className="admin-header-actions">
           <button onClick={() => navigate('/account')} className="btn-export"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account</button>
           <button onClick={exportToCSV} className="btn-export">
@@ -325,6 +358,36 @@ const AdminCustomers = () => {
                     <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> View OBS
                   </button>
                   <button onClick={() => handleDeleteMatch(m.matchId)} className="btn-small bg-red" style={{ marginLeft: '6px' }}>
+                    <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="admin-section">
+        <h2><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Tournaments Across Platform</h2>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Tournament</th>
+              <th>Owner</th>
+              <th>Matches</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tournaments.map(t => (
+              <tr key={t._id}>
+                <td style={{ fontWeight: '600' }}>{t.name}</td>
+                <td>{t.clientId?.email || 'Unknown'}</td>
+                <td>{t.matches?.length || 0}</td>
+                <td>{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '-'}</td>
+                <td>
+                  <button onClick={() => handleDeleteTournament(t)} className="btn-small bg-red">
                     <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Delete
                   </button>
                 </td>
