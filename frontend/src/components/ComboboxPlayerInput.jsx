@@ -99,9 +99,9 @@ const ComboboxPlayerInput = ({ value, onChange, options = [], placeholder, class
   };
 
   const handleCommit = (finalValue) => {
-    const trimmed = finalValue.trim().toUpperCase();
+    const trimmed = finalValue.trim();
     if (trimmed) {
-      if (!allOptions.find((option) => option.toUpperCase() === trimmed)) {
+      if (!allOptions.find((option) => option.toUpperCase() === trimmed.toUpperCase())) {
         persistCustomPlayer(trimmed);
       }
       onChange({ target: { value: trimmed } });

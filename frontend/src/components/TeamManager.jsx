@@ -111,7 +111,7 @@ const TeamManager = () => {
               className="w-full bg-slate-700 border-none p-3 rounded-lg font-bold text-white placeholder-slate-400 focus:ring-2 ring-blue-500 outline-none"
               placeholder="PLAYER NAME"
               value={newPlayer.name}
-              onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value.toUpperCase() })}
+              onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
             />
             <button onClick={addPlayerToDB} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-black shadow-lg transition">Add to Database</button>
           </div>

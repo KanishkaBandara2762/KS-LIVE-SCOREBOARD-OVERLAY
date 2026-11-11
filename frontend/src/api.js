@@ -143,6 +143,7 @@ export const tournamentsApi = {
   create: (body) => apiRequest('/api/tournaments/create', { method: 'POST', body: JSON.stringify(body) }),
   delete: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}`, { method: 'DELETE' }),
   nextMatch: (tournamentId, body) => apiRequest(`/api/tournaments/${tournamentId}/next-match`, { method: 'POST', body: JSON.stringify(body) }),
+  setOnAir: (tournamentId, matchId) => apiRequest(`/api/tournaments/${tournamentId}/on-air`, { method: 'POST', body: JSON.stringify({ matchId }) }),
   unlockBroadcast: (tournamentId) => apiRequest(`/api/tournaments/${tournamentId}/unlock-broadcast`, { method: 'POST' }),
   // Teams & Players
   addTeam: (tournamentId, data) => {

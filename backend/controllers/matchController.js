@@ -83,13 +83,14 @@ const createMatch = async (req, res, next) => {
     let matchSummary = '';
 
     if (toss && toss.winner) {
+      const winnerIsTeam1 = String(toss.winner).trim().toUpperCase() === String(team1Name).trim().toUpperCase();
       if (toss.decision === 'bat') {
         battingTeam = toss.winner;
-        bowlingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        bowlingTeam = winnerIsTeam1 ? team2Name : team1Name;
         matchSummary = `${toss.winner} won the toss and elected to bat first.`;
       } else {
         bowlingTeam = toss.winner;
-        battingTeam = (toss.winner === team1Name) ? team2Name : team1Name;
+        battingTeam = winnerIsTeam1 ? team2Name : team1Name;
         matchSummary = `${toss.winner} won the toss and elected to bowl first, ${battingTeam} will bat first.`;
       }
     }
@@ -180,7 +181,7 @@ const getMatches = async (req, res, next) => {
     // Broadcast lock per card: tournament matches follow their tournament's lock
     const tournamentIds = [...new Set(matches.filter(m => m.tournamentId).map(m => String(m.tournamentId)))];
     const tournamentBroadcast = new Map(
-      (await Tournament.find({ _id: { $in: tournamentIds } }).select('broadcastLocked broadcastExpiresAt').lean())
+      (await Tournament.find({ _id: { $in: tournamentIds } }).select('broadcastLocked broadcastExpiresAt currentMatchId').lean())
         .map(t => [String(t._id), t])
     );
 
@@ -190,6 +191,8 @@ const getMatches = async (req, res, next) => {
       const broadcastSource = m.tournamentId ? tournamentBroadcast.get(String(m.tournamentId)) : m;
       obj.broadcastLocked = isBroadcastLockedDoc(broadcastSource);
       obj.broadcastExpiresAt = broadcastSource?.broadcastExpiresAt ?? null;
+      // On air = the one match the tournament OBS link is showing
+      obj.isOnAir = !!m.tournamentId && String(tournamentBroadcast.get(String(m.tournamentId))?.currentMatchId) === String(m._id);
       // Map matchStatus values to simple live/ended/break for Dashboard badges
       const statusMap = {
         live: 'live',
