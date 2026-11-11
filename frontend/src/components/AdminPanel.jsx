@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Activity, ArrowLeft, ArrowUpRight, Check, ChevronDown, ChevronUp, Circle, Coins, Flag, Folder, Hourglass, Image as ImageIcon, Info, Pause, Radio, RefreshCw, Rocket, Save, Settings, Sparkles, Tv, TriangleAlert, Umbrella, X, Zap } from 'lucide-react';
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { ref, onValue, set, update } from "firebase/database";
@@ -832,21 +833,21 @@ const legalBallCount = match.legalBallCount || 0;
             <img src="/ks_logo.png" alt="KS Logo" className="h-7 w-auto object-contain" />
             <h1 className="font-bold tracking-tighter text-yellow-400 text-xl">{t("admin.header")}</h1>
           </div>
-            <div className="flex flex-wrap gap-2 ml-4">
-              <button onClick={async () => { if (await ensureBroadcastLink({ matchId: matchDbId, locked: match.broadcastLocked || Boolean(match.tournamentId) })) window.open(`/overlay/${matchDbId}`, '_blank'); }} className="text-xs bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay ↗</button>
+            <div className="flex gap-2 ml-4">
+              <button onClick={async () => { if (await ensureBroadcastLink({ matchId: matchDbId, locked: match.broadcastLocked || Boolean(match.tournamentId) })) window.open(`/overlay/${matchDbId}`, '_blank'); }} className="text-xs bg-white/10 px-3 py-1 rounded hover:bg-white/20 font-black border border-white/10 text-white">Overlay <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
               {match.tournamentId && (
-                <button onClick={async () => { if (await ensureBroadcastLink({ tournamentId: match.tournamentId, locked: true })) window.open(`/overlay/tournament/${match.tournamentId}`, '_blank'); }} className="text-xs bg-amber-500/20 text-amber-300 px-3 py-1 rounded hover:bg-amber-500/30 font-black border border-amber-500/30">Tournament Overlay ↗</button>
+                <button onClick={async () => { if (await ensureBroadcastLink({ tournamentId: match.tournamentId, locked: true })) window.open(`/overlay/tournament/${match.tournamentId}`, '_blank'); }} className="text-xs bg-amber-500/20 text-amber-300 px-3 py-1 rounded hover:bg-amber-500/30 font-black border border-amber-500/30">Tournament Overlay <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
               )}
-              <button onClick={() => window.open(`/teams/${matchDbId}`, '_blank')} className="text-xs bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Teams ↗</button>
-              <button onClick={() => window.open(`/mini-admin/${matchDbId}`, 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-xs bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini ⚡</button>
-              <button onClick={() => navigate('/dashboard')} className="text-xs bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-500 font-black text-white">← Dashboard</button>
+              <button onClick={() => window.open(`/teams/${matchDbId}`, '_blank')} className="text-xs bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 font-black text-white">Teams <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
+              <button onClick={() => window.open(`/mini-admin/${matchDbId}`, 'KS_Mini_Admin', 'width=480,height=850,resizable=yes,scrollbars=yes')} className="text-xs bg-yellow-500 px-3 py-1 rounded hover:bg-yellow-400 font-black text-black">Mini <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
+              <button onClick={() => navigate('/dashboard')} className="text-xs bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-500 font-black text-white"><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Dashboard</button>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 items-center">
             <LanguageSwitcher compact />
-            <button onClick={() => navigate('/account')} className="bg-slate-700 text-white px-3 py-1 rounded text-xs font-black shadow-lg">⚙ Account</button>
+            <button onClick={() => navigate('/account')} className="bg-slate-700 text-white px-3 py-1 rounded text-xs font-black shadow-lg"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account</button>
             {match.tournamentId && (
-              <button onClick={() => setShowNextMatch(true)} className="bg-yellow-500 px-3 py-1 rounded text-xs font-black shadow-lg text-black animate-pulse">🚀 NEXT MATCH</button>
+              <button onClick={() => setShowNextMatch(true)} className="bg-yellow-500 px-3 py-1 rounded text-xs font-black shadow-lg text-black animate-pulse"><Rocket size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> NEXT MATCH</button>
             )}
             <button onClick={handleNewMatch} className="bg-blue-600 px-3 py-1 rounded text-xs font-black shadow-lg">Match</button>
             <button onClick={handleNewInnings} className="bg-orange-500 px-3 py-1 rounded text-xs font-black shadow-lg">Innings</button>
@@ -863,7 +864,7 @@ const legalBallCount = match.legalBallCount || 0;
               <span className="text-xs font-black tracking-[0.15em] text-slate-300">LIVE OVERLAY MONITOR</span>
             </div>
             <button onClick={() => setShowLivePreview(p => !p)} className="text-xs font-bold px-3 py-1 bg-white/10 text-white hover:bg-white/20 rounded border border-white/10">
-              {showLivePreview ? "Hide Preview ▲" : "Show Preview ▼"}
+              {showLivePreview ? <>Hide Preview <ChevronUp size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></> : <>Show Preview <ChevronDown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></>}
             </button>
           </div>
           {showLivePreview && (
@@ -918,13 +919,13 @@ const legalBallCount = match.legalBallCount || 0;
             {/* ── OBS OVERLAY REFRESH ──────────────────────────── */}
             <div className="rounded border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 text-left shadow-sm">
               <div className="flex items-center gap-2 mb-2.5">
-                <span className="text-base">🔄</span>
+                <RefreshCw size="1em" className="text-base" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                 <h3 className="text-xs font-black uppercase tracking-widest text-emerald-800">OBS Overlay Refresh</h3>
                 {refreshStatus === 'success' && (
-                  <span className="ml-auto text-xs font-black text-emerald-600 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full animate-pulse">✅ Success</span>
+                  <span className="ml-auto text-xs font-black text-emerald-600 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full animate-pulse"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Success</span>
                 )}
                 {refreshStatus === 'failed' && (
-                  <span className="ml-auto text-xs font-black text-red-600 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full">❌ Failed</span>
+                  <span className="ml-auto text-xs font-black text-red-600 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full"><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Failed</span>
                 )}
               </div>
 
@@ -936,7 +937,7 @@ const legalBallCount = match.legalBallCount || 0;
                   onClick={() => handleRefreshOverlay('main')}
                   className="flex flex-col items-center justify-center gap-0.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded py-2 px-1 text-xs font-black uppercase tracking-wider shadow-md border-b-2 border-emerald-800 transition-all"
                 >
-                  <span className="text-base leading-none">📺</span>
+                  <Tv size="1em" className="text-base leading-none" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                   <span>Refresh Main</span>
                   <span className="text-emerald-200 font-medium">Overlay</span>
                 </button>
@@ -946,7 +947,7 @@ const legalBallCount = match.legalBallCount || 0;
                   onClick={() => handleRefreshOverlay('ballByBall')}
                   className="flex flex-col items-center justify-center gap-0.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white rounded py-2 px-1 text-xs font-black uppercase tracking-wider shadow-md border-b-2 border-teal-800 transition-all"
                 >
-                  <span className="text-base leading-none">🏏</span>
+                  <Activity size="1em" className="text-base leading-none" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                   <span>Refresh Ball</span>
                   <span className="text-teal-200 font-medium">by Ball</span>
                 </button>
@@ -987,7 +988,7 @@ const legalBallCount = match.legalBallCount || 0;
             {isMongoDB(matchDbId) && (
               <div className="rounded border border-indigo-200 bg-indigo-50/50 p-3 text-left space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-indigo-700">🟢 Public Live Preview</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-indigo-700"><Circle size="1em" fill="currentColor" className="text-emerald-500" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Public Live Preview</h3>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -1045,7 +1046,7 @@ const legalBallCount = match.legalBallCount || 0;
                   onClick={() => window.open(`/live/match/${match.slug || matchDbId}`, '_blank')}
                   className="w-full py-1.5 rounded bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-black text-xs uppercase tracking-wider hover:from-indigo-700 hover:to-indigo-800 shadow-sm flex items-center justify-center gap-1 transition"
                 >
-                  📡 Preview Live Dashboard
+                  <Radio size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Preview Live Dashboard
                 </button>
               </div>
             )}
@@ -1090,30 +1091,29 @@ const legalBallCount = match.legalBallCount || 0;
             </div>
 
             <select className="w-full border p-2 rounded text-xs font-black bg-white uppercase shadow-sm" value={match.themeID} onChange={(e) => setMatch({ ...match, themeID: e.target.value })}>
-              <optgroup label="🌟 International Broadcast Flagships">
-                <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex (World Cup)</option>
-                <option value="SKY_HYPERION">⚡ Sky Sports Hyperion Pro (UK)</option>
-                <option value="JIO_TITAN">👑 Jio Premier Titan (IPL 4K)</option>
-                <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike (Action)</option>
-                <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass (Modern)</option>
-                <option value="APEX">📺 Apex (TV Broadcast)</option>
-                <option value="DIAMOND">💎 Diamond (Metallic)</option>
-                <option value="VOLT">⚡ Volt (Lime Sports-Tech)</option>
-                <option value="THUNDER">🌩️ Thunder (Electric Red)</option>
-                <option value="BLITZ">🔵 Blitz (Lightning Blue)</option>
-                <option value="ELITE">🥂 Elite (Minimal Gold)</option>
-                <option value="FRANCHISE">🏏 Franchise (Gradient)</option>
-                <option value="SHAKTI">🔥 Shakti (Bold Contrast)</option>
+              <optgroup label="International Broadcast Flagships">
+                <option value="ICC_GLOBAL">ICC T20 Global Apex (World Cup)</option>
+                <option value="SKY_HYPERION">Sky Sports Hyperion Pro (UK)</option>
+                <option value="JIO_TITAN">Jio Premier Titan (IPL 4K)</option>
+                <option value="FOX_STRIKE">Fox Cricket BBL Strike (Action)</option>
+                <option value="SUPERSPORT_AURA">SuperSport Aura Glass (Modern)</option>
+                <option value="APEX">Apex (TV Broadcast)</option>
+                <option value="DIAMOND">Diamond (Metallic)</option>
+                <option value="VOLT">Volt (Lime Sports-Tech)</option>
+                <option value="THUNDER">Thunder (Electric Red)</option>
+                <option value="BLITZ">Blitz (Lightning Blue)</option>
+                <option value="ELITE">Elite (Minimal Gold)</option>
+                <option value="FRANCHISE">Franchise (Gradient)</option>
+                <option value="SHAKTI">Shakti (Bold Contrast)</option>
               </optgroup>
-              <optgroup label="✨ Premier Modern Themes">
-                <option value="ABUDHABI_T10">⚡ ABUDHABI T10 theme</option>
-                <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro (KS Signature)</option>
-                <option value="NEW_IPL">🏏 Tata IPL Modern (Franchise)</option>
-                <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
-                <option value="KS_PREMIUM">⭐ KS Premium (Broadcast Flagship)</option>
-                <option value="WC2026">🌐 T20 World Cup 2026 Electric</option>
-                <option value="APOGEE">🔮 Apogee Arena Pro (Cyber HUD)</option>
-                <option value="GOLD_CHAMPIONSHIP">🥇 Gold Championship (Grand Finals)</option>
+              <optgroup label="Premier Modern Themes">
+                <option value="NEW_KS_COLOR">Emerald Cricket Pro (KS Signature)</option>
+                <option value="NEW_IPL">Tata IPL Modern (Franchise)</option>
+                <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
+                <option value="KS_PREMIUM">KS Premium (Broadcast Flagship)</option>
+                <option value="WC2026">T20 World Cup 2026 Electric</option>
+                <option value="APOGEE">Apogee Arena Pro (Cyber HUD)</option>
+                <option value="GOLD_CHAMPIONSHIP">Gold Championship (Grand Finals)</option>
               </optgroup>
             </select>
 
@@ -1127,14 +1127,14 @@ const legalBallCount = match.legalBallCount || 0;
 
             {/* MATCH STATUS SECTION */}
             <div className="space-y-2 pt-3 border-t mt-2">
-              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase">📡 Match Status</h3>
+              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase"><Radio size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Match Status</h3>
               <div className="grid grid-cols-2 gap-1.5">
-                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Live' || !match.matchStatus ? "bg-red-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Live" })}>🔴 LIVE</button>
-                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Break' ? "bg-blue-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Break" })}>⏸ BREAK</button>
-                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Innings Break' ? "bg-amber-500 text-black shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Innings Break" })}>🔄 INN BREAK</button>
-                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Rain Delay' ? "bg-blue-900 border border-blue-500 text-cyan-300 shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Rain Delay" })}>☔ RAIN</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Live' || !match.matchStatus ? "bg-red-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Live" })}><Circle size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> LIVE</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Break' ? "bg-blue-600 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Break" })}><Pause size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BREAK</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Innings Break' ? "bg-amber-500 text-black shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Innings Break" })}><RefreshCw size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> INN BREAK</button>
+                <button className={`py-1.5 rounded text-xs font-black ${match.matchStatus === 'Rain Delay' ? "bg-blue-900 border border-blue-500 text-cyan-300 shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Rain Delay" })}><Umbrella size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RAIN</button>
               </div>
-              <button className={`w-full py-1.5 mt-1 rounded text-xs font-black ${match.matchStatus === 'Match Ended' ? "bg-purple-700 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Match Ended" })}>🏁 MATCH ENDED</button>
+              <button className={`w-full py-1.5 mt-1 rounded text-xs font-black ${match.matchStatus === 'Match Ended' ? "bg-purple-700 text-white shadow-lg" : "bg-slate-200"}`} onClick={() => setMatch({ ...match, matchStatus: "Match Ended" })}><Flag size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> MATCH ENDED</button>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -1147,7 +1147,7 @@ const legalBallCount = match.legalBallCount || 0;
                 match.showToss ? 'bg-amber-500 text-white shadow-lg' : 'bg-slate-200'
               }`}
             >
-              {match.showToss ? '🪙 HIDE TOSS RESULT' : '🪙 SHOW TOSS RESULT'}
+              <Coins size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match.showToss ? 'HIDE TOSS RESULT' : 'SHOW TOSS RESULT'}
             </button>
             <button onClick={() => setMatch({ ...match, showMatchSituation: !match.showMatchSituation })} className={`w-full py-2 rounded font-bold text-xs transition ${match.showMatchSituation ? 'bg-purple-600 text-white shadow-lg' : 'bg-slate-200'}`}>Show Match Situation</button>
             <button onClick={() => setMatch({ ...match, overlayMode: match.overlayMode === 'full' ? 'simple' : 'full' })} className={`w-full py-2 rounded font-bold text-xs transition ${match.overlayMode === 'simple' ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-200'}`}>Switch Overlay: {match.overlayMode === 'full' ? 'FULL' : 'SIMPLE'}</button>
@@ -1155,7 +1155,7 @@ const legalBallCount = match.legalBallCount || 0;
             {/* ── MATCH INFO & BANNER ──────────────────────── */}
             <div className="space-y-2 pt-3 border-t mt-3 bg-indigo-50 p-3 rounded border border-indigo-100">
               <div className="flex justify-between items-center mb-1">
-                <h3 className="text-xs font-black text-indigo-700 tracking-widest uppercase">ℹ️ Match Info & Banner</h3>
+                <h3 className="text-xs font-black text-indigo-700 tracking-widest uppercase"><Info size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Match Info & Banner</h3>
                 <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded border shadow-sm">
                    <label className="text-xs font-black text-slate-500 uppercase">Auto Show</label>
                    <input 
@@ -1173,17 +1173,17 @@ const legalBallCount = match.legalBallCount || 0;
               
               <div className="grid grid-cols-2 gap-2 mt-1">
                 <button onClick={handleSaveMatchInfo} className="bg-indigo-600 text-white py-2 rounded text-xs font-black shadow-md hover:bg-indigo-700 transition">
-                  💾 Save / Update
+                  <Save size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Save / Update
                 </button>
                 <button onClick={handleShowBanner} className="bg-cyan-500 text-white py-2 rounded text-xs font-black shadow-md hover:bg-cyan-600 transition">
-                  ✨ SHOW BANNER
+                  <Sparkles size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SHOW BANNER
                 </button>
               </div>
             </div>
 
             {/* ── BROADCAST TICKER CONTROLS ──────────────────────── */}
             <div className="space-y-2 pt-3 border-t mt-2">
-              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase">📺 Broadcast Ticker</h3>
+              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase"><Tv size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Broadcast Ticker</h3>
               <input
                 type="text"
                 className="w-full border p-2 rounded text-xs font-bold bg-slate-50 uppercase"
@@ -1197,17 +1197,17 @@ const legalBallCount = match.legalBallCount || 0;
                   value={tickerMode}
                   onChange={(e) => { setTickerMode(e.target.value); pushTicker({ mode: e.target.value }); }}
                 >
-                  <option value="banner">🏆 Tournament</option>
-                  <option value="breaking">🔴 Breaking News</option>
+                  <option value="banner">Tournament</option>
+                  <option value="breaking">Breaking News</option>
                 </select>
                 <select
                   className="border rounded text-xs p-1.5 font-black bg-white uppercase"
                   value={tickerPreset}
                   onChange={(e) => { setTickerPreset(e.target.value); pushTicker({ preset: e.target.value }); }}
                 >
-                  <option value="final">🥇 Final (Gold)</option>
-                  <option value="semi">🔵 Semi Final (Blue)</option>
-                  <option value="custom">🟢 Custom (Teal)</option>
+                  <option value="final">Final (Gold)</option>
+                  <option value="semi">Semi Final (Blue)</option>
+                  <option value="custom">Custom (Teal)</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -1215,7 +1215,7 @@ const legalBallCount = match.legalBallCount || 0;
                   onClick={() => pushTicker({ message: tickerMsg })}
                   className="bg-slate-700 text-white py-2 rounded text-xs font-black hover:bg-slate-800 transition"
                 >
-                  💾 Save Message
+                  <Save size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Save Message
                 </button>
                 <button
                   onClick={() => { const newVis = !tickerVisible; setTickerVisible(newVis); pushTicker({ visible: newVis }); }}
@@ -1224,14 +1224,16 @@ const legalBallCount = match.legalBallCount || 0;
                     : 'bg-green-500 text-white hover:bg-green-600'
                     }`}
                 >
-                  {tickerVisible ? '🔴 HIDE TICKER' : '🟢 SHOW TICKER'}
+                  {tickerVisible
+                    ? <><Circle size="1em" fill="currentColor" className="text-red-300" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> HIDE TICKER</>
+                    : <><Circle size="1em" fill="currentColor" className="text-green-200" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SHOW TICKER</>}
                 </button>
               </div>
             </div>
 
             {/* ── TEAM LOGO UPLOAD ─────────────────────────────────────── */}
             <div className="space-y-3 pt-2 border-t">
-              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase">🖼️ Team Logos</h3>
+              <h3 className="text-xs font-black text-slate-400 tracking-widest uppercase"><ImageIcon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Team Logos</h3>
 
               {/* Hidden file inputs */}
               <input ref={fileInputA} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onChange={(e) => handleLogoUpload(e, 'A')} />
@@ -1265,10 +1267,10 @@ const legalBallCount = match.legalBallCount || 0;
                           'bg-blue-600 text-white border-blue-700 hover:bg-blue-700'
                         }`}
                       >
-                        {logoUploadStatus.A === 'uploading' ? '⏳ Uploading…' :
-                         logoUploadStatus.A === 'success'   ? '✅ Uploaded!' :
-                         logoUploadStatus.A === 'error'     ? '❌ Retry' :
-                         '📁 Upload Team A Logo'}
+                        {logoUploadStatus.A === 'uploading' ? <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Uploading…</> :
+                         logoUploadStatus.A === 'success'   ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Uploaded!</> :
+                         logoUploadStatus.A === 'error'     ? <><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Retry</> :
+                         <><Folder size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Upload Team A Logo</>}
                       </button>
                       {match.battingLogo && (
                         <button
@@ -1277,7 +1279,7 @@ const legalBallCount = match.legalBallCount || 0;
                           className="px-2 py-1 rounded text-xs font-black bg-white border border-blue-200 text-blue-400 hover:text-red-500 hover:border-red-300 transition"
                           title="Remove logo"
                         >
-                          ✕
+                          <X size="1em" aria-hidden="true" />
                         </button>
                       )}
                     </div>
@@ -1316,10 +1318,10 @@ const legalBallCount = match.legalBallCount || 0;
                           'bg-red-600 text-white border-red-700 hover:bg-red-700'
                         }`}
                       >
-                        {logoUploadStatus.B === 'uploading' ? '⏳ Uploading…' :
-                         logoUploadStatus.B === 'success'   ? '✅ Uploaded!' :
-                         logoUploadStatus.B === 'error'     ? '❌ Retry' :
-                         '📁 Upload Team B Logo'}
+                        {logoUploadStatus.B === 'uploading' ? <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Uploading…</> :
+                         logoUploadStatus.B === 'success'   ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Uploaded!</> :
+                         logoUploadStatus.B === 'error'     ? <><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Retry</> :
+                         <><Folder size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Upload Team B Logo</>}
                       </button>
                       {match.leagueLogo && (
                         <button
@@ -1328,7 +1330,7 @@ const legalBallCount = match.legalBallCount || 0;
                           className="px-2 py-1 rounded text-xs font-black bg-white border border-red-200 text-red-400 hover:text-red-600 hover:border-red-400 transition"
                           title="Remove logo"
                         >
-                          ✕
+                          <X size="1em" aria-hidden="true" />
                         </button>
                       )}
                     </div>
@@ -1501,7 +1503,7 @@ const legalBallCount = match.legalBallCount || 0;
               )}
               {match.totalBalls > 0 && isOverReady && (
                 <div className="mt-3 p-2 bg-amber-500 rounded text-black font-black text-xs uppercase text-center animate-pulse border border-amber-300 shadow-lg">
-                  ⚠ OVER COMPLETE ({legalBallCount}/{match.ballsPerOver}) — Click OVER COMPLETED below!
+                  <TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVER COMPLETE ({legalBallCount}/{match.ballsPerOver}) — Click OVER COMPLETED below!
                 </div>
               )}
               {/* OVER COMPLETED BUTTON */}
@@ -1513,7 +1515,11 @@ const legalBallCount = match.legalBallCount || 0;
                   : 'bg-slate-700 text-slate-400 border-slate-800 cursor-not-allowed opacity-60'
                   }`}
               >
-                {overCooldown ? '✔ OVER LOCKED' : isOverReady ? `⚡ OVER COMPLETED (${legalBallCount}/${match.ballsPerOver})` : `⏳ ${legalBallCount}/${match.ballsPerOver} BALLS`}
+                {overCooldown
+                  ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVER LOCKED</>
+                  : isOverReady
+                    ? <><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVER COMPLETED ({legalBallCount}/{match.ballsPerOver})</>
+                    : <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {legalBallCount}/{match.ballsPerOver} BALLS</>}
               </button>
             </div>
 
@@ -1545,8 +1551,8 @@ const legalBallCount = match.legalBallCount || 0;
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl text-white">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-              <h2 className="font-bold text-lg text-yellow-400">⚡ DEPLOY NEXT MATCH</h2>
-              <button onClick={() => setShowNextMatch(false)} className="text-slate-400 hover:text-white">✕</button>
+              <h2 className="font-bold text-lg text-yellow-400"><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> DEPLOY NEXT MATCH</h2>
+              <button onClick={() => setShowNextMatch(false)} className="text-slate-400 hover:text-white"><X size="1em" aria-hidden="true" /></button>
             </div>
             
             <form onSubmit={async (e) => {
@@ -1615,33 +1621,32 @@ const legalBallCount = match.legalBallCount || 0;
               <div className="flex flex-col text-left">
                 <label className="text-xs font-bold text-slate-400 mb-1">OVERLAY THEME</label>
                 <select name="themeID" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white">
-                  <option value="ICC_GLOBAL">🏆 ICC T20 Global Apex</option>
-                  <option value="SKY_HYPERION">⚡ Sky Sports Hyperion Pro</option>
-                  <option value="JIO_TITAN">👑 Jio Premier Titan (IPL 4K)</option>
-                  <option value="FOX_STRIKE">🔥 Fox Cricket BBL Strike</option>
-                  <option value="SUPERSPORT_AURA">💎 SuperSport Aura Glass</option>
-                  <option value="APEX">📺 Apex</option>
-                  <option value="DIAMOND">💎 Diamond</option>
-                  <option value="VOLT">⚡ Volt</option>
-                  <option value="THUNDER">🌩️ Thunder</option>
-                  <option value="BLITZ">🔵 Blitz</option>
-                  <option value="ELITE">🥂 Elite</option>
-                  <option value="FRANCHISE">🏏 Franchise</option>
-                  <option value="SHAKTI">🔥 Shakti</option>
-                  <option value="ABUDHABI_T10">⚡ ABUDHABI T10 theme</option>
-                  <option value="NEW_KS_COLOR">🌿 Emerald Cricket Pro</option>
-                  <option value="NEW_IPL">🏏 Tata IPL Modern</option>
-                  <option value="IPL_2026">🏟️ IPL 2026 Stadium Capsule</option>
-                  <option value="KS_PREMIUM">⭐ KS Premium (Broadcast)</option>
-                  <option value="WC2026">🌐 T20 World Cup 2026</option>
-                  <option value="APOGEE">🔮 Apogee Arena Pro</option>
-                  <option value="GOLD_CHAMPIONSHIP">🥇 Gold Championship</option>
+                  <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
+                  <option value="SKY_HYPERION">Sky Sports Hyperion Pro</option>
+                  <option value="JIO_TITAN">Jio Premier Titan (IPL 4K)</option>
+                  <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
+                  <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
+                  <option value="APEX">Apex</option>
+                  <option value="DIAMOND">Diamond</option>
+                  <option value="VOLT">Volt</option>
+                  <option value="THUNDER">Thunder</option>
+                  <option value="BLITZ">Blitz</option>
+                  <option value="ELITE">Elite</option>
+                  <option value="FRANCHISE">Franchise</option>
+                  <option value="SHAKTI">Shakti</option>
+                  <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
+                  <option value="NEW_IPL">Tata IPL Modern</option>
+                  <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
+                  <option value="KS_PREMIUM">KS Premium (Broadcast)</option>
+                  <option value="WC2026">T20 World Cup 2026</option>
+                  <option value="APOGEE">Apogee Arena Pro</option>
+                  <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
                 </select>
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
                 <button type="button" onClick={() => setShowNextMatch(false)} className="bg-slate-800 px-4 py-2 rounded text-sm font-bold">Cancel</button>
-                <button type="submit" className="bg-yellow-500 text-black px-4 py-2 rounded text-sm font-bold">🚀 Switch Match</button>
+                <button type="submit" className="bg-yellow-500 text-black px-4 py-2 rounded text-sm font-bold"><Rocket size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Switch Match</button>
               </div>
             </form>
           </div>

@@ -407,11 +407,14 @@
   padding: 20px 24px;
   border-bottom: 1px solid rgba(255,255,255,0.07);
 }
-.modal-title { font-size: 1.1rem; font-weight: 800; color: #fff; }
+.modal-title { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 800; color: #fff; }
 .modal-close {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--status-error);
+  border: 1px solid var(--status-error);
+  color: #fff;
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -419,7 +422,7 @@
   font-size: 0.85rem;
   transition: all 0.2s;
 }
-.modal-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.modal-close:hover { background: var(--status-error); border-color: var(--status-error); color: #fff; }
 
 .modal-form { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 
@@ -474,6 +477,10 @@
 }
 .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
 .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: linear-gradient(135deg, var(--brand-electric), var(--brand-royal));
   color: #fff;
   border: none;
@@ -501,7 +508,7 @@
   .match-grid { grid-template-columns: 1fr; }
   .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
   .obs-guide { margin: 24px 16px 0; }
-  .dash-user-info { display: none; }
+  .dash-user-name { display: none; }
 }
 
 /* ── Tab buttons ─────────────────────────────────────────────── */

@@ -9,6 +9,7 @@ import { formatLkr, lkrToUsd, formatUsd } from "../utils/money";
 import { BroadcastingServices, ReviewsSection, ModernFooter } from './LandingExtras';
 import { HeroCarousel } from './HeroCarousel';
 import { FeaturesHub } from './FeaturesHub';
+import { Radio, Zap, Palette, Smartphone, Users, Lock, Hammer, Check, Quote, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const TESTIMONIALS = [
     {
@@ -51,12 +52,12 @@ const STATS = [
 ];
 
 const FEATURES = [
-    { icon: "📡", titleKey: "landing.feature.liveOverlay.title", descKey: "landing.feature.liveOverlay.desc" },
-    { icon: "⚡", titleKey: "landing.feature.realtime.title", descKey: "landing.feature.realtime.desc" },
-    { icon: "🎨", titleKey: "landing.feature.themes.title", descKey: "landing.feature.themes.desc" },
-    { icon: "📱", titleKey: "landing.feature.mobile.title", descKey: "landing.feature.mobile.desc" },
-    { icon: "👥", titleKey: "landing.feature.team.title", descKey: "landing.feature.team.desc" },
-    { icon: "🔒", titleKey: "landing.feature.secure.title", descKey: "landing.feature.secure.desc" },
+    { icon: Radio, titleKey: "landing.feature.liveOverlay.title", descKey: "landing.feature.liveOverlay.desc" },
+    { icon: Zap, titleKey: "landing.feature.realtime.title", descKey: "landing.feature.realtime.desc" },
+    { icon: Palette, titleKey: "landing.feature.themes.title", descKey: "landing.feature.themes.desc" },
+    { icon: Smartphone, titleKey: "landing.feature.mobile.title", descKey: "landing.feature.mobile.desc" },
+    { icon: Users, titleKey: "landing.feature.team.title", descKey: "landing.feature.team.desc" },
+    { icon: Lock, titleKey: "landing.feature.secure.title", descKey: "landing.feature.secure.desc" },
 ];
 
 function useAnimatedCounter(target, duration = 2000, shouldStart = false) {
@@ -313,7 +314,7 @@ export default function LandingPage() {
 
                 <ul className={`landing-nav-links ${mobileMenuOpen ? "open" : ""}`}>
                     <li><Link to="/live" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.liveScores")}</Link></li>
-                    <li><Link to="/auctions" onClick={() => setMobileMenuOpen(false)}>🔨 Explore Auctions</Link></li>
+                    <li><Link to="/auctions" onClick={() => setMobileMenuOpen(false)}>Explore Auctions</Link></li>
                     <li><a href="#features-hub" onClick={handleFeatureNav}>{t("landing.nav.features")}</a></li>
                     <li><a href="#themes" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.themes")}</a></li>
                     <li><a href="#plans" onClick={() => setMobileMenuOpen(false)}>{t("landing.nav.plans")}</a></li>
@@ -333,7 +334,7 @@ export default function LandingPage() {
                 <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-slate-900/90 border border-amber-500/30 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-5">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl shadow-lg shadow-amber-500/30 flex-shrink-0">
-                            🔨
+                            <Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                         </div>
                         <div>
                             <div className="flex items-center gap-2 mb-1">
@@ -354,8 +355,8 @@ export default function LandingPage() {
                         to="/auctions"
                         className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black px-7 py-3.5 rounded-xl shadow-lg shadow-amber-500/30 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center gap-2.5 whitespace-nowrap text-sm tracking-wide uppercase"
                     >
-                        <span>🔨 Explore Auctions</span>
-                        <span className="text-base font-bold">→</span>
+                        <span>Explore Auctions</span>
+                        <span className="text-base font-bold"><ArrowRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                     </Link>
                 </div>
             </section>
@@ -374,7 +375,7 @@ export default function LandingPage() {
                                 </h2>
                             </div>
                             <Link to="/live" className="text-sm font-bold text-teal-400 hover:text-teal-300 transition-colors flex items-center gap-1">
-                                View All Scores <span className="text-base">→</span>
+                                View All Scores <span className="text-base"><ArrowRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                             </Link>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -472,9 +473,9 @@ export default function LandingPage() {
                             </div>
                             <div className="landing-plan-body">
                                 <ul>
-                                    <li><span className="check">✅</span> {plan.credits} match credit{plan.credits === 1 ? "" : "s"}: matches, tournaments or auctions</li>
-                                    <li><span className="check">✅</span> Live scoring and OBS overlays included</li>
-                                    {plan.description && <li><span className="check">✅</span> {plan.description}</li>}
+                                    <li><span className="check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {plan.credits} match credit{plan.credits === 1 ? "" : "s"}: matches, tournaments or auctions</li>
+                                    <li><span className="check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> Live scoring and OBS overlays included</li>
+                                    {plan.description && <li><span className="check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {plan.description}</li>}
                                 </ul>
                             </div>
                             <div className="landing-plan-footer">
@@ -489,8 +490,8 @@ export default function LandingPage() {
 
             {!showMore ? (
                 <div style={{textAlign: 'center', margin: '4rem 0'}}>
-                    <button onClick={() => setShowMore(true)} className="landing-btn-primary" style={{padding: '1rem 3rem', fontSize: '1.2rem', fontFamily: 'var(--font-serif)'}}>
-                        Discover All Features & Tools 👇
+                    <button onClick={() => setShowMore(true)} className="landing-btn-primary" style={{padding: '1rem 3rem', fontSize: '1.2rem', fontFamily: 'var(--font-serif)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+                        Discover All Features & Tools
                     </button>
                 </div>
             ) : (
@@ -507,7 +508,7 @@ export default function LandingPage() {
                     {TESTIMONIALS.map((testimonial, index) => (
                         <div className="landing-testimonial-card" key={index}>
                             <div className="landing-testimonial-inner">
-                                <div className="landing-testimonial-quote">❝</div>
+                                <div className="landing-testimonial-quote"><Quote size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                                 <p className="landing-testimonial-text">{testimonial.text}</p>
                                 <div className="landing-testimonial-author">
                                     <div className="landing-testimonial-avatar">{testimonial.initials}</div>
@@ -534,10 +535,10 @@ export default function LandingPage() {
 
                 <div className="landing-testimonial-arrows">
                     <button className="landing-testimonial-arrow" onClick={prevTestimonial} aria-label="Previous testimonial">
-                        ←
+                        <ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                     </button>
                     <button className="landing-testimonial-arrow" onClick={nextTestimonial} aria-label="Next testimonial">
-                        →
+                        <ArrowRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
                     </button>
                 </div>
             </section>

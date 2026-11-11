@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, BarChart3, Hammer, Mic, Play, Settings, Smartphone, Tv, X } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { auctionApi } from '../../api';
 import {
@@ -58,7 +59,7 @@ function CreateAuctionModal({ onClose, onCreate }) {
             <span className="auction-eyebrow">NEW AUCTION</span>
             <h2>Create an auction</h2>
           </div>
-          <button className="auction-icon-btn" onClick={onClose} aria-label="Close">✕</button>
+          <button className="auction-icon-btn" onClick={onClose} aria-label="Close"><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
         </div>
 
         {error ? <div className="auction-alert error">{error}</div> : null}
@@ -226,10 +227,10 @@ export default function AuctionListPage() {
     <div className="auction-page">
       <header className="auction-header">
         <div className="auction-header-title">
-          <button className="auction-back" onClick={() => navigate('/dashboard')}>← Dashboard</button>
+          <button className="auction-back" onClick={() => navigate('/dashboard')}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Dashboard</button>
           <div>
             <span className="auction-eyebrow">PREMIUM MODULE</span>
-            <h1>🔨 Auction Manager</h1>
+            <h1><Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auction Manager</h1>
             <p>Create a cricket player auction and run it live with remote team owners.</p>
           </div>
         </div>
@@ -250,7 +251,7 @@ export default function AuctionListPage() {
         <div className="auction-loading"><span className="auction-spinner" /> Loading auctions…</div>
       ) : auctions.length === 0 ? (
         <div className="auction-empty">
-          <div className="auction-empty-icon">🔨</div>
+          <div className="auction-empty-icon"><Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <h2>No auctions yet</h2>
           <p>Create your first auction, add teams and players, then invite team owners.</p>
           <button className="auction-btn primary" onClick={() => setShowCreate(true)}>Create your first auction</button>
@@ -274,15 +275,15 @@ export default function AuctionListPage() {
               </div>
 
               <div className="auction-card-actions">
-                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/setup`)}>⚙ Setup</button>
-                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/control`)}>🎙 Control</button>
-                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/live`)}>📱 Bid Room</button>
-                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/results`)}>📊 Results</button>
+                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/setup`)}><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Setup</button>
+                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/control`)}><Mic size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Control</button>
+                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/live`)}><Smartphone size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Bid Room</button>
+                <button className="auction-btn small" onClick={() => navigate(`/auctions/${auction.id}/results`)}><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Results</button>
                 {auction.publicSlug ? (
-                  <button className="auction-btn small" onClick={() => navigate(`/auction/display/${auction.publicSlug}`)}>📺 Display</button>
+                  <button className="auction-btn small" onClick={() => navigate(`/auction/display/${auction.publicSlug}`)}><Tv size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Display</button>
                 ) : null}
                 {['draft', 'ready'].includes(auction.status) ? (
-                  <button className="auction-btn small primary" onClick={() => start(auction)}>▶ Start</button>
+                  <button className="auction-btn small primary" onClick={() => start(auction)}><Play size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Start</button>
                 ) : null}
                 {['draft', 'cancelled'].includes(auction.status) ? (
                   <button className="auction-btn small danger" onClick={() => remove(auction)}>Delete</button>

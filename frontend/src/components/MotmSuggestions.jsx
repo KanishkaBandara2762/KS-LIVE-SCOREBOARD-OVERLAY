@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 import { matchesApi } from '../api';
 
 /**
@@ -76,7 +77,7 @@ const MotmSuggestions = ({ matchId, selectedKey, onPick, onSaved }) => {
           padding: '10px 0', borderRadius: 8, border: 'none', fontWeight: 900, fontSize: 13, color: 'var(--text-on-gold)',
           background: 'var(--brand-gold)', opacity: data.final && !saving ? 1 : 0.45, cursor: data.final && !saving ? 'pointer' : 'not-allowed',
         }}>
-        {saving ? 'SAVING…' : `✔ CONFIRM AWARD — ${(selected || rec)?.name || ''}`}
+        {saving ? 'SAVING…' : <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CONFIRM AWARD — {(selected || rec)?.name || ''}</>}
       </button>
       <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>{data.model?.note}</div>
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Activity, Award, BarChart3, Check, Circle, Clapperboard, ClipboardList, CornerUpLeft, Eye, GraduationCap, Lock, Monitor, Music, Palette, Radio, RefreshCw, Search, Smartphone, Sparkles, Star, Target, Timer, TrendingUp, Trophy, Users, X, Zap } from 'lucide-react';
 
 import "./Portfolio.css";
 import { ThemePreview } from "./LandingThemePreviews";
@@ -29,15 +30,15 @@ const SCREENSHOTS = [
 
         capabilities: [
 
-            { icon: "📡", text: "Live ball-by-ball updates via Firebase" },
+            { icon: Radio, text: "Live ball-by-ball updates via Firebase" },
 
-            { icon: "🎨", text: "6 switchable broadcast themes" },
+            { icon: Palette, text: "6 switchable broadcast themes" },
 
-            { icon: "🖥️", text: "OBS-ready with transparent background" },
+            { icon: Monitor, text: "OBS-ready with transparent background" },
 
-            { icon: "📊", text: "Batsman & bowler stats display" },
+            { icon: BarChart3, text: "Batsman & bowler stats display" },
 
-            { icon: "⚡", text: "Sub-100ms update latency" },
+            { icon: Zap, text: "Sub-100ms update latency" },
 
         ],
 
@@ -59,15 +60,15 @@ const SCREENSHOTS = [
 
         capabilities: [
 
-            { icon: "🏆", text: "Team logos and branding display" },
+            { icon: Trophy, text: "Team logos and branding display" },
 
-            { icon: "⚡", text: "Animated team name reveals" },
+            { icon: Zap, text: "Animated team name reveals" },
 
-            { icon: "🎬", text: "Cinematic entrance animation" },
+            { icon: Clapperboard, text: "Cinematic entrance animation" },
 
-            { icon: "📋", text: "Match info: venue, date, format" },
+            { icon: ClipboardList, text: "Match info: venue, date, format" },
 
-            { icon: "🔄", text: "Auto-transitions to scoreboard" },
+            { icon: RefreshCw, text: "Auto-transitions to scoreboard" },
 
         ],
 
@@ -89,15 +90,15 @@ const SCREENSHOTS = [
 
         capabilities: [
 
-            { icon: "📊", text: "Full batting & bowling scorecards" },
+            { icon: BarChart3, text: "Full batting & bowling scorecards" },
 
-            { icon: "🏅", text: "Man of the Match highlight" },
+            { icon: Award, text: "Man of the Match highlight" },
 
-            { icon: "📈", text: "Run rate and partnership charts" },
+            { icon: TrendingUp, text: "Run rate and partnership charts" },
 
-            { icon: "🎯", text: "Fall of wickets timeline" },
+            { icon: Target, text: "Fall of wickets timeline" },
 
-            { icon: "📱", text: "Shareable as image" },
+            { icon: Smartphone, text: "Shareable as image" },
 
         ],
 
@@ -119,15 +120,15 @@ const SCREENSHOTS = [
 
         capabilities: [
 
-            { icon: "💥", text: "FOUR / SIX celebration popups" },
+            { icon: Zap, text: "FOUR / SIX celebration popups" },
 
-            { icon: "🔴", text: "Wicket alert with red flash" },
+            { icon: Circle, iconColor: "#ef4444", text: "Wicket alert with red flash" },
 
-            { icon: "✨", text: "Particle burst effects" },
+            { icon: Sparkles, text: "Particle burst effects" },
 
-            { icon: "🎵", text: "Optional sound triggers" },
+            { icon: Music, text: "Optional sound triggers" },
 
-            { icon: "⏱️", text: "Auto-dismiss after 3 seconds" },
+            { icon: Timer, text: "Auto-dismiss after 3 seconds" },
 
         ],
 
@@ -149,15 +150,15 @@ const SCREENSHOTS = [
 
         capabilities: [
 
-            { icon: "🏏", text: "One-tap run scoring (0–6, WD, NB)" },
+            { icon: Activity, text: "One-tap run scoring (0–6, WD, NB)" },
 
-            { icon: "↩️", text: "Undo last ball instantly" },
+            { icon: CornerUpLeft, text: "Undo last ball instantly" },
 
-            { icon: "👥", text: "Batsman & bowler management" },
+            { icon: Users, text: "Batsman & bowler management" },
 
-            { icon: "📱", text: "Mobile-friendly mini-admin" },
+            { icon: Smartphone, text: "Mobile-friendly mini-admin" },
 
-            { icon: "🔒", text: "Secure Firebase auth" },
+            { icon: Lock, text: "Secure Firebase auth" },
 
         ],
 
@@ -212,7 +213,7 @@ const SOLUTIONS = [
 
     {
 
-        icon: "🎓",
+        icon: GraduationCap,
 
         iconClass: "school",
 
@@ -242,7 +243,7 @@ const SOLUTIONS = [
 
     {
 
-        icon: "🏏",
+        icon: Activity,
 
         iconClass: "club",
 
@@ -272,7 +273,7 @@ const SOLUTIONS = [
 
     {
 
-        icon: "🏆",
+        icon: Trophy,
 
         iconClass: "pro",
 
@@ -398,7 +399,7 @@ function ScreenshotsShowcase() {
 
                     <img src={current.image} alt={current.label} loading="lazy" />
 
-                    <div className="showcase-zoom-hint">🔍 Click to enlarge</div>
+                    <div className="showcase-zoom-hint"><Search size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Click to enlarge</div>
 
                 </div>
 
@@ -420,7 +421,7 @@ function ScreenshotsShowcase() {
 
                             <li key={i}>
 
-                                <span className="showcase-cap-icon">{c.icon}</span>
+                                <span className="showcase-cap-icon"><c.icon size="1em" style={{ verticalAlign: '-0.125em', color: c.iconColor }} aria-hidden="true" /></span>
 
                                 {c.text}
 
@@ -450,7 +451,7 @@ function ScreenshotsShowcase() {
 
                     >
 
-                        ✕
+                        <X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
 
                     </button>
 
@@ -572,11 +573,11 @@ function ThemesGallery() {
 
                             <span className={`theme-card-ribbon ${theme.ribbon}`}>
 
-                                {theme.ribbon === "new" && "✨ New"}
+                                {theme.ribbon === "new" && <>New<Sparkles size="1em" aria-hidden="true" /></>}
 
-                                {theme.ribbon === "premium" && "⭐ Premium"}
+                                {theme.ribbon === "premium" && <>Premium<Star size="1em" aria-hidden="true" /></>}
 
-                                {theme.ribbon === "tournament" && "🏆 Tournament"}
+                                {theme.ribbon === "tournament" && <>Tournament<Trophy size="1em" aria-hidden="true" /></>}
 
                             </span>
 
@@ -624,7 +625,7 @@ function ThemesGallery() {
 
                             >
 
-                                👁️ Preview Theme
+                                <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Preview Theme
 
                             </button>
 
@@ -652,7 +653,7 @@ function ThemesGallery() {
 
                     >
 
-                        ✕
+                        <X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
 
                     </button>
 
@@ -723,7 +724,7 @@ function BuyerSolutions() {
 
                     >
 
-                        <div className={`solution-icon ${sol.iconClass}`}>{sol.icon}</div>
+                        <div className={`solution-icon ${sol.iconClass}`}><sol.icon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
 
                         <h3>{sol.title}</h3>
 
@@ -735,7 +736,7 @@ function BuyerSolutions() {
 
                                 <li key={j}>
 
-                                    <span className="solution-check">✓</span>
+                                    <span className="solution-check"><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
 
                                     {b}
 
@@ -757,7 +758,7 @@ function BuyerSolutions() {
 
                 <button className="solutions-cta-btn">
 
-                    🎨 Request Custom Design
+                    <Palette size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Request Custom Design
 
                 </button>
 

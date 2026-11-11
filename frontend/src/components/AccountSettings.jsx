@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { accountApi, subscriptionsApi } from "../api";
 import { isAdminRole } from "../utils/roles";
+import { ArrowLeft } from "lucide-react";
 import "./AccountSettings.css";
 
 const MAX_QR_BYTES = 300 * 1024;
@@ -132,7 +133,7 @@ export default function AccountSettings() {
   return (
     <div className="acct-page ks-app">
       <header className="acct-header">
-        <button type="button" className="acct-back" onClick={goBack}>← Back</button>
+        <button type="button" className="acct-back" onClick={goBack}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Back</button>
         <div className="acct-title">
           <h1>Account settings</h1>
           <p>{isAdmin ? "Admin account" : "Your KS Live account"}</p>

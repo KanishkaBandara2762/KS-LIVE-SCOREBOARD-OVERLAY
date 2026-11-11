@@ -49,11 +49,9 @@ export function AuthProvider({ children }) {
 
   // ── Register ───────────────────────────────────────────────────────────────
   const register = useCallback(async (email, password, displayName) => {
-    const res = await authApi.register({ email, password, displayName });
-    setToken(res.token);
-    setStoredUser(res.user);
-    setCurrentUser(res.user);
-    return res;
+    // Signup no longer logs in: the account must verify its email first.
+    // No token is returned, so nothing is stored here.
+    return authApi.register({ email, password, displayName });
   }, []);
 
   // ── Login ──────────────────────────────────────────────────────────────────

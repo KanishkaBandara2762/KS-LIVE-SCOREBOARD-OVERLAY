@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Hammer } from 'lucide-react';
 import { auctionApi } from '../../api';
 import { formatMoney, statusLabel } from './auctionShared';
 import './Auction.css';
@@ -32,7 +33,7 @@ export default function AuctionDashboardPanel() {
       <div className="auction-dashboard-head">
         <div>
           <span className="auction-eyebrow">PREMIUM MODULE</span>
-          <h2>🔨 Auctions</h2>
+          <h2><Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions</h2>
           <p>Run a live player auction with remote team owners.</p>
         </div>
         <div className="auction-header-actions">
@@ -47,7 +48,7 @@ export default function AuctionDashboardPanel() {
         <div className="auction-loading"><span className="auction-spinner" /> Loading auctions…</div>
       ) : auctions.length === 0 ? (
         <div className="auction-empty small">
-          <div className="auction-empty-icon">🔨</div>
+          <div className="auction-empty-icon"><Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <h3>No auctions yet</h3>
           <p>Create an auction, add teams and players, then invite team owners.</p>
           <button className="auction-btn primary" onClick={() => navigate('/auctions')}>Create your first auction</button>

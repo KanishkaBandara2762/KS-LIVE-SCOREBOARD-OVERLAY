@@ -561,6 +561,30 @@
     text-transform: uppercase;
     margin-bottom: 0.6rem;
 }
+/* ─── Mobile (≤ 767px): let the card shrink to the screen ─────────────── */
+@media (max-width: 767px) {
+    .auth-page {
+        padding: 1rem;
+        align-items: flex-start;
+        padding-top: max(1.25rem, env(safe-area-inset-top));
+        padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    }
+
+    .auth-card {
+        min-width: 0;
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    .auth-input-wrap,
+    .auth-input,
+    .auth-btn {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
+
 /* ══ KS LIVE blue + gold layer (tokens from src/styles/theme.css) ═══════ */
 .auth-page {
     background: var(--bg-main);

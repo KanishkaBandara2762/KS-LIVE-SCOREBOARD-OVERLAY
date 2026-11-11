@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { matchesApi } from "../api";
+import { ArrowLeft, Activity, Circle, ClipboardList, Coins, Flag, Handshake, Lock, MapPin, Target, Trophy } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 
@@ -447,7 +448,7 @@ export default function PublicMatchPreview() {
   if (error) {
     return (
       <div className="ks-app ks-tw min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-6 text-center">
-        <span className="text-5xl">🏏</span>
+        <span className="text-5xl"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
         <h2 className="text-2xl font-bold mt-4 text-red-400">Match Unavailable</h2>
         <p className="text-slate-400 text-sm max-w-md mt-2">{error}</p>
         <Link to="/live" className="mt-6 px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl shadow-lg transition-colors">
@@ -461,7 +462,7 @@ export default function PublicMatchPreview() {
     return (
       <div className="ks-app ks-tw min-h-screen bg-gradient-to-b from-slate-900 to-zinc-950 text-white flex flex-col items-center justify-center px-6 text-center">
         <div className="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl mb-6 shadow-inner animate-pulse">
-          🔒
+          <Lock size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
         </div>
         <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
           Private Match Scorecard
@@ -474,7 +475,7 @@ export default function PublicMatchPreview() {
           . Score updates are locked.
         </p>
         <Link to="/live" className="mt-8 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/5 font-bold rounded-xl transition-all shadow-md">
-          ← Back to Match Portal
+          <ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Back to Match Portal
         </Link>
       </div>
     );
@@ -503,7 +504,7 @@ export default function PublicMatchPreview() {
       {/* Sticky Score Bar */}
       <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <Link to="/live" className="flex items-center gap-2 text-teal-400 hover:text-teal-300 font-bold text-sm transition-colors">
-          <span>←</span> <span className="hidden sm:inline">Back to Matches</span>
+          <span><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> <span className="hidden sm:inline">Back to Matches</span>
         </Link>
 
         <div className="flex items-center gap-3">
@@ -716,35 +717,35 @@ export default function PublicMatchPreview() {
               {/* Match Details Grid */}
               <div className="versus-details-grid">
                 <div className="versus-detail-card">
-                  <div className="versus-detail-icon">🏏</div>
+                  <div className="versus-detail-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                   <div className="versus-detail-label">Match Type</div>
                   <div className="versus-detail-value">{match.matchType || 'T20'}</div>
                 </div>
                 <div className="versus-detail-card">
-                  <div className="versus-detail-icon">📋</div>
+                  <div className="versus-detail-icon"><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                   <div className="versus-detail-label">Stage</div>
                   <div className="versus-detail-value">{match.matchTitle || match.matchType || 'Group Stage'}</div>
                 </div>
                 <div className="versus-detail-card">
-                  <div className="versus-detail-icon">🎯</div>
+                  <div className="versus-detail-icon"><Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                   <div className="versus-detail-label">Overs</div>
                   <div className="versus-detail-value">{match.maxOvers} Overs</div>
                 </div>
                 <div className="versus-detail-card">
-                  <div className="versus-detail-icon">⚾</div>
+                  <div className="versus-detail-icon"><Circle size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                   <div className="versus-detail-label">Balls/Over</div>
                   <div className="versus-detail-value">{match.ballsPerOver || 6}</div>
                 </div>
                 {match.tournamentName && (
                   <div className="versus-detail-card wide">
-                    <div className="versus-detail-icon">🏆</div>
+                    <div className="versus-detail-icon"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                     <div className="versus-detail-label">Tournament</div>
                     <div className="versus-detail-value">{match.tournamentName}</div>
                   </div>
                 )}
                 {match.venueName && (
                   <div className="versus-detail-card wide">
-                    <div className="versus-detail-icon">📍</div>
+                    <div className="versus-detail-icon"><MapPin size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                     <div className="versus-detail-label">Venue</div>
                     <div className="versus-detail-value">{match.venueName}</div>
                   </div>
@@ -754,7 +755,7 @@ export default function PublicMatchPreview() {
               {/* Toss Info */}
               {match.toss && match.toss.winner && (
                 <div className="versus-toss-box">
-                  <div className="versus-toss-icon">🪙</div>
+                  <div className="versus-toss-icon"><Coins size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                   <div className="versus-toss-info">
                     <div className="versus-toss-title">Toss</div>
                     <div className="versus-toss-detail">
@@ -787,13 +788,13 @@ export default function PublicMatchPreview() {
               {/* Result Banner (if match completed) */}
               {match.matchStatus === 'completed' && match.matchResult && (
                 <div className="versus-result-banner">
-                  <div className="versus-result-icon">🏆</div>
+                  <div className="versus-result-icon"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                   <div className="versus-result-text">{match.matchResult}</div>
                 </div>
               )}
               {match.isTied && (
                 <div className="versus-result-banner tied">
-                  <div className="versus-result-icon">🤝</div>
+                  <div className="versus-result-icon"><Handshake size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                   <div className="versus-result-text">Match Tied!</div>
                 </div>
               )}
@@ -945,7 +946,7 @@ export default function PublicMatchPreview() {
                 <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-md text-slate-300">
                   <h4 className="font-extrabold text-sm text-slate-300 uppercase tracking-wider mb-2">Powerplay</h4>
                   <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${match.powerplay?.active ? 'bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-slate-700'}`}></div>
+                    <div className={`w-3 h-3 rounded-full ${match.powerplay?.active ? 'bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(255,201,40,0.8)]' : 'bg-slate-700'}`}></div>
                     <span className="font-bold text-white">{match.powerplay?.active ? 'Active' : 'Inactive'}</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-2 italic">Automatically tracked based on over count.</p>
@@ -1004,14 +1005,14 @@ export default function PublicMatchPreview() {
                             <polyline
                               points={`0,100% ${points.join(' ')}`}
                               fill="none"
-                              stroke="#2dd4bf"
+                              stroke="var(--brand-sky)"
                               strokeWidth="3"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              className="drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]"
+                              className="drop-shadow-[0_0_8px_rgba(57,169,255,0.5)]"
                             />
                             {fowPoints.map((p, i) => (
-                              <circle key={i} cx={`${p.x}%`} cy={`${p.y}%`} r="4" fill="#ef4444" stroke="#1e293b" strokeWidth="2" />
+                              <circle key={i} cx={`${p.x}%`} cy={`${p.y}%`} r="4" fill="var(--status-error)" stroke="var(--bg-card)" strokeWidth="2" />
                             ))}
                           </>
                         );
@@ -1228,7 +1229,7 @@ export default function PublicMatchPreview() {
                           className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border-y border-white/10 py-3 px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 shadow-inner"
                         >
                           <div className="text-slate-200 font-extrabold text-sm uppercase tracking-wider flex items-center gap-2">
-                            <span>🏁 End of Over {item.overNumber}</span>
+                            <span><Flag size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> End of Over {item.overNumber}</span>
                             <span className="text-xs text-slate-500">|</span>
                             <span className="text-xs text-teal-400">{item.runsInOver} runs scored</span>
                           </div>

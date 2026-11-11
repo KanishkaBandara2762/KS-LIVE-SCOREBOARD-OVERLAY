@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { matchesApi } from "../api";
+import { ArrowUpRight, X } from "lucide-react";
 
 const TeamManager = () => {
   const { matchId } = useParams();
@@ -92,9 +93,9 @@ const TeamManager = () => {
         <div>
           <h1 className="text-2xl font-black text-yellow-400 tracking-widest">KS TEAM MANAGER</h1>
           <div className="flex gap-4 mt-2">
-            <button onClick={() => window.open(adminPath, '_blank')} className="text-xs bg-blue-600 hover:bg-blue-500 px-4 py-1 rounded-full font-black transition">Admin Panel ↗</button>
-            <button onClick={() => window.open(miniAdminPath, '_blank')} className="text-xs bg-emerald-600 hover:bg-emerald-500 px-4 py-1 rounded-full font-black transition">Mini Admin ↗</button>
-            <button onClick={() => window.open(overlayPath, '_blank')} className="text-xs bg-slate-700 hover:bg-slate-600 px-4 py-1 rounded-full font-black transition border border-white/10">Scoreboard ↗</button>
+            <button onClick={() => window.open(adminPath, '_blank')} className="text-xs bg-blue-600 hover:bg-blue-500 px-4 py-1 rounded-full font-black transition">Admin Panel <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
+            <button onClick={() => window.open(miniAdminPath, '_blank')} className="text-xs bg-emerald-600 hover:bg-emerald-500 px-4 py-1 rounded-full font-black transition">Mini Admin <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
+            <button onClick={() => window.open(overlayPath, '_blank')} className="text-xs bg-slate-700 hover:bg-slate-600 px-4 py-1 rounded-full font-black transition border border-white/10">Scoreboard <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
           </div>
         </div>
         <button onClick={pushToLiveMatch} className="bg-green-600 hover:bg-green-500 text-white px-10 py-3 rounded-full font-black text-sm animate-pulse border-2 border-white/20">Sync Match Data Now</button>
@@ -159,7 +160,7 @@ const TeamManager = () => {
                     <span className="text-slate-600 font-black text-xs">{i + 1}</span>
                     <span className="font-bold text-sm tracking-widest">{p.name}</span>
                   </div>
-                  <button onClick={() => setSelectedBatting(selectedBatting.filter((_, idx) => idx !== i))} className="text-red-500 font-black text-xs hover:scale-125 transition">✕</button>
+                  <button onClick={() => setSelectedBatting(selectedBatting.filter((_, idx) => idx !== i))} className="text-red-500 font-black text-xs hover:scale-125 transition"><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
                 </div>
               ))}
             </div>
@@ -187,7 +188,7 @@ const TeamManager = () => {
                     <span className="text-slate-600 font-black text-xs">{i + 1}</span>
                     <span className="font-bold text-sm tracking-widest">{p.name}</span>
                   </div>
-                  <button onClick={() => setSelectedBowling(selectedBowling.filter((_, idx) => idx !== i))} className="text-red-500 font-black text-xs hover:scale-125 transition">✕</button>
+                  <button onClick={() => setSelectedBowling(selectedBowling.filter((_, idx) => idx !== i))} className="text-red-500 font-black text-xs hover:scale-125 transition"><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
                 </div>
               ))}
             </div>

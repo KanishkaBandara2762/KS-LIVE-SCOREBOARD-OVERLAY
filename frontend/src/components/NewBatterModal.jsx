@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Activity, Check, X, Zap } from 'lucide-react';
 
 const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConfirm, onClose }) => {
   const [selected, setSelected] = useState('');
@@ -45,7 +46,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: 28, marginBottom: 4 }}>🏏</div>
+            <div style={{ fontSize: 28, marginBottom: 4 }}><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
             <h3 style={{
               color: '#fff', fontSize: 16, fontWeight: 800,
               margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -59,7 +60,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
               type="button"
               onClick={onClose}
               style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer', padding: 4 }}
-            >✕</button>
+            ><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
           )}
         </div>
 
@@ -75,7 +76,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
         {/* Squad list */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ color: 'var(--brand-gold)', fontSize: 12, fontWeight: 800, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            ⚡ TEAM SQUAD PLAYERS ({displayPlayers.length})
+            <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> TEAM SQUAD PLAYERS ({displayPlayers.length})
           </div>
 
           <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -176,7 +177,7 @@ const NewBatterModal = ({ squad, outPlayerName, atCrease = [], slotLabel, onConf
               cursor: (selected || customName.trim()) ? 'pointer' : 'not-allowed',
               letterSpacing: '0.06em',
             }}
-          >✅ CONFIRM</button>
+          ><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CONFIRM</button>
         </div>
       </div>
     </div>

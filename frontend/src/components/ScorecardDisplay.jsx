@@ -4,10 +4,12 @@ import { matchesApi, tournamentsApi } from "../api";
 import { db } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import { Activity, ArrowUpRight, BarChart3, Calendar, Check, Circle, CircleDot, ClipboardList, Coins, Crown, Lock, MapPin, Play, Star, Trophy, Umbrella, Zap } from 'lucide-react';
 import BroadcastTicker from "./BroadcastTicker";
 import ModernOverlayThemes from "./ModernOverlayThemes";
 import VersusOverlay from "./VersusOverlay";
 import "./BroadcastScreens.css";
+import "./BroadcastLogo.css";
 import "./ks-premium.css";
 import "./ThemeNewKSColor.css";
 import "./ModernEventFx.css";
@@ -78,9 +80,9 @@ const TeamLogo = React.memo(function TeamLogo({ src, teamName, className, size =
   return (
     <img
       src={src}
-      className={className}
+      className={['team-logo-img', className].filter(Boolean).join(' ')}
       alt={teamName || 'Team Logo'}
-      style={style}
+      style={{ width: size, height: size, minWidth: size, maxWidth: size, flexShrink: 0, ...style }}
       onError={() => setFailed(true)}
     />
   );
@@ -150,6 +152,29 @@ const ScorecardDisplay = () => {
   const [scoreAnimClass, setScoreAnimClass] = useState("");
   const [boardAnimClass, setBoardAnimClass] = useState("");
   const [bowlerAnimClass, setBowlerAnimClass] = useState("");
+  // Phones: lay the overlay out on a fixed-width canvas and scale it to the screen width.
+  const [viewportSize, setViewportSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
+  useEffect(() => {
+    const handleResize = () => setViewportSize({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  // Smaller design width = bigger text on phones. Content wider than this is cut off on phones.
+  const OVERLAY_DESIGN_WIDTH = 1000;
+  const isPhoneScreen = viewportSize.w < 768;
+  const phoneScale = isPhoneScreen ? viewportSize.w / OVERLAY_DESIGN_WIDTH : 1;
+  const phoneCanvasStyle = isPhoneScreen
+    ? {
+        width: OVERLAY_DESIGN_WIDTH,
+        height: viewportSize.h / phoneScale,
+        transform: `scale(${phoneScale})`,
+        transformOrigin: "0 0",
+        left: 0,
+        top: 0,
+        right: "auto",
+        bottom: "auto",
+      }
+    : undefined;
   const [newOverAnim, setNewOverAnim] = useState(false);
   const [showInfoStrip, setShowInfoStrip] = useState(false);
   // FIX 5: KS Premium over-break chase display state
@@ -847,7 +872,7 @@ const ScorecardDisplay = () => {
       <div className="fixed inset-0 bg-[#070b14] flex flex-col items-center justify-center text-white font-sans p-6 text-center select-none">
         <div className="max-w-md w-full bg-slate-900/90 border border-red-500/30 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center text-3xl">
-            🔒
+            <Lock size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
           </div>
           <h2 className="text-xl font-black text-red-400 uppercase tracking-wider mb-2">
             OBS Broadcasting Access Expired
@@ -856,8 +881,8 @@ const ScorecardDisplay = () => {
             {subErrorMessage || 'A valid KS LIVE Broadcasting subscription is required to stream this live scoreboard overlay in OBS.'}
           </p>
           <div className="bg-slate-800/80 rounded-xl p-4 mb-6 border border-slate-700/60 text-xs text-slate-400 text-left space-y-1.5">
-            <div>✓ Match scoring & data: <span className="text-emerald-400 font-semibold">100% Free & Unlimited</span></div>
-            <div>✓ OBS overlay streaming: <span className="text-amber-400 font-semibold">Time-Limited License</span></div>
+            <div><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Match scoring & data: <span className="text-emerald-400 font-semibold">100% Free & Unlimited</span></div>
+            <div><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OBS overlay streaming: <span className="text-amber-400 font-semibold">Time-Limited License</span></div>
           </div>
           <p className="text-xs text-slate-500">
             Please log in to your KS Live dashboard to renew your OBS Broadcasting plan.
@@ -917,12 +942,12 @@ const ScorecardDisplay = () => {
   const finalWinnerTeam = winnerInfo?.team || (match.isSecondInnings ? (match.score >= (match.targetScore || 0) ? match.battingTeam : match.bowlingTeam) : match.battingTeam);
 
   return (
-    <div key={refreshKey} className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic">
+    <div key={refreshKey} className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic" style={phoneCanvasStyle}>
 
       {/* 1. NAVIGATION OVERLAY (Admin only, visible on hover) */}
       <div className="fixed top-4 left-4 z-[200] flex gap-2 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity">
-        <button onClick={() => window.open('/admin', '_blank')} className="bg-slate-800 text-white text-[10px] px-4 py-2 rounded-full font-black border border-white/20">ADMIN PANEL ↗</button>
-        <button onClick={() => window.open('/teams', '_blank')} className="bg-blue-600 text-white text-[10px] px-4 py-2 rounded-full font-black">TEAM MANAGER ↗</button>
+        <button onClick={() => window.open('/admin', '_blank')} className="bg-slate-800 text-white text-[10px] px-4 py-2 rounded-full font-black border border-white/20">ADMIN PANEL <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
+        <button onClick={() => window.open('/teams', '_blank')} className="bg-blue-600 text-white text-[10px] px-4 py-2 rounded-full font-black">TEAM MANAGER <ArrowUpRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
       </div>
 
       {/* 2. VERSUS OVERLAY — shared by every theme (see VersusOverlay.jsx) */}
@@ -978,17 +1003,17 @@ const ScorecardDisplay = () => {
                 <div className="toss-coin-wrap">
                   <div className="toss-coin">
                     <div className="toss-coin-face toss-coin-front">
-                      <span className="toss-coin-icon">🪙</span>
+                      <span className="toss-coin-icon"><Coins size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                     </div>
                     <div className="toss-coin-face toss-coin-back">
-                      <span className="toss-coin-icon">★</span>
+                      <span className="toss-coin-icon"><Star size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                     </div>
                   </div>
                   <div className="toss-coin-glow" />
                 </div>
                 <div className="toss-won-text">WON THE TOSS</div>
                 <div className="toss-decision-badge">
-                  <span className="toss-decision-icon">{tossDecision === 'BAT' ? '🏏' : '⚾'}</span>
+                  <span className="toss-decision-icon">{tossDecision === 'BAT' ? <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> : <Circle size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />}</span>
                   <span>{tossDecisionFull}</span>
                 </div>
               </div>
@@ -1012,7 +1037,7 @@ const ScorecardDisplay = () => {
               <span className="toss-match-info">
                 {match.matchTitle || match.tournamentName || `${match.maxOvers || 20} OVERS MATCH`}
               </span>
-              {match.venueName && <span className="toss-venue">📍 {match.venueName}</span>}
+              {match.venueName && <span className="toss-venue"><MapPin size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match.venueName}</span>}
             </div>
           </div>
         );
@@ -1165,7 +1190,7 @@ const ScorecardDisplay = () => {
           <div className="potm-bg-grid" />
           <div className="potm-shimmer" />
           <div className="potm-label-top">PLAYER OF THE MATCH</div>
-          <div className="potm-crown">👑</div>
+          <div className="potm-crown"><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <div className="potm-card">
             <div className="potm-photo-wrap">
               {match.potmPhoto
@@ -1277,7 +1302,7 @@ const ScorecardDisplay = () => {
       {match.showTournamentMostRuns && (
         <div className="tournament-screen">
           <div className="tournament-screen-bg" />
-          <div className="tournament-screen-header">🏆 MOST RUNS — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-header"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> MOST RUNS — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
             {(publicBoards?.mostRuns || []).length === 0 ? (
               <div className="tournament-screen-empty">No completed-match statistics yet.</div>
@@ -1301,7 +1326,7 @@ const ScorecardDisplay = () => {
       {match.showTournamentMostWickets && (
         <div className="tournament-screen">
           <div className="tournament-screen-bg" />
-          <div className="tournament-screen-header">🎳 MOST WICKETS — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-header"><CircleDot size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> MOST WICKETS — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
             {(publicBoards?.mostWickets || []).length === 0 ? (
               <div className="tournament-screen-empty">No completed-match statistics yet.</div>
@@ -1325,7 +1350,7 @@ const ScorecardDisplay = () => {
       {match.showPointsTable && (
         <div className="tournament-screen">
           <div className="tournament-screen-bg" />
-          <div className="tournament-screen-header">📊 POINTS TABLE — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-header"><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> POINTS TABLE — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
             <div className="tournament-screen-empty">Connect tournament data to display points table.</div>
           </div>
@@ -1336,7 +1361,7 @@ const ScorecardDisplay = () => {
       {match.showTournamentBoundaries && (
         <div className="tournament-screen">
           <div className="tournament-screen-bg" />
-          <div className="tournament-screen-header">💥 BOUNDARIES — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-header"><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BOUNDARIES — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
             <div className="tournament-screen-empty">Connect tournament data to display boundary stats.</div>
           </div>
@@ -1347,7 +1372,7 @@ const ScorecardDisplay = () => {
       {match.showUpcoming && (
         <div className="tournament-screen">
           <div className="tournament-screen-bg" />
-          <div className="tournament-screen-header">📅 UPCOMING MATCHES — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-header"><Calendar size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> UPCOMING MATCHES — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
             <div className="tournament-screen-empty">Connect tournament data to display upcoming fixtures.</div>
           </div>
@@ -1358,7 +1383,7 @@ const ScorecardDisplay = () => {
       {match.showResults && (
         <div className="tournament-screen">
           <div className="tournament-screen-bg" />
-          <div className="tournament-screen-header">📋 RESULTS — {match.tournamentName || 'TOURNAMENT'}</div>
+          <div className="tournament-screen-header"><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RESULTS — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
             <div className="tournament-screen-empty">Connect tournament data to display match results.</div>
           </div>
@@ -1371,7 +1396,7 @@ const ScorecardDisplay = () => {
           {/* FREE HIT LIVE BADGE (v3.0) */}
           {match.freeHitActive && (
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 px-5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-600 to-red-600 border-2 border-yellow-300 text-white font-black text-xs tracking-[0.25em] shadow-[0_0_25px_rgba(249,115,22,0.8)] animate-pulse">
-              <span>⚡</span> FREE HIT <span>⚡</span>
+              <span><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> FREE HIT <span><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
             </div>
           )}
 
@@ -1479,8 +1504,8 @@ const ScorecardDisplay = () => {
                             ) : (
                                 <>
                                     <div>
-                                        <div style={{ color: b1?.onStrike ? '#fff' : '#aaa' }}><strong>{b1?.onStrike ? '★ ' : ''}{b1?.name || 'Batter 1'}</strong> <span className="kse-batter-runs">{b1?.runs || 0} ({b1?.balls || 0})</span></div>
-                                        <div style={{ color: b2?.onStrike ? '#fff' : '#aaa' }}><strong>{b2?.onStrike ? '★ ' : ''}{b2?.name || 'Batter 2'}</strong> <span className="kse-batter-runs">{b2?.runs || 0} ({b2?.balls || 0})</span></div>
+                                        <div style={{ color: b1?.onStrike ? '#fff' : '#aaa' }}><strong>{b1?.onStrike ? <><Star size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> </> : ''}{b1?.name || 'Batter 1'}</strong> <span className="kse-batter-runs">{b1?.runs || 0} ({b1?.balls || 0})</span></div>
+                                        <div style={{ color: b2?.onStrike ? '#fff' : '#aaa' }}><strong>{b2?.onStrike ? <><Star size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> </> : ''}{b2?.name || 'Batter 2'}</strong> <span className="kse-batter-runs">{b2?.runs || 0} ({b2?.balls || 0})</span></div>
                                     </div>
 
                                     <div>
@@ -1605,7 +1630,7 @@ const ScorecardDisplay = () => {
                         <div style={{ zIndex: 2, display: 'flex', flexDirection: 'column', justifySelf: 'stretch', width: '100%' }}>
                           <div className="ksp-batter-row" style={{ color: match.player1 ? '#fff' : '#aaa' }}>
                             <div className="ksp-batter-name">
-                              <span className="ksp-striker-arrow" style={{ opacity: match.player1?.onStrike ? 1 : 0, transition: 'opacity 0.2s' }}>▶</span> {match.player1?.name || 'SELECT P1'}
+                              <span className="ksp-striker-arrow" style={{ opacity: match.player1?.onStrike ? 1 : 0, transition: 'opacity 0.2s' }}><Play size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {match.player1?.name || 'SELECT P1'}
                             </div>
                             <div>
                               <span className="ksp-batter-runs">{match.player1?.runs || 0}</span> <span className="ksp-batter-balls">{match.player1?.balls || 0}</span>
@@ -1613,7 +1638,7 @@ const ScorecardDisplay = () => {
                           </div>
                           <div className="ksp-batter-row" style={{ color: match.player2 ? '#fff' : '#aaa' }}>
                             <div className="ksp-batter-name">
-                              <span className="ksp-striker-arrow" style={{ opacity: match.player2?.onStrike ? 1 : 0, transition: 'opacity 0.2s' }}>▶</span> {match.player2?.name || 'SELECT P2'}
+                              <span className="ksp-striker-arrow" style={{ opacity: match.player2?.onStrike ? 1 : 0, transition: 'opacity 0.2s' }}><Play size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {match.player2?.name || 'SELECT P2'}
                             </div>
                             <div>
                               <span className="ksp-batter-runs">{match.player2?.runs || 0}</span> <span className="ksp-batter-balls">{match.player2?.balls || 0}</span>
@@ -1754,13 +1779,13 @@ const ScorecardDisplay = () => {
                         <div className="newipl-batters">
                           <div className="newipl-batter-row" style={{ color: match.player1 ? '#fff' : '#aaa' }}>
                             <div className="newipl-batter-name">
-                              {match.player1?.onStrike && <span className="newipl-striker-arrow">▶</span>} {match.player1?.name || 'BAT 1'}
+                              {match.player1?.onStrike && <span className="newipl-striker-arrow"><Play size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>} {match.player1?.name || 'BAT 1'}
                             </div>
                             <div className="newipl-batter-score">{match.player1?.runs ?? 0}<span className="newipl-batter-balls">({match.player1?.balls ?? 0})</span></div>
                           </div>
                           <div className="newipl-batter-row" style={{ color: match.player2 ? '#fff' : '#aaa' }}>
                             <div className="newipl-batter-name">
-                              {match.player2?.onStrike && <span className="newipl-striker-arrow">▶</span>} {match.player2?.name || 'BAT 2'}
+                              {match.player2?.onStrike && <span className="newipl-striker-arrow"><Play size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>} {match.player2?.name || 'BAT 2'}
                             </div>
                             <div className="newipl-batter-score">{match.player2?.runs ?? 0}<span className="newipl-batter-balls">({match.player2?.balls ?? 0})</span></div>
                           </div>
@@ -2111,7 +2136,7 @@ const ScorecardDisplay = () => {
                 <div className="apogee-panel apogee-panel-batsmen">
                   {[match.player1, match.player2].map((p, i) => p?.name ? (
                     <div key={i} className={`apogee-batsman-row ${!p.onStrike ? 'non-striker' : ''}`}>
-                      {p.onStrike ? <div className="apogee-striker-arrow">▶</div> : null}
+                      {p.onStrike ? <div className="apogee-striker-arrow"><Play size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div> : null}
                       <div className="apogee-batsman-name">{p.name}</div>
                       <div className="apogee-batsman-stats">{p.runs} <span className="apogee-batsman-balls">({p.balls})</span></div>
                     </div>
@@ -2215,7 +2240,7 @@ const ScorecardDisplay = () => {
                        match.matchStatus === 'Rain Delay' ? 'bg-blue-900 text-cyan-300 border border-blue-500' :
                        match.matchStatus === 'Match Ended' ? 'bg-purple-700 text-white' : 'bg-gray-600 text-white'
                      }`}>
-                       {match.matchStatus === 'Rain Delay' && "☔ "}{match.matchStatus}
+                       {match.matchStatus === 'Rain Delay' && <><Umbrella size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> </>}{match.matchStatus}
                      </span>
                   )}
                 </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { matchesApi } from "../api";
+import { Calendar, Circle, MapPin, TriangleAlert, Trophy } from "lucide-react";
 
 export default function PublicLiveMatches() {
   const [matches, setMatches] = useState({ live: [], upcoming: [], recent: [] });
@@ -165,7 +166,7 @@ export default function PublicLiveMatches() {
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center text-red-200 max-w-lg mx-auto my-12">
-            <span className="text-4xl">⚠️</span>
+            <span className="text-4xl"><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
             <h3 className="font-bold text-lg mt-3">Connection Problem</h3>
             <p className="text-sm text-red-300 mt-1">{error}</p>
             <button
@@ -283,7 +284,7 @@ export default function PublicLiveMatches() {
                         {/* Footer Status situation */}
                         <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs">
                           <span className="text-teal-400 font-bold bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20 animate-pulse">
-                            ● LIVE
+                            <Circle size="1em" style={{ verticalAlign: '-0.125em' }} fill="currentColor" aria-hidden="true" /> LIVE
                           </span>
                           <span className="text-slate-400 font-semibold italic text-right truncate max-w-[180px]">
                             {m.isSecondInnings && m.targetScore > 0
@@ -301,7 +302,7 @@ export default function PublicLiveMatches() {
             {/* UPCOMING MATCHES SECTION */}
             <section className="mb-12">
               <div className="flex items-center gap-2 mb-6">
-                <span className="text-teal-400 text-lg">📅</span>
+                <span className="text-teal-400 text-lg"><Calendar size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                 <h2 className="text-xl font-bold tracking-wide uppercase text-slate-200">
                   Upcoming Matches ({filteredUpcoming.length})
                 </h2>
@@ -362,7 +363,7 @@ export default function PublicLiveMatches() {
                         {/* Date and Venue */}
                         <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-500">
                           <span className="font-medium text-slate-400 truncate max-w-[150px]">
-                            📍 {m.venueName || "TBD Venue"}
+                            <MapPin size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {m.venueName || "TBD Venue"}
                           </span>
                           <span className="font-bold text-slate-400 bg-slate-800/80 px-2 py-1 rounded border border-white/5">
                             {m.matchDate || "TBD Date"}
@@ -378,7 +379,7 @@ export default function PublicLiveMatches() {
             {/* RECENT RESULTS SECTION */}
             <section className="mb-12">
               <div className="flex items-center gap-2 mb-6">
-                <span className="text-teal-400 text-lg">🏆</span>
+                <span className="text-teal-400 text-lg"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>
                 <h2 className="text-xl font-bold tracking-wide uppercase text-slate-200">
                   Recent Results ({filteredRecent.length})
                 </h2>

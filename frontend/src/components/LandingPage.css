@@ -891,6 +891,7 @@
     cursor: pointer;
     transition: background 0.3s, transform 0.3s;
     padding: 0;
+    min-height: 0; /* mobile.css forces 44px min-height on buttons; keep the dot round */
 }
 
 .landing-testimonial-dot.active {
@@ -1290,6 +1291,10 @@
 
     .landing-nav-links.open {
         display: flex;
+    }
+
+    .landing-nav-language {
+        margin-bottom: 0.75rem;
     }
 
     .landing-nav-hamburger {

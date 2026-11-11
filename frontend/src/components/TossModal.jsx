@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Activity, ArrowLeft, ArrowRight, Check, CircleDot, Coins } from 'lucide-react';
 
 const TossModal = ({ teamA, teamB, onConfirm }) => {
   const [tossWinner, setTossWinner] = useState('');
@@ -44,7 +45,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
       }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>🪙</div>
+          <div style={{ fontSize: 36, marginBottom: 8 }}><Coins size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <h2 style={{
             color: '#fff', fontSize: 20, fontWeight: 800,
             letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0,
@@ -87,7 +88,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                 border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 13,
                 cursor: tossWinner ? 'pointer' : 'not-allowed',
                 letterSpacing: '0.08em',
-              }}>NEXT →</button>
+              }}>NEXT <ArrowRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
           </>
         )}
 
@@ -104,7 +105,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                 letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
               }}>CHOSE TO...</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[['bat', '🏏 BAT FIRST'], ['bowl', '🎳 BOWL FIRST']].map(([val, label]) => (
+                {[['bat', Activity, 'BAT FIRST'], ['bowl', CircleDot, 'BOWL FIRST']].map(([val, Icon, label]) => (
                   <button key={val} onClick={() => setTossDecision(val)} style={{
                     padding: '18px 8px',
                     borderRadius: 10,
@@ -113,7 +114,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                     color: tossDecision === val ? '#4ade80' : '#fff',
                     fontWeight: 700, fontSize: 13, cursor: 'pointer',
                     transition: 'all 0.15s',
-                  }}>{label}</button>
+                  }}><Icon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {label}</button>
                 ))}
               </div>
             </div>
@@ -124,8 +125,8 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                 borderRadius: 10, padding: '12px 16px', marginBottom: 16, textAlign: 'center',
               }}>
                 <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>RESULT</div>
-                <div style={{ color: '#4ade80', fontWeight: 700, fontSize: 14 }}>🏏 {getBattingTeam()} BATS FIRST</div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>🎳 {getBowlingTeam()} BOWLS</div>
+                <div style={{ color: '#4ade80', fontWeight: 700, fontSize: 14 }}><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {getBattingTeam()} BATS FIRST</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}><CircleDot size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {getBowlingTeam()} BOWLS</div>
               </div>
             )}
 
@@ -134,7 +135,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                 padding: '12px', background: 'rgba(255,255,255,0.06)',
                 color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 10, fontWeight: 700, fontSize: 12, cursor: 'pointer',
-              }}>← BACK</button>
+              }}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BACK</button>
               <button
                 onClick={handleConfirm}
                 disabled={!tossDecision}
@@ -145,7 +146,7 @@ const TossModal = ({ teamA, teamB, onConfirm }) => {
                   border: 'none', borderRadius: 10, fontWeight: 800, fontSize: 12,
                   cursor: tossDecision ? 'pointer' : 'not-allowed',
                   letterSpacing: '0.08em',
-                }}>✅ START MATCH</button>
+                }}><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> START MATCH</button>
             </div>
           </>
         )}

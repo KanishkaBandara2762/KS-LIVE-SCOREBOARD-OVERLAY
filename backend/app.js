@@ -109,7 +109,8 @@ function buildApp({ io = null } = {}) {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: clientKey,
-    skip: () => isDev, // Skip entirely in dev mode
+    // OTP endpoints have their own limiter (middleware/otpRateLimit.js)
+    skip: (req) => isDev || /^\/(verify-email|resend-otp|forgot-password(\/verify|\/reset)?)$/.test(req.path),
   });
 
   const apiLimiter = rateLimit({

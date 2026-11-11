@@ -13,6 +13,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { matchesApi } from '../api';
+import { ClipboardList, RefreshCw } from 'lucide-react';
 
 const BallByBallHistory = ({ matchId }) => {
   const [history, setHistory] = useState([]);
@@ -43,10 +44,10 @@ const BallByBallHistory = ({ matchId }) => {
   }, [matchId, inningsFilter]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="ma-icon-panel" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ color: 'var(--brand-gold)', fontWeight: 700, fontSize: 12, letterSpacing: 1 }}>
-          📋 BALL-BY-BALL TIMELINE ({history.length})
+          <ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BALL-BY-BALL TIMELINE ({history.length})
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <select
@@ -68,7 +69,7 @@ const BallByBallHistory = ({ matchId }) => {
               border: '1px solid var(--text-muted)', color: 'var(--text-primary)', fontSize: 12, cursor: 'pointer',
             }}
           >
-            🔄 Refresh
+            <RefreshCw size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Refresh
           </button>
         </div>
       </div>

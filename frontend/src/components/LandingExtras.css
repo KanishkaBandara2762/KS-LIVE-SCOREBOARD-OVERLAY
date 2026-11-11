@@ -50,6 +50,14 @@
 .broadcasting-icon {
     font-size: 2rem;
     margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.broadcasting-icon svg {
+    width: 2rem;
+    height: 2rem;
+    color: #14b8a6;
 }
 
 .broadcasting-card h3 {
@@ -247,7 +255,10 @@
 }
 
 .social-btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
     padding: 0.75rem 1.25rem;
     border-radius: 8px;
     text-decoration: none;

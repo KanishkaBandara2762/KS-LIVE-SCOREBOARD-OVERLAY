@@ -360,7 +360,7 @@
   border-radius: var(--radius-md);
   background: var(--tint-warning);
   border: 1px solid rgba(245, 158, 11, 0.45);
-  color: #FCD34D;
+  color: var(--brand-gold-bright);
   font-size: 13px;
   font-weight: 700;
 }
@@ -470,7 +470,7 @@
 .ma-key-sub {
   display: block;
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
   opacity: 0.8;
@@ -514,3 +514,471 @@
 .ma-gfx-btn.active { background: var(--bg-elevated); border-color: var(--brand-gold); box-shadow: inset 0 0 0 1px var(--brand-gold); color: var(--brand-gold); }
 .ma-gfx-btn-gold { background: var(--tint-gold); border-color: var(--border-gold); color: var(--brand-gold); }
 .ma-gfx-btn-gold:hover { background: var(--tint-gold-strong); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Scoring console v2 layout (merged from main). Layout rules only; colours
+   are re-pointed to the brand tokens above.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Calculator-style keys: narrow portrait rectangles, centred in their column */
+.ma-pad-keys {
+  grid-template-columns: repeat(3, minmax(0, 70px));
+  justify-content: center;
+}
+.ma-pad-keys .ma-big-btn { width: 100%; min-height: 54px; font-size: 19px; }
+
+/* Four parallel columns (WD, NB, LB, BYE). Each column holds its chips in a
+   compact 2-wide grid so the whole block stays short and fits one screen. */
+.ma-more-extras {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+.ma-more-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+  align-content: start;
+}
+.ma-more-label {
+  grid-column: 1 / -1;
+  min-width: 0;
+  text-align: center;
+}
+.ma-more-row .ma-extra-btn {
+  min-height: 32px;
+  padding: 0 2px;
+  font-size: 13px;
+  border-radius: 10px;
+  min-width: 0;
+  flex: none;
+}
+
+/* ── Scoring console v2: keypad, full-width wicket, extras panel, controls ── */
+.ma-pad-keys {
+  grid-template-columns: repeat(3, minmax(0, 76px));
+  gap: 10px;
+  justify-content: center;
+}
+
+.ma-pad-keys .ma-big-btn {
+  width: 100%;
+  min-height: 62px;
+  padding: 6px 4px;
+  border-radius: 16px;
+  font-size: 26px;
+  font-weight: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ma-pad-keys .ma-big-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.ma-pad-keys .ma-big-btn:active { transform: scale(0.93); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35); }
+
+.ma-pad-keys .ma-key-sub {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.ma-pad-keys .ma-pad-undo {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  gap: 10px;
+  min-height: 46px !important;
+  font-size: 14px !important;
+  letter-spacing: 0.05em;
+}
+
+.ma-pad-keys .ma-pad-undo .ma-key-sub { font-size: 12px; }
+
+/* Wicket: full-width, red, the most prominent action */
+.ma-wicket-full {
+  width: 100%;
+  min-height: 58px;
+  margin: 10px 0 12px;
+  border-radius: 16px !important;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  background: linear-gradient(135deg, var(--status-error), #991b1b) !important;
+  color: #fff !important;
+  border: 1px solid rgba(248, 113, 113, 0.45) !important;
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+
+.ma-wicket-full:hover { filter: brightness(1.08); }
+.ma-wicket-full:active { transform: scale(0.97); }
+.ma-wicket-icon { font-size: 20px; }
+.ma-wicket-hint {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* Extras: compact side column, expandable panel for the rest */
+.ma-pad-side .ma-extra-btn {
+  min-height: 0;
+  border-radius: 12px;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+
+.ma-pad-side .ma-extra-btn:hover { filter: brightness(1.12); }
+.ma-pad-side .ma-extra-btn:active { transform: scale(0.95); }
+
+.ma-more-toggle {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(11,31,56,0.6);
+  border: 1px dashed rgba(168,184,204,0.28);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ma-more-toggle:hover { background: rgba(16,38,64,0.85); border-color: rgba(57,169,255,0.45); }
+.ma-more-toggle-chevron { transition: transform 0.2s ease; }
+.ma-more-toggle.is-open .ma-more-toggle-chevron { transform: rotate(180deg); }
+
+/* Match actions: one consistent row */
+.ma-control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ma-control-row .ma-ctrl-btn {
+  min-height: 46px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+
+.ma-control-row .ma-ctrl-btn:hover { filter: brightness(1.1); }
+.ma-control-row .ma-ctrl-btn:active { transform: scale(0.96); }
+
+.ma-big-btn:focus-visible,
+.ma-wicket-full:focus-visible,
+.ma-more-toggle:focus-visible,
+.ma-control-row .ma-ctrl-btn:focus-visible {
+  outline: 2px solid var(--brand-sky);
+  outline-offset: 2px;
+}
+
+/* Phones: keep the keypad within the screen width */
+@media (max-width: 380px) {
+  .ma-pad-keys { grid-template-columns: repeat(3, minmax(0, 68px)); gap: 8px; }
+  .ma-pad-keys .ma-big-btn { min-height: 56px; font-size: 22px; }
+}
+
+/* Tablet and desktop: larger keys, still narrower than tall */
+@media (min-width: 768px) {
+  .ma-pad-keys { grid-template-columns: repeat(3, minmax(0, 92px)); gap: 12px; }
+  .ma-pad-keys .ma-big-btn { min-height: 72px; font-size: 30px; }
+  .ma-wicket-full { min-height: 64px; font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ma-pad-keys .ma-big-btn,
+  .ma-wicket-full,
+  .ma-more-toggle,
+  .ma-more-toggle-chevron { transition: none !important; }
+}
+
+/* ── Desktop scoring row (≥ 1025px): keypad + extras beside wicket and extra-runs toggle.
+   Below 1025px the wrappers are invisible (display: contents), so mobile order is unchanged. ── */
+.ma-score-row,
+.ma-score-actions { display: contents; }
+
+@media (min-width: 1025px) {
+  .ma-score-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 12px;
+  }
+
+  .ma-score-row > .ma-pad { margin-bottom: 0; }
+
+  .ma-score-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .ma-score-actions .ma-wicket-full {
+    flex: 1;
+    margin: 0;
+    min-height: 0;
+  }
+
+  .ma-score-actions .ma-more-toggle { margin-bottom: 0; }
+}
+
+/* ── Mini admin: extras as 2×2 (top two, bottom two) ─────────────────── */
+.ma-pad-side {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+}
+
+.ma-pad-side > * { margin: 0; min-width: 0; }
+
+/* ── Wicket: square button ──────────────────────────────────────────── */
+.ma-wicket-full,
+.ma-score-actions .ma-wicket-full {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  height: auto;
+  margin: 10px auto 12px;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ma-wicket-full .ma-wicket-icon { font-size: 40px; line-height: 1; }
+.ma-wicket-full .ma-wicket-text { font-size: 22px; font-weight: 900; line-height: 1; }
+.ma-wicket-full .ma-wicket-hint { margin-top: 2px; }
+
+@media (min-width: 1025px) {
+  .ma-score-actions .ma-wicket-full {
+    max-width: none;
+    margin: 0;
+  }
+}
+
+/* ── Desktop order (≥ 1025px): keypad | square wicket | WD/NB/LB/BYE 2×2
+   Extra-runs toggle sits full-width underneath. Mobile is unaffected. ── */
+@media (min-width: 1025px) {
+  .ma-score-row {
+    display: grid;
+    grid-template-columns: minmax(0, 300px) minmax(0, 260px) minmax(0, 260px);
+    grid-template-rows: auto auto;
+    justify-content: center;
+    column-gap: 20px;
+    row-gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .ma-score-row > .ma-pad,
+  .ma-score-actions { display: contents; }
+
+  .ma-pad-keys { grid-column: 1; grid-row: 1; }
+
+  .ma-pad-side {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: stretch;
+  }
+
+  .ma-score-actions .ma-wicket-full {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .ma-score-actions .ma-more-toggle {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+}
+
+/* ── Penalty, Super Over and Ball-by-Ball panels: icon and text in one centered row ── */
+.ma-icon-panel > div:first-child,
+.ma-icon-panel > div:first-child > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ma-icon-panel button:has(> svg) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ── Overthrow panel: icon and text in one centered row ── */
+.ot-panel > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ot-panel button:has(> svg) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ── Advanced section headers: icon, title and chevron in one centered row ── */
+.ma-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.ma-section-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.ma-section-header .ma-chevron {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── Header tools (RULES, DESKTOP CONTROL ROOM, OBS timer): icon on top, text below ── */
+.ma-header-tools > button,
+.ma-header-tools > span {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.ma-header-tools > button > svg {
+  order: -1;
+}
+
+/* Mobile: back button is shorter */
+@media (max-width: 767px) {
+  .ma-back-btn {
+    padding: 0 4px !important;
+    line-height: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+}
+
+/* Mobile: OBS countdown label is smaller, wraps inside its box, and keeps a right gap */
+@media (max-width: 767px) {
+  .ma-header-tools > span {
+    font-size: 0.75rem !important;
+    white-space: normal !important;
+    max-width: 92px;
+    margin-right: 8px;
+  }
+}
+
+/* ── Mobile/window (≤ 1024px): 2 rows. Row 1 = run keys; row 2 = WICKET | WD/NB/LB/BYE.
+   The extras toggle sits below. Desktop (≥ 1025px) stays one row. ── */
+@media (max-width: 1024px) {
+  .ma-score-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .ma-score-row > .ma-pad { display: contents; }
+
+  .ma-pad-keys { grid-column: 1 / -1; grid-row: 1; }
+
+  .ma-pad-side { grid-column: 2; grid-row: 2; }
+
+  .ma-score-actions .ma-wicket-full {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    max-width: none;
+    aspect-ratio: auto;
+    min-height: 64px;
+    margin: 0;
+  }
+
+  .ma-score-actions .ma-more-toggle {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 0;
+  }
+}
+
+/* ── Mobile only (≤ 767px): OBS link expiry stays visible.
+   The long URL gets its own line; Copy and the expiry status share the line below. ── */
+@media (max-width: 767px) {
+  .ma-obs-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .ma-obs-row > .ma-obs-url {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .ma-obs-row > .ma-obs-copy {
+    flex: 0 0 auto;
+  }
+
+  .ma-obs-row > span {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .ma-header {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}

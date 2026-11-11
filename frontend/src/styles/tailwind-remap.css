@@ -233,3 +233,5 @@
 .ks-tw.to-zinc-950, .ks-tw .to-zinc-950 { --tw-gradient-to: var(--bg-main) var(--tw-gradient-to-position); }
 .ks-tw.via-slate-900, .ks-tw .via-slate-900 { --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--bg-secondary) var(--tw-gradient-via-position), var(--tw-gradient-to); }
 .ks-tw.via-slate-950, .ks-tw .via-slate-950 { --tw-gradient-to: transparent var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--bg-main) var(--tw-gradient-via-position), var(--tw-gradient-to); }
+.ks-tw.text-emerald-500, .ks-tw .text-emerald-500 { color: #86EFAC; }
+.ks-tw.text-green-200, .ks-tw .text-green-200 { color: #86EFAC; }

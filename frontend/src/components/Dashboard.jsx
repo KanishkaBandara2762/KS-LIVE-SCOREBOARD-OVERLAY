@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, Lightbulb, Pause, Pencil, Radio, Rocket, Settings, Target, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
 import TournamentTeamsModal from './TournamentTeamsModal';
@@ -8,32 +9,31 @@ import { isAdminRole } from '../utils/roles';
 import './Dashboard.css';
 import './DashboardModern.css';
 import { CreditPlansPanel, OwnerContactFooter } from './CreditPlansPanel';
-import TournamentObsGuide from './TournamentObsGuide';
 import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
 const THEMES = [
-  { id: 'ABUDHABI_T10', label: '⚡ ABUDHABI T10 theme' },
-  { id: 'ICC_GLOBAL', label: '🏆 ICC T20 Global Apex (World Cup)' },
-  { id: 'SKY_HYPERION', label: '⚡ Sky Sports Hyperion Pro (UK)' },
-  { id: 'JIO_TITAN', label: '👑 Jio Premier Titan (IPL Gold 4K)' },
-  { id: 'FOX_STRIKE', label: '🔥 Fox Cricket BBL Strike (Action)' },
-  { id: 'SUPERSPORT_AURA', label: '💎 SuperSport Aura Glass (Modern)' },
-  { id: 'APEX', label: '📺 Apex (TV Broadcast)' },
-  { id: 'DIAMOND', label: '💎 Diamond (Metallic)' },
-  { id: 'VOLT', label: '⚡ Volt (Lime Sports-Tech)' },
-  { id: 'THUNDER', label: '🌩️ Thunder (Electric Red)' },
-  { id: 'BLITZ', label: '🔵 Blitz (Lightning Blue)' },
-  { id: 'ELITE', label: '🥂 Elite (Minimal Gold)' },
-  { id: 'FRANCHISE', label: '🏏 Franchise (Gradient)' },
-  { id: 'SHAKTI', label: '🔥 Shakti (Bold Contrast)' },
-  { id: 'NEW_KS_COLOR', label: '🌿 Emerald Cricket Pro (KS Signature)' },
-  { id: 'NEW_IPL', label: '🏏 Tata IPL Modern (Franchise)' },
-  { id: 'IPL_2026', label: '🏟️ IPL 2026 Stadium Capsule' },
-  { id: 'KS_PREMIUM', label: '⭐ KS Premium (Television Broadcast)' },
-  { id: 'WC2026', label: '🌐 T20 World Cup 2026 Electric' },
-  { id: 'APOGEE', label: '🔮 Apogee Arena Pro (Cyber Stadium)' },
-  { id: 'GOLD_CHAMPIONSHIP', label: '🥇 Gold Championship (Grand Finals)' },
+  { id: 'ABUDHABI_T10', label: 'ABUDHABI T10 theme' },
+  { id: 'ICC_GLOBAL', label: 'ICC T20 Global Apex (World Cup)' },
+  { id: 'SKY_HYPERION', label: 'Sky Sports Hyperion Pro (UK)' },
+  { id: 'JIO_TITAN', label: 'Jio Premier Titan (IPL Gold 4K)' },
+  { id: 'FOX_STRIKE', label: 'Fox Cricket BBL Strike (Action)' },
+  { id: 'SUPERSPORT_AURA', label: 'SuperSport Aura Glass (Modern)' },
+  { id: 'APEX', label: 'Apex (TV Broadcast)' },
+  { id: 'DIAMOND', label: 'Diamond (Metallic)' },
+  { id: 'VOLT', label: 'Volt (Lime Sports-Tech)' },
+  { id: 'THUNDER', label: 'Thunder (Electric Red)' },
+  { id: 'BLITZ', label: 'Blitz (Lightning Blue)' },
+  { id: 'ELITE', label: 'Elite (Minimal Gold)' },
+  { id: 'FRANCHISE', label: 'Franchise (Gradient)' },
+  { id: 'SHAKTI', label: 'Shakti (Bold Contrast)' },
+  { id: 'NEW_KS_COLOR', label: 'Emerald Cricket Pro (KS Signature)' },
+  { id: 'NEW_IPL', label: 'Tata IPL Modern (Franchise)' },
+  { id: 'IPL_2026', label: 'IPL 2026 Stadium Capsule' },
+  { id: 'KS_PREMIUM', label: 'KS Premium (Television Broadcast)' },
+  { id: 'WC2026', label: 'T20 World Cup 2026 Electric' },
+  { id: 'APOGEE', label: 'Apogee Arena Pro (Cyber Stadium)' },
+  { id: 'GOLD_CHAMPIONSHIP', label: 'Gold Championship (Grand Finals)' },
 ];
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
@@ -44,9 +44,9 @@ const getAbsoluteUrl = (url) => {
 };
 
 const STATUS_COLORS = {
-  live: { bg: 'var(--status-success)', text: '#fff', label: '🔴 LIVE' },
-  ended: { bg: '#6b7280', text: '#fff', label: '🏁 ENDED' },
-  break: { bg: 'var(--brand-electric)', text: '#fff', label: '⏸ BREAK' },
+  live: { bg: 'var(--status-success)', text: '#fff', label: 'LIVE', Icon: Circle, iconColor: 'var(--status-error)' },
+  ended: { bg: '#6b7280', text: '#fff', label: 'ENDED', Icon: Flag },
+  break: { bg: 'var(--brand-electric)', text: '#fff', label: 'BREAK', Icon: Pause },
 };
 
 // ── Create Match Modal ────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ function CreateMatchModal({ onClose, onCreate }) {
                 onClick={() => file1Ref.current?.click()} 
                 style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(22,119,255,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(22,119,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
-                {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+                {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}><ImageIcon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>}
               </div>
               <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
             </div>
@@ -182,7 +182,7 @@ function CreateMatchModal({ onClose, onCreate }) {
                 onClick={() => file2Ref.current?.click()} 
                 style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(57,169,255,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(57,169,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
-                {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+                {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}><ImageIcon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>}
               </div>
               <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
             </div>
@@ -236,7 +236,7 @@ function CreateMatchModal({ onClose, onCreate }) {
           <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
             <button type="button" onClick={() => onClose()} className="btn-secondary" style={{ flex: 1, padding: '14px', fontSize: '1rem' }}>Cancel</button>
             <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 2, padding: '14px', fontSize: '1rem' }}>
-              {loading ? '⏳ Creating...' : '🚀 Create Match'}
+              {loading ? <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Creating...</> : <><Rocket size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create Match</>}
             </button>
           </div>
           {error && <div className="form-error" style={{ textAlign: 'center' }}>{error}</div>}
@@ -279,8 +279,8 @@ function CreateTournamentModal({ onClose, onCreate }) {
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-card">
         <div className="modal-header">
-          <h2 className="modal-title">🏆 Create New Tournament</h2>
-          <button className="modal-close" onClick={() => onClose()}>✕</button>
+          <h2 className="modal-title"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create New Tournament</h2>
+          <button className="modal-close" onClick={() => onClose()}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
         </div>
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
@@ -299,12 +299,12 @@ function CreateTournamentModal({ onClose, onCreate }) {
             </select>
           </div>
 
-          {error && <div className="form-error">⚠ {error}</div>}
+          {error && <div className="form-error"><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {error}</div>}
 
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={() => onClose()}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? '⏳ Creating...' : '🚀 Create Tournament'}
+              {loading ? <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Creating...</> : <><Rocket size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create Tournament</>}
             </button>
           </div>
         </form>
@@ -472,7 +472,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
                 fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              🏆 Choose Tournament Teams ({tournamentTeams.length})
+              <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Choose Tournament Teams ({tournamentTeams.length})
             </button>
             <button
               type="button"
@@ -484,12 +484,12 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
                 fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              ✏️ Custom Names
+              <Pencil size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Custom Names
             </button>
           </div>
         ) : (
           <div style={{ background: 'rgba(22,119,255,0.08)', border: '1px solid rgba(22,119,255,0.2)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.8rem', color: 'var(--brand-sky)', marginBottom: '20px' }}>
-            💡 <strong>Tip:</strong> Click <strong>Teams & Squads</strong> on the tournament card to add teams and players for 1-click squad selection!
+            <Lightbulb size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <strong>Tip:</strong> Click <strong>Teams & Squads</strong> on the tournament card to add teams and players for 1-click squad selection!
           </div>
         )}
         
@@ -538,7 +538,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
                 onClick={() => file1Ref.current?.click()} 
                 style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo1Preview ? 'rgba(0,0,0,0.3)' : 'rgba(22,119,255,0.1)', border: `1px dashed ${logo1Preview ? 'rgba(255,255,255,0.2)' : 'rgba(22,119,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
-                {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+                {logo1Preview ? <img src={logo1Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}><ImageIcon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>}
               </div>
               <input type="file" ref={file1Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo1(e.target.files?.[0])} />
             </div>
@@ -557,7 +557,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
                 onClick={() => file2Ref.current?.click()} 
                 style={{ width: '56px', height: '56px', borderRadius: '12px', background: logo2Preview ? 'rgba(0,0,0,0.3)' : 'rgba(57,169,255,0.1)', border: `1px dashed ${logo2Preview ? 'rgba(255,255,255,0.2)' : 'rgba(57,169,255,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s' }}
               >
-                {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}>🖼️</span>}
+                {logo2Preview ? <img src={logo2Preview} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.2rem' }}><ImageIcon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>}
               </div>
               <input type="file" ref={file2Ref} style={{ display: 'none' }} accept="image/*" onChange={(e) => setLogo2(e.target.files?.[0])} />
             </div>
@@ -677,12 +677,12 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
             </select>
           </div>
 
-          {error && <div className="form-error" style={{ margin: 0, padding: '12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' }}>⚠ {error}</div>}
+          {error && <div className="form-error" style={{ margin: 0, padding: '12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' }}><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {error}</div>}
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
             <button type="button" className="btn-secondary" style={{ flex: 1, padding: '14px', borderRadius: '12px', fontWeight: 700 }} onClick={() => onClose()}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={loading} style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 800, background: 'linear-gradient(135deg, var(--brand-electric), var(--brand-sky))', border: 'none', boxShadow: '0 4px 15px rgba(22,119,255,0.4)' }}>
-              {loading ? '⏳ Starting Match...' : '🚀 Start Next Match'}
+              {loading ? <><Hourglass size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Starting Match...</> : <><Rocket size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Start Next Match</>}
             </button>
           </div>
         </form>
@@ -692,9 +692,8 @@ export function NextMatchModal({ tournament, onClose, onSubmit }) {
 }
 
 // ── Match Card ────────────────────────────────────────────────────────────
-function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
+function MatchCard({ match, onOpen, onCopyUrl, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const statusInfo = STATUS_COLORS[match.status] || STATUS_COLORS.live;
   const overlayUrl = `${window.location.origin}/overlay/${match.matchId}`;
   const [obs, setObs] = useState({ expiresAt: match.broadcastExpiresAt ?? null, locked: !!match.broadcastLocked });
@@ -711,16 +710,6 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
     } catch { /* ignore */ }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm(`Delete match "${match.battingTeam} vs ${match.bowlingTeam}"?\nThis cannot be undone.`)) return;
-    setDeleting(true);
-    try {
-      await onDelete(match.matchId);
-    } catch {
-      setDeleting(false);
-    }
-  };
-
   const createdDate = match.createdAt
     ? new Date(match.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     : '—';
@@ -734,15 +723,16 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
           <span className="team-name bowling">{match.bowlingTeam || 'TEAM B'}</span>
         </div>
         <span className="status-badge" style={{ background: statusInfo.bg, color: statusInfo.text }}>
+          {statusInfo.Icon && <statusInfo.Icon size="1em" style={{ verticalAlign: '-0.125em', color: statusInfo.iconColor, marginRight: '0.35em' }} aria-hidden="true" />}
           {statusInfo.label}
         </span>
       </div>
 
       <div className="match-card-meta">
-        <span>🏆 {match.tournamentName || 'No tournament'}</span>
-        <span>🏟 {match.venueName || 'Venue TBA'}</span>
-        <span>📅 {match.matchDate || createdDate}</span>
-        <span>🎯 {match.matchType || 'T20'} • {match.maxOvers} Overs</span>
+        <span><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match.tournamentName || 'No tournament'}</span>
+        <span><Building2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match.venueName || 'Venue TBA'}</span>
+        <span><Calendar size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match.matchDate || createdDate}</span>
+        <span><Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {match.matchType || 'T20'} • {match.maxOvers} Overs</span>
       </div>
 
       {match.currentScore !== undefined && (
@@ -757,7 +747,7 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
         <span className="obs-label">OBS URL:</span>
         <code className="obs-url">/overlay/{match.matchId}</code>
         <button className="btn-copy" onClick={handleCopy}>
-          {copied ? '✓ Copied!' : '📋 Copy'}
+          {copied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copied!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copy</>}
         </button>
       </div>
       <div style={{ marginTop: 6 }}>
@@ -766,18 +756,15 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
 
       <div className="match-card-actions">
         <button className="btn-open" onClick={() => onOpen(match.matchId)}>
-          🎮 Open Admin
+          <Gamepad2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Open Admin
         </button>
         <button className="btn-overlay border border-teal-500/20" onClick={() => window.open(`/live/match/${match.slug || match.matchId}`, '_blank')}>
-          👁 Preview Live
+          <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Preview Live
         </button>
         <button className="btn-mini" onClick={() =>
           window.open(`/mini-admin/${match.matchId}`, 'KS_Mini', 'width=480,height=850,resizable=yes')
         }>
-          ⚡ Mini
-        </button>
-        <button className="btn-delete" onClick={handleDelete} disabled={deleting}>
-          {deleting ? '...' : '🗑'}
+          <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Mini
         </button>
       </div>
     </div>
@@ -786,10 +773,18 @@ function MatchCard({ match, onOpen, onDelete, onCopyUrl, isObsActive = true }) {
 
 // ── Tournament Card ───────────────────────────────────────────────────────
 function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, isObsActive = true }) {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
   const [obs, setObs] = useState({ expiresAt: tournament.broadcastExpiresAt ?? null, locked: !!tournament.broadcastLocked });
   const obsLocked = isBroadcastLocked({ broadcastLocked: obs.locked, broadcastExpiresAt: obs.expiresAt });
+
+  // Spends 1 credit (after confirmation) and reveals the static overlay link
+  const handleGenerate = async () => {
+    const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked });
+    if (!res) return;
+    setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false });
+  };
 
   const handleCopy = async () => {
     const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked });
@@ -805,7 +800,7 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
   return (
     <div className="tournament-card">
       <div className="tournament-card-header">
-        <h3 className="tournament-title">🏆 {tournament.name}</h3>
+        <h3 className="tournament-title"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {tournament.name}</h3>
         <span className="tournament-type">{tournament.type}</span>
       </div>
 
@@ -832,13 +827,21 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
         </div>
       </div>
 
-      <div className="match-card-url" style={{ marginBottom: '20px' }}>
-        <span className="obs-label">Static Overlay:</span>
-        <code className="obs-url">/overlay/tournament/{tournament.id || tournament._id}</code>
-        <button className="btn-copy" onClick={handleCopy}>
-          {copied ? '✓ Copied!' : '📋 Copy'}
-        </button>
-      </div>
+      {obsLocked ? (
+        <div style={{ marginBottom: '20px' }}>
+          <button className="btn-copy" onClick={handleGenerate}>
+            <Radio size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Generate Static Overlay link
+          </button>
+        </div>
+      ) : (
+        <div className="match-card-url" style={{ marginBottom: '20px' }}>
+          <span className="obs-label">Static Overlay:</span>
+          <code className="obs-url">/overlay/tournament/{tournament.id || tournament._id}</code>
+          <button className="btn-copy" onClick={handleCopy}>
+            {copied ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copied!</> : <><ClipboardList size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Copy</>}
+          </button>
+        </div>
+      )}
       <div style={{ marginTop: 6 }}>
         <BroadcastStatus expiresAt={obs.expiresAt} locked={obsLocked} onExpire={() => setObs((o) => ({ ...o }))} />
       </div>
@@ -846,21 +849,21 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
       <div className="match-card-actions">
         {tournament.currentMatchId ? (
           <>
-            <button className="btn-open" onClick={() => window.open(`/mini-admin/${tournament.currentMatchId.matchId}`, 'KS_Mini', 'width=480,height=850,resizable=yes')}>
-              🎮 Score Live Match
+            <button className="btn-open" onClick={() => navigate(`/mini-admin/${tournament.currentMatchId.matchId}`)}>
+              <Gamepad2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Score Live Match
             </button>
             <button className="btn-overlay" onClick={async () => { const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked }); if (!res) return; setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false }); window.open(`/overlay/tournament/${tournament.id || tournament._id}`, '_blank'); }}>
-              👁 Preview
+              <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Preview
             </button>
           </>
         ) : (
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', alignSelf: 'center', flex: 1, textAlign: 'center' }}>No live match active.</span>
         )}
         <button className="btn-secondary" style={{ padding: "8px 12px", fontSize: "0.8rem", fontWeight: 800, background: "rgba(22,119,255,0.15)", borderColor: "rgba(22,119,255,0.3)", color: "var(--brand-sky)" }} onClick={() => onManageTeams(tournament)}>
-          👥 Teams & Squads ({tournament.teams?.length || 0})
+          <Users size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Teams & Squads ({tournament.teams?.length || 0})
         </button>
         <button className="btn-mini" onClick={() => onStartNextMatch(tournament)}>
-          ⚡ Next Match
+          <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Next Match
         </button>
       </div>
     </div>
@@ -884,7 +887,24 @@ const Dashboard = () => {
   const [tournaments, setTournaments] = useState([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
   const [showCreateTournament, setShowCreateTournament] = useState(false);
-  const [createdTournament, setCreatedTournament] = useState(null);
+  const [showMobileAccountMenu, setShowMobileAccountMenu] = useState(false);
+  const mobileAccountRef = useRef(null);
+
+  // Close the mobile account menu when the user taps outside it
+  useEffect(() => {
+    if (!showMobileAccountMenu) return undefined;
+    const handleOutsideTap = (event) => {
+      if (mobileAccountRef.current && !mobileAccountRef.current.contains(event.target)) {
+        setShowMobileAccountMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideTap);
+    document.addEventListener('touchstart', handleOutsideTap);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideTap);
+      document.removeEventListener('touchstart', handleOutsideTap);
+    };
+  }, [showMobileAccountMenu]);
   const [showNextMatch, setShowNextMatch] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showTournamentTeams, setShowTournamentTeams] = useState(false);
@@ -941,7 +961,6 @@ const Dashboard = () => {
   const handleCreateTournament = async (formData) => {
     const res = await tournamentsApi.create(formData);
     await fetchTournaments();
-    if (res?.tournament) setCreatedTournament(res.tournament);
   };
 
   const handleNextMatchSubmit = async (tournamentId, matchData) => {
@@ -955,11 +974,6 @@ const Dashboard = () => {
 
   const handleOpen = (matchId) => {
     navigate(`/admin/${matchId}`);
-  };
-
-  const handleDelete = async (matchId) => {
-    await matchesApi.delete(matchId);
-    setMatches((prev) => prev.filter((m) => m.matchId !== matchId));
   };
 
   const handleModalClose = (newMatchId) => {
@@ -1010,7 +1024,15 @@ const Dashboard = () => {
       {/* Header */}
       <header className="dash-header">
         <div className="dash-header-left">
-          <div className="dash-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            className="dash-logo"
+            role="button"
+            tabIndex={0}
+            aria-label="Go to landing page"
+            onClick={() => navigate('/landing')}
+            onKeyDown={(event) => { if (event.key === 'Enter') navigate('/landing'); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+          >
             <img src="/ks_logo.png" alt="KS Live Logo" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
             <span className="dash-logo-text">KS <span>LIVE</span></span>
           </div>
@@ -1032,13 +1054,35 @@ const Dashboard = () => {
               {currentUser?.plan === 'free' ? 'Upgrade Plan' : 'Renew / Change Plan'}
             </button>
           )}
-          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
-            🏆 Create Tournament
+          <button className="btn-create-match dash-create-tournament-btn dash-stacked-btn"onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }} aria-label="Create Tournament">
+            <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <span className="dash-btn-label">Create Tournament</span>
           </button>
-          <button className="btn-create-match" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(168,184,204,0.45)' }}>
-            ⚙ Account
+          <button className="btn-create-match dash-desktop-only dash-stacked-btn" onClick={() => navigate('/account')} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(168,184,204,0.45)' }}>
+            <Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account
           </button>
-          <button className="btn-logout" onClick={handleLogout}>Sign Out</button>
+          <button className="btn-logout dash-desktop-only" onClick={handleLogout}>Sign Out</button>
+          <div className="dash-mobile-account" ref={mobileAccountRef}>
+            <button
+              type="button"
+              className="btn-create-match dash-mobile-account-trigger"
+              aria-haspopup="menu"
+              aria-label="Account menu"
+              aria-expanded={showMobileAccountMenu}
+              onClick={() => setShowMobileAccountMenu((open) => !open)}
+            >
+              <User size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <ChevronDown size="0.9em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
+            </button>
+            {showMobileAccountMenu && (
+              <div className="dash-mobile-account-menu" role="menu">
+                <button type="button" role="menuitem" onClick={() => { setShowMobileAccountMenu(false); navigate('/account'); }}>
+                  <Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account Settings
+                </button>
+                <button type="button" role="menuitem" className="dash-mobile-signout" onClick={() => { setShowMobileAccountMenu(false); handleLogout(); }}>
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -1070,7 +1114,7 @@ const Dashboard = () => {
           <span className="stat-label">Teams</span>
         </div>
         <div className="stat-item stat-item-info">
-          <span className="stat-num">{isAdminRole(currentUser?.role) ? '∞' : (currentUser?.matchCredits ?? 0)}</span>
+          <span className="stat-num">{isAdminRole(currentUser?.role) ? <InfinityIcon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> :(currentUser?.matchCredits ?? 0)}</span>
           <span className="stat-label">Match Credits</span>
         </div>
       </div>
@@ -1078,13 +1122,13 @@ const Dashboard = () => {
       {/* Navigation Tabs */}
       <div className="tab-buttons">
         <button className={`btn-tab ${activeTab === 'tournaments' ? 'active' : ''}`} onClick={() => setActiveTab('tournaments')}>
-          🏆 Tournaments
+          <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Tournaments
         </button>
         <button className={`btn-tab ${activeTab === 'matches' ? 'active' : ''}`} onClick={() => setActiveTab('matches')}>
-          🏏 Individual Matches
+          <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Individual Matches
         </button>
         <button className={`btn-tab ${activeTab === 'auctions' ? 'active' : ''}`} onClick={() => setActiveTab('auctions')}>
-          🔨 Auctions
+          <Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions
         </button>
       </div>
 
@@ -1094,18 +1138,18 @@ const Dashboard = () => {
         <input
           type="text"
           className="dash-search"
-          placeholder={activeTab === 'tournaments' ? "🔍 Search tournaments..." : "🔍 Search teams or tournament..."}
+          placeholder={activeTab === 'tournaments' ? "Search tournaments..." : "Search teams or tournament..."}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         {activeTab === 'tournaments' && (
-          <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000', whiteSpace: 'nowrap' }}>
-            🏆 New Tournament
+          <button className="btn-create-match dash-stacked-btn" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000', whiteSpace: 'nowrap' }}>
+            <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> New Tournament
           </button>
         )}
         {activeTab === 'matches' && (
           <button className="btn-create-match" onClick={() => setShowCreate(true)} style={{ background: 'var(--brand-gold)', color: '#000', whiteSpace: 'nowrap' }}>
-            🏏 New Match
+            <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> New Match
           </button>
         )}
         {activeTab === 'matches' && (
@@ -1137,7 +1181,7 @@ const Dashboard = () => {
 
             {!tournamentsLoading && filteredTournaments.length === 0 && (
               <div className="dash-empty">
-                <div className="empty-icon">🏆</div>
+                <div className="empty-icon"><Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                 <h3>{tournaments.length === 0 ? 'No tournaments yet' : 'No tournaments found'}</h3>
                 <p>{tournaments.length === 0
                   ? 'Create your first tournament to enable professional, static-link OBS broadcasting.'
@@ -1145,7 +1189,7 @@ const Dashboard = () => {
                 </p>
                 {tournaments.length === 0 && (
                   <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
-                    🏆 Create First Tournament
+                    <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create First Tournament
                   </button>
                 )}
               </div>
@@ -1185,14 +1229,14 @@ const Dashboard = () => {
 
             {!loading && error && (
               <div className="dash-error">
-                <span>⚠ {error}</span>
+                <span><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {error}</span>
                 <button onClick={fetchMatches}>Retry</button>
               </div>
             )}
 
             {!loading && !error && filteredMatches.length === 0 && (
               <div className="dash-empty">
-                <div className="empty-icon">🏏</div>
+                <div className="empty-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
                 <h3>{matches.length === 0 ? 'No matches yet' : 'No matches found'}</h3>
                 <p>{matches.length === 0
                   ? 'Create your first match to get started. Each match gets a unique OBS overlay URL.'
@@ -1200,7 +1244,7 @@ const Dashboard = () => {
                 </p>
                 {matches.length === 0 && (
                   <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
-                    🏆 Create Tournament
+                    <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create Tournament
                   </button>
                 )}
               </div>
@@ -1214,7 +1258,6 @@ const Dashboard = () => {
                     match={match}
                     isObsActive={isObsActive}
                     onOpen={handleOpen}
-                    onDelete={handleDelete}
                     onCopyUrl={(id) => navigator.clipboard.writeText(`${window.location.origin}/overlay/${id}`)}
                   />
                 ))}
@@ -1235,11 +1278,6 @@ const Dashboard = () => {
       {/* Create Tournament Modal */}
       {showCreateTournament && (
         <CreateTournamentModal onClose={() => setShowCreateTournament(false)} onCreate={handleCreateTournament} />
-      )}
-
-      {/* OBS setup shown right after a tournament is created */}
-      {createdTournament && (
-        <TournamentObsGuide tournament={createdTournament} onClose={() => setCreatedTournament(null)} />
       )}
 
       {/* Tournament Teams & Squads Modal */}

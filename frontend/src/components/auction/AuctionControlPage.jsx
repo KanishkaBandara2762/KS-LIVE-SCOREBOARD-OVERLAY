@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Activity, ArrowLeft, ArrowRight, BarChart3, Hammer, Pause, Play, Settings, Square, Tv } from 'lucide-react';
 import { auctionApi } from '../../api';
 import {
   Countdown,
@@ -160,7 +161,7 @@ export default function AuctionControlPage() {
       <div className="auction-page">
         <header className="auction-header">
           <div className="auction-header-title">
-            <button className="auction-back" onClick={() => navigate('/auctions')}>← Auctions</button>
+            <button className="auction-back" onClick={() => navigate('/auctions')}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions</button>
             <div><h1>{auction.name}</h1><p>The control room is only available to the auctioneer.</p></div>
           </div>
         </header>
@@ -182,7 +183,7 @@ export default function AuctionControlPage() {
     <div className="auction-page auction-control-page">
       <header className="auction-header">
         <div className="auction-header-title">
-          <button className="auction-back" onClick={() => navigate('/auctions')}>← Auctions</button>
+          <button className="auction-back" onClick={() => navigate('/auctions')}><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions</button>
           <div>
             <span className="auction-eyebrow">AUCTIONEER CONTROL ROOM</span>
             <h1>{auction.name}</h1>
@@ -194,22 +195,22 @@ export default function AuctionControlPage() {
           </div>
         </div>
         <div className="auction-header-actions">
-          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/setup`)}>⚙ Setup</button>
-          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/results`)}>📊 Results</button>
+          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/setup`)}><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Setup</button>
+          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/results`)}><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Results</button>
           {auction.publicSlug ? (
-            <button className="auction-btn" onClick={() => window.open(`/auction/display/${auction.publicSlug}`, '_blank')}>📺 Display</button>
+            <button className="auction-btn" onClick={() => window.open(`/auction/display/${auction.publicSlug}`, '_blank')}><Tv size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Display</button>
           ) : null}
           {auction.status === 'draft' || auction.status === 'ready' ? (
-            <button className="auction-btn primary" onClick={startAuction} disabled={busy}>▶ Start</button>
+            <button className="auction-btn primary" onClick={startAuction} disabled={busy}><Play size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Start</button>
           ) : null}
           {auction.status === 'live' ? (
-            <button className="auction-btn" onClick={pauseAuction} disabled={busy}>⏸ Pause</button>
+            <button className="auction-btn" onClick={pauseAuction} disabled={busy}><Pause size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Pause</button>
           ) : null}
           {auction.status === 'paused' ? (
-            <button className="auction-btn primary" onClick={resumeAuction} disabled={busy}>▶ Resume</button>
+            <button className="auction-btn primary" onClick={resumeAuction} disabled={busy}><Play size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Resume</button>
           ) : null}
           {['live', 'paused'].includes(auction.status) ? (
-            <button className="auction-btn danger" onClick={completeAuction} disabled={busy}>■ Complete</button>
+            <button className="auction-btn danger" onClick={completeAuction} disabled={busy}><Square size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Complete</button>
           ) : null}
         </div>
       </header>
@@ -222,7 +223,7 @@ export default function AuctionControlPage() {
           <div className="auction-panel-header">
             <div><h2>Lot queue</h2><p>{pending.length} waiting</p></div>
             <button className="auction-btn small primary" onClick={openNextLot} disabled={busy || !['live'].includes(auction.status) || Boolean(currentLot)}>
-              Next lot →
+              Next lot <ArrowRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" />
             </button>
           </div>
 
@@ -286,7 +287,7 @@ export default function AuctionControlPage() {
               </div>
 
               <div className="auction-hammer-actions">
-                <button className="auction-btn hammer" onClick={closeLot} disabled={busy}>🔨 Hammer — {leadingTeam ? 'SOLD' : 'UNSOLD'}</button>
+                <button className="auction-btn hammer" onClick={closeLot} disabled={busy}><Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Hammer — {leadingTeam ? 'SOLD' : 'UNSOLD'}</button>
                 <button className="auction-btn danger" onClick={withdrawLot} disabled={busy}>Withdraw player</button>
               </div>
 
@@ -306,7 +307,7 @@ export default function AuctionControlPage() {
             </>
           ) : (
             <div className="auction-lot-empty">
-              <div className="auction-empty-icon">🏏</div>
+              <div className="auction-empty-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
               <h2>{auction.status === 'live' ? 'No lot open' : `Auction is ${statusLabel(auction.status)}`}</h2>
               <p>
                 {auction.status === 'live'

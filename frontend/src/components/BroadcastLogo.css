@@ -1,0 +1,19 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   BROADCAST TEAM LOGOS (OBS overlay)
+   Every uploaded team logo is shown inside a circle: the whole logo fits
+   (contain) and nothing spills outside the circle.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+img.team-logo-img,
+img.vs-logo,
+img.toss-logo,
+img.winner-cinematic-logo,
+img.summary-team-logo,
+img.squadlist-logo {
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  object-fit: contain;
+  overflow: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
+}

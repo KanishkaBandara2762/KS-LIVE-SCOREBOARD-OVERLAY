@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Activity, Check, TriangleAlert } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import { authApi } from '../../api';
 import './auth.css';
 
 // ── Inline SVG icons ────────────────────────────────────────────────────────
@@ -20,6 +22,24 @@ export default function LoginPage() {
   const [showPw,   setShowPw]   = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+  const [sendingCode, setSendingCode] = useState(false);
+
+  // Sends the reset OTP straight to the email typed above, then opens the code step.
+  async function handleForgotPassword() {
+    const cleanEmail = email.trim();
+    if (!cleanEmail) { setError('Enter your email address first.'); return; }
+
+    setError('');
+    setSendingCode(true);
+    try {
+      const res = await authApi.forgotPassword({ email: cleanEmail });
+      navigate('/forgot-password', { state: { email: cleanEmail, notice: res.message } });
+    } catch (err) {
+      setError(err.message || 'Could not send the code. Please try again.');
+    } finally {
+      setSendingCode(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,6 +51,10 @@ export default function LoginPage() {
       await login(email.trim(), password);
       navigate(from, { replace: true });
     } catch (err) {
+      if (err.code === 'EMAIL_NOT_VERIFIED') {
+        navigate('/verify-email', { state: { email: err.email || email.trim() } });
+        return;
+      }
       // err.message comes from the API wrapper — already human-readable
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -44,16 +68,22 @@ export default function LoginPage() {
 
         {/* Branding */}
         <div className="auth-logo">
-          <div className="auth-logo-icon">🏏</div>
+          <div className="auth-logo-icon"><Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></div>
           <span className="auth-logo-text">KS Live</span>
         </div>
 
         <h1 className="auth-title">Welcome Back</h1>
         <p className="auth-subtitle">Sign in to your scorer account</p>
 
+        {location.state?.message && !error && (
+          <div className="auth-alert auth-alert-success">
+            <span style={{ flexShrink: 0 }}><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {location.state.message}
+          </div>
+        )}
+
         {error && (
           <div className="auth-alert auth-alert-error">
-            <span style={{ flexShrink: 0 }}>⚠️</span> {error}
+            <span style={{ flexShrink: 0 }}><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span> {error}
           </div>
         )}
 
@@ -96,9 +126,15 @@ export default function LoginPage() {
           </div>
 
           <div style={{ marginBottom: '1.4rem', textAlign: 'right' }}>
-            <Link to="/forgot-password" className="auth-link" style={{ fontSize: '0.85rem' }}>
-              Forgot password?
-            </Link>
+            <button
+              type="button"
+              className="auth-link"
+              style={{ fontSize: '0.85rem', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              onClick={handleForgotPassword}
+              disabled={sendingCode}
+            >
+              {sendingCode ? 'Sending code…' : 'Forgot password?'}
+            </button>
           </div>
 
           <button className="auth-btn" type="submit" disabled={loading}>
@@ -107,15 +143,12 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <Link to="/register">
+        <Link to="/register" style={{ display: 'block', marginTop: '0.75rem' }}>
           <button className="auth-btn auth-btn-ghost" type="button">
             Create New Account
           </button>
         </Link>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>
-          🔒 KS Live — Secured with JWT
-        </p>
       </div>
     </div>
   );

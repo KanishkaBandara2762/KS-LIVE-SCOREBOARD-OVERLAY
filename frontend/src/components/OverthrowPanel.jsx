@@ -8,6 +8,7 @@
  */
 
 import React, { useState } from 'react';
+import { Activity, Check, PersonStanding, Target, X, Zap } from 'lucide-react';
 import { matchesApi } from '../api';
 
 const OverthrowPanel = ({ matchId, onConfirm }) => {
@@ -18,6 +19,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
   const [deliveryType, setDeliveryType] = useState('legal');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageOk, setMessageOk] = useState(false);
 
   // Calculate preview
   const boundaryAllowance = isBoundary ? 4 : 0;
@@ -38,20 +40,22 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
         deliveryType,
       });
       if (res.success) {
-        setMessage(`✅ Overthrow scored: ${grandTotal} runs total!`);
+        setMessageOk(true);
+        setMessage(`Overthrow scored: ${grandTotal} runs total!`);
         onConfirm?.(res);
       }
     } catch (err) {
-      setMessage(`❌ ${err.message}`);
+      setMessageOk(false);
+      setMessage(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="ot-panel" style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ color: 'var(--brand-sky)', fontWeight: 700, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>
-        🎯 OVERTHROW SCORING (LAW 19.8)
+        <Target size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> OVERTHROW SCORING (LAW 19.8)
       </div>
 
       {/* Delivery Legality */}
@@ -97,7 +101,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
             cursor: 'pointer',
           }}
         >
-          🏏 Off the Bat (Batter Runs)
+          <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Off the Bat (Batter Runs)
         </button>
         <button
           type="button"
@@ -113,7 +117,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
             cursor: 'pointer',
           }}
         >
-          🏃 Byes / Leg Byes (Extras)
+          <PersonStanding size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Byes / Leg Byes (Extras)
         </button>
       </div>
 
@@ -156,7 +160,9 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
             cursor: 'pointer',
           }}
         >
-          {isBoundary ? '✔ Boundary (4 Runs)' : '✕ No Boundary'}
+          {isBoundary
+            ? <><Check size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Boundary (4 Runs)</>
+            : <><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> No Boundary</>}
         </button>
       </div>
 
@@ -196,7 +202,8 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
       </div>
 
       {message && (
-        <div style={{ fontSize: 12, color: message.startsWith('✅') ? '#4ade80' : '#f87171', padding: '4px 0' }}>
+        <div style={{ fontSize: 12, color: messageOk ? '#4ade80' : '#f87171', padding: '4px 0', display: 'inline-flex', gap: '0.35em', alignItems: 'center' }}>
+          {messageOk ? <Check size="1em" aria-hidden="true" /> : <X size="1em" aria-hidden="true" />}
           {message}
         </div>
       )}
@@ -218,7 +225,7 @@ const OverthrowPanel = ({ matchId, onConfirm }) => {
           letterSpacing: 1,
         }}
       >
-        {loading ? 'Recording...' : `⚡ CONFIRM ${grandTotal} OVERTHROW RUNS`}
+        {loading ? 'Recording...' : <><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CONFIRM {grandTotal} OVERTHROW RUNS</>}
       </button>
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Activity, BarChart3, Target, X, Zap } from 'lucide-react';
 import { matchesApi } from '../api';
 
 /**
@@ -7,9 +8,9 @@ import { matchesApi } from '../api';
  * Everything is computed on the server from the ball-by-ball records.
  */
 const TABS = [
-  { id: 'runs', label: '🏏 Most Runs' },
-  { id: 'wickets', label: '🎯 Most Wickets' },
-  { id: 'impact', label: '⚡ Player Impact' },
+  { id: 'runs', label: 'Most Runs', Icon: Activity },
+  { id: 'wickets', label: 'Most Wickets', Icon: Target },
+  { id: 'impact', label: 'Player Impact', Icon: Zap },
 ];
 const fmt = (v) => (v === null || v === undefined ? '-' : v);
 
@@ -42,13 +43,13 @@ const LeaderboardsModal = ({ matchId, hasTournament, onClose }) => {
     <div className="ma-modal-overlay" style={{ zIndex: 100010 }}>
       <div className="ma-modal-card" style={{ maxWidth: 720, width: '96%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
         <div className="ma-modal-header">
-          <span className="ma-modal-title">📊 Stats & Leaderboards</span>
-          <button className="ma-modal-close" onClick={onClose}>✕</button>
+          <span className="ma-modal-title"><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Stats & Leaderboards</span>
+          <button className="ma-modal-close" onClick={onClose} aria-label="Close"><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
         </div>
         <div style={{ padding: 12, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
           {TABS.map((t) => (
             <button key={t.id} type="button" onClick={() => setTab(t.id)} className={`ma-gfx-btn${tab === t.id ? ' active' : ''}`}
-              aria-pressed={tab === t.id}>{t.label}</button>
+              aria-pressed={tab === t.id}><t.Icon size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {t.label}</button>
           ))}
           <select className="ma-modal-inp" value={scope} onChange={(e) => setScope(e.target.value)} style={{ width: 'auto', marginLeft: 'auto' }}>
             <option value="match">Current match</option>

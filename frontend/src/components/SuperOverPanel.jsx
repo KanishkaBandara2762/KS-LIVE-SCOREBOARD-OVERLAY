@@ -11,12 +11,14 @@
 
 import React, { useState } from 'react';
 import { matchesApi } from '../api';
+import { Check, X, Zap } from 'lucide-react';
 
 const SuperOverPanel = ({ matchId, team1, team2, isSuperOverActive, onStarted }) => {
   const [battingTeam, setBattingTeam] = useState(team1 || 'TEAM A');
   const [bowlingTeam, setBowlingTeam] = useState(team2 || 'TEAM B');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const [msgOk, setMsgOk] = useState(false);
 
   const handleStart = async () => {
     if (!matchId) return;
@@ -26,25 +28,27 @@ const SuperOverPanel = ({ matchId, team1, team2, isSuperOverActive, onStarted })
     try {
       const res = await matchesApi.startSuperOver(matchId, { battingTeam, bowlingTeam });
       if (res.success) {
-        setMsg('⚡ SUPER OVER STARTED!');
+        setMsgOk(true);
+        setMsg('SUPER OVER STARTED!');
         onStarted?.(res);
       }
     } catch (err) {
-      setMsg(`❌ ${err.message}`);
+      setMsgOk(false);
+      setMsg(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="ma-icon-panel" style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ color: '#ec4899', fontWeight: 800, fontSize: 13, letterSpacing: 1 }}>
-        ⚡ SUPER OVER TIE-BREAKER
+        <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SUPER OVER TIE-BREAKER
       </div>
 
       {isSuperOverActive ? (
         <div style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.4)', borderRadius: 8, padding: '10px 12px', color: '#f472b6', fontSize: 12 }}>
-          ⚡ <b>SUPER OVER IN PROGRESS!</b>
+          <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> <b>SUPER OVER IN PROGRESS!</b>
           <div style={{ marginTop: 4, color: '#fbcfe8', fontSize: 12 }}>
             Max 2 wickets, 1 over. Scoreboard overlay displays the Super Over live.
           </div>
@@ -83,7 +87,8 @@ const SuperOverPanel = ({ matchId, team1, team2, isSuperOverActive, onStarted })
           </div>
 
           {msg && (
-            <div style={{ fontSize: 12, color: msg.startsWith('⚡') ? '#4ade80' : '#f87171' }}>
+            <div style={{ fontSize: 12, color: msgOk ? '#4ade80' : '#f87171', display: 'inline-flex', gap: '0.35em', alignItems: 'center' }}>
+              {msgOk ? <Check size="1em" aria-hidden="true" /> : <X size="1em" aria-hidden="true" />}
               {msg}
             </div>
           )}
@@ -104,7 +109,7 @@ const SuperOverPanel = ({ matchId, team1, team2, isSuperOverActive, onStarted })
               letterSpacing: 1,
             }}
           >
-            {loading ? 'Starting...' : '⚡ START SUPER OVER'}
+            {loading ? 'Starting...' : <><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> START SUPER OVER</>}
           </button>
         </>
       )}
