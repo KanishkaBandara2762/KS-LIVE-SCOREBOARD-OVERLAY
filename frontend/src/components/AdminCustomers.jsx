@@ -108,9 +108,22 @@ const AdminCustomers = () => {
       });
       const data = await response.json();
       if (!data.success) throw new Error(data.error || 'Delete failed');
-      fetchData();
+      fetchGlobalMatches();
     } catch (err) {
       alert(err.message);
+    }
+  };
+
+  // Reloads only the match list, without the page-wide loading state (keeps the scroll position)
+  const fetchGlobalMatches = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/matches`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await response.json();
+      if (data.success) setGlobalMatches(data.matches);
+    } catch (err) {
+      console.error('Failed to load matches:', err);
     }
   };
 
@@ -206,7 +219,7 @@ const AdminCustomers = () => {
       <div className="admin-header-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => navigate('/dashboard')} className="btn-export"><ArrowLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Back</button>
-          <h1>Admin SaaS Dashboard</h1>
+          <h1>Super Admin Dashboard</h1>
         </div>
         <div className="admin-header-actions">
           <button onClick={() => navigate('/account')} className="btn-export"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account</button>

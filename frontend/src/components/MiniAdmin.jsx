@@ -1318,6 +1318,7 @@ const MiniAdmin = () => {
                         style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', color: '#fff', border: '1px solid rgba(168,184,204,0.45)', borderRadius: '6px', padding: '4px 6px', marginRight: '6px', cursor: 'pointer' }}
                     >
                         <ArrowLeft size="1.1em" strokeWidth={3} aria-hidden="true" />
+                        <span className="ma-back-label">BACK</span>
                     </button>
                     <img src="/ks_logo.png" alt="KS" style={{ height: '20px', width: 'auto', objectFit: 'contain' }} />
                     KS CONTROL
@@ -1337,8 +1338,10 @@ const MiniAdmin = () => {
                         DESKTOP CONTROL ROOM
                     </button>
                     <LanguageSwitcher compact />
-                    <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} compact />
                     <div className="ma-live-dot" />
+                </div>
+                <div className="ma-header-obs">
+                    <BroadcastStatus expiresAt={obsExpiresAt} locked={obsLockedNow} onExpire={() => setObsTick(t => t + 1)} compact />
                 </div>
             </div>
 
