@@ -1160,15 +1160,19 @@ const Dashboard = () => {
       </div>
 
       {/* Navigation Tabs */}
+      {/* Auctions on its own row */}
+      <div className="tab-buttons">
+        <button className={`btn-tab ${activeTab === 'auctions' ? 'active' : ''}`} onClick={() => setActiveTab('auctions')}>
+          <Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions
+        </button>
+      </div>
+      {/* Tournaments and individual matches on the row below */}
       <div className="tab-buttons">
         <button className={`btn-tab ${activeTab === 'tournaments' ? 'active' : ''}`} onClick={() => setActiveTab('tournaments')}>
           <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Tournaments
         </button>
         <button className={`btn-tab ${activeTab === 'matches' ? 'active' : ''}`} onClick={() => setActiveTab('matches')}>
           <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Individual Matches
-        </button>
-        <button className={`btn-tab ${activeTab === 'auctions' ? 'active' : ''}`} onClick={() => setActiveTab('auctions')}>
-          <Hammer size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Auctions
         </button>
       </div>
 
@@ -1185,11 +1189,6 @@ const Dashboard = () => {
         {activeTab === 'tournaments' && (
           <button className="btn-create-match dash-stacked-btn" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000', whiteSpace: 'nowrap' }}>
             <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> New Tournament
-          </button>
-        )}
-        {activeTab === 'matches' && (
-          <button className="btn-create-match" onClick={() => setShowCreate(true)} style={{ background: 'var(--brand-gold)', color: '#000', whiteSpace: 'nowrap' }}>
-            <Activity size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> New Match
           </button>
         )}
         {activeTab === 'matches' && (

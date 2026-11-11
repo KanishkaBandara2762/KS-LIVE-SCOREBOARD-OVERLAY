@@ -982,3 +982,58 @@
     row-gap: 6px;
   }
 }
+
+/* Back button label only on phones; desktop keeps the icon-only button */
+.ma-back-label { display: none; }
+.ma-header-obs { display: contents; }
+
+/* Phones: back button on top (small gold), then logo, nav buttons, and OBS expiry, all small */
+@media (max-width: 640px) {
+  .ma-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .ma-header .ma-logo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .ma-header .ma-back-btn {
+    order: -1;
+    flex: 0 0 auto;
+    width: auto !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    background: var(--brand-gold) !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 3px 10px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    /* A 100% right margin pushes the logo onto the next line, so the back button keeps its natural width */
+    margin-right: 100% !important;
+  }
+  .ma-back-label { display: inline; }
+  .ma-header .ma-logo img { height: 16px !important; }
+  .ma-header-tools {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 6px;
+  }
+  .ma-header-tools button {
+    font-size: 9px !important;
+    padding: 3px 6px !important;
+    min-height: 26px !important;
+  }
+  .ma-header-obs {
+    display: block;
+    width: 100%;
+    font-size: 10px;
+  }
+}

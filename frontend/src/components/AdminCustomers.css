@@ -363,3 +363,13 @@ code {
 .btn-small.bg-red { background: var(--status-error); color: #fff; }
 /* Wide tables scroll inside their section on phones instead of the page */
 .admin-section { overflow-x: auto; }
+
+/* Phones: stack the header (Back + title on top, actions below) so nothing overlaps */
+@media (max-width: 640px) {
+  .admin-container { padding: 1.25rem 1rem; }
+  .admin-header-bar { flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 1.5rem; }
+  .admin-header-bar > div:first-child { flex-wrap: wrap; }
+  .admin-header-bar h1 { font-size: 1.5rem; line-height: 1.2; }
+  .admin-header-actions { width: 100%; }
+  .admin-header-actions > button { flex: 1 1 auto; justify-content: center; }
+}
