@@ -93,6 +93,11 @@ export const matchesApi = {
   list:   ()              => apiRequest('/api/matches'),
   create: (body)          => apiRequest('/api/create-match', { method: 'POST', body: JSON.stringify(body) }),
   get:    (matchId)       => apiRequest(`/api/match/${matchId}`),
+  // KS LIVE Impact: Man of the Match + leaderboards
+  getAwards: (matchId) => apiRequest(`/api/match/${matchId}/awards`),
+  setManOfTheMatch: (matchId, body) => apiRequest(`/api/match/${matchId}/man-of-the-match`, { method: 'PUT', body: JSON.stringify(body) }),
+  getLeaderboards: (params = {}) => apiRequest(`/api/stats/leaderboards?${new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')).toString()}`),
+  getPublicLeaderboards: (matchId) => apiRequest(`/api/public/match/${matchId}/leaderboards`),
   updateScore:  (matchId, body) => apiRequest(`/api/update-score/${matchId}`,         { method: 'PUT',  body: JSON.stringify(body) }),
   updatePlayers:(matchId, body) => apiRequest(`/api/update-players/${matchId}`,       { method: 'PUT',  body: JSON.stringify(body) }),
   toggleTicker: (matchId, body) => apiRequest(`/api/toggle-ticker/${matchId}`,        { method: 'PUT',  body: JSON.stringify(body) }),

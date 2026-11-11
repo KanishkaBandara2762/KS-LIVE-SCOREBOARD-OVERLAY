@@ -119,6 +119,20 @@ const ScorecardDisplay = () => {
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [subErrorMessage, setSubErrorMessage] = useState('');
 
+  // --- Tournament leaderboard cards (computed on the server from ball-by-ball data) ---
+  const [publicBoards, setPublicBoards] = useState(null);
+  const boardsMatchId = match?.matchId || matchId;
+  const boardsVisible = !!(match?.showTournamentMostRuns || match?.showTournamentMostWickets);
+  useEffect(() => {
+    if (!boardsVisible || !boardsMatchId) return;
+    let alive = true;
+    const load = () => fetch(`${API_URL}/api/public/match/${boardsMatchId}/leaderboards`)
+      .then((r) => r.json()).then((d) => { if (alive && d?.success) setPublicBoards(d); }).catch(() => {});
+    load();
+    const t = setInterval(load, 30000);
+    return () => { alive = false; clearInterval(t); };
+  }, [boardsVisible, boardsMatchId]);
+
   // --- Animation Hooks ---
   const isMatchFinishedCheck = ["finished", "match ended"].includes(String(match?.matchStatus || "").toLowerCase());
   const isTossMounted = !!(match?.showToss && !winnerInfo && !match?.showVersus);
@@ -1265,7 +1279,20 @@ const ScorecardDisplay = () => {
           <div className="tournament-screen-bg" />
           <div className="tournament-screen-header">🏆 MOST RUNS — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
-            <div className="tournament-screen-empty">Connect tournament data to display player stats.</div>
+            {(publicBoards?.mostRuns || []).length === 0 ? (
+              <div className="tournament-screen-empty">No completed-match statistics yet.</div>
+            ) : (
+              <div style={{ width: '100%', maxWidth: 900, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {publicBoards.mostRuns.map((r, i) => (
+                  <div key={r.name + r.team + i} style={{ display: 'grid', gridTemplateColumns: '56px 1fr 120px 120px', alignItems: 'center', gap: 12, padding: '12px 18px', borderRadius: 12, background: i === 0 ? 'rgba(250,204,21,0.18)' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span style={{ fontWeight: 900, fontSize: 22, color: '#facc15' }}>{r.rank}{r.tied ? '=' : ''}</span>
+                    <span><span style={{ fontWeight: 900, fontSize: 22 }}>{r.name}</span><span style={{ marginLeft: 10, fontSize: 14, opacity: 0.6 }}>{r.team}</span></span>
+                    <span style={{ fontWeight: 900, fontSize: 26, textAlign: 'right' }}>{r.runs}<span style={{ fontSize: 12, opacity: 0.6, marginLeft: 4 }}>RUNS</span></span>
+                    <span style={{ fontSize: 13, opacity: 0.75, textAlign: 'right' }}>SR {r.strikeRate ?? '-'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1276,7 +1303,20 @@ const ScorecardDisplay = () => {
           <div className="tournament-screen-bg" />
           <div className="tournament-screen-header">🎳 MOST WICKETS — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
-            <div className="tournament-screen-empty">Connect tournament data to display player stats.</div>
+            {(publicBoards?.mostWickets || []).length === 0 ? (
+              <div className="tournament-screen-empty">No completed-match statistics yet.</div>
+            ) : (
+              <div style={{ width: '100%', maxWidth: 900, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {publicBoards.mostWickets.map((r, i) => (
+                  <div key={r.name + r.team + i} style={{ display: 'grid', gridTemplateColumns: '56px 1fr 120px 120px', alignItems: 'center', gap: 12, padding: '12px 18px', borderRadius: 12, background: i === 0 ? 'rgba(250,204,21,0.18)' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span style={{ fontWeight: 900, fontSize: 22, color: '#facc15' }}>{r.rank}{r.tied ? '=' : ''}</span>
+                    <span><span style={{ fontWeight: 900, fontSize: 22 }}>{r.name}</span><span style={{ marginLeft: 10, fontSize: 14, opacity: 0.6 }}>{r.team}</span></span>
+                    <span style={{ fontWeight: 900, fontSize: 26, textAlign: 'right' }}>{r.wickets}<span style={{ fontSize: 12, opacity: 0.6, marginLeft: 4 }}>WKTS</span></span>
+                    <span style={{ fontSize: 13, opacity: 0.75, textAlign: 'right' }}>ECON {r.economy ?? '-'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -41,6 +41,8 @@ const router = express.Router();
 router.get('/overlay/:matchId', getOverlay);
 router.get('/public/matches', getPublicMatches);
 router.get('/public/match/:idOrSlug', getPublicMatch);
+const stats = require('../controllers/statsController');
+router.get('/public/match/:id/leaderboards', stats.getPublicLeaderboards);
 
 // ── Serve uploaded logos as static ───────────────────────────────────────────
 router.use('/uploads', express.static(require('path').join(__dirname, '../uploads')));
@@ -49,6 +51,10 @@ router.use('/uploads', express.static(require('path').join(__dirname, '../upload
 router.use(authMiddleware);
 
 router.get('/matches', getMatches);
+// Awards & leaderboards (KS LIVE Impact Model)
+router.get('/match/:id/awards', stats.getMatchAwards);
+router.put('/match/:id/man-of-the-match', stats.setManOfTheMatch);
+router.get('/stats/leaderboards', stats.getLeaderboards);
 router.get('/match/:id', getMatch);
 
 // NOTE: Creating and scoring matches is free. Generating the broadcast (OBS) link

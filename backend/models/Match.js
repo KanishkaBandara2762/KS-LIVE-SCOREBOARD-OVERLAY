@@ -448,9 +448,24 @@ const matchSchema = new mongoose.Schema(
         isBoundary:      { type: Boolean, default: false },
         commentary:      { type: String, default: '' },
         ballLabel:       { type: String, default: '' },
+        // Stats inputs (additive): who was out and which team batted/bowled
+        dismissedPlayer: { type: String, default: '' },
+        battingTeam:     { type: String, default: '' },
+        bowlingTeam:     { type: String, default: '' },
+        isSuperOver:     { type: Boolean, default: false },
         timestamp:       { type: Number },
       }],
       default: [],
+      _id: false,
+    },
+
+    // Man of the Match (saved award; KS LIVE Impact Model recommendation + admin choice)
+    manOfTheMatch: {
+      type: {
+        key: String, name: String, team: String, impact: Number, figures: String, summary: String,
+        recommendedKey: String, recommendedName: String, overridden: Boolean, model: String, awardedAt: Date,
+      },
+      default: null,
       _id: false,
     },
 

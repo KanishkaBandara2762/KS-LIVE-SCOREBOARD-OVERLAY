@@ -54,7 +54,27 @@ const applyUpdate = (raw, update) => {
 const toDoc = (raw) => new Match(raw); // casts through the real schema
 const save = (doc) => { store.set(doc.matchId, JSON.parse(JSON.stringify(doc.toObject({ depopulate: true })))); return doc; };
 
-Match.findOne = async (q) => (store.has(q.matchId) ? toDoc(store.get(q.matchId)) : null);
+// Query-like result: awaitable, and supports .select()/.lean() chains (lean → plain object).
+const query = (producer) => {
+  let lean = false;
+  const q = {
+    select() { return q; },
+    lean() { lean = true; return q; },
+    then(resolve, reject) {
+      return Promise.resolve().then(() => producer(lean)).then(resolve, reject);
+    },
+  };
+  return q;
+};
+const plainOf = (raw) => JSON.parse(JSON.stringify(toDoc(raw).toObject()));
+Match.findOne = (q) => query((lean) => {
+  const raw = [...store.values()].find((m) => Object.entries(q).every(([k, v]) => String(m[k]) === String(v)));
+  if (!raw) return null;
+  return lean ? plainOf(raw) : toDoc(raw);
+});
+Match.find = (q) => query(() => [...store.values()]
+  .filter((m) => Object.entries(q).every(([k, v]) => (v && typeof v === 'object') ? true : String(m[k]) === String(v)))
+  .map(plainOf));
 Match.findOneAndUpdate = async (q, update) => {
   if (!store.has(q.matchId)) return null;
   const next = toDoc(applyUpdate(store.get(q.matchId), update));
@@ -64,6 +84,7 @@ ScoreEvent.create = async () => ({});
 OverlaySettings.findOneAndUpdate = async () => ({});
 
 const ctrl = require('../controllers/matchController');
+const statsCtrl = require('../controllers/statsController');
 
 // ── Request helpers ───────────────────────────────────────────────────────────
 const call = async (handler, id, body = {}) => {
@@ -363,6 +384,40 @@ const over = async (id, deliveries) => { for (const d of deliveries) { const r =
     const m0 = get(id); m0.maxOvers = 1; store.set(id, m0);
     await over(id, ['1', 'dot', 'dot', 'dot', 'dot', 'dot']);
     assert.strictEqual(get(id).awaitingNextBowler, false);
+  });
+
+  await test('Awards & leaderboards endpoints work end-to-end from the ball log', async () => {
+    const id = newMatch();
+    await over(id, ['4', '6', '1', 'dot', '2', '1']);
+    await call(ctrl.changeBowler, id, { bowlerName: 'B2' });
+    const before = get(id);
+    const nonStrikerName = before.player1.onStrike ? before.player2.name : before.player1.name;
+    await ball(id, 'runout', { dismissalType: 'Run Out', runsCompleted: 0, dismissedBatter: 'nonStriker', fielderName: 'B4' });
+    const log = get(id).deliveryHistory.at(-1);
+    assert.strictEqual(log.dismissedPlayer, nonStrikerName, 'non-striker run-out recorded in the log');
+    assert.notStrictEqual(log.striker, nonStrikerName);
+    assert.strictEqual(log.battingTeam, 'ALPHA');
+    // Award refused before the match is finished
+    let r = await call(statsCtrl.setManOfTheMatch, id, { name: 'A1', team: 'ALPHA' });
+    assert.strictEqual(r.status, 400);
+    await call(ctrl.startSecondInnings, id, { striker: 'B1', nonStriker: 'B3', openingBowler: 'A3' });
+    await over(id, ['6', '6', '1', '1', '1', '1']);                // 16 ≥ target 15
+    const m = get(id); m.matchStatus = 'completed'; store.set(id, m);
+    r = await call(statsCtrl.getMatchAwards, id);
+    assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+    assert.strictEqual(r.body.result.winner, 'BRAVO');
+    assert.ok(r.body.recommendation && r.body.top5.length === 5);
+    assert.ok(r.body.ranking.some((x) => x.name === 'B4' && x.fielding.runOuts === 1));
+    // Admin override is saved permanently and feeds the existing POTM card
+    r = await call(statsCtrl.setManOfTheMatch, id, { name: 'A1', team: 'ALPHA' });
+    assert.strictEqual(r.status, 200, JSON.stringify(r.body));
+    const saved = get(id);
+    assert.strictEqual(saved.manOfTheMatch.name, 'A1');
+    assert.strictEqual(saved.overlaySettings.potmName, 'A1');
+    r = await call(statsCtrl.getPublicLeaderboards, id);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.mostRuns[0].runs >= 13);
+    assert.ok(!('id' in r.body.mostRuns[0]), 'public payload is trimmed');
   });
 
   console.log(`\n  RESULTS: ${passed} PASSED, ${failed} FAILED\n`);

@@ -595,7 +595,7 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       }));
     } else if (team1Obj && team1Obj.players && team1Obj.players.length > 0) {
       resolvedTeam1Squad = team1Obj.players.map((p, idx) => ({
-        id: uuidv4(),
+        id: p._id ? String(p._id) : uuidv4(),   // permanent tournament player id
         name: p.name,
         role: p.role || 'All-Rounder',
         status: 'available',
@@ -614,7 +614,7 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       }));
     } else if (team2Obj && team2Obj.players && team2Obj.players.length > 0) {
       resolvedTeam2Squad = team2Obj.players.map((p, idx) => ({
-        id: uuidv4(),
+        id: p._id ? String(p._id) : uuidv4(),   // permanent tournament player id
         name: p.name,
         role: p.role || 'All-Rounder',
         status: 'available',

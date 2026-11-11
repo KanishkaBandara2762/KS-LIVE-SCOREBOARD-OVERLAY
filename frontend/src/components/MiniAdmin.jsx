@@ -15,6 +15,8 @@ import LogoUpload from './LogoUpload';
 import NewBatterModal from './NewBatterModal';
 import NewBowlerModal from './NewBowlerModal';
 import InningsStartModal from './InningsStartModal';
+import MotmSuggestions from './MotmSuggestions';
+import LeaderboardsModal from './LeaderboardsModal';
 import FreehitIndicator from './FreehitIndicator';
 import OverthrowPanel from './OverthrowPanel';
 import PenaltyRunsPanel from './PenaltyRunsPanel';
@@ -115,6 +117,8 @@ const MiniAdmin = () => {
     const [potmTeam, setPotmTeam] = useState('');
     const [potmFigures, setPotmFigures] = useState('');
     const [showPotmModal, setShowPotmModal] = useState(false);
+    const [potmKey, setPotmKey] = useState('');
+    const [showLeaderboards, setShowLeaderboards] = useState(false);
     // We use refs so pushOverlay/hideAllGraphics can be defined once and always see latest push/match/bgAutoHide
     const pushRef = useRef(null);
     const matchRef = useRef(null);
@@ -1866,6 +1870,10 @@ const MiniAdmin = () => {
                                     className="ma-gfx-btn ma-gfx-btn-gold"
                                     onClick={() => setShowPotmModal(true)}
                                 >👑 Player of Match</button>
+                                <button
+                                    className="ma-gfx-btn"
+                                    onClick={() => setShowLeaderboards(true)}
+                                >📊 Stats & Leaderboards</button>
                             </div>
                         </div>
 
@@ -1916,6 +1924,10 @@ const MiniAdmin = () => {
                             </div>
                         </div>
 
+                        {showLeaderboards && (
+                            <LeaderboardsModal matchId={matchId} hasTournament={!!match?.tournamentId} onClose={() => setShowLeaderboards(false)} />
+                        )}
+
                         {/* ─ Player of Match Modal ─ */}
                         {showPotmModal && (
                             <div className="ma-modal-overlay" style={{ zIndex: 100010 }}>
@@ -1924,7 +1936,15 @@ const MiniAdmin = () => {
                                         <span className="ma-modal-title">👑 Player of the Match</span>
                                         <button className="ma-modal-close" onClick={() => setShowPotmModal(false)}>✕</button>
                                     </div>
-                                    <div className="ma-modal-form" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                    <div className="ma-modal-form" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10, maxHeight: '80vh', overflowY: 'auto' }}>
+                                        {isMongoDB(matchId) && (
+                                            <MotmSuggestions
+                                                matchId={matchId}
+                                                selectedKey={potmKey}
+                                                onPick={(p) => { setPotmKey(p.key); setPotmName(p.name); setPotmTeam(p.team); setPotmFigures(p.figures || ''); }}
+                                                onSaved={(a) => { setPotmKey(a.key); setPotmName(a.name); setPotmTeam(a.team); setPotmFigures(a.figures || ''); }}
+                                            />
+                                        )}
                                         <label className="ma-modal-label">Player Name</label>
                                         <input className="ma-modal-inp" placeholder="e.g. VIRAT KOHLI" value={potmName} onChange={e => setPotmName(e.target.value.toUpperCase())} />
                                         <label className="ma-modal-label">Team</label>

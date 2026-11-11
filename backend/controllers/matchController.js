@@ -505,6 +505,12 @@ const updateScore = async (req, res, next) => {
       innings: match.isSecondInnings ? 2 : 1,
     });
 
+    // Stats inputs for leaderboards / Man of the Match
+    historyEntry.dismissedPlayer = (result.isWicket || result.isRetirementNotOut) ? dismissedPlayerName : '';
+    historyEntry.battingTeam = match.battingTeam;
+    historyEntry.bowlingTeam = match.bowlingTeam;
+    historyEntry.isSuperOver = !!match.isSuperOver;
+
     // ── Build update payload ──────────────────────────────────────────────────
     const updateData = {
       score: result.newScore,
