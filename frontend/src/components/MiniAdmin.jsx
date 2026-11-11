@@ -207,6 +207,7 @@ const MiniAdmin = () => {
             showPointsTable: false,
             showUpcoming: false,
             showResults: false,
+            overlayHidden: true,
         }});
     }, []);
 
@@ -1746,49 +1747,6 @@ const MiniAdmin = () => {
                 {activeTab === 'graphics' && (
                     <div className="ma-graphics-tab">
 
-                        {/* Theme & Overlay */}
-                        <div className="ma-card">
-                            <div className="ma-card-title">Overlay Theme</div>
-                            <select className="ma-sel" value={match.themeID || 'ICC_GLOBAL'} onChange={e => push({ themeID: e.target.value })}>
-                                <optgroup label="International Broadcast">
-                                    <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
-                                    <option value="SKY_HYPERION">Sky Sports Hyperion</option>
-                                    <option value="JIO_TITAN">Jio Premier Titan</option>
-                                    <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
-                                    <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
-                                    <option value="APEX">Apex</option>
-                                    <option value="DIAMOND">Diamond</option>
-                                    <option value="VOLT">Volt</option>
-                                    <option value="THUNDER">Thunder</option>
-                                    <option value="BLITZ">Blitz</option>
-                                    <option value="ELITE">Elite</option>
-                                    <option value="FRANCHISE">Franchise</option>
-                                    <option value="SHAKTI">Shakti</option>
-                                </optgroup>
-                                <optgroup label="Premier Modern Themes">
-                                    <option value="ABUDHABI_T10">ABUDHABI T10 theme</option>
-                                    <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
-                                    <option value="NEW_IPL">Tata IPL Modern</option>
-                                    <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
-                                    <option value="KS_PREMIUM">KS Premium Broadcast</option>
-                                    <option value="WC2026">T20 World Cup 2026</option>
-                                    <option value="APOGEE">Apogee Arena Pro</option>
-                                    <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
-                                </optgroup>
-                            </select>
-                            <div className="ma-grid-2">
-                                <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
-                                <button className={`ma-status-btn ${match.showSummary ? 'active-break' : ''}`} onClick={() => push({ showSummary: !match.showSummary })}>Summary</button>
-                                <button className={`ma-status-btn ${match.showToss ? 'active-break' : ''}`} onClick={() => push({ showToss: !match.showToss })} style={match.showToss ? { background: 'rgba(245,158,11,0.3)', color: 'var(--brand-gold-bright)', borderColor: 'rgba(255,201,40,0.25)' } : {}}>Toss Result</button>
-                                <button className={`ma-status-btn ${match.showMatchSituation ? 'active-break' : ''}`} onClick={() => push({ showMatchSituation: !match.showMatchSituation })}>Situation</button>
-                            </div>
-                            <button
-                                className="ma-over-btn ma-over-wait"
-                                style={{ cursor: 'pointer', color: 'var(--brand-sky)', borderColor: 'rgba(57,169,255,0.25)' }}
-                                onClick={() => push({ eventTrigger: 'SHOW_BANNER' })}
-                            ><Sparkles size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SHOW BANNER</button>
-                        </div>
-
 
                         {/* ─ Header Bar ─ */}
                         <div className="ma-gfx-topbar">
@@ -1804,26 +1762,18 @@ const MiniAdmin = () => {
                                 </div>
                             )}
                             <button className="ma-gfx-back" onClick={() => { hideAllGraphics(); }}><CornerUpLeft size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Back to Scorebug</button>
-                            <button className="ma-gfx-hideall" onClick={hideAllGraphics}>Hide All</button>
+                            {match?.overlaySettings?.overlayHidden ? (
+                                <button className="ma-gfx-hideall" onClick={() => pushOverlay({ overlayHidden: false })}>Show Overlay</button>
+                            ) : (
+                                <button className="ma-gfx-hideall" onClick={hideAllGraphics}>Hide All</button>
+                            )}
                             <button className="ma-gfx-close" onClick={() => setActiveTab('score')}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
                         </div>
 
-                        {/* ─ SCOREBUG Section ─ */}
+                        {/* ─ CUSTOM TEXTS Section ─ */}
                         <div className="ma-gfx-section ma-gfx-scorebug">
-                            <div className="ma-gfx-section-title">SCOREBUG</div>
+                            <div className="ma-gfx-section-title">CUSTOM TEXTS</div>
                             <div className="ma-gfx-btn-row">
-                                <button
-                                    className={`ma-gfx-btn ${match?.overlaySettings?.scoreboardOnly ? 'active' : ''}`}
-                                    onClick={() => pushOverlay({ scoreboardOnly: !match?.overlaySettings?.scoreboardOnly })}
-                                >Scorebug</button>
-                                <button
-                                    className={`ma-gfx-btn ${match?.overlaySettings?.showNeedRunStrip ? 'active' : ''}`}
-                                    onClick={() => pushOverlay({ showNeedRunStrip: !match?.overlaySettings?.showNeedRunStrip })}
-                                >Need Run strip</button>
-                                <button
-                                    className={`ma-gfx-btn ${match?.overlaySettings?.showLastOut ? 'active' : ''}`}
-                                    onClick={() => pushOverlay({ showLastOut: !match?.overlaySettings?.showLastOut })}
-                                >Last Out</button>
                             </div>
                             <div className="ma-gfx-custom-row">
                                 <input
@@ -1879,6 +1829,10 @@ const MiniAdmin = () => {
                                     onClick={() => pushOverlay({ showNeedRun: !match?.overlaySettings?.showNeedRun }, ['showNeedRun'])}
                                 >Need Run</button>
                                 <button
+                                    className={`ma-gfx-btn ${match?.overlaySettings?.showLastOut ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ showLastOut: !match?.overlaySettings?.showLastOut })}
+                                >Last Out</button>
+                                <button
                                     className={`ma-gfx-btn ${match?.overlaySettings?.showMatchWon ? 'active' : ''}`}
                                     onClick={() => pushOverlay({ showMatchWon: !match?.overlaySettings?.showMatchWon }, ['showMatchWon'])}
                                 >Match Won</button>
@@ -1894,10 +1848,6 @@ const MiniAdmin = () => {
                                     className="ma-gfx-btn ma-gfx-btn-gold"
                                     onClick={() => setShowPotmModal(true)}
                                 ><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Player of Match</button>
-                                <button
-                                    className="ma-gfx-btn"
-                                    onClick={() => setShowLeaderboards(true)}
-                                ><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Stats &amp; Leaderboards</button>
                             </div>
                         </div>
 
@@ -1936,7 +1886,6 @@ const MiniAdmin = () => {
                         <div className="ma-gfx-section ma-gfx-other">
                             <div className="ma-gfx-section-title">OTHER</div>
                             <div className="ma-gfx-btn-row">
-                                <input className="ma-gfx-sponsor-inp" placeholder="Sponsor (none)" defaultValue={match?.overlaySettings?.sponsorText || ''} onBlur={e => pushOverlay({ sponsorText: e.target.value })} />
                                 <button
                                     className={`ma-gfx-btn ${match?.overlaySettings?.show4or6Animation !== false ? 'active' : ''}`}
                                     onClick={() => pushOverlay({ show4or6Animation: match?.overlaySettings?.show4or6Animation === false })}
@@ -1999,30 +1948,55 @@ const MiniAdmin = () => {
                             </div>
                         )}
 
+                        {/* Theme & Overlay */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Overlay Theme</div>
+                            <select className="ma-sel" value={match.themeID || 'ICC_GLOBAL'} onChange={e => push({ themeID: e.target.value })}>
+                                <optgroup label="International Broadcast">
+                                    <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
+                                    <option value="SKY_HYPERION">Sky Sports Hyperion</option>
+                                    <option value="JIO_TITAN">Jio Premier Titan</option>
+                                    <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
+                                    <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
+                                    <option value="APEX">Apex</option>
+                                    <option value="DIAMOND">Diamond</option>
+                                    <option value="VOLT">Volt</option>
+                                    <option value="THUNDER">Thunder</option>
+                                    <option value="BLITZ">Blitz</option>
+                                    <option value="ELITE">Elite</option>
+                                    <option value="FRANCHISE">Franchise</option>
+                                    <option value="SHAKTI">Shakti</option>
+                                </optgroup>
+                                <optgroup label="Premier Modern Themes">
+                                    <option value="ABUDHABI_T10">ABUDHABI T10 theme</option>
+                                    <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
+                                    <option value="NEW_IPL">Tata IPL Modern</option>
+                                    <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
+                                    <option value="KS_PREMIUM">KS Premium Broadcast</option>
+                                    <option value="WC2026">T20 World Cup 2026</option>
+                                    <option value="APOGEE">Apogee Arena Pro</option>
+                                    <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
+                                </optgroup>
+                            </select>
+                            <div className="ma-grid-2">
+                                <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
+                                <button className={`ma-status-btn ${match.showSummary ? 'active-break' : ''}`} onClick={() => push({ showSummary: !match.showSummary })}>Summary</button>
+                                <button className={`ma-status-btn ${match.showToss ? 'active-break' : ''}`} onClick={() => push({ showToss: !match.showToss })} style={match.showToss ? { background: 'rgba(245,158,11,0.3)', color: 'var(--brand-gold-bright)', borderColor: 'rgba(255,201,40,0.25)' } : {}}>Toss Result</button>
+                                <button className={`ma-status-btn ${match.showMatchSituation ? 'active-break' : ''}`} onClick={() => push({ showMatchSituation: !match.showMatchSituation })}>Situation</button>
+                            </div>
+                            <button
+                                className="ma-over-btn ma-over-wait"
+                                style={{ cursor: 'pointer', color: 'var(--brand-sky)', borderColor: 'rgba(57,169,255,0.25)' }}
+                                onClick={() => push({ eventTrigger: 'SHOW_BANNER' })}
+                            ><Sparkles size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SHOW BANNER</button>
+                        </div>
+
                     </div>
                 )}
 
                 {/* ─── MORE TAB ──────────────────────────────────────── */}
                 {activeTab === 'more' && (
                     <div className="ma-more-tab">
-
-                        {/* Teams */}
-                        <div className="ma-card">
-                            <div className="ma-card-title">Teams</div>
-                            <div className="ma-field-row">
-                                <span className="ma-field-label">Batting</span>
-                                <input type="text" className="ma-inp" value={match.battingTeam || ''} onChange={e => push({ battingTeam: e.target.value.toUpperCase() })} />
-                            </div>
-                            <div className="ma-field-row">
-                                <span className="ma-field-label">Bowling</span>
-                                <input type="text" className="ma-inp" value={match.bowlingTeam || ''} onChange={e => push({ bowlingTeam: e.target.value.toUpperCase() })} />
-                            </div>
-                            <button
-                                className="ma-over-btn ma-over-wait"
-                                style={{ cursor: 'pointer', color: 'var(--brand-sky)', borderColor: 'rgba(57,169,255,0.2)' }}
-                                onClick={() => push({ battingTeam: match.bowlingTeam, bowlingTeam: match.battingTeam, battingLogo: match.leagueLogo, leagueLogo: match.battingLogo })}
-                            ><ArrowLeftRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SWAP TEAMS</button>
-                        </div>
 
                         {/* OBS Link */}
                         <div className="ma-card">
@@ -2047,71 +2021,6 @@ const MiniAdmin = () => {
                             )}
                         </div>
 
-                        {/* Broadcast Ticker */}
-                        <div className="ma-card">
-                            <div className="ma-card-title">Broadcast Ticker</div>
-                            <input className="ma-inp" placeholder="GRAND FINAL — MATCH 3" value={tickerMsg} onChange={e => setTickerMsg(e.target.value.toUpperCase())} />
-                            <div className="ma-grid-2">
-                                <select className="ma-sel" value={tickerMode} onChange={e => { setTickerMode(e.target.value); pushTicker({ mode: e.target.value }); }}>
-                                    <option value="banner">Tournament</option>
-                                    <option value="breaking">Breaking</option>
-                                </select>
-                                <select className="ma-sel" value={tickerPreset} onChange={e => { setTickerPreset(e.target.value); pushTicker({ preset: e.target.value }); }}>
-                                    <option value="final">Final</option>
-                                    <option value="semi">Semi</option>
-                                    <option value="custom">Custom</option>
-                                </select>
-                            </div>
-                            <div className="ma-btn-row-2">
-                                <button className="ma-ticker-btn ma-ticker-save" onClick={() => pushTicker({ message: tickerMsg })}><Save size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SAVE</button>
-                                <button
-                                    className={`ma-ticker-btn ${tickerVisible ? 'ma-ticker-hide' : 'ma-ticker-show'}`}
-                                    onClick={() => { const v = !tickerVisible; setTickerVisible(v); pushTicker({ visible: v, timestamp: Date.now() }); }}
-                                >{tickerVisible ? <><Circle size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em', color: 'var(--status-error)' }} aria-hidden="true" /> HIDE TICKER</> : <><Circle size="1em" fill="currentColor" style={{ verticalAlign: '-0.125em', color: 'var(--status-success)' }} aria-hidden="true" /> SHOW TICKER</>}</button>
-                            </div>
-                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px', background:'rgba(255,255,255,0.03)', borderRadius:6 }}>
-                                <span style={{ fontSize: 12, color:'rgba(255,255,255,0.4)', fontWeight:700 }}>AUTO REPEAT</span>
-                                <div style={{ display:'flex', gap:4 }}>
-                                    <button className={`ma-ticker-btn ${!tickerAutoRepeat ? 'ma-ticker-hide' : ''}`} style={{ padding:'6px 12px' }} onClick={() => pushTicker({ autoRepeat: false })}>OFF</button>
-                                    <button className={`ma-ticker-btn ${tickerAutoRepeat ? 'ma-ticker-show' : ''}`} style={{ padding:'6px 12px' }} onClick={() => pushTicker({ autoRepeat: true })}>ON</button>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        {/* Match Situation */}
-                        <div className="ma-card">
-                            <div className="ma-card-title">Match Situation Panel</div>
-                            <div className="ma-field-row"><span className="ma-field-label">CRR</span><input type="text" className="ma-inp" placeholder="7.25" value={msCrr} onChange={e => setMsCrr(e.target.value)} /></div>
-                            <div className="ma-field-row"><span className="ma-field-label">RRR</span><input type="text" className="ma-inp" placeholder="8.10" value={msRrr} onChange={e => setMsRrr(e.target.value)} /></div>
-                            <div className="ma-field-row"><span className="ma-field-label">Target</span><input type="number" className="ma-inp" placeholder="145" value={msTarget} onChange={e => setMsTarget(e.target.value)} /></div>
-                            <div className="ma-field-row"><span className="ma-field-label">Overs Left</span><input type="text" className="ma-inp" placeholder="5.0" value={msOvers} onChange={e => setMsOvers(e.target.value)} /></div>
-                            <div className="ma-field-row"><span className="ma-field-label">Wkts Left</span><input type="number" className="ma-inp" placeholder="6" value={msWickets} onChange={e => setMsWickets(e.target.value)} /></div>
-                            <div className="ma-field-row"><span className="ma-field-label">Message</span><input type="text" className="ma-inp" placeholder="Need 25 in 12 balls" value={msMsg} onChange={e => setMsMsg(e.target.value)} /></div>
-                            <div className="ma-btn-row-2">
-                                <button className="ma-ticker-btn ma-sit-update" onClick={() => push({ showMatchSituation: true, matchSituation: { crr: msCrr || null, rrr: msRrr || null, target: msTarget ? parseInt(msTarget) : null, oversRemaining: msOvers || null, wicketsInHand: msWickets ? parseInt(msWickets) : null, customMsg: msMsg || null } })}><Radio size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> UPDATE</button>
-                                <button className="ma-ticker-btn ma-sit-clear" onClick={() => { push({ showMatchSituation: false, matchSituation: {} }); setMsCrr(''); setMsRrr(''); setMsTarget(''); setMsOvers(''); setMsWickets(''); setMsMsg(''); }}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> CLEAR</button>
-                            </div>
-                        </div>
-
-                        {/* Manual balls override */}
-                        <div className="ma-card">
-                            <div className="ma-card-title">Remaining Balls (Manual)</div>
-                            <div className="ma-field-row">
-                                <span className="ma-field-label">Balls Left</span>
-                                <input id="ma-manual-balls" type="number" className="ma-inp" placeholder="e.g. 16" defaultValue={match.manualBallsValue || ''} />
-                            </div>
-                            <div className="ma-grid-2">
-                                <button className="ma-ticker-btn ma-sit-update" onClick={() => {
-                                    const val = parseInt(document.getElementById('ma-manual-balls')?.value);
-                                    const max = match.targetBalls > 0 ? match.targetBalls : (match.maxOvers || 5) * bpo;
-                                    if (!isNaN(val) && val >= 0) push({ manualBallsOverride: true, manualBallsValue: Math.min(val, max) });
-                                    else alert('Enter a valid number');
-                                }}>SET</button>
-                                <button className="ma-ticker-btn" style={{ background:'rgba(255,255,255,0.04)', color:'rgba(255,255,255,0.4)', border:'1px solid rgba(255,255,255,0.08)' }} onClick={() => push({ manualBallsOverride: false, manualBallsValue: 0 })}>AUTO</button>
-                            </div>
-                        </div>
-
                         {/* Manual target override (only in 2nd innings) */}
                         {match.isSecondInnings && (
                             <div className="ma-card">
@@ -2130,6 +2039,24 @@ const MiniAdmin = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* Teams */}
+                        <div className="ma-card">
+                            <div className="ma-card-title">Teams</div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Batting</span>
+                                <input type="text" className="ma-inp" value={match.battingTeam || ''} onChange={e => push({ battingTeam: e.target.value.toUpperCase() })} />
+                            </div>
+                            <div className="ma-field-row">
+                                <span className="ma-field-label">Bowling</span>
+                                <input type="text" className="ma-inp" value={match.bowlingTeam || ''} onChange={e => push({ bowlingTeam: e.target.value.toUpperCase() })} />
+                            </div>
+                            <button
+                                className="ma-over-btn ma-over-wait"
+                                style={{ cursor: 'pointer', color: 'var(--brand-sky)', borderColor: 'rgba(57,169,255,0.2)' }}
+                                onClick={() => push({ battingTeam: match.bowlingTeam, bowlingTeam: match.battingTeam, battingLogo: match.leagueLogo, leagueLogo: match.battingLogo })}
+                            ><ArrowLeftRight size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> SWAP TEAMS</button>
+                        </div>
 
                         {/* Danger zone: destructive actions kept apart from normal controls */}
                         <div style={{ marginTop: 16, padding: 12, borderRadius: 12, border: '1.5px solid rgba(248,113,113,0.5)', background: 'rgba(220,38,38,0.08)' }}>
@@ -2154,7 +2081,7 @@ const MiniAdmin = () => {
                     <span className="ma-tab-icon"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>MATCH
                 </button>
                 <button className={`ma-tab ${activeTab === 'graphics' ? 'active' : ''}`} onClick={() => setActiveTab('graphics')}>
-                    <span className="ma-tab-icon"><Clapperboard size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>GRAPHICS
+                    <span className="ma-tab-icon"><Clapperboard size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>OVERLAY
                 </button>
                 <button className={`ma-tab ${activeTab === 'more' ? 'active' : ''}`} onClick={() => setActiveTab('more')}>
                     <span className="ma-tab-icon"><Tv size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></span>MORE

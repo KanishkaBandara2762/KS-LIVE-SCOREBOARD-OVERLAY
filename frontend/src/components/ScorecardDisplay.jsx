@@ -349,6 +349,7 @@ const ScorecardDisplay = () => {
         if (os.customText !== undefined) merged.customText = os.customText;
         merged.show4or6Animation = os.show4or6Animation ?? prev.show4or6Animation ?? true;
         merged.scoreboardOnly = os.scoreboardOnly ?? prev.scoreboardOnly ?? false;
+        merged.overlayHidden = os.overlayHidden ?? prev.overlayHidden ?? false;
         merged.showTournamentMostRuns = os.showTournamentMostRuns ?? prev.showTournamentMostRuns ?? false;
         merged.showTournamentMostWickets = os.showTournamentMostWickets ?? prev.showTournamentMostWickets ?? false;
         merged.showTournamentBoundaries = os.showTournamentBoundaries ?? prev.showTournamentBoundaries ?? false;
@@ -940,6 +941,9 @@ const ScorecardDisplay = () => {
   };
   const finalWinnerText = winnerInfo?.text || (match.isSecondInnings ? "Result Pending" : "Innings Complete");
   const finalWinnerTeam = winnerInfo?.team || (match.isSecondInnings ? (match.score >= (match.targetScore || 0) ? match.battingTeam : match.bowlingTeam) : match.battingTeam);
+
+  // Hide All (from mini admin): show an empty transparent screen on OBS
+  if (match.overlayHidden) return <div className="fixed inset-0 pointer-events-none" />;
 
   return (
     <div key={refreshKey} className="fixed inset-0 font-broadcast select-none pointer-events-none text-white uppercase italic" style={phoneCanvasStyle}>
