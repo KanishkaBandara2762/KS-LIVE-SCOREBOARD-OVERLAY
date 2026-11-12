@@ -289,6 +289,11 @@
 .btn-copy:hover { background: rgba(57,169,255,0.25); }
 
 .match-card-actions { display: flex; gap: 6px; }
+/* Keep each button inside the card on narrow screens */
+.match-card-actions > * { flex: 1 1 0; min-width: 0; }
+.match-card-actions-top { display: flex; align-items: center; gap: 8px; margin: 6px 0 10px; }
+.match-card-actions-top .btn-overlay { flex: 0 0 auto; }
+.match-card-obs-expiry { flex: 1; min-width: 0; }
 .btn-open, .btn-overlay, .btn-mini {
   flex: 1;
   padding: 8px 4px;
