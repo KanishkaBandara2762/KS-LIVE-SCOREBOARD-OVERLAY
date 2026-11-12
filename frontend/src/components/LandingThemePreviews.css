@@ -30,6 +30,25 @@
   transform-origin: top left;
 }
 
+/* Lightning Bar preview: sit on the bottom edge like the other bars, and
+   skip the viewport-based scaling (FitStage already scales the stage). */
+.ltp-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.ltp-bottom .t10-outer-scaler {
+  height: auto !important;
+}
+
+.ltp-bottom .t10-figma-bar {
+  transform: none !important;
+}
+
 /* Fallback team crest when no logo is set */
 .ltp-logo-fallback {
   display: inline-block;

@@ -175,6 +175,7 @@ const SCREENSHOTS = [
    ================================================================ */
 
 const THEMES = [
+    { id: "LIGHTNING_BAR", previewId: "LIGHTNING_BAR", name: "Lightning Bar (T10 Two-Logo)", desc: "Two team logos framing a white lightning centre, with live score, target and bowler figures.", tags: ["T10", "Lightning", "Premium"], ribbon: "premium", category: ["all", "t20", "tournament"] },
     { id: "APEX", previewId: "APEX", name: "Apex (TV Broadcast)", desc: "Professional TV broadcast design with a navy bar, red score block and angled tab.", tags: ["TV Broadcast", "Navy & Red", "Live"], ribbon: "new", category: ["all", "t20", "tournament"] },
     { id: "DIAMOND", previewId: "DIAMOND", name: "Diamond (Metallic)", desc: "Metallic premium design with silver panels and a faceted gem score.", tags: ["Metallic", "Geometric", "Premium"], ribbon: "premium", category: ["all", "t20", "odi"] },
     { id: "VOLT", previewId: "VOLT", name: "Volt (Sports-Tech)", desc: "Lime green on near-black with sharp sports-tech edges and modular stats.", tags: ["Lime", "Sports-Tech", "Dark"], ribbon: "new", category: ["all", "t20"] },
@@ -187,19 +188,6 @@ const THEMES = [
 
 
 
-const THEME_FILTERS = [
-
-    { key: "all", label: "All Themes" },
-
-    { key: "t20", label: "T20" },
-
-    { key: "odi", label: "ODI" },
-
-    { key: "school", label: "School" },
-
-    { key: "tournament", label: "Tournament" },
-
-];
 
 
 
@@ -489,13 +477,7 @@ function ScreenshotsShowcase() {
 
 function ThemesGallery() {
 
-    const [activeFilter, setActiveFilter] = useState("all");
-
     const [lightbox, setLightbox] = useState(null);
-
-
-
-    const filtered = THEMES.filter((t) => t.category.includes(activeFilter));
 
 
 
@@ -533,37 +515,14 @@ function ThemesGallery() {
 
 
 
-            {/* Filters */}
-
-            <div className="themes-filters">
-
-                {THEME_FILTERS.map((f) => (
-
-                    <button
-
-                        key={f.key}
-
-                        className={`themes-filter-btn ${activeFilter === f.key ? "active" : ""}`}
-
-                        onClick={() => setActiveFilter(f.key)}
-
-                    >
-
-                        {f.label}
-
-                    </button>
-
-                ))}
-
-            </div>
 
 
 
             {/* Grid */}
 
-            <div className="themes-grid" key={activeFilter}>
+            <div className="themes-grid">
 
-                {filtered.map((theme) => (
+                {THEMES.map((theme) => (
 
                     <div className="theme-card" key={theme.id}>
 
