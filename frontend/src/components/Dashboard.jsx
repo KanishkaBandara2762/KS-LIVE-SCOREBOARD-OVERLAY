@@ -859,20 +859,24 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
           </button>
         </div>
       )}
-      <div style={{ marginTop: 6 }}>
-        <BroadcastStatus expiresAt={obs.expiresAt} locked={obsLocked} onExpire={() => setObs((o) => ({ ...o }))} />
+      {/* Row 1: Preview + OBS link expiry */}
+      <div className="match-card-actions-top">
+        {tournament.currentMatchId && (
+          <button className="btn-overlay" onClick={async () => { const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked }); if (!res) return; setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false }); window.open(`/overlay/tournament/${tournament.id || tournament._id}`, '_blank'); }}>
+            <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Preview
+          </button>
+        )}
+        <div className="match-card-obs-expiry">
+          <BroadcastStatus expiresAt={obs.expiresAt} locked={obsLocked} onExpire={() => setObs((o) => ({ ...o }))} />
+        </div>
       </div>
 
+      {/* Row 2: management buttons */}
       <div className="match-card-actions">
         {tournament.currentMatchId ? (
-          <>
-            <button className="btn-open" onClick={() => navigate(`/mini-admin/${tournament.currentMatchId.matchId}`)}>
-              <Gamepad2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Score Live Match
-            </button>
-            <button className="btn-overlay" onClick={async () => { const res = await ensureBroadcastLink({ tournamentId: tournament.id || tournament._id, locked: obsLocked }); if (!res) return; setObs({ expiresAt: res.broadcastExpiresAt ?? null, locked: false }); window.open(`/overlay/tournament/${tournament.id || tournament._id}`, '_blank'); }}>
-              <Eye size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Preview
-            </button>
-          </>
+          <button className="btn-open" onClick={() => navigate(`/mini-admin/${tournament.currentMatchId.matchId}`)}>
+            <Gamepad2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Score Live Match
+          </button>
         ) : (
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', alignSelf: 'center', flex: 1, textAlign: 'center' }}>No live match active.</span>
         )}
