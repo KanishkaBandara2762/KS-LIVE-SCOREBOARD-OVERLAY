@@ -11,6 +11,7 @@ import TeamManager from "./components/TeamManager";
 import MiniAdmin from "./components/MiniAdmin";
 import OverlayPage from "./components/OverlayPage";
 import AdminCustomers from "./components/AdminCustomers";
+import AdminReviews from "./components/AdminReviews";
 
 // ── Landing / Welcome page ───────────────────────────────────────────────
 import LandingPage from "./components/LandingPage";
@@ -99,6 +100,10 @@ function App() {
             {/* Super Admin Panel */}
             <Route path="/admin/customers" element={
               <PrivateRoute><AdminRoute><AdminCustomers /></AdminRoute></PrivateRoute>
+            } />
+            {/* Super Admin: landing-page reviews (opens in its own window) */}
+            <Route path="/admin/reviews" element={
+              <PrivateRoute><AdminRoute><AdminReviews /></AdminRoute></PrivateRoute>
             } />
             {/* Legacy /admin without matchId — redirect to dashboard */}
             <Route path="/admin" element={

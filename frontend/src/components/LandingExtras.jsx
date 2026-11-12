@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './LandingExtras.css';
 import { School, Trophy, Activity, Check, Star, Phone, MapPin, MessageSquare, Mail } from 'lucide-react';
+import { reviewsApi } from '../api';
 
 export function BroadcastingServices() {
     return (
@@ -45,13 +46,30 @@ export function BroadcastingServices() {
 
 export function ReviewsSection() {
     const [rating, setRating] = useState(5);
+    const [name, setName] = useState('');
+    const [organization, setOrganization] = useState('');
+    const [message, setMessage] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
     const [submitted, setSubmitted] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // In a real scenario, this would post to the backend for admin moderation
-        setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 5000);
+        setSubmitting(true);
+        setSubmitError('');
+        try {
+            await reviewsApi.submit({ name, organization, rating, message });
+            setSubmitted(true);
+            setName('');
+            setOrganization('');
+            setMessage('');
+            setRating(5);
+            setTimeout(() => setSubmitted(false), 5000);
+        } catch (err) {
+            setSubmitError(err.message || 'Could not submit your review. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -85,11 +103,14 @@ export function ReviewsSection() {
                             ))}
                         </div>
                         <div className="form-group">
-                            <input type="text" placeholder="Your Name" required className="review-input" />
-                            <input type="text" placeholder="Club / Organization (Optional)" className="review-input" />
+                            <input type="text" placeholder="Your Name" required className="review-input" value={name} onChange={(e) => setName(e.target.value)} />
+                            <input type="text" placeholder="Club / Organization (Optional)" className="review-input" value={organization} onChange={(e) => setOrganization(e.target.value)} />
                         </div>
-                        <textarea placeholder="Write your review, feedback, or feature request here..." required className="review-textarea"></textarea>
-                        <button type="submit" className="landing-btn-primary submit-review-btn">Submit Review</button>
+                        <textarea placeholder="Write your review, feedback, or feature request here..." required className="review-textarea" value={message} onChange={(e) => setMessage(e.target.value)}></textarea>
+                        {submitError && <p className="review-error" role="alert">{submitError}</p>}
+                        <button type="submit" className="landing-btn-primary submit-review-btn" disabled={submitting}>
+                            {submitting ? 'Submitting...' : 'Submit Review'}
+                        </button>
                     </form>
                 )}
             </div>

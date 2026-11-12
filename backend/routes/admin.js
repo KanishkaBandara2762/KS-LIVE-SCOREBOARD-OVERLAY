@@ -229,6 +229,17 @@ router.delete('/tournaments/:tournamentId', async (req, res, next) => {
   }
 });
 
+// Super admin: landing-page reviews, newest first
+router.get('/reviews', async (req, res, next) => {
+  try {
+    const Review = require('../models/Review');
+    const reviews = await Review.find().sort({ createdAt: -1 }).limit(200).lean();
+    res.json({ success: true, reviews });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.put('/activate-session/:clientId', async (req, res, next) => {
   try {
     const { sessionType, durationDays } = req.body;
