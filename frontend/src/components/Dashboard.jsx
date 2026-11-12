@@ -13,6 +13,7 @@ import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
 const THEMES = [
+  { id: 'LIGHTNING_BAR', label: 'Lightning Bar (T10 two-logo)' },
   { id: 'ABUDHABI_T10', label: 'ABUDHABI T10 theme' },
   { id: 'ICC_GLOBAL', label: 'ICC T20 Global Apex (World Cup)' },
   { id: 'SKY_HYPERION', label: 'Sky Sports Hyperion Pro (UK)' },

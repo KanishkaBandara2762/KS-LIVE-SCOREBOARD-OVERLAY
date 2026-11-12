@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import ModernOverlayThemes from "./ModernOverlayThemes";
+import LightningBar from "./LightningBar";
 import "./LandingThemePreviews.css";
 
 /* ================================================================
@@ -80,12 +81,33 @@ function FitStage({ children, className }) {
   );
 }
 
+// Skin themes draw on one of the base layouts; preview them with that layout.
+const PREVIEW_LAYOUTS = {
+  APEX: "ICC_GLOBAL",
+  SHAKTI: "ICC_GLOBAL",
+  DIAMOND: "SKY_HYPERION",
+  VOLT: "FOX_STRIKE",
+  THUNDER: "FOX_STRIKE",
+  BLITZ: "JIO_TITAN",
+  FRANCHISE: "JIO_TITAN",
+  ELITE: "SUPERSPORT_AURA",
+};
+
 // previewId is the overlay theme ID, e.g. "APEX" or "SHAKTI".
 export function ThemePreview({ previewId, className }) {
   if (!previewId) return null;
+  if (previewId === "LIGHTNING_BAR") {
+    return (
+      <FitStage className={className}>
+        <div className="ltp-bottom">
+          <LightningBar match={SAMPLE_MATCH} getOvers={SAMPLE_PROPS.getOvers} getAbsoluteUrl={SAMPLE_PROPS.getAbsoluteUrl} TeamLogo={SAMPLE_PROPS.TeamLogo} />
+        </div>
+      </FitStage>
+    );
+  }
   return (
     <FitStage className={className}>
-      <ModernOverlayThemes themeId={previewId} match={SAMPLE_MATCH} {...SAMPLE_PROPS} />
+      <ModernOverlayThemes themeId={PREVIEW_LAYOUTS[previewId] || previewId} match={SAMPLE_MATCH} {...SAMPLE_PROPS} />
     </FitStage>
   );
 }

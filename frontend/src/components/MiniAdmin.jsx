@@ -1965,6 +1965,7 @@ const MiniAdmin = () => {
                             <div className="ma-card-title">Overlay Theme</div>
                             <select className="ma-sel" value={match.themeID || 'ICC_GLOBAL'} onChange={e => push({ themeID: e.target.value })}>
                                 <optgroup label="International Broadcast">
+                                    <option value="LIGHTNING_BAR">Lightning Bar (T10 two-logo)</option>
                                     <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
                                     <option value="SKY_HYPERION">Sky Sports Hyperion</option>
                                     <option value="JIO_TITAN">Jio Premier Titan</option>
@@ -2393,6 +2394,7 @@ const MiniAdmin = () => {
                             <div className="ma-modal-field"><label className="ma-modal-label">Stage / Title</label><input name="matchTitle" className="ma-modal-inp" placeholder="GRAND FINAL" /></div>
                             <div className="ma-modal-field"><label className="ma-modal-label">Theme</label>
                                 <select name="themeID" className="ma-modal-inp">
+                                    <option value="LIGHTNING_BAR">Lightning Bar (T10 two-logo)</option>
                                     <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
                                     <option value="SKY_HYPERION">Sky Sports Hyperion</option>
                                     <option value="JIO_TITAN">Jio Premier Titan</option>
