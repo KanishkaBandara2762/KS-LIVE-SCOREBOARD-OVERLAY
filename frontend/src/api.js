@@ -215,6 +215,15 @@ export const adminApi = {
     }),
 };
 
+// ── Reviews API (landing page) ──────────────────────────────────────────────
+export const reviewsApi = {
+  submit: (body) =>
+    apiRequest('/api/reviews', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+};
+
 // ── Auction API ─────────────────────────────────────────────────────────────
 export const auctionApi = {
   list: () => apiRequest('/api/auctions'),

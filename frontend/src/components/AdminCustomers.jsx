@@ -3,7 +3,7 @@ import { getToken } from '../api';
 import AdminPlans from './AdminPlans';
 import { useNavigate } from 'react-router-dom';
 import './AdminCustomers.css';
-import { ArrowLeft, Settings, Download, Zap, Globe, Eye, Trash2, Trophy } from 'lucide-react';
+import { ArrowLeft, Settings, Download, Zap, Globe, Eye, Trash2, Trophy, MessageSquare } from 'lucide-react';
 
 const AdminCustomers = () => {
   const navigate = useNavigate();
@@ -141,6 +141,8 @@ const AdminCustomers = () => {
 
   useEffect(() => { fetchTournaments(); }, []);
 
+  const openReviews = () => navigate('/admin/reviews');
+
   const handleDeleteTournament = async (tournament) => {
     if (!window.confirm(`Delete tournament "${tournament.name}"? Its matches will be kept. This cannot be undone.`)) return;
     try {
@@ -222,6 +224,7 @@ const AdminCustomers = () => {
           <h1>Super Admin Dashboard</h1>
         </div>
         <div className="admin-header-actions">
+          <button onClick={openReviews} className="btn-export"><MessageSquare size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Reviews</button>
           <button onClick={() => navigate('/account')} className="btn-export"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account</button>
           <button onClick={exportToCSV} className="btn-export">
             <Download size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Export Payments (CSV)
@@ -409,6 +412,7 @@ const AdminCustomers = () => {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 };
