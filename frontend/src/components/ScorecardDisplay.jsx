@@ -136,6 +136,27 @@ const ScorecardDisplay = () => {
     return () => { alive = false; clearInterval(t); };
   }, [boardsVisible, boardsMatchId]);
 
+  // --- Group points table (live standings from the tournament's group stage) ---
+  const [pointsTable, setPointsTable] = useState(null); // { groups, teams, qualifyPerGroup } | { error }
+  const [ptLogoFailed, setPtLogoFailed] = useState({}); // teamId → true when its logo can't load
+  const standingsTournamentId = tournamentId || match?.tournamentId || match?.match?.tournamentId || null;
+  const pointsTableVisible = !!match?.showPointsTable;
+  useEffect(() => {
+    if (!pointsTableVisible || !standingsTournamentId) return;
+    let alive = true;
+    const load = () => fetch(`${API_URL}/api/tournaments/public/${standingsTournamentId}/standings`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!alive) return;
+        if (d?.success) setPointsTable({ groups: d.standings?.groups || [], teams: d.teams || {}, qualifyPerGroup: d.qualifyPerGroup || 0 });
+        else setPointsTable({ error: d?.error || 'Points table not available for this tournament.' });
+      })
+      .catch(() => {});
+    load();
+    const t = setInterval(load, 20000);
+    return () => { alive = false; clearInterval(t); };
+  }, [pointsTableVisible, standingsTournamentId]);
+
   // --- Animation Hooks ---
   const isMatchFinishedCheck = ["finished", "match ended"].includes(String(match?.matchStatus || "").toLowerCase());
   const isTossMounted = !!(match?.showToss && !winnerInfo && !match?.showVersus);
@@ -1359,7 +1380,48 @@ const ScorecardDisplay = () => {
           <div className="tournament-screen-bg" />
           <div className="tournament-screen-header"><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> POINTS TABLE — {match.tournamentName || 'TOURNAMENT'}</div>
           <div className="tournament-screen-body">
-            <div className="tournament-screen-empty">Connect tournament data to display points table.</div>
+            {!standingsTournamentId ? (
+              <div className="tournament-screen-empty">This match is not part of a tournament — start it from a tournament fixture to show the points table.</div>
+            ) : !pointsTable ? (
+              <div className="tournament-screen-empty">Loading points table…</div>
+            ) : pointsTable.error ? (
+              <div className="tournament-screen-empty">{pointsTable.error}</div>
+            ) : pointsTable.groups.length === 0 ? (
+              <div className="tournament-screen-empty">No groups set up yet.</div>
+            ) : (
+              <div className={`ovpt-grid ${pointsTable.groups.length > 1 ? 'is-multi' : ''}`}>
+                {pointsTable.groups.map((g) => (
+                  <div key={g.groupId} className="ovpt-group">
+                    {pointsTable.groups.length > 1 && <div className="ovpt-group-name">{g.name}</div>}
+                    <div className="ovpt-row ovpt-head">
+                      <span>#</span><span className="ovpt-team">TEAM</span>
+                      <span>P</span><span>W</span><span>L</span><span>T/NR</span>
+                      <span>NRR</span><span>PTS</span>
+                    </div>
+                    {g.rows.map((r) => {
+                      const logo = getAbsoluteUrl(r.logo || pointsTable.teams[r.teamId]?.logo || '');
+                      const status = r.eliminated ? 'is-out' : r.inQualifyingPosition ? 'is-q' : '';
+                      return (
+                        <div key={r.teamId} className={`ovpt-row ${status}`}>
+                          <span className="ovpt-pos">{r.position}</span>
+                          <span className="ovpt-team">
+                            {logo && !ptLogoFailed[r.teamId]
+                              ? <img src={logo} alt="" className="ovpt-logo" onError={() => setPtLogoFailed((f) => ({ ...f, [r.teamId]: true }))} />
+                              : <span className="ovpt-logo ovpt-logo-ph">{(r.shortName || r.name || '?').slice(0, 2).toUpperCase()}</span>}
+                            <span className="ovpt-name">{r.name}</span>
+                            {r.qualified && <span className="ovpt-badge">Q</span>}
+                          </span>
+                          <span>{r.played}</span><span>{r.won}</span><span>{r.lost}</span>
+                          <span>{(r.tied || 0) + (r.noResult || 0)}</span>
+                          <span className={`ovpt-nrr ${r.nrr < 0 ? 'neg' : ''}`}>{r.nrrDisplay}</span>
+                          <span className="ovpt-pts">{r.points}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

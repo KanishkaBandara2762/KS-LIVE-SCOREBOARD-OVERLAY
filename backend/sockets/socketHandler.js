@@ -253,6 +253,7 @@ function buildOverlaySnapshot(match) {
     matchType: match.matchType,
     matchTitle: match.matchTitle,
     tournamentName: match.tournamentName,
+    tournamentId: match.tournamentId ? String(match.tournamentId) : null,
     venueName: match.venueName,
     matchDate: match.matchDate,
     matchNumber: match.matchNumber,
