@@ -24,6 +24,7 @@ import PenaltyRunsPanel from './PenaltyRunsPanel';
 import BallByBallHistory from './BallByBallHistory';
 import SuperOverPanel from './SuperOverPanel';
 import MatchFormatRulesModal from './MatchFormatRulesModal';
+import { ThemeOptions } from "./themeOptions";
 
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
@@ -1964,32 +1965,7 @@ const MiniAdmin = () => {
                         <div className="ma-card">
                             <div className="ma-card-title">Overlay Theme</div>
                             <select className="ma-sel" value={match.themeID || 'ICC_GLOBAL'} onChange={e => push({ themeID: e.target.value })}>
-                                <optgroup label="International Broadcast">
-                                    <option value="LIGHTNING_BAR">Lightning Bar (T10 two-logo)</option>
-                                    <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
-                                    <option value="SKY_HYPERION">Sky Sports Hyperion</option>
-                                    <option value="JIO_TITAN">Jio Premier Titan</option>
-                                    <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
-                                    <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
-                                    <option value="APEX">Apex</option>
-                                    <option value="DIAMOND">Diamond</option>
-                                    <option value="VOLT">Volt</option>
-                                    <option value="THUNDER">Thunder</option>
-                                    <option value="BLITZ">Blitz</option>
-                                    <option value="ELITE">Elite</option>
-                                    <option value="FRANCHISE">Franchise</option>
-                                    <option value="SHAKTI">Shakti</option>
-                                </optgroup>
-                                <optgroup label="Premier Modern Themes">
-                                    <option value="ABUDHABI_T10">ABUDHABI T10 theme</option>
-                                    <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
-                                    <option value="NEW_IPL">Tata IPL Modern</option>
-                                    <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
-                                    <option value="KS_PREMIUM">KS Premium Broadcast</option>
-                                    <option value="WC2026">T20 World Cup 2026</option>
-                                    <option value="APOGEE">Apogee Arena Pro</option>
-                                    <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
-                                </optgroup>
+                                <ThemeOptions />
                             </select>
                             <div className="ma-grid-2">
                                 <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
@@ -2394,26 +2370,7 @@ const MiniAdmin = () => {
                             <div className="ma-modal-field"><label className="ma-modal-label">Stage / Title</label><input name="matchTitle" className="ma-modal-inp" placeholder="GRAND FINAL" /></div>
                             <div className="ma-modal-field"><label className="ma-modal-label">Theme</label>
                                 <select name="themeID" className="ma-modal-inp">
-                                    <option value="LIGHTNING_BAR">Lightning Bar (T10 two-logo)</option>
-                                    <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
-                                    <option value="SKY_HYPERION">Sky Sports Hyperion</option>
-                                    <option value="JIO_TITAN">Jio Premier Titan</option>
-                                    <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
-                                    <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
-                                    <option value="APEX">Apex</option>
-                                    <option value="DIAMOND">Diamond</option>
-                                    <option value="VOLT">Volt</option>
-                                    <option value="THUNDER">Thunder</option>
-                                    <option value="BLITZ">Blitz</option>
-                                    <option value="ELITE">Elite</option>
-                                    <option value="FRANCHISE">Franchise</option>
-                                    <option value="SHAKTI">Shakti</option>
-                                    <option value="ABUDHABI_T10">ABUDHABI T10 theme</option>
-                                    <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
-                                    <option value="NEW_IPL">Tata IPL Modern</option>
-                                    <option value="IPL_2026">IPL 2026 Stadium</option>
-                                    <option value="KS_PREMIUM">KS Premium</option>
-                                    <option value="WC2026">T20 World Cup 2026</option>
+                                    <ThemeOptions />
                                 </select>
                             </div>
                             <div className="ma-modal-footer">

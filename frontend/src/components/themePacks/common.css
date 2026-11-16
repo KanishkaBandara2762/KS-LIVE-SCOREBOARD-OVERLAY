@@ -1,0 +1,14 @@
+/* Shared stage for theme-pack full screens (1920 × 1080 design canvas). */
+.tp-screen { position: fixed; inset: 0; overflow: hidden; pointer-events: none; animation: tpFadeIn 0.5s ease both; }
+.tp-screen.tp-hide { animation: tpFadeOut 0.5s ease both; }
+.tp-canvas {
+    position: absolute; left: 50%; top: 50%;
+    width: 1920px; height: 1080px; transform-origin: center center;
+    overflow: hidden; color: #fff;
+}
+.tp-logo-ph {
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.12); color: #fff; font-weight: 900; border-radius: 50%;
+}
+@keyframes tpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tpFadeOut { from { opacity: 1; } to { opacity: 0; } }

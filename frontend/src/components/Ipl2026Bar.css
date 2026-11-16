@@ -1,0 +1,89 @@
+/* ═══════════════════════════════════════════════════════════════
+   IPL 2026 Stadium Capsule scorebar (1920 × 110 design, scaled)
+   ═══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&display=swap');
+
+.i26b-scaler { position: relative; width: 100%; overflow: visible; }
+.i26b {
+    position: absolute; left: 0; bottom: 0; width: 1920px; height: 110px;
+    transform-origin: bottom left;
+    display: flex; align-items: flex-end;
+    font-family: 'Outfit', 'Inter', sans-serif; color: #fff; text-transform: uppercase;
+    animation: i26bIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Team code boxes */
+.i26b-team {
+    width: 140px; height: 82px; flex: 0 0 140px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #149a4c, #0e7d3c);
+    font-size: 34px; font-weight: 800; letter-spacing: 0.02em;
+}
+.i26b-team-l { border-right: 5px solid #1ea0e6; }
+.i26b-team-r { border-left: 5px solid #1ea0e6; }
+
+/* Red sections holding the rounded pills */
+.i26b-red {
+    position: relative; width: 455px; flex: 0 0 455px; height: 82px;
+    background: linear-gradient(180deg, #c8160f, #8f0b07);
+    display: flex; align-items: center;
+}
+.i26b-red-l { padding: 0 12px 0 16px; border-right: 3px solid #f3c400; }
+.i26b-red-r { padding: 0 16px 0 12px; border-left: 3px solid #f3c400; }
+.i26b-pill {
+    flex: 1; height: 72px; box-sizing: border-box;
+    padding: 4px 26px; border-radius: 34px;
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+    background: radial-gradient(ellipse at 30% 0%, #b3120c 0%, #8a0906 55%, #6a0603 100%);
+    border: 1px solid rgba(255,255,255,0.28);
+    box-shadow: inset 0 2px 6px rgba(255,255,255,0.12), inset 0 -6px 12px rgba(0,0,0,0.35);
+}
+.i26b-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; height: 30px; }
+.i26b-row-bowler { grid-template-columns: minmax(0, 1fr) auto; }
+.i26b-arrow { color: #22c55e; font-size: 16px; }
+.i26b-name { font-size: 23px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.i26b-fig { font-size: 24px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.i26b-fig small { font-size: 18px; font-weight: 700; opacity: 0.9; }
+
+/* Centre lattice */
+.i26b-centre {
+    position: relative; flex: 1; height: 82px;
+    background:
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 26px),
+        repeating-linear-gradient(-45deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 26px),
+        linear-gradient(180deg, #11862f, #0b6f24);
+    display: flex; align-items: flex-end; justify-content: center;
+}
+.i26b-capsule {
+    position: absolute; left: 50%; top: -28px; transform: translateX(-50%);
+    height: 54px; padding: 0 26px; border-radius: 28px;
+    display: flex; align-items: center; gap: 18px; white-space: nowrap;
+    background: linear-gradient(180deg, #c81d02, #8c0d00);
+    border: 2px solid #f3c400;
+    box-shadow: 0 0 14px rgba(0,170,255,0.35), 0 6px 14px rgba(0,0,0,0.35);
+    animation: i26bPop 0.5s 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.i26b-cap-team { font-size: 26px; font-weight: 800; }
+.i26b-cap-score { font-size: 36px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.i26b-cap-overs { font-size: 24px; font-weight: 800; }
+.i26b-cap-overs small { font-size: 22px; font-weight: 600; opacity: 0.9; }
+.i26b-line {
+    margin-bottom: 9px; padding: 0 20px; max-width: 100%; box-sizing: border-box;
+    font-size: 20px; font-weight: 800; letter-spacing: 0.06em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* This over's balls */
+.i26b-balls { display: flex; gap: 6px; height: 30px; align-items: center; }
+.i26b-ball {
+    min-width: 40px; height: 28px; padding: 0 6px; box-sizing: border-box;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255,255,255,0.85); border-radius: 5px;
+    background: rgba(0,0,0,0.25); font-size: 17px; font-weight: 800;
+}
+.i26b-ball.is-4 { background: #1d4ed8; }
+.i26b-ball.is-6 { background: #7c3aed; }
+.i26b-ball.is-w { background: #fff; color: #b10000; }
+
+@keyframes i26bIn { from { opacity: 0; translate: 0 50px; } to { opacity: 1; translate: 0 0; } }
+@keyframes i26bPop { from { opacity: 0; scale: 0.6; } to { opacity: 1; scale: 1; } }

@@ -1,0 +1,59 @@
+/* PRO_BROADCAST — styles for the screens in proBroadcastScreens.jsx.
+   Reuses the canvas, title, leaders and toss-strip classes from proBroadcast.css. */
+
+/* Match won */
+.pb-win-logo { left: 660px; top: 190px; width: 600px; height: 520px; display: flex; align-items: center; justify-content: center; animation: pbPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.pb-win-tab { top: 742px; }
+.pb-win-bar { left: 300px; right: 300px; top: 818px; height: 96px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, #11612f, #0b4a23); border-radius: 14px; font-weight: 900; white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,0.35); animation: pbRise 0.5s 0.35s ease both; }
+.pb-win-text { left: 400px; right: 400px; }
+
+/* Summary */
+.pb-sm-inns { left: 150px; right: 150px; top: 250px; display: flex; flex-direction: column; gap: 12px; }
+.pb-sm-inn { display: grid; grid-template-columns: 96px minmax(0, 1fr) 260px 180px; align-items: center; height: 96px; background: rgba(4,60,30,0.85); animation: pbSlide 0.45s ease both; }
+.pb-sm-logo { width: 80px; height: 80px; object-fit: contain; justify-self: center; }
+.pb-sm-logo.tp-logo-ph { font-size: 30px; }
+.pb-sm-team { padding-left: 20px; font-size: 52px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-sm-score { height: 100%; display: flex; align-items: center; justify-content: center; background: #4ccf4a; color: #0a2e12; font-size: 64px; font-weight: 900; }
+.pb-sm-ov { text-align: center; font-size: 34px; font-weight: 800; }
+.pb-sm-result { top: 480px; left: 300px; right: 300px; }
+.pb-sm-cols { left: 150px; right: 150px; top: 580px; bottom: 80px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+.pb-sm-col { display: flex; flex-direction: column; gap: 6px; animation: pbRise 0.5s 0.2s ease both; }
+.pb-sm-h { padding: 8px 20px; background: linear-gradient(180deg, #34b44a, #22903a); font-size: 32px; font-weight: 900; }
+.pb-sm-row { display: grid; grid-template-columns: minmax(0, 1fr) 100px 70px; align-items: center; height: 56px; padding: 0 18px; background: linear-gradient(180deg, #f2f3f5, #c9ced6); color: #111; font-size: 28px; font-weight: 800; }
+.pb-sm-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-sm-row b { text-align: right; font-size: 34px; font-weight: 900; }
+.pb-sm-row em { text-align: right; font-style: normal; font-size: 22px; color: #555; }
+
+/* Chase */
+.pb-ch-logo { width: 420px; height: 420px; object-fit: contain; margin-bottom: 60px; }
+.pb-ch-logo.tp-logo-ph { width: 360px; height: 360px; font-size: 130px; }
+
+/* Player of the match */
+.pb-potm-plate { left: 130px; width: 860px; top: 330px; height: 140px; box-sizing: border-box; padding: 0 40px; display: flex; align-items: center; background: linear-gradient(180deg, #3cc85a, #22903a); font-weight: 900; white-space: nowrap; overflow: hidden; animation: pbSlide 0.5s ease both; }
+.pb-potm-team { left: 130px; width: 860px; top: 470px; height: 80px; box-sizing: border-box; padding: 0 40px; display: flex; align-items: center; background: rgba(4,60,30,0.85); font-size: 40px; font-weight: 800; animation: pbSlide 0.5s 0.1s ease both; }
+.pb-potm-figs { left: 130px; width: 860px; top: 600px; height: 150px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, #ffffff, #d7dbe0); color: #111; font-size: 72px; font-weight: 900; animation: pbSlide 0.5s 0.2s ease both; }
+
+/* Partnership */
+.pb-ps-box { left: 660px; top: 230px; width: 600px; height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(180deg, #ffffff, #d7dbe0); color: #111; box-shadow: 0 16px 40px rgba(0,0,0,0.3); animation: pbPop 0.6s ease both; }
+.pb-ps-box b { font-size: 240px; font-weight: 900; line-height: 0.95; }
+.pb-ps-box span { font-size: 40px; font-weight: 800; color: #11612f; }
+.pb-ps-bats { left: 150px; right: 150px; top: 690px; display: flex; justify-content: space-between; gap: 60px; }
+.pb-ps-bat { flex: 1; display: flex; height: 110px; animation: pbRise 0.5s 0.3s ease both; }
+.pb-ps-name { flex: 1; display: flex; align-items: center; padding: 0 30px; background: linear-gradient(180deg, #11612f, #0b4a23); font-size: 52px; font-weight: 900; white-space: nowrap; overflow: hidden; }
+.pb-ps-runs { display: flex; align-items: center; padding: 0 30px; background: #4ccf4a; color: #0a2e12; font-size: 64px; font-weight: 900; }
+.pb-ps-runs small { font-size: 28px; margin-left: 6px; }
+.pb-ps-split { left: 150px; right: 150px; top: 840px; height: 24px; background: #d9480f; }
+.pb-ps-split div { height: 100%; background: #4ccf4a; }
+
+/* Lower thirds */
+.pb-lt {
+    position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: 17vh; z-index: 108;
+    display: flex; align-items: stretch; height: 62px; min-width: 40vw; max-width: 80vw; pointer-events: none;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif; text-transform: uppercase; color: #fff;
+    background: linear-gradient(180deg, #0d1d55, #08143e); border: 2px solid rgba(140,175,255,0.55);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45); animation: pbRise 0.45s ease both;
+}
+.pb-lt-tag { display: flex; align-items: center; padding: 0 26px; background: #dc2626; font-size: 34px; font-weight: 900; }
+.pb-lt-main { flex: 1; display: flex; align-items: center; padding: 0 26px; font-size: 36px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-lt-custom .pb-lt-main { justify-content: center; text-transform: none; }
+.pb-lt-side { display: flex; align-items: center; padding: 0 24px; background: linear-gradient(180deg, #1f45c9, #0f2c92); color: #ffe600; font-size: 26px; font-weight: 800; white-space: nowrap; }

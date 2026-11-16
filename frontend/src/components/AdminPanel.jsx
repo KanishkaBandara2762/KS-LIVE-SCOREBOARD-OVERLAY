@@ -9,6 +9,7 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { createMatchEvent } from "../utils/matchEvent";
 import { generateMatchKey } from "../utils/matchKey";
 import { matchesApi, tournamentsApi, ensureBroadcastLink } from "../api";
+import { ThemeOptions } from "./themeOptions";
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 // Netlify Functions cannot host persistent Socket.IO connections.
@@ -1091,30 +1092,7 @@ const legalBallCount = match.legalBallCount || 0;
             </div>
 
             <select className="w-full border p-2 rounded text-xs font-black bg-white uppercase shadow-sm" value={match.themeID} onChange={(e) => setMatch({ ...match, themeID: e.target.value })}>
-              <optgroup label="International Broadcast Flagships">
-                <option value="ICC_GLOBAL">ICC T20 Global Apex (World Cup)</option>
-                <option value="SKY_HYPERION">Sky Sports Hyperion Pro (UK)</option>
-                <option value="JIO_TITAN">Jio Premier Titan (IPL 4K)</option>
-                <option value="FOX_STRIKE">Fox Cricket BBL Strike (Action)</option>
-                <option value="SUPERSPORT_AURA">SuperSport Aura Glass (Modern)</option>
-                <option value="APEX">Apex (TV Broadcast)</option>
-                <option value="DIAMOND">Diamond (Metallic)</option>
-                <option value="VOLT">Volt (Lime Sports-Tech)</option>
-                <option value="THUNDER">Thunder (Electric Red)</option>
-                <option value="BLITZ">Blitz (Lightning Blue)</option>
-                <option value="ELITE">Elite (Minimal Gold)</option>
-                <option value="FRANCHISE">Franchise (Gradient)</option>
-                <option value="SHAKTI">Shakti (Bold Contrast)</option>
-              </optgroup>
-              <optgroup label="Premier Modern Themes">
-                <option value="NEW_KS_COLOR">Emerald Cricket Pro (KS Signature)</option>
-                <option value="NEW_IPL">Tata IPL Modern (Franchise)</option>
-                <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
-                <option value="KS_PREMIUM">KS Premium (Broadcast Flagship)</option>
-                <option value="WC2026">T20 World Cup 2026 Electric</option>
-                <option value="APOGEE">Apogee Arena Pro (Cyber HUD)</option>
-                <option value="GOLD_CHAMPIONSHIP">Gold Championship (Grand Finals)</option>
-              </optgroup>
+                <ThemeOptions />
             </select>
 
             <div className={`p-3 rounded border transition ${match.isSecondInnings ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -1621,26 +1599,7 @@ const legalBallCount = match.legalBallCount || 0;
               <div className="flex flex-col text-left">
                 <label className="text-xs font-bold text-slate-400 mb-1">OVERLAY THEME</label>
                 <select name="themeID" className="bg-slate-800 border border-slate-700 p-2 rounded text-sm text-white">
-                  <option value="ICC_GLOBAL">ICC T20 Global Apex</option>
-                  <option value="SKY_HYPERION">Sky Sports Hyperion Pro</option>
-                  <option value="JIO_TITAN">Jio Premier Titan (IPL 4K)</option>
-                  <option value="FOX_STRIKE">Fox Cricket BBL Strike</option>
-                  <option value="SUPERSPORT_AURA">SuperSport Aura Glass</option>
-                  <option value="APEX">Apex</option>
-                  <option value="DIAMOND">Diamond</option>
-                  <option value="VOLT">Volt</option>
-                  <option value="THUNDER">Thunder</option>
-                  <option value="BLITZ">Blitz</option>
-                  <option value="ELITE">Elite</option>
-                  <option value="FRANCHISE">Franchise</option>
-                  <option value="SHAKTI">Shakti</option>
-                  <option value="NEW_KS_COLOR">Emerald Cricket Pro</option>
-                  <option value="NEW_IPL">Tata IPL Modern</option>
-                  <option value="IPL_2026">IPL 2026 Stadium Capsule</option>
-                  <option value="KS_PREMIUM">KS Premium (Broadcast)</option>
-                  <option value="WC2026">T20 World Cup 2026</option>
-                  <option value="APOGEE">Apogee Arena Pro</option>
-                  <option value="GOLD_CHAMPIONSHIP">Gold Championship</option>
+                    <ThemeOptions />
                 </select>
               </div>
 

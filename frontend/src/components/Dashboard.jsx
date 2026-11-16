@@ -11,32 +11,9 @@ import './Dashboard.css';
 import './DashboardModern.css';
 import { CreditPlansPanel, OwnerContactFooter } from './CreditPlansPanel';
 import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
+import { ThemeOptions } from './themeOptions';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
-const THEMES = [
-  { id: 'LIGHTNING_BAR', label: 'Lightning Bar (T10 two-logo)' },
-  { id: 'ABUDHABI_T10', label: 'ABUDHABI T10 theme' },
-  { id: 'ICC_GLOBAL', label: 'ICC T20 Global Apex (World Cup)' },
-  { id: 'SKY_HYPERION', label: 'Sky Sports Hyperion Pro (UK)' },
-  { id: 'JIO_TITAN', label: 'Jio Premier Titan (IPL Gold 4K)' },
-  { id: 'FOX_STRIKE', label: 'Fox Cricket BBL Strike (Action)' },
-  { id: 'SUPERSPORT_AURA', label: 'SuperSport Aura Glass (Modern)' },
-  { id: 'APEX', label: 'Apex (TV Broadcast)' },
-  { id: 'DIAMOND', label: 'Diamond (Metallic)' },
-  { id: 'VOLT', label: 'Volt (Lime Sports-Tech)' },
-  { id: 'THUNDER', label: 'Thunder (Electric Red)' },
-  { id: 'BLITZ', label: 'Blitz (Lightning Blue)' },
-  { id: 'ELITE', label: 'Elite (Minimal Gold)' },
-  { id: 'FRANCHISE', label: 'Franchise (Gradient)' },
-  { id: 'SHAKTI', label: 'Shakti (Bold Contrast)' },
-  { id: 'NEW_KS_COLOR', label: 'Emerald Cricket Pro (KS Signature)' },
-  { id: 'NEW_IPL', label: 'Tata IPL Modern (Franchise)' },
-  { id: 'IPL_2026', label: 'IPL 2026 Stadium Capsule' },
-  { id: 'KS_PREMIUM', label: 'KS Premium (Television Broadcast)' },
-  { id: 'WC2026', label: 'T20 World Cup 2026 Electric' },
-  { id: 'APOGEE', label: 'Apogee Arena Pro (Cyber Stadium)' },
-  { id: 'GOLD_CHAMPIONSHIP', label: 'Gold Championship (Grand Finals)' },
-];
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
 const getAbsoluteUrl = (url) => {
@@ -692,9 +669,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Theme</label>
             <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
-              {THEMES.map(t => (
-                <option key={t.id} value={t.id}>{t.label}</option>
-              ))}
+              <ThemeOptions />
             </select>
           </div>
 

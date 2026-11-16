@@ -1040,6 +1040,7 @@ const getOverlay = async (req, res, next) => {
         matchTitle: match.matchTitle,
         tournamentName: match.tournamentName,
         tournamentId: match.tournamentId ? String(match.tournamentId) : null,
+        matchResult: match.matchResult || '',
         venueName: match.venueName,
         matchDate: match.matchDate,
         ticker: match.ticker,
