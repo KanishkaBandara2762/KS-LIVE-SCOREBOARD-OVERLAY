@@ -1,0 +1,187 @@
+/* ═══════════════════════════════════════════════════════════════
+   JIO_TITAN theme pack — royal purple + gold circles (1920 × 1080)
+   Colours from ModernBroadcastThemes.css: #ffd700, #e5b842, #c084fc, #38bdf8.
+   ═══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&display=swap');
+
+.jt-canvas { font-family: 'Outfit', 'Inter', sans-serif; color: #fff; text-transform: uppercase; }
+.jt-canvas > *:not(.jt-bg):not(.jt-orbit):not(.jt-stars):not(.jt-rays) { position: absolute; z-index: 2; }
+.jt-canvas .tp-logo-ph { background: linear-gradient(135deg, #4c1d95, #2e1065); color: #ffd700; font-weight: 900; }
+
+/* Background */
+.jt-bg { position: absolute; inset: 0; background: radial-gradient(circle at 50% 40%, #4c1d95 0%, #2e1065 45%, #12052b 100%); }
+.jt-orbit { position: absolute; left: 50%; top: 45%; border-radius: 50%; border: 2px solid rgba(255,215,0,0.12); translate: -50% -50%; }
+.jt-o1 { width: 900px; height: 900px; }
+.jt-o2 { width: 1400px; height: 1400px; border-style: dashed; border-color: rgba(192,132,252,0.15); animation: jtSpin 120s linear infinite; }
+.jt-o3 { width: 1900px; height: 1900px; border-color: rgba(56,189,248,0.1); }
+.jt-stars { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,215,0,0.6) 1.5px, transparent 2px), radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1.5px); background-size: 180px 180px, 110px 110px; background-position: 20px 40px, 70px 10px; opacity: 0.5; }
+.jt-rays { position: absolute; left: 50%; top: 40%; width: 2400px; height: 2400px; margin: -1200px 0 0 -1200px; background: repeating-conic-gradient(rgba(255,215,0,0.1) 0 5deg, transparent 5deg 15deg); mask-image: radial-gradient(circle, #000, transparent 50%); -webkit-mask-image: radial-gradient(circle, #000, transparent 50%); animation: jtSpin 60s linear infinite; }
+.jt-rays-left { left: 30%; }
+
+/* Shared */
+.jt-gold { font-weight: 900; line-height: 0.95; background: linear-gradient(180deg, #fff6b0, #ffd700 45%, #e5a700); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 12px rgba(255,215,0,0.25)); white-space: nowrap; }
+.jt-title { left: 0; right: 0; top: 70px; text-align: center; font-size: 120px; animation: jtFade 0.6s ease both; }
+.jt-kicker { font-size: 28px; font-weight: 700; letter-spacing: 0.3em; color: #c084fc; white-space: nowrap; }
+.jt-top { left: 0; right: 0; top: 70px; text-align: center; animation: jtFade 0.6s ease both; }
+.jt-name { font-weight: 900; line-height: 1; white-space: nowrap; text-align: center; }
+.jt-pill { display: inline-flex; align-items: center; justify-content: center; gap: 14px; height: 76px; padding: 0 44px; border-radius: 40px; background: linear-gradient(180deg, rgba(76,29,149,0.9), rgba(46,16,101,0.95)); border: 2px solid #ffd700; font-size: 32px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; box-shadow: 0 0 30px rgba(255,215,0,0.2); }
+.jt-pill b { color: #ffd700; font-weight: 900; font-size: 1.2em; }
+.jt-medal { border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: jtPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.jt-medal-ring { position: absolute; inset: -14px; border-radius: 50%; border: 4px dashed rgba(255,215,0,0.7); animation: jtSpin 18s linear infinite; }
+.jt-medal-img { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: radial-gradient(circle, #5b21b6, #2e1065); border: 8px solid #ffd700; box-sizing: border-box; padding: 34px; box-shadow: 0 0 60px rgba(255,215,0,0.35); }
+.jt-medal-img.tp-logo-ph { padding: 0; font-size: 110px; }
+.jt-empty { left: 360px; right: 360px; top: 470px; padding: 46px; border-radius: 40px; border: 2px solid rgba(255,215,0,0.5); background: rgba(46,16,101,0.85); text-align: center; font-size: 34px; text-transform: none; }
+.jt-muted { color: rgba(255,255,255,0.5); font-size: 26px; padding: 10px 0; text-transform: none; }
+.jt-card { border-radius: 30px; background: rgba(46,16,101,0.82); border: 1px solid rgba(255,215,0,0.35); padding: 22px 30px; overflow: hidden; animation: jtFade 0.5s 0.2s ease both; }
+.jt-card-h { font-size: 30px; font-weight: 900; color: #ffd700; letter-spacing: 0.15em; margin-bottom: 8px; }
+.jt-row { display: grid; grid-template-columns: minmax(0, 1fr) 100px 70px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(192,132,252,0.2); font-size: 30px; font-weight: 700; }
+.jt-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jt-row b { text-align: right; font-size: 38px; font-weight: 900; color: #ffd700; }
+.jt-row em { text-align: right; font-style: normal; font-size: 22px; color: rgba(255,255,255,0.55); }
+
+/* Versus */
+.jt-vs-a, .jt-vs-b { top: 230px; width: 420px; height: 420px; }
+.jt-vs-a { left: 200px; }
+.jt-vs-b { right: 200px; animation-delay: 0.1s; }
+.jt-vs-na, .jt-vs-nb { top: 700px; width: 620px; font-size: 60px; }
+.jt-vs-na { left: 100px; }
+.jt-vs-nb { right: 100px; }
+.jt-vs-coin { left: 840px; top: 320px; width: 240px; height: 240px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 45%, #b38600); color: #2e1065; font-size: 100px; font-weight: 900; box-shadow: 0 0 80px rgba(255,215,0,0.55); animation: jtPop 0.6s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.jt-vs-dash { position: absolute; inset: -24px; border-radius: 50%; border: 3px dashed rgba(56,189,248,0.7); animation: jtSpin 10s linear infinite reverse; }
+.jt-vs-pill { left: 50%; transform: translateX(-50%); top: 860px; animation: jtFade 0.5s 0.4s ease both; }
+
+/* Toss */
+.jt-coin { left: 760px; top: 220px; width: 400px; height: 400px; perspective: 900px; }
+.jt-coin-medal { width: 100%; height: 100%; animation: jtFlip 2s cubic-bezier(0.45, 0, 0.2, 1) both; }
+.jt-toss-name { left: 0; right: 0; top: 690px; font-size: 96px; animation: jtFade 0.5s 1.1s ease both; }
+.jt-toss-pill { left: 50%; transform: translateX(-50%); top: 840px; animation: jtFade 0.5s 1.3s ease both; }
+
+/* Match won */
+.jt-win-medal { left: 785px; top: 170px; width: 350px; height: 350px; }
+.jt-win-label { left: 0; right: 0; top: 580px; text-align: center; font-size: 56px; letter-spacing: 0.4em; }
+.jt-win-team { left: 0; right: 0; top: 670px; font-size: 110px; animation: jtFade 0.6s 0.4s ease both; }
+.jt-win-pill { left: 50%; transform: translateX(-50%); top: 840px; animation: jtFade 0.5s 0.6s ease both; }
+
+/* Summary */
+.jt-badges { left: 0; right: 0; top: 150px; display: flex; justify-content: center; gap: 140px; }
+.jt-badge { position: relative; width: 300px; height: 300px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #5b21b6, #2e1065); border: 6px solid rgba(192,132,252,0.6); animation: jtPop 0.6s ease both; }
+.jt-badge.is-live { border-color: #ffd700; box-shadow: 0 0 60px rgba(255,215,0,0.35); }
+.jt-badge-logo { width: 70px; height: 70px; object-fit: contain; }
+.jt-badge-logo.tp-logo-ph { font-size: 28px; }
+.jt-badge b { font-size: 80px; font-weight: 900; line-height: 1; }
+.jt-badge.is-live b { color: #ffd700; }
+.jt-badge span { font-size: 24px; font-weight: 700; color: rgba(255,255,255,0.65); }
+.jt-badge-team { position: absolute; top: calc(100% + 14px); left: 50%; translate: -50% 0; font-size: 32px; font-weight: 900; white-space: nowrap; }
+.jt-sum-result { left: 50%; transform: translateX(-50%); top: 540px; }
+.jt-sum-cards { left: 140px; right: 140px; top: 640px; bottom: 70px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+
+/* Chase rings */
+.jt-ch-medal { left: 860px; top: 200px; width: 200px; height: 200px; }
+.jt-ch-medal .jt-medal-img { padding: 20px; border-width: 5px; }
+.jt-ch-medal .tp-logo-ph { font-size: 60px; }
+.jt-ring { top: 300px; width: 400px; height: 400px; animation: jtPop 0.6s 0.15s ease both; }
+.jt-ring-gold { left: 340px; }
+.jt-ring-sky { right: 340px; }
+.jt-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.jt-ring-track { fill: rgba(46,16,101,0.85); stroke: rgba(255,255,255,0.1); stroke-width: 26; }
+.jt-ring-fill { fill: none; stroke-width: 26; stroke-linecap: round; }
+.jt-ring-gold .jt-ring-fill { stroke: #ffd700; filter: drop-shadow(0 0 10px rgba(255,215,0,0.7)); }
+.jt-ring-sky .jt-ring-fill { stroke: #38bdf8; filter: drop-shadow(0 0 10px rgba(56,189,248,0.7)); }
+.jt-ring-mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.jt-ring-mid b { font-size: 120px; font-weight: 900; line-height: 1; white-space: nowrap; }
+.jt-ring-gold .jt-ring-mid b { color: #ffd700; }
+.jt-ring-mid span { font-size: 26px; font-weight: 800; letter-spacing: 0.15em; color: rgba(255,255,255,0.75); }
+.jt-ch-pills { left: 0; right: 0; top: 820px; display: flex; justify-content: center; gap: 30px; animation: jtFade 0.5s 0.35s ease both; }
+
+/* POTM */
+.jt-potm-circle { left: 200px; top: 180px; width: 680px; height: 680px; border-radius: 50%; animation: jtPop 0.7s ease both; }
+.jt-potm-circle .jt-medal-ring { inset: -20px; border-width: 5px; }
+.jt-potm-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: top; border: 10px solid #ffd700; box-sizing: border-box; background: radial-gradient(circle, #5b21b6, #2e1065); }
+.jt-potm-img.tp-logo-ph { font-size: 200px; }
+.jt-potm-info { left: 960px; right: 120px; top: 320px; display: flex; flex-direction: column; align-items: flex-start; gap: 24px; animation: jtFade 0.6s 0.2s ease both; }
+.jt-potm-name { font-size: 130px; white-space: normal; max-width: 100%; }
+.jt-potm-team { font-size: 40px; font-weight: 800; color: #c084fc; letter-spacing: 0.15em; }
+.jt-potm-figs { height: 90px; font-size: 46px; }
+
+/* Partnership */
+.jt-ps-line { left: 420px; right: 420px; top: 538px; height: 6px; background: linear-gradient(90deg, #ffd700, #c084fc, #ffd700); box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+.jt-ps-bat { top: 330px; width: 460px; display: flex; flex-direction: column; align-items: center; gap: 26px; animation: jtPop 0.6s 0.2s ease both; }
+.jt-ps-bat-0 { left: 190px; }
+.jt-ps-bat-1 { right: 190px; }
+.jt-ps-circle { width: 420px; height: 420px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #5b21b6, #2e1065); border: 6px solid #38bdf8; }
+.jt-ps-bat-0 .jt-ps-circle { border-color: #ffd700; }
+.jt-ps-circle b { font-size: 160px; font-weight: 900; line-height: 0.95; }
+.jt-ps-circle span { font-size: 36px; font-weight: 700; color: rgba(255,255,255,0.7); }
+.jt-ps-name { font-size: 54px; }
+.jt-ps-total { left: 810px; top: 390px; width: 300px; height: 300px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 45%, #b38600); color: #2e1065; box-shadow: 0 0 70px rgba(255,215,0,0.55); animation: jtPop 0.6s 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.jt-ps-total b { font-size: 140px; font-weight: 900; line-height: 0.9; }
+.jt-ps-total span { font-size: 26px; font-weight: 800; }
+
+/* Squad */
+.jt-sq-head { left: 140px; top: 60px; display: flex; align-items: center; gap: 40px; }
+.jt-sq-medal { width: 150px; height: 150px; }
+.jt-sq-medal .jt-medal-img { padding: 16px; border-width: 5px; }
+.jt-sq-medal .tp-logo-ph { font-size: 50px; }
+.jt-sq-team { font-size: 96px; }
+.jt-sq-grid { left: 140px; right: 140px; top: 290px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 30px 20px; }
+.jt-sq-card { display: flex; flex-direction: column; align-items: center; gap: 10px; animation: jtPop 0.45s ease both; }
+.jt-sq-avatar { width: 170px; height: 170px; border-radius: 50%; object-fit: cover; object-position: top; border: 5px solid #ffd700; box-sizing: border-box; background: radial-gradient(circle, #5b21b6, #2e1065); }
+.jt-sq-avatar.tp-logo-ph { font-size: 56px; }
+.jt-sq-name { max-width: 260px; font-size: 32px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jt-sq-role { font-size: 18px; font-weight: 700; letter-spacing: 0.12em; color: #c084fc; }
+
+/* Points table */
+.jt-pt-title { top: 50px; font-size: 110px; }
+.jt-pt-sub { left: 0; right: 0; top: 180px; text-align: center; }
+.jt-pt { left: 200px; right: 200px; top: 260px; display: flex; flex-direction: column; gap: 12px; }
+.jt-pt-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 90px 90px 90px 90px 150px 120px; align-items: center; height: 74px; border-radius: 40px; background: rgba(46,16,101,0.82); border: 1px solid rgba(192,132,252,0.25); font-size: 34px; font-weight: 700; text-align: center; animation: jtFade 0.4s ease both; }
+.jt-pt-head { height: 48px; background: transparent; border-color: transparent; color: #c084fc; font-size: 24px; font-weight: 800; letter-spacing: 0.15em; animation: none; }
+.jt-pt-row.is-q { border-color: #ffd700; box-shadow: 0 0 24px rgba(255,215,0,0.2); }
+.jt-pt-row.is-out { opacity: 0.45; }
+.jt-pt-pos { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 50%, #b38600); color: #2e1065; font-weight: 900; }
+.jt-pt-team { display: flex; align-items: center; gap: 18px; text-align: left; white-space: nowrap; overflow: hidden; font-weight: 800; }
+.jt-pt-team em { font-style: normal; font-size: 18px; padding: 2px 10px; border-radius: 12px; background: #38bdf8; color: #082f49; }
+.jt-pt-logo { width: 50px; height: 50px; border-radius: 50%; object-fit: contain; flex: 0 0 50px; }
+.jt-pt-logo.tp-logo-ph { font-size: 18px; }
+.jt-pt-pts { font-size: 1.3em; font-weight: 900; color: #ffd700; }
+.jt-pt-head .jt-pt-pts { font-size: 24px; color: #c084fc; }
+.jt-pt-dense .jt-pt-row:not(.jt-pt-head) { height: 62px; font-size: 28px; }
+
+/* Leaders */
+.jt-ld-hero { left: 140px; top: 260px; width: 640px; height: 760px; border-radius: 40px; display: flex; flex-direction: column; align-items: center; padding-top: 60px; box-sizing: border-box; border: 2px solid rgba(255,215,0,0.5); animation: jtPop 0.6s ease both; }
+.jt-ld-hero.is-orange { background: linear-gradient(180deg, rgba(249,115,22,0.45), rgba(46,16,101,0.9) 70%); }
+.jt-ld-hero.is-purple { background: linear-gradient(180deg, rgba(192,132,252,0.45), rgba(46,16,101,0.9) 70%); }
+.jt-ld-circle { position: relative; left: auto; top: auto; width: 360px; height: 360px; }
+.jt-ld-circle .tp-logo-ph { font-size: 120px; }
+.jt-ld-hname { margin-top: 40px; font-size: 52px; }
+.jt-ld-hteam { margin-top: 6px; font-size: 26px; font-weight: 700; color: #c084fc; }
+.jt-ld-hval { margin-top: 26px; height: 90px; font-size: 32px; }
+.jt-ld-hval b { font-size: 60px; }
+.jt-ld-list { left: 860px; right: 140px; top: 280px; display: flex; flex-direction: column; gap: 22px; }
+.jt-ld-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 170px; align-items: center; height: 160px; padding: 0 30px; border-radius: 80px; background: rgba(46,16,101,0.82); border: 1px solid rgba(192,132,252,0.3); animation: jtFade 0.4s ease both; }
+.jt-ld-name { display: flex; flex-direction: column; padding-left: 20px; min-width: 0; }
+.jt-ld-name b { font-size: 46px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jt-ld-name small { font-size: 22px; font-weight: 700; color: #c084fc; }
+.jt-ld-val { text-align: right; font-size: 80px; font-weight: 900; color: #ffd700; }
+
+/* Lower thirds */
+.jt-lt {
+    position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: 17vh; z-index: 108;
+    display: flex; align-items: center; gap: 0; height: 66px; min-width: 40vw; max-width: 80vw; pointer-events: none;
+    border-radius: 40px; border: 2px solid #ffd700; background: linear-gradient(180deg, #4c1d95, #2e1065); overflow: hidden;
+    color: #fff; font-family: 'Outfit', 'Inter', sans-serif; text-transform: uppercase;
+    box-shadow: 0 0 30px rgba(255,215,0,0.25); animation: jtFade 0.45s ease both;
+}
+.jt-lt-dot { align-self: stretch; display: flex; align-items: center; padding: 0 26px; background: radial-gradient(circle at 35% 30%, #fff6b0, #ffd700 55%, #b38600); color: #2e1065; font-size: 28px; font-weight: 900; }
+.jt-lt-main { flex: 1; padding: 0 26px; font-size: 34px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jt-lt-custom .jt-lt-main { text-transform: none; font-weight: 700; font-size: 30px; }
+.jt-lt-side { padding: 0 26px; font-size: 22px; font-weight: 700; color: #ffd700; white-space: nowrap; }
+
+/* Animations */
+@keyframes jtSpin { to { rotate: 360deg; } }
+@keyframes jtFade { from { opacity: 0; translate: 0 30px; } to { opacity: 1; translate: 0 0; } }
+@keyframes jtPop { from { opacity: 0; scale: 0.6; } to { opacity: 1; scale: 1; } }
+@keyframes jtFlip { 0% { transform: rotateY(0) translateY(0); } 50% { transform: rotateY(900deg) translateY(-70px); } 100% { transform: rotateY(1800deg) translateY(0); } }
+
+/* Nested medals/circles keep their spinning ring centred on themselves (direct canvas children stay absolute). */
+.jt-medal, .jt-potm-circle { position: relative; }

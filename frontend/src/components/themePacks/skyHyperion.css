@@ -1,0 +1,155 @@
+/* ═══════════════════════════════════════════════════════════════
+   SKY_HYPERION theme pack — matte black + electric lime (1920 × 1080)
+   ═══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
+
+.hy-canvas { font-family: 'Outfit', 'Inter', sans-serif; color: #fff; }
+.hy-canvas > *:not(.hy-bg):not(.hy-grid):not(.hy-rule) { position: absolute; z-index: 2; }
+.hy-canvas .tp-logo-ph { border-radius: 0; background: #1a1a1a; color: #e6ff00; font-weight: 900; }
+
+/* Background */
+.hy-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #141414 0%, #0a0a0a 55%, #000 100%); }
+.hy-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size: 120px 120px; }
+.hy-rule { position: absolute; left: 120px; top: 0; width: 6px; height: 100%; background: #e6ff00; animation: hyGrowY 0.6s ease both; transform-origin: top; }
+
+/* Shared */
+.hy-label { display: flex; align-items: center; gap: 16px; font-size: 28px; font-weight: 600; letter-spacing: 0.18em; color: #9ca3af; white-space: nowrap; animation: hyIn 0.5s ease both; }
+.hy-label i { display: inline-block; width: 40px; height: 6px; background: #e6ff00; }
+.hy-big { font-weight: 900; line-height: 0.92; letter-spacing: -0.02em; white-space: nowrap; }
+.hy-chip { display: inline-flex; align-items: center; height: 74px; padding: 0 34px; background: #e6ff00; color: #000; font-size: 38px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; }
+.hy-sq { background: #141414; border: 2px solid #2a2a2a; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; box-shadow: inset 0 -6px 0 #e6ff00; animation: hyIn 0.6s 0.1s ease both; }
+.hy-sq-img { width: 100%; height: 100%; object-fit: contain; }
+.hy-sq-img.tp-logo-ph { font-size: 90px; }
+.hy-empty { left: 200px; right: 200px; top: 480px; padding: 46px; border-left: 6px solid #e6ff00; background: #141414; font-size: 34px; color: #d1d5db; }
+.hy-muted { color: #6b7280; font-size: 26px; padding: 12px 0; }
+.hy-foot { left: 200px; right: 120px; bottom: 90px; padding-left: 24px; border-left: 6px solid #e6ff00; font-size: 36px; font-weight: 600; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: hyIn 0.5s 0.4s ease both; }
+.hy-outline { left: 200px; top: 70px; font-size: 260px; font-weight: 900; line-height: 1; color: transparent; -webkit-text-stroke: 3px rgba(230,255,0,0.5); }
+
+/* Versus */
+.hy-vs-label { left: 200px; top: 110px; }
+.hy-vs-names { left: 200px; width: 1100px; top: 200px; display: flex; flex-direction: column; gap: 10px; }
+.hy-vs-names div { font-size: 150px; font-weight: 900; line-height: 0.95; letter-spacing: -0.02em; white-space: nowrap; animation: hyIn 0.5s ease both; }
+.hy-vs-names div:last-child { animation-delay: 0.15s; }
+.hy-vs-names span { font-size: 90px; font-weight: 400; color: #e6ff00; line-height: 1; }
+.hy-vs-logos { right: 140px; top: 160px; display: flex; flex-direction: column; gap: 40px; }
+.hy-vs-logos .hy-sq { width: 320px; height: 320px; }
+
+/* Toss */
+.hy-toss-sq { left: 200px; top: 420px; width: 420px; height: 420px; }
+.hy-toss-info { left: 690px; right: 120px; top: 470px; display: flex; flex-direction: column; align-items: flex-start; gap: 26px; animation: hyIn 0.5s 0.2s ease both; }
+
+/* Match won */
+.hy-win-label { left: 200px; top: 200px; }
+.hy-win-team { left: 200px; width: 1150px; top: 290px; font-size: 190px; animation: hyIn 0.6s ease both; }
+.hy-win-line { left: 200px; top: 560px; width: 900px; height: 14px; background: #e6ff00; animation: hyGrowX 0.8s 0.3s ease both; transform-origin: left; }
+.hy-win-text { left: 200px; top: 620px; font-size: 64px; font-weight: 600; color: #d1d5db; animation: hyIn 0.5s 0.5s ease both; }
+.hy-win-sq { right: 140px; top: 260px; width: 460px; height: 460px; }
+
+/* Summary */
+.hy-sum-label { left: 200px; top: 100px; }
+.hy-sum-inns { left: 200px; right: 120px; top: 170px; display: flex; flex-direction: column; }
+.hy-inn { display: grid; grid-template-columns: minmax(0, 1fr) auto 200px; align-items: baseline; gap: 30px; padding: 14px 0; border-bottom: 2px solid #2a2a2a; animation: hyIn 0.5s ease both; }
+.hy-inn span { font-size: 60px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #9ca3af; }
+.hy-inn b { font-size: 110px; font-weight: 900; line-height: 1; }
+.hy-inn em { font-style: normal; font-size: 32px; color: #9ca3af; text-align: right; }
+.hy-inn.is-live span { color: #fff; }
+.hy-inn.is-live b { color: #e6ff00; }
+.hy-sum-result { left: 200px; top: 480px; }
+.hy-sum-cols { left: 200px; right: 120px; top: 590px; bottom: 80px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 50px; }
+.hy-col { animation: hyIn 0.5s 0.15s ease both; overflow: hidden; }
+.hy-col-h, .hy-col-r { display: grid; grid-template-columns: minmax(0, 1fr) 100px 70px; align-items: baseline; }
+.hy-col-h { padding-bottom: 10px; border-bottom: 4px solid #e6ff00; font-size: 22px; font-weight: 800; letter-spacing: 0.15em; color: #9ca3af; }
+.hy-col-h span:not(:first-child) { text-align: right; }
+.hy-col-r { padding: 12px 0; border-bottom: 1px solid #222; font-size: 30px; font-weight: 600; }
+.hy-col-r span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hy-col-r b { text-align: right; font-size: 38px; font-weight: 900; }
+.hy-col-r em { text-align: right; font-style: normal; color: #6b7280; font-size: 24px; }
+
+/* Chase */
+.hy-ch-big { left: 200px; top: 160px; font-size: 420px; font-weight: 900; line-height: 0.85; letter-spacing: -0.04em; color: #e6ff00; animation: hyIn 0.6s ease both; }
+.hy-ch-cap { left: 210px; top: 540px; font-size: 54px; font-weight: 600; color: #d1d5db; }
+.hy-ch-stats { left: 200px; right: 120px; top: 700px; display: grid; grid-template-columns: repeat(5, 1fr); animation: hyIn 0.5s 0.3s ease both; }
+.hy-ch-stats div { display: flex; flex-direction: column; padding: 0 24px; border-left: 2px solid #2a2a2a; }
+.hy-ch-stats div:first-child { border-left: none; padding-left: 0; }
+.hy-ch-stats span { font-size: 24px; font-weight: 600; color: #9ca3af; letter-spacing: 0.06em; }
+.hy-ch-stats b { font-size: 84px; font-weight: 900; line-height: 1.05; white-space: nowrap; }
+.hy-ch-sq { right: 140px; top: 160px; width: 400px; height: 400px; }
+
+/* POTM */
+.hy-potm-photo { right: 0; top: 0; bottom: 0; width: 720px; background: linear-gradient(180deg, #1a1a1a, #0a0a0a); border-left: 10px solid #e6ff00; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; animation: hyIn 0.6s ease both; }
+.hy-potm-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.hy-potm-img.tp-logo-ph { width: 360px; height: 360px; margin-bottom: 360px; font-size: 140px; }
+.hy-potm-info { left: 200px; width: 940px; top: 320px; display: flex; flex-direction: column; align-items: flex-start; gap: 26px; animation: hyIn 0.5s 0.2s ease both; }
+.hy-potm-info .hy-big { font-size: 150px; }
+.hy-potm-team { font-size: 40px; font-weight: 600; color: #9ca3af; letter-spacing: 0.12em; }
+.hy-potm-figs { height: 90px; font-size: 52px; }
+
+/* Partnership */
+.hy-ps-total { left: 200px; top: 180px; font-size: 360px; font-weight: 900; line-height: 0.85; letter-spacing: -0.04em; animation: hyIn 0.6s ease both; }
+.hy-ps-total small { font-size: 56px; font-weight: 600; color: #9ca3af; letter-spacing: 0; }
+.hy-ps-bar { left: 200px; right: 120px; top: 620px; height: 40px; display: flex; gap: 6px; }
+.hy-ps-seg { height: 100%; animation: hyGrowX 0.9s 0.3s ease both; transform-origin: left; }
+.hy-ps-seg-0 { background: #e6ff00; }
+.hy-ps-seg-1 { background: #fff; }
+.hy-ps-names { left: 200px; right: 120px; top: 700px; display: flex; justify-content: space-between; }
+.hy-ps-bat { display: flex; flex-direction: column; }
+.hy-ps-bat-1 { align-items: flex-end; }
+.hy-ps-bat span { font-size: 50px; font-weight: 800; }
+.hy-ps-bat b { font-size: 110px; font-weight: 900; line-height: 1; }
+.hy-ps-bat-0 b { color: #e6ff00; }
+.hy-ps-bat small { font-size: 36px; color: #9ca3af; font-weight: 600; }
+
+/* Squad */
+.hy-sq-head-logo { right: 140px; top: 80px; width: 220px; height: 220px; padding: 20px; }
+.hy-sq-head-logo .tp-logo-ph { font-size: 70px; }
+.hy-sq-label { left: 200px; top: 100px; }
+.hy-sq-team { left: 200px; width: 1300px; top: 160px; font-size: 110px; }
+.hy-sq-list { left: 200px; right: 120px; top: 350px; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 100px; column-gap: 50px; }
+.hy-sq-item { display: grid; grid-template-columns: 70px minmax(0, 1fr); grid-template-rows: auto auto; align-content: center; border-bottom: 1px solid #222; animation: hyIn 0.4s ease both; }
+.hy-sq-item b { grid-row: 1 / 3; font-size: 40px; font-weight: 900; color: #e6ff00; }
+.hy-sq-item span { font-size: 38px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hy-sq-item em { font-style: normal; font-size: 20px; color: #6b7280; letter-spacing: 0.12em; }
+
+/* Points table */
+.hy-pt-title { left: 200px; top: 160px; font-size: 120px; }
+.hy-pt { left: 200px; right: 120px; top: 320px; display: flex; flex-direction: column; }
+.hy-pt-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) 100px 100px 100px 100px 160px 120px; align-items: center; height: 76px; border-bottom: 1px solid #222; font-size: 34px; font-weight: 600; text-align: center; animation: hyIn 0.4s ease both; }
+.hy-pt-head { height: 50px; border-bottom: 4px solid #e6ff00; font-size: 22px; font-weight: 800; letter-spacing: 0.15em; color: #9ca3af; text-transform: uppercase; animation: none; }
+.hy-pt-row.is-q { background: linear-gradient(90deg, rgba(230,255,0,0.14), transparent 70%); }
+.hy-pt-row.is-out { opacity: 0.4; }
+.hy-pt-pos { font-weight: 900; color: #e6ff00; }
+.hy-pt-team { display: flex; align-items: center; gap: 18px; text-align: left; white-space: nowrap; overflow: hidden; font-weight: 800; }
+.hy-pt-team em { font-style: normal; font-size: 18px; padding: 0 8px; background: #e6ff00; color: #000; }
+.hy-pt-logo { width: 48px; height: 48px; object-fit: contain; flex: 0 0 48px; }
+.hy-pt-logo.tp-logo-ph { font-size: 18px; }
+.hy-pt-pts { font-size: 1.3em; font-weight: 900; }
+.hy-pt-head .hy-pt-pts { font-size: 22px; }
+.hy-pt-dense .hy-pt-row:not(.hy-pt-head) { height: 62px; font-size: 28px; }
+
+/* Leaders */
+.hy-ld { left: 200px; width: 1000px; top: 330px; display: flex; flex-direction: column; }
+.hy-ld-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) 180px; align-items: center; height: 130px; padding-right: 26px; border-bottom: 1px solid #222; animation: hyIn 0.4s ease both; }
+.hy-ld-row.is-top { background: #e6ff00; color: #000; }
+.hy-ld-rank { padding-left: 20px; font-size: 48px; font-weight: 900; }
+.hy-ld-name { display: flex; flex-direction: column; min-width: 0; }
+.hy-ld-name b { font-size: 48px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hy-ld-name small { font-size: 22px; font-weight: 600; opacity: 0.6; letter-spacing: 0.1em; }
+.hy-ld-val { text-align: right; font-size: 84px; font-weight: 900; }
+.hy-ld-photo { width: 560px; }
+
+/* Lower thirds */
+.hy-lt {
+    position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: 17vh; z-index: 108;
+    display: flex; align-items: stretch; height: 62px; min-width: 40vw; max-width: 80vw; pointer-events: none;
+    background: #0a0a0a; color: #fff; font-family: 'Outfit', 'Inter', sans-serif;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: hyIn 0.45s ease both;
+}
+.hy-lt-tag { display: flex; align-items: center; padding: 0 24px; background: #e6ff00; color: #000; font-size: 24px; font-weight: 900; letter-spacing: 0.12em; }
+.hy-lt-main { flex: 1; display: flex; align-items: center; padding: 0 26px; font-size: 32px; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hy-lt-custom .hy-lt-main { text-transform: none; font-weight: 600; }
+.hy-lt-side { display: flex; align-items: center; padding: 0 24px; font-size: 22px; color: #9ca3af; white-space: nowrap; border-left: 2px solid #2a2a2a; }
+
+/* Animations */
+@keyframes hyIn { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes hyGrowX { from { scale: 0 1; } to { scale: 1 1; } }
+@keyframes hyGrowY { from { scale: 1 0; } to { scale: 1 1; } }

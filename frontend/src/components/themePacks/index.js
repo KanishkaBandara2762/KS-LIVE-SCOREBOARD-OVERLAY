@@ -17,6 +17,10 @@ import ipl2026 from "./ipl2026";
 import skyPro from "./skyPro";
 import lightning from "./lightning";
 import iccGlobal from "./iccGlobal";
+import skyHyperion from "./skyHyperion";
+import jioTitan from "./jioTitan";
+import foxStrike from "./foxStrike";
+import supersportAura from "./supersportAura";
 import proBroadcastScreens from "./proBroadcastScreens";
 import { ProVersusScreen, ProSquadScreen, ProPointsScreen, ProLeadersScreen } from "./proBroadcast";
 
@@ -35,6 +39,10 @@ const THEME_PACKS = {
   IPL_2026: ipl2026,
   SKY_PRO: skyPro,
   ICC_GLOBAL: iccGlobal,
+  SKY_HYPERION: skyHyperion,
+  JIO_TITAN: jioTitan,
+  FOX_STRIKE: foxStrike,
+  SUPERSPORT_AURA: supersportAura,
   LIGHTNING_BAR: lightning,
   ABUDHABI_T10: lightning,
   ABU_DHABI_T10: lightning,
