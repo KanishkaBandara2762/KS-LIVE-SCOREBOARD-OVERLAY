@@ -9,6 +9,7 @@ import {
   statusLabel,
   useAuctionSnapshot,
 } from './auctionShared';
+import AuctionAccessPanel from './AuctionAccessPanel';
 import './Auction.css';
 
 function TeamRow({ auction, team, inviteUrl, onSave, onInvite, onDelete }) {
@@ -317,7 +318,12 @@ export default function AuctionSetupPage() {
         <button className={tab === 'teams' ? 'active' : ''} onClick={() => setTab('teams')}><Users size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Teams</button>
         <button className={tab === 'players' ? 'active' : ''} onClick={() => setTab('players')}><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Players</button>
         <button className={tab === 'rules' ? 'active' : ''} onClick={() => setTab('rules')}><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Rules</button>
+        <button className={tab === 'access' ? 'active' : ''} onClick={() => setTab('access')}><Link size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Access</button>
       </div>
+
+      {tab === 'access' ? (
+        <AuctionAccessPanel auction={auction} teams={teams} onChanged={refresh} />
+      ) : null}
 
       {tab === 'teams' ? (
         <div className="auction-two-col">

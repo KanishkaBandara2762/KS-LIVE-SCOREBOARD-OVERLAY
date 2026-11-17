@@ -133,6 +133,20 @@ const auctionSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // Secret tokens for the player registration and captain links. Never sent
+    // in public snapshots; only returned to the owner by the links endpoint.
+    playerRegToken: {
+      type: String,
+      default: null,
+      index: true,
+      select: false,
+    },
+    captainToken: {
+      type: String,
+      default: null,
+      index: true,
+      select: false,
+    },
     currency: {
       type: String,
       enum: ['LKR', 'USD', 'INR', 'GBP', 'AUD'],

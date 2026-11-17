@@ -44,6 +44,8 @@ import AuctionLivePage from "./components/auction/AuctionLivePage";
 import AuctionResultsPage from "./components/auction/AuctionResultsPage";
 import AuctionDisplayPage from "./components/auction/AuctionDisplayPage";
 import AuctionJoinPage from "./components/auction/AuctionJoinPage";
+import PlayerRegisterPage from "./components/auction/PlayerRegisterPage";
+import CaptainJoinPage from "./components/auction/CaptainJoinPage";
 
 function App() {
   return (
@@ -73,6 +75,8 @@ function App() {
 
             {/* Public auction display — safe for OBS/projector */}
             <Route path="/auction/display/:slug" element={<AuctionDisplayPage />} />
+            {/* Player registration form — public, opened from the player link or QR */}
+            <Route path="/auction/register/:token" element={<PlayerRegisterPage />} />
 
             {/* Auth pages */}
             <Route path="/login" element={<LoginPage />} />
@@ -144,6 +148,9 @@ function App() {
             } />
             <Route path="/auction/join/:token" element={
               <PrivateRoute><AuctionJoinPage /></PrivateRoute>
+            } />
+            <Route path="/auction/captain/:token" element={
+              <PrivateRoute><CaptainJoinPage /></PrivateRoute>
             } />
 
 

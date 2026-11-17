@@ -13,11 +13,7 @@ const AuctionInvite = require('../models/AuctionInvite');
 const AuctionEntitlement = require('../models/AuctionEntitlement');
 const Tournament = require('../models/Tournament');
 const engine = require('../services/auctionEngine');
-const {
-  auctionAccessOpenInDev,
-  isAdmin,
-  getActiveEntitlement,
-} = require('../services/auctionEntitlement');
+const { isAdmin } = require('../services/auctionEntitlement');
 
 const { AuctionError } = engine;
 
@@ -149,24 +145,6 @@ async function createAuction(req, res, next) {
       return res.status(400).json({ success: false, error: 'Auction name is required.' });
     }
 
-    // Entitlement limits (admins and local development bypass these).
-    if (!auctionAccessOpenInDev() && !(await isAdmin(req.user.id))) {
-      const entitlement = await getActiveEntitlement(req.user.id);
-      if (entitlement) {
-        const activeCount = await Auction.countDocuments({
-          ownerId: req.user.id,
-          status: { $in: ['draft', 'ready', 'live', 'paused'] },
-        });
-        if (activeCount >= entitlement.maxActiveAuctions) {
-          return res.status(402).json({
-            success: false,
-            error: `Your auction add-on allows ${entitlement.maxActiveAuctions} active auction(s). Complete an existing auction or upgrade.`,
-            code: 'AUCTION_LIMIT_REACHED',
-          });
-        }
-      }
-    }
-
     if (tournamentId) {
       const tournament = await Tournament.findById(tournamentId);
       if (!tournament) {
@@ -183,8 +161,9 @@ async function createAuction(req, res, next) {
       name: String(name).trim().slice(0, 120),
       description: bodyString(description, 2000),
       venue: bodyString(venue, 200),
-      visibility: visibility === 'public' ? 'public' : 'private',
-      publicSlug: visibility === 'public' ? publicSlug() : null,
+      // Main link is always on: every auction has a public display slug.
+      visibility: 'public',
+      publicSlug: publicSlug(),
       currency: ['LKR', 'USD', 'INR', 'GBP', 'AUD'].includes(currency) ? currency : 'LKR',
       config: auctionConfigFromBody(req.body.config || req.body),
       status: 'draft',
@@ -205,6 +184,13 @@ async function createAuction(req, res, next) {
 
 async function getAuction(req, res, next) {
   try {
+    // Auctions created before the main link existed get a slug on first open.
+    if (!req.auction.publicSlug) {
+      req.auction.visibility = 'public';
+      req.auction.publicSlug = publicSlug();
+      await req.auction.save();
+    }
+
     // Settle an expired lot before building the snapshot (serverless hosts do
     // not have background timers). Safe on long-running hosts too.
     await engine.settleExpiredLot(req.auction._id, ioFor(req));
