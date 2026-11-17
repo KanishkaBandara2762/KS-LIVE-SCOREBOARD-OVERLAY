@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Crown, Download, Link, Play, Settings, Smartphone, Users, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Crown, Download, Inbox, Link, Play, Settings, Smartphone, Users, X } from 'lucide-react';
 import { auctionApi, tournamentsApi } from '../../api';
 import {
   AUCTION_CURRENCIES,
@@ -9,6 +9,8 @@ import {
   useAuctionSnapshot,
 } from './auctionShared';
 import AuctionAccessPanel from './AuctionAccessPanel';
+import AuctionRequestsPanel from './AuctionRequestsPanel';
+import './AuctionAccess.css';
 import PlayerDetailsFields, { EMPTY_PLAYER_FORM, playerFormToFormData } from './PlayerDetailsFields';
 import './Auction.css';
 
@@ -87,7 +89,11 @@ export default function AuctionSetupPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { snapshot, setSnapshot, loading, restError, connected } = useAuctionSnapshot(id);
-  const [tab, setTab] = useState('teams');
+  // Tab lives in the URL (?tab=rules) so other pages can deep-link here.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') || 'teams';
+  const setTab = (next) => setSearchParams(next === 'teams' ? {} : { tab: next }, { replace: true });
+  const [requests, setRequests] = useState([]);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
   const [invites, setInvites] = useState({});
@@ -95,6 +101,7 @@ export default function AuctionSetupPage() {
   const [playerForm, setPlayerForm] = useState({ ...EMPTY_PLAYER_FORM, basePrice: '' });
   const [playerPhoto, setPlayerPhoto] = useState(null);
   const [configForm, setConfigForm] = useState(null);
+  const [detailsForm, setDetailsForm] = useState({ name: '', venue: '', description: '' });
   const [showImport, setShowImport] = useState(false);
   const [tournaments, setTournaments] = useState([]);
   const [importTournamentId, setImportTournamentId] = useState('');
@@ -106,6 +113,9 @@ export default function AuctionSetupPage() {
   const players = snapshot?.players || [];
   const viewerRole = snapshot?.viewer?.role;
   const canManage = viewerRole === 'auctioneer' || viewerRole === 'admin';
+  // Rules stay editable during a live auction. Name, venue and description lock once it starts.
+  const ruleLocked = ['completed', 'cancelled'].includes(auction?.status);
+  const detailsLocked = !['draft', 'ready'].includes(auction?.status);
 
   useEffect(() => {
     if (auction?.config && !configForm) {
@@ -116,6 +126,13 @@ export default function AuctionSetupPage() {
       }));
     }
   }, [auction, configForm]);
+
+  // Fill the details form once per auction (later saves keep what the user typed).
+  useEffect(() => {
+    if (!auction) return;
+    setDetailsForm({ name: auction.name || '', venue: auction.venue || '', description: auction.description || '' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auction?.id]);
 
   const selectedTournament = useMemo(
     () => tournaments.find((tournament) => String(tournament.id || tournament._id) === String(importTournamentId)),
@@ -130,6 +147,27 @@ export default function AuctionSetupPage() {
       setError(err.message || 'Failed to refresh auction.');
     }
   };
+
+  const loadRequests = useCallback(async () => {
+    try {
+      const res = await auctionApi.listPlayerRequests(id);
+      setRequests(res.requests || []);
+    } catch (err) {
+      setError(err.message || 'Could not load requests.');
+    }
+  }, [id]);
+
+  // Load on open and on tab change; while the Requests tab is open, refresh every 15 s.
+  useEffect(() => {
+    loadRequests();
+    if (tab !== 'requests') return undefined;
+    const timer = setInterval(loadRequests, 15000);
+    return () => clearInterval(timer);
+  }, [tab, loadRequests]);
+
+  const pendingPlayerCount = requests.filter((req) => req.status === 'pending').length;
+  const pendingCaptainCount = teams.filter((team) => team.pendingCaptain && !team.ownerUserId).length;
+  const pendingRequestCount = pendingPlayerCount + pendingCaptainCount;
 
   const run = async (action, successMessage = 'Saved.') => {
     setError('');
@@ -191,8 +229,13 @@ export default function AuctionSetupPage() {
     event.preventDefault();
     await run(
       () => auctionApi.update(id, { config: configForm }),
-      'Auction rules saved.'
+      'Rules saved.'
     );
+  };
+
+  const saveDetails = async (event) => {
+    event.preventDefault();
+    await run(() => auctionApi.update(id, detailsForm), 'Auction details saved.');
   };
 
   const openImport = async () => {
@@ -314,10 +357,32 @@ export default function AuctionSetupPage() {
         <button className={tab === 'players' ? 'active' : ''} onClick={() => setTab('players')}><Crown size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Players</button>
         <button className={tab === 'rules' ? 'active' : ''} onClick={() => setTab('rules')}><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Rules</button>
         <button className={tab === 'access' ? 'active' : ''} onClick={() => setTab('access')}><Link size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Access</button>
+        <button className={tab === 'requests' ? 'active' : ''} onClick={() => setTab('requests')}>
+          <Inbox size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Requests
+          {pendingRequestCount > 0 ? <span className="auction-tab-badge">{pendingRequestCount}</span> : null}
+        </button>
       </div>
 
       {tab === 'access' ? (
-        <AuctionAccessPanel auction={auction} teams={teams} onChanged={refresh} />
+        <AuctionAccessPanel
+          auction={auction}
+          pendingRequestCount={pendingRequestCount}
+          onOpenRequests={() => setTab('requests')}
+        />
+      ) : null}
+
+      {tab === 'requests' ? (
+        <AuctionRequestsPanel
+          auction={auction}
+          teams={teams}
+          requests={requests}
+          onChanged={() => {
+            refresh();
+            loadRequests();
+          }}
+          onRefresh={loadRequests}
+          onOpenAccess={() => setTab('access')}
+        />
       ) : null}
 
       {tab === 'teams' ? (
@@ -442,10 +507,54 @@ export default function AuctionSetupPage() {
       ) : null}
 
       {tab === 'rules' && configForm ? (
+        <>
         <section className="auction-panel">
           <div className="auction-panel-header">
-            <div><h2>Auction rules</h2><p>These can only be changed before the auction starts.</p></div>
+            <div>
+              <h2>Auction details</h2>
+              <p>
+                {detailsLocked
+                  ? 'Name, venue and currency are locked once the auction has started.'
+                  : 'Name, venue and description can be edited until the auction starts.'}
+              </p>
+            </div>
           </div>
+          <form className="auction-form" onSubmit={saveDetails}>
+            <fieldset disabled={detailsLocked || ruleLocked} className="auction-fieldset">
+              <div className="auction-field">
+                <label>Auction name</label>
+                <input value={detailsForm.name} onChange={(e) => setDetailsForm({ ...detailsForm, name: e.target.value })} maxLength={120} required />
+              </div>
+              <div className="auction-form-row">
+                <div className="auction-field">
+                  <label>Venue</label>
+                  <input value={detailsForm.venue} onChange={(e) => setDetailsForm({ ...detailsForm, venue: e.target.value })} maxLength={200} placeholder="Optional" />
+                </div>
+                <div className="auction-field">
+                  <label>Currency</label>
+                  <select value={auction.currency} disabled>
+                    {AUCTION_CURRENCIES.map((currency) => <option key={currency.code}>{currency.code}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="auction-field">
+                <label>Description</label>
+                <textarea value={detailsForm.description} onChange={(e) => setDetailsForm({ ...detailsForm, description: e.target.value })} rows={2} maxLength={2000} />
+              </div>
+              <button type="submit" className="auction-btn primary">Save details</button>
+            </fieldset>
+          </form>
+        </section>
+
+        <section className="auction-panel">
+          <div className="auction-panel-header">
+            <div>
+              <h2>Auction rules</h2>
+              <p>You can change these before and during the auction. Bidding rules apply to the next bid; the timer applies from the next lot.</p>
+            </div>
+          </div>
+          {ruleLocked ? <div className="auction-alert">This auction has finished. Rules are read-only.</div> : null}
+          <fieldset disabled={ruleLocked} className="auction-fieldset">
           <form className="auction-form" onSubmit={saveConfig}>
             <div className="auction-form-row three">
               <div className="auction-field">
@@ -502,9 +611,11 @@ export default function AuctionSetupPage() {
               <label><input type="checkbox" checked={configForm.allowConsecutiveTeamBids} onChange={(e) => setConfigForm({ ...configForm, allowConsecutiveTeamBids: e.target.checked })} /> Allow a team to outbid itself</label>
             </div>
 
-            <button type="submit" className="auction-btn primary">Save rules</button>
+            <button type="submit" className="auction-btn primary">Save changes</button>
           </form>
+          </fieldset>
         </section>
+        </>
       ) : null}
 
       {showImport ? (

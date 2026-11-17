@@ -10,22 +10,14 @@ import {
   statusLabel,
 } from './auctionShared';
 import './Auction.css';
+import './AuctionAccess.css';
 
+// Only the basics are asked at creation. Timer, base price and bidding rules
+// are set inside the auction (Setup → Rules) and use the model defaults.
 const DEFAULT_FORM = {
   name: '',
-  venue: '',
-  description: '',
   currency: 'LKR',
-  timerSeconds: 30,
-  basePriceDefault: 1000,
-  bidIncrement: 100,
-  extensionWindowSeconds: 10,
-  extensionSeconds: 15,
-  maxExtensions: 5,
-  maxPlayersPerTeam: 15,
-  bidIncrementMode: 'fixed',
-  allowJumpBids: true,
-  allowConsecutiveTeamBids: false,
+  description: '',
 };
 
 function CreateAuctionModal({ onClose, onCreate, credits, unlimited }) {
@@ -81,19 +73,13 @@ function CreateAuctionModal({ onClose, onCreate, credits, unlimited }) {
             <input value={form.name} onChange={set('name')} placeholder="e.g. KS Super League 2026" required />
           </div>
 
-          <div className="auction-form-row">
-            <div className="auction-field">
-              <label>Venue</label>
-              <input value={form.venue} onChange={set('venue')} placeholder="Optional" />
-            </div>
-            <div className="auction-field">
-              <label>Currency</label>
-              <select value={form.currency} onChange={set('currency')}>
-                {AUCTION_CURRENCIES.map((currency) => (
-                  <option key={currency.code} value={currency.code}>{currency.label}</option>
-                ))}
-              </select>
-            </div>
+          <div className="auction-field">
+            <label>Currency</label>
+            <select value={form.currency} onChange={set('currency')}>
+              {AUCTION_CURRENCIES.map((currency) => (
+                <option key={currency.code} value={currency.code}>{currency.label}</option>
+              ))}
+            </select>
           </div>
 
           <div className="auction-field">
@@ -101,53 +87,9 @@ function CreateAuctionModal({ onClose, onCreate, credits, unlimited }) {
             <textarea value={form.description} onChange={set('description')} rows={2} placeholder="Optional" />
           </div>
 
-          <div className="auction-form-row three">
-            <div className="auction-field">
-              <label>Timer per lot (seconds)</label>
-              <input type="number" min="5" max="300" value={form.timerSeconds} onChange={set('timerSeconds')} />
-            </div>
-            <div className="auction-field">
-              <label>Default base price</label>
-              <input type="number" min="0" value={form.basePriceDefault} onChange={set('basePriceDefault')} />
-            </div>
-            <div className="auction-field">
-              <label>Bid increment</label>
-              <input type="number" min="1" value={form.bidIncrement} onChange={set('bidIncrement')} />
-            </div>
-          </div>
-
-          <div className="auction-form-row three">
-            <div className="auction-field">
-              <label>Extension window (s)</label>
-              <input type="number" min="0" max="120" value={form.extensionWindowSeconds} onChange={set('extensionWindowSeconds')} />
-            </div>
-            <div className="auction-field">
-              <label>Extension length (s)</label>
-              <input type="number" min="1" max="120" value={form.extensionSeconds} onChange={set('extensionSeconds')} />
-            </div>
-            <div className="auction-field">
-              <label>Max extensions</label>
-              <input type="number" min="0" max="50" value={form.maxExtensions} onChange={set('maxExtensions')} />
-            </div>
-          </div>
-
-          <div className="auction-form-row">
-            <div className="auction-field">
-              <label>Max players per team</label>
-              <input type="number" min="1" max="50" value={form.maxPlayersPerTeam} onChange={set('maxPlayersPerTeam')} />
-            </div>
-          </div>
-
-          <div className="auction-check-row">
-            <label>
-              <input type="checkbox" checked={form.allowJumpBids} onChange={set('allowJumpBids')} />
-              Allow bids above the minimum increment
-            </label>
-            <label>
-              <input type="checkbox" checked={form.allowConsecutiveTeamBids} onChange={set('allowConsecutiveTeamBids')} />
-              Allow a team to outbid itself
-            </label>
-          </div>
+          <p className="auction-access-note">
+            You can change the timer, base price and bidding rules inside the auction.
+          </p>
 
           <div className="auction-modal-actions">
             <button type="button" className="auction-btn ghost" onClick={onClose}>Cancel</button>
@@ -190,19 +132,9 @@ export default function AuctionListPage() {
 
   const create = async (form) => {
     const res = await auctionApi.create({
-      ...form,
-      config: {
-        timerSeconds: Number(form.timerSeconds),
-        basePriceDefault: Number(form.basePriceDefault),
-        bidIncrement: Number(form.bidIncrement),
-        extensionWindowSeconds: Number(form.extensionWindowSeconds),
-        extensionSeconds: Number(form.extensionSeconds),
-        maxExtensions: Number(form.maxExtensions),
-        maxPlayersPerTeam: Number(form.maxPlayersPerTeam),
-        bidIncrementMode: form.bidIncrementMode,
-        allowJumpBids: form.allowJumpBids,
-        allowConsecutiveTeamBids: form.allowConsecutiveTeamBids,
-      },
+      name: form.name,
+      currency: form.currency,
+      description: form.description,
     });
     if (!isAdminRole(currentUser?.role)) {
       updateCurrentUser({ matchCredits: Math.max(0, (currentUser?.matchCredits ?? 0) - 1) });
