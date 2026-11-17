@@ -15,7 +15,6 @@ const DEFAULT_FORM = {
   venue: '',
   description: '',
   currency: 'LKR',
-  visibility: 'private',
   timerSeconds: 30,
   basePriceDefault: 1000,
   bidIncrement: 100,
@@ -124,13 +123,6 @@ function CreateAuctionModal({ onClose, onCreate }) {
             <div className="auction-field">
               <label>Max players per team</label>
               <input type="number" min="1" max="50" value={form.maxPlayersPerTeam} onChange={set('maxPlayersPerTeam')} />
-            </div>
-            <div className="auction-field">
-              <label>Visibility</label>
-              <select value={form.visibility} onChange={set('visibility')}>
-                <option value="private">Private — invited owners only</option>
-                <option value="public">Public — anyone can watch</option>
-              </select>
             </div>
           </div>
 

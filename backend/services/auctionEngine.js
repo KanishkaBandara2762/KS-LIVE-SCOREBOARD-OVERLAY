@@ -69,6 +69,10 @@ async function serializedTeams(auctionId) {
   const teams = await AuctionTeam.find({ auctionId }).sort({ createdAt: 1 }).lean();
   return teams.map((team) => ({
     ...withId(team),
+    // Snapshots are public. Expose only the requester's name, never their id or email.
+    pendingCaptain: team.pendingCaptain?.userId
+      ? { name: team.pendingCaptain.name || '', requestedAt: team.pendingCaptain.requestedAt }
+      : null,
     purseRemaining: Math.max(0, (team.purseTotal || 0) - (team.purseSpent || 0)),
   }));
 }

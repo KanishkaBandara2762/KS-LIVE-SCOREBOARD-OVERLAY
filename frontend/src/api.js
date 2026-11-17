@@ -244,6 +244,25 @@ export const auctionApi = {
   invite: (auctionId, teamId, body = {}) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}/invite`, { method: 'POST', body: JSON.stringify(body) }),
   join: (token) => apiRequest(`/api/auctions/join/${token}`, { method: 'POST' }),
 
+  // Links and registration (main = public display, player and captain = secret links)
+  getLinks: (auctionId) => apiRequest(`/api/auctions/${auctionId}/links`),
+  regenerateLink: (auctionId, which) => apiRequest(`/api/auctions/${auctionId}/links/regenerate`, { method: 'POST', body: JSON.stringify({ which }) }),
+  listPlayerRequests: (auctionId) => apiRequest(`/api/auctions/${auctionId}/player-requests`),
+  approvePlayerRequest: (auctionId, reqId, basePrice) => apiRequest(`/api/auctions/${auctionId}/player-requests/${reqId}/approve`, { method: 'POST', body: JSON.stringify({ basePrice }) }),
+  rejectPlayerRequest: (auctionId, reqId) => apiRequest(`/api/auctions/${auctionId}/player-requests/${reqId}/reject`, { method: 'POST' }),
+  approveCaptain: (auctionId, teamId) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}/captain/approve`, { method: 'POST' }),
+  rejectCaptain: (auctionId, teamId) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}/captain/reject`, { method: 'POST' }),
+  getPlayerRegistration: (token) => apiRequest(`/api/auctions/register/${token}`),
+  captainTeams: (token) => apiRequest(`/api/auctions/captain/${token}`),
+  requestCaptainTeam: (token, teamId) => apiRequest(`/api/auctions/captain/${token}/request`, { method: 'POST', body: JSON.stringify({ teamId }) }),
+  // Multipart form (photo). No JSON Content-Type so the browser sets the boundary.
+  submitPlayerRegistration: async (token, formData) => {
+    const res = await fetch(`${BASE_URL}/api/auctions/register/${token}`, { method: 'POST', body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.success === false) throw new Error(data.error || 'Could not send your request.');
+    return data;
+  },
+
   addPlayer: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/players`, { method: 'POST', body: JSON.stringify(body) }),
   importPlayers: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/players/import`, { method: 'POST', body: JSON.stringify(body) }),
   updatePlayer: (auctionId, playerId, body) => apiRequest(`/api/auctions/${auctionId}/players/${playerId}`, { method: 'PATCH', body: JSON.stringify(body) }),
