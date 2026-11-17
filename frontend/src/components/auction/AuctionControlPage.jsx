@@ -195,7 +195,7 @@ export default function AuctionControlPage() {
           </div>
         </div>
         <div className="auction-header-actions">
-          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/setup`)}><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Setup</button>
+          <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/setup?tab=rules`)}><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Settings</button>
           <button className="auction-btn" onClick={() => navigate(`/auctions/${id}/results`)}><BarChart3 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Results</button>
           {auction.publicSlug ? (
             <button className="auction-btn" onClick={() => window.open(`/auction/display/${auction.publicSlug}`, '_blank')}><Tv size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Display</button>

@@ -228,15 +228,35 @@ async function getPublicAuction(req, res, next) {
 
 async function updateAuction(req, res, next) {
   try {
-    if (!['draft', 'ready'].includes(req.auction.status)) {
+    const auction = req.auction;
+    if (['completed', 'cancelled'].includes(auction.status)) {
+      return res.status(409).json({ success: false, error: 'This auction has finished.', code: 'AUCTION_FINISHED' });
+    }
+
+    // Details (name, currency, etc.) lock once the auction starts. Rules (config) stay editable live.
+    const detailsChanging = ['name', 'description', 'venue', 'currency', 'visibility', 'tournamentId']
+      .some((field) => req.body[field] !== undefined);
+    if (detailsChanging && !['draft', 'ready'].includes(auction.status)) {
       return res.status(409).json({
         success: false,
-        error: 'Auction settings can only be changed before the auction starts.',
+        error: 'Auction name, venue and currency can only be changed before the auction starts.',
         code: 'AUCTION_ALREADY_STARTED',
       });
     }
 
-    const auction = req.auction;
+    if (req.body.config !== undefined) {
+      const nextConfig = auctionConfigFromBody(req.body.config, auction.config || {});
+      const largestSquad = await AuctionTeam.find({ auctionId: auction._id }).select('playersBought').lean();
+      const biggest = Math.max(0, ...largestSquad.map((team) => team.playersBought || 0));
+      if (nextConfig.maxPlayersPerTeam < biggest) {
+        return res.status(400).json({
+          success: false,
+          error: `A team already has ${biggest} players. Max players per team cannot be lower than that.`,
+          code: 'MAX_PLAYERS_TOO_LOW',
+        });
+      }
+    }
+
     if (req.body.name !== undefined) auction.name = bodyString(req.body.name, 120);
     if (req.body.description !== undefined) auction.description = bodyString(req.body.description, 2000);
     if (req.body.venue !== undefined) auction.venue = bodyString(req.body.venue, 200);
@@ -263,6 +283,12 @@ async function updateAuction(req, res, next) {
     }
 
     await auction.save();
+
+    // Live bidders should see new rules (e.g. a bigger increment) straight away.
+    if (['live', 'paused'].includes(auction.status) && req.body.config !== undefined) {
+      await engine.broadcastSnapshot(ioFor(req), auction._id);
+    }
+
     res.json({ success: true, auction: auction.toJSON() });
   } catch (err) {
     handleError(res, next, err);
