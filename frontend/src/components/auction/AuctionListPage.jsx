@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BarChart3, Hammer, Mic, Play, Settings, Smartphone, Tv, X } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { auctionApi } from '../../api';
+import { isAdminRole } from '../../utils/roles';
 import {
   AUCTION_CURRENCIES,
   formatMoney,
@@ -27,10 +28,12 @@ const DEFAULT_FORM = {
   allowConsecutiveTeamBids: false,
 };
 
-function CreateAuctionModal({ onClose, onCreate }) {
+function CreateAuctionModal({ onClose, onCreate, credits, unlimited }) {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  // Admins are not charged. Everyone else needs at least 1 credit.
+  const noCredits = !unlimited && credits < 1;
 
   const set = (field) => (event) => {
     const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
@@ -63,6 +66,15 @@ function CreateAuctionModal({ onClose, onCreate }) {
 
         {error ? <div className="auction-alert error">{error}</div> : null}
 
+        {unlimited ? null : noCredits ? (
+          <div className="auction-alert error">
+            You have 0 credits. Add credit to your account before creating an auction. 1 credit = 1 auction.
+          </div>
+        ) : (
+          <div className="auction-alert success">
+            Creating this auction uses 1 credit. You have {credits} credit{credits === 1 ? '' : 's'}.
+          </div>
+        )}
         <form className="auction-form" onSubmit={submit}>
           <div className="auction-field">
             <label>Auction name *</label>
@@ -139,7 +151,7 @@ function CreateAuctionModal({ onClose, onCreate }) {
 
           <div className="auction-modal-actions">
             <button type="button" className="auction-btn ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="auction-btn primary" disabled={saving}>
+            <button type="submit" className="auction-btn primary" disabled={saving || noCredits}>
               {saving ? 'Creating…' : 'Create auction'}
             </button>
           </div>
@@ -151,7 +163,9 @@ function CreateAuctionModal({ onClose, onCreate }) {
 
 export default function AuctionListPage() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, updateCurrentUser } = useAuth();
+  const credits = currentUser?.matchCredits ?? 0;
+  const unlimitedCredits = isAdminRole(currentUser?.role);
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -190,6 +204,9 @@ export default function AuctionListPage() {
         allowConsecutiveTeamBids: form.allowConsecutiveTeamBids,
       },
     });
+    if (!isAdminRole(currentUser?.role)) {
+      updateCurrentUser({ matchCredits: Math.max(0, (currentUser?.matchCredits ?? 0) - 1) });
+    }
     setShowCreate(false);
     navigate(`/auctions/${res.auction.id}/setup`);
   };
@@ -292,7 +309,12 @@ export default function AuctionListPage() {
       </div>
 
       {showCreate ? (
-        <CreateAuctionModal onClose={() => setShowCreate(false)} onCreate={create} />
+        <CreateAuctionModal
+          onClose={() => setShowCreate(false)}
+          onCreate={create}
+          credits={credits}
+          unlimited={unlimitedCredits}
+        />
       ) : null}
     </div>
   );

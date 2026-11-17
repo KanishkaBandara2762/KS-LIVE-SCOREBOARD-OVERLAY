@@ -39,6 +39,17 @@ function bodyString(value, max = 500) {
   return String(value ?? '').trim().slice(0, max);
 }
 
+// Fields shared by the public player form and the owner's Add Player form.
+function playerFieldsFromBody(body = {}) {
+  return {
+    shirtNo: bodyString(body.shirtNo, 10),
+    role: bodyString(body.role || 'All-Rounder', 40),
+    currentClub: bodyString(body.currentClub, 80),
+    battingStyle: bodyString(body.battingStyle, 40),
+    bowlingStyle: bodyString(body.bowlingStyle, 40),
+  };
+}
+
 function newToken() {
   return crypto.randomBytes(24).toString('hex');
 }
@@ -134,12 +145,9 @@ async function submitPlayerRequest(req, res, next) {
 
     const request = await AuctionPlayerRequest.create({
       auctionId: auction._id,
+      ...playerFieldsFromBody(req.body),
       name,
       age,
-      role: bodyString(req.body.role || 'All-Rounder', 40),
-      nationality: bodyString(req.body.nationality, 60),
-      phone: bodyString(req.body.phone, 40),
-      details: bodyString(req.body.details, 1000),
       photo: req.file ? `/uploads/auction-players/${req.file.filename}` : '',
     });
 
@@ -190,9 +198,12 @@ async function approvePlayerRequest(req, res, next) {
     const player = await AuctionPlayer.create({
       auctionId: req.auction._id,
       name: request.name,
+      shirtNo: request.shirtNo,
       role: request.role,
-      nationality: request.nationality,
+      currentClub: request.currentClub,
       age: request.age,
+      battingStyle: request.battingStyle,
+      bowlingStyle: request.bowlingStyle,
       photo: request.photo,
       basePrice,
       lotOrder: (last?.lotOrder || 0) + 1,
@@ -353,6 +364,7 @@ async function rejectCaptain(req, res, next) {
 
 module.exports = {
   handlePlayerPhoto,
+  playerFieldsFromBody,
   getLinks,
   regenerateLink,
   getPlayerRegistration,

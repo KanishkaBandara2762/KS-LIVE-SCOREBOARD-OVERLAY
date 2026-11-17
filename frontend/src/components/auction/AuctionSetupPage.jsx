@@ -4,12 +4,12 @@ import { ArrowLeft, Crown, Download, Link, Play, Settings, Smartphone, Users, X 
 import { auctionApi, tournamentsApi } from '../../api';
 import {
   AUCTION_CURRENCIES,
-  PLAYER_CATEGORIES,
   formatMoney,
   statusLabel,
   useAuctionSnapshot,
 } from './auctionShared';
 import AuctionAccessPanel from './AuctionAccessPanel';
+import PlayerDetailsFields, { EMPTY_PLAYER_FORM, playerFormToFormData } from './PlayerDetailsFields';
 import './Auction.css';
 
 function TeamRow({ auction, team, inviteUrl, onSave, onInvite, onDelete }) {
@@ -92,7 +92,8 @@ export default function AuctionSetupPage() {
   const [saved, setSaved] = useState('');
   const [invites, setInvites] = useState({});
   const [teamForm, setTeamForm] = useState({ name: '', shortName: '', purseTotal: 1000000, ownerName: '', ownerEmail: '' });
-  const [playerForm, setPlayerForm] = useState({ name: '', role: 'Batsman', category: 'Uncapped', basePrice: '' });
+  const [playerForm, setPlayerForm] = useState({ ...EMPTY_PLAYER_FORM, basePrice: '' });
+  const [playerPhoto, setPlayerPhoto] = useState(null);
   const [configForm, setConfigForm] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const [tournaments, setTournaments] = useState([]);
@@ -171,20 +172,14 @@ export default function AuctionSetupPage() {
 
   const addPlayer = async (event) => {
     event.preventDefault();
-    await run(
-      () =>
-        auctionApi.addPlayer(id, {
-          ...playerForm,
-          basePrice: Number(playerForm.basePrice || auction?.config?.basePriceDefault || 0),
-        }),
-      'Player added.'
+    const { basePrice, ...details } = playerForm;
+    const data = playerFormToFormData(
+      { ...details, basePrice: Number(basePrice || auction?.config?.basePriceDefault || 0) },
+      playerPhoto
     );
-    setPlayerForm({
-      name: '',
-      role: 'Batsman',
-      category: 'Uncapped',
-      basePrice: auction?.config?.basePriceDefault || 0,
-    });
+    await run(() => auctionApi.addPlayer(id, data), 'Player added.');
+    setPlayerForm({ ...EMPTY_PLAYER_FORM, basePrice: auction?.config?.basePriceDefault || 0 });
+    setPlayerPhoto(null);
   };
 
   const deletePlayer = async (playerId) => {
@@ -428,30 +423,19 @@ export default function AuctionSetupPage() {
             <div className="auction-panel-header">
               <div><h2>Add a player</h2><p>Base price is the opening bid.</p></div>
             </div>
-            <form className="auction-form" onSubmit={addPlayer}>
-              <div className="auction-field">
-                <label>Player name *</label>
-                <input value={playerForm.name} onChange={(e) => setPlayerForm({ ...playerForm, name: e.target.value })} placeholder="e.g. Kasun Perera" required />
-              </div>
-              <div className="auction-form-row">
-                <div className="auction-field">
-                  <label>Role</label>
-                  <select value={playerForm.role} onChange={(e) => setPlayerForm({ ...playerForm, role: e.target.value })}>
-                    {['Batsman', 'Bowler', 'All-Rounder', 'Wicket-Keeper'].map((role) => <option key={role}>{role}</option>)}
-                  </select>
-                </div>
-                <div className="auction-field">
-                  <label>Category</label>
-                  <select value={playerForm.category} onChange={(e) => setPlayerForm({ ...playerForm, category: e.target.value })}>
-                    {PLAYER_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
-                  </select>
-                </div>
-              </div>
+            <form onSubmit={addPlayer}>
+              <PlayerDetailsFields
+                values={playerForm}
+                onChange={setPlayerForm}
+                photoFile={playerPhoto}
+                onPhotoChange={setPlayerPhoto}
+                disabled={busy}
+              />
               <div className="auction-field">
                 <label>Base price ({auction.currency})</label>
                 <input type="number" min="0" value={playerForm.basePrice} onChange={(e) => setPlayerForm({ ...playerForm, basePrice: e.target.value })} />
               </div>
-              <button type="submit" className="auction-btn primary" disabled={!playerForm.name.trim()}>+ Add player</button>
+              <button type="submit" className="auction-btn primary" disabled={busy || !playerForm.name.trim()}>+ Add player</button>
             </form>
           </section>
         </div>
