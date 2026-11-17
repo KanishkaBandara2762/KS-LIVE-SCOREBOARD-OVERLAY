@@ -174,9 +174,9 @@ export default function AuctionAccessPanel({ auction, teams, onChanged }) {
                 <span className="auction-access-player">
                   {req.photo ? <img src={req.photo} alt="" /> : null}
                   <span>
-                    <strong>{req.name}</strong>
-                    {' '}· {req.role}{req.age ? ` · age ${req.age}` : ''}{req.nationality ? ` · ${req.nationality}` : ''}
-                    {req.details ? <em> — {req.details}</em> : null}
+                    <strong>{req.shirtNo ? `#${req.shirtNo} ` : ''}{req.name}</strong>
+                    {' '}· {req.role}{req.age ? ` · age ${req.age}` : ''}{req.currentClub ? ` · ${req.currentClub}` : ''}
+                    {req.battingStyle || req.bowlingStyle ? <em> — {[req.battingStyle, req.bowlingStyle].filter(Boolean).join(', ')}</em> : null}
                   </span>
                 </span>
                 <span className="auction-row-actions">

@@ -27,8 +27,10 @@ export const clearStoredUser = () => localStorage.removeItem('ks_user');
 // ── Core fetch wrapper ─────────────────────────────────────────────────────────
 async function apiRequest(path, options = {}) {
   const token = getToken();
+  // FormData sets its own multipart Content-Type (with boundary) in the browser.
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
@@ -263,7 +265,7 @@ export const auctionApi = {
     return data;
   },
 
-  addPlayer: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/players`, { method: 'POST', body: JSON.stringify(body) }),
+  addPlayer: (auctionId, formData) => apiRequest(`/api/auctions/${auctionId}/players`, { method: 'POST', body: formData }),
   importPlayers: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/players/import`, { method: 'POST', body: JSON.stringify(body) }),
   updatePlayer: (auctionId, playerId, body) => apiRequest(`/api/auctions/${auctionId}/players/${playerId}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deletePlayer: (auctionId, playerId) => apiRequest(`/api/auctions/${auctionId}/players/${playerId}`, { method: 'DELETE' }),

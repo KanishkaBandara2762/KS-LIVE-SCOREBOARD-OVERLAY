@@ -14,6 +14,7 @@ const AuctionEntitlement = require('../models/AuctionEntitlement');
 const Tournament = require('../models/Tournament');
 const engine = require('../services/auctionEngine');
 const { isAdmin } = require('../services/auctionEntitlement');
+const { playerFieldsFromBody } = require('./auctionRegistrationController');
 
 const { AuctionError } = engine;
 
@@ -599,11 +600,11 @@ async function addPlayer(req, res, next) {
     const player = await AuctionPlayer.create({
       auctionId: req.auction._id,
       name,
-      role: bodyString(req.body.role || 'All-Rounder', 40),
+      ...playerFieldsFromBody(req.body),
       category: bodyString(req.body.category || 'Uncapped', 40),
       nationality: bodyString(req.body.nationality, 60),
       age: req.body.age ? Math.max(10, Math.min(80, intOr(req.body.age, 20))) : null,
-      photo: bodyString(req.body.photo, 1000),
+      photo: req.file ? `/uploads/auction-players/${req.file.filename}` : bodyString(req.body.photo, 1000),
       basePrice,
       lotOrder: req.body.lotOrder !== undefined ? intOr(req.body.lotOrder, 0) : (last?.lotOrder || 0) + 1,
       source: req.body.source || null,

@@ -14,12 +14,13 @@ const auctionPlayerRequestSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    shirtNo: { type: String, default: '', trim: true, maxlength: 10 },
     name: { type: String, required: true, trim: true, maxlength: 120 },
+    role: { type: String, default: 'All-Rounder', trim: true, maxlength: 40 }, // Position
+    currentClub: { type: String, default: '', trim: true, maxlength: 80 },
     age: { type: Number, default: null, min: 10, max: 80 },
-    role: { type: String, default: 'All-Rounder', trim: true, maxlength: 40 },
-    nationality: { type: String, default: '', trim: true, maxlength: 60 },
-    phone: { type: String, default: '', trim: true, maxlength: 40 },
-    details: { type: String, default: '', trim: true, maxlength: 1000 },
+    battingStyle: { type: String, default: '', trim: true, maxlength: 40 },
+    bowlingStyle: { type: String, default: '', trim: true, maxlength: 40 },
     photo: { type: String, default: '' },
     status: {
       type: String,

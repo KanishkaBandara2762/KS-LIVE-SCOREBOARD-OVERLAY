@@ -44,6 +44,11 @@ const auctionPlayerSchema = new mongoose.Schema(
       trim: true,
       maxlength: [60, 'Nationality cannot exceed 60 characters.'],
     },
+    // Player form fields (see PlayerDetailsFields in the frontend).
+    shirtNo: { type: String, default: '', trim: true, maxlength: [10, 'Number cannot exceed 10 characters.'] },
+    currentClub: { type: String, default: '', trim: true, maxlength: [80, 'Current club cannot exceed 80 characters.'] },
+    battingStyle: { type: String, default: '', trim: true, maxlength: [40, 'Batting style cannot exceed 40 characters.'] },
+    bowlingStyle: { type: String, default: '', trim: true, maxlength: [40, 'Bowling style cannot exceed 40 characters.'] },
     age: {
       type: Number,
       default: null,

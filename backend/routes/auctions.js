@@ -12,7 +12,12 @@ const {
   requireAuctionOwner,
   requireAuctionAccess,
 } = require('../middleware/auctionAccess');
-const requireMatchCredit = require('../middleware/creditGate');
+const { makeCreditGate } = require('../middleware/creditGate');
+
+// Checks for 1 credit, then takes it before the auction is created.
+const requireAuctionCredit = makeCreditGate(
+  'You have no credits. Add credit to your account to create an auction. 1 credit = 1 auction.'
+);
 const controller = require('../controllers/auctionController');
 const registration = require('../controllers/auctionRegistrationController');
 
@@ -32,7 +37,7 @@ router.post('/captain/:token/request', registration.requestCaptainTeam);
 
 router.get('/', controller.listAuctions);
 // Creating an auction costs 1 credit (same pool as matches and tournaments).
-router.post('/', requireMatchCredit, controller.createAuction);
+router.post('/', requireAuctionCredit, controller.createAuction);
 
 router.get('/:id', loadAuction, requireAuctionAccess, controller.getAuction);
 router.patch('/:id', loadAuction, requireAuctionOwner, controller.updateAuction);
@@ -62,7 +67,7 @@ router.post('/:id/player-requests/:reqId/approve', loadAuction, requireAuctionOw
 router.post('/:id/player-requests/:reqId/reject', loadAuction, requireAuctionOwner, registration.rejectPlayerRequest);
 
 // Players
-router.post('/:id/players', loadAuction, requireAuctionOwner, controller.addPlayer);
+router.post('/:id/players', loadAuction, requireAuctionOwner, registration.handlePlayerPhoto, controller.addPlayer);
 router.post('/:id/players/import', loadAuction, requireAuctionOwner, controller.importPlayers);
 router.patch('/:id/players/:playerId', loadAuction, requireAuctionOwner, controller.updatePlayer);
 router.delete('/:id/players/:playerId', loadAuction, requireAuctionOwner, controller.deletePlayer);
