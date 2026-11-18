@@ -12,3 +12,6 @@
 }
 @keyframes tpFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tpFadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* Small panel overlays: rounded card with a soft border so the video stays visible around it */
+.tp-canvas.tp-panel { border-radius: 36px; box-shadow: 0 0 0 4px rgba(255,255,255,0.18), 0 40px 120px rgba(0,0,0,0.6); }

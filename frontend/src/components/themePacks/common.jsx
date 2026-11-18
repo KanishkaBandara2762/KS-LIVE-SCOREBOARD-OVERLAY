@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import "./common.css";
 
 /* ================================================================
@@ -9,6 +9,9 @@ import "./common.css";
      winnerInfo, finalWinnerTeam, finalWinnerText, bannerInfo,
      pointsTable, hasTournament, rows, kind
    ================================================================ */
+
+/** Size factor for small "panel" overlays (1 = full screen). Set by themePacks/index.js. */
+export const PanelContext = createContext(1);
 
 export const upper = (s, fallback = "") => String(s || fallback).toUpperCase();
 
@@ -48,10 +51,11 @@ export function Logo({ src, name, className = "" }) {
 
 /** Full-screen 1920×1080 canvas, scaled to fit and centred. */
 export function Stage({ canvasClass = "", hiding = false, background = null, children, z = 107 }) {
-  const scale = useFitScale(1920, 1080);
+  const panel = useContext(PanelContext);
+  const scale = useFitScale(1920, 1080) * panel;
   return (
     <div className={`tp-screen ${hiding ? "tp-hide" : ""}`} style={{ zIndex: z }}>
-      <div className={`tp-canvas ${canvasClass}`} style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
+      <div className={`tp-canvas ${panel < 1 ? "tp-panel" : ""} ${canvasClass}`} style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
         {background}
         {children}
       </div>

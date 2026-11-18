@@ -11,6 +11,8 @@
    To give a theme its own screens: create themePacks/<theme>.jsx
    exporting a pack object, then register it below by theme ID.
    ================================================================ */
+import React from "react";
+import { PanelContext } from "./common";
 import iplGold from "./iplGold";
 import ksPremium from "./ksPremium";
 import ipl2026 from "./ipl2026";
@@ -49,5 +51,23 @@ const THEME_PACKS = {
   PRO_BROADCAST: proBroadcast,
 };
 
-export const getThemePack = (themeID) => THEME_PACKS[themeID] || {};
+// Versus, Toss and Summary stay full screen. Every other screen is a smaller centred panel.
+const PANEL_SIZE = {
+  Winner: 0.6, MatchSituation: 0.58, NeedRun: 0.58, Potm: 0.65, Partnership: 0.58,
+  Squad: 0.75, PointsTable: 0.75, Leaders: 0.75,
+};
+const cache = {};
+const withPanels = (pack) => {
+  const out = { ...pack };
+  for (const [name, size] of Object.entries(PANEL_SIZE)) {
+    const Screen = pack[name];
+    if (!Screen) continue;
+    out[name] = (props) => <PanelContext.Provider value={size}><Screen {...props} /></PanelContext.Provider>;
+  }
+  return out;
+};
+export const getThemePack = (themeID) => {
+  if (!THEME_PACKS[themeID]) return {};
+  return (cache[themeID] ||= withPanels(THEME_PACKS[themeID]));
+};
 export { ProBroadcastBar } from "./proBroadcast";
