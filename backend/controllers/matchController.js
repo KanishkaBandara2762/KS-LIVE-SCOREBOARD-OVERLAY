@@ -9,6 +9,7 @@ const ScoreEvent = require('../models/ScoreEvent');
 const OverlaySettings = require('../models/OverlaySettings');
 const User = require('../models/User');
 const Tournament = require('../models/Tournament');
+const { registerPlayers } = require('../services/playerRegistry');
 const { isMatchBroadcastLocked, isBroadcastLockedDoc, resolveMatchBroadcast, unlockMatchBroadcast } = require('../services/broadcastCredits');
 const {
   processBallDelivery, applyManualCorrection, formatOvers, formatBowlerFigures,
@@ -816,11 +817,18 @@ const updatePlayers = async (req, res, next) => {
     if (battingSquad !== undefined && battingKey && battingKey !== bowlingKey) updateData[`${battingKey}Squad`] = battingSquad;
     if (bowlingSquad !== undefined && bowlingKey && battingKey !== bowlingKey) updateData[`${bowlingKey}Squad`] = bowlingSquad;
 
-    const updatedMatch = await Match.findOneAndUpdate(
+    let updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
       { $set: updateData },
       { new: true }
     );
+
+    // Names typed in by hand join the team squad (and the tournament team).
+    updatedMatch = await registerPlayers(id, [
+      { name: player1?.name, role: 'batting' },
+      { name: player2?.name, role: 'batting' },
+      { name: bowler?.name, role: 'bowling' },
+    ]) || updatedMatch;
 
     // ── Emit Socket.IO update ─────────────────────────────────────────────────
     emitMatchUpdate(req, id, 'players:update', {
@@ -1465,7 +1473,7 @@ const changeBowler = async (req, res, next) => {
     });
     const existingRecord = isReturning;
 
-    const updatedMatch = await Match.findOneAndUpdate(
+    let updatedMatch = await Match.findOneAndUpdate(
       { matchId: id },
       {
         $set: {
@@ -1477,10 +1485,13 @@ const changeBowler = async (req, res, next) => {
       { new: true }
     );
 
+    updatedMatch = await registerPlayers(id, [{ name: bowlerName, role: 'bowling' }]) || updatedMatch;
+
     emitMatchUpdate(req, id, 'players:update', {
       matchId: id,
       bowler: updatedMatch.bowler,
       bowlerHistory: updatedMatch.bowlerHistory,
+      bowlingSquad: updatedMatch.bowlingSquad,
       awaitingNextBowler: false,
       timestamp: Date.now(),
     });
