@@ -11,11 +11,13 @@ import {
 import AuctionAccessPanel from './AuctionAccessPanel';
 import AuctionRequestsPanel from './AuctionRequestsPanel';
 import AuctionOverlayPanel from './AuctionOverlayPanel';
+import { TeamAvatar, TeamLogoPicker } from './TeamLogo';
+import DateTimeField, { formatSchedule } from './DateTimeField';
 import './AuctionAccess.css';
 import PlayerDetailsFields, { EMPTY_PLAYER_FORM, playerFormToFormData } from './PlayerDetailsFields';
 import './Auction.css';
 
-function TeamRow({ auction, team, inviteUrl, onSave, onInvite, onDelete }) {
+function TeamRow({ auction, team, inviteUrl, onSave, onLogo, onInvite, onDelete }) {
   const [purse, setPurse] = useState(team.purseTotal);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -43,10 +45,23 @@ function TeamRow({ auction, team, inviteUrl, onSave, onInvite, onDelete }) {
   return (
     <div className="auction-team-row">
       <div className="auction-team-main">
-        <div className="auction-team-avatar">{team.shortName || team.name.slice(0, 2).toUpperCase()}</div>
+        <TeamAvatar team={team} />
         <div>
           <strong>{team.name}</strong>
           <span>{team.ownerName || team.ownerEmail || (team.ownerUserId ? 'Owner joined' : 'No owner yet')}</span>
+          <label className="auction-btn tiny auction-logo-change">
+            {team.logo ? 'Change logo' : 'Add logo'}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              style={{ display: 'none' }}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = '';
+                if (file) onLogo(team.id, file);
+              }}
+            />
+          </label>
         </div>
       </div>
 
@@ -132,7 +147,12 @@ export default function AuctionSetupPage() {
   // Fill the details form once per auction (later saves keep what the user typed).
   useEffect(() => {
     if (!auction) return;
-    setDetailsForm({ name: auction.name || '', venue: auction.venue || '', description: auction.description || '' });
+    setDetailsForm({
+      name: auction.name || '',
+      venue: auction.venue || '',
+      description: auction.description || '',
+      scheduledAt: auction.scheduledAt || '',
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auction?.id]);
 
@@ -188,16 +208,29 @@ export default function AuctionSetupPage() {
     }
   };
 
+  const [teamLogo, setTeamLogo] = useState(null);
+
   const addTeam = async (event) => {
     event.preventDefault();
-    await run(
-      () => auctionApi.addTeam(id, { ...teamForm, purseTotal: Number(teamForm.purseTotal) }),
-      'Team added.'
-    );
+    const details = { ...teamForm, purseTotal: Number(teamForm.purseTotal) };
+    let body = details;
+    if (teamLogo) {
+      body = new FormData();
+      Object.entries(details).forEach(([key, value]) => body.append(key, value ?? ''));
+      body.append('logo', teamLogo);
+    }
+    await run(() => auctionApi.addTeam(id, body), 'Team added.');
     setTeamForm({ name: '', shortName: '', purseTotal: auction?.config?.basePriceDefault ? teamForm.purseTotal : 1000000, ownerName: '', ownerEmail: '' });
+    setTeamLogo(null);
   };
 
   const saveTeam = (teamId, body) => run(() => auctionApi.updateTeam(id, teamId, body), 'Team updated.');
+
+  const saveTeamLogo = (teamId, file) => {
+    const data = new FormData();
+    data.append('logo', file);
+    return run(() => auctionApi.updateTeam(id, teamId, data), 'Logo updated.');
+  };
 
   const inviteTeam = async (teamId) => {
     setError('');
@@ -333,7 +366,7 @@ export default function AuctionSetupPage() {
             <span className="auction-eyebrow">AUCTION SETUP</span>
             <h1>{auction.name}</h1>
             <p>
-              {auction.venue || 'No venue'} · {auction.currency} ·
+              {auction.scheduledAt ? `${formatSchedule(auction.scheduledAt)} · ` : ''}{auction.venue || 'No venue'} · {auction.currency} ·
               <span className={`auction-live-dot ${connected ? 'on' : ''}`} /> {connected ? 'Live channel connected' : 'Offline'}
             </p>
           </div>
@@ -417,6 +450,7 @@ export default function AuctionSetupPage() {
                     team={team}
                     inviteUrl={invites[team.id]}
                     onSave={saveTeam}
+                    onLogo={saveTeamLogo}
                     onInvite={inviteTeam}
                     onDelete={deleteTeam}
                   />
@@ -453,6 +487,10 @@ export default function AuctionSetupPage() {
                   <label>Owner email</label>
                   <input type="email" value={teamForm.ownerEmail} onChange={(e) => setTeamForm({ ...teamForm, ownerEmail: e.target.value })} placeholder="Optional" />
                 </div>
+              </div>
+              <div className="auction-field">
+                <label>Team logo (optional)</label>
+                <TeamLogoPicker file={teamLogo} onFile={setTeamLogo} />
               </div>
               <button type="submit" className="auction-btn primary" disabled={!teamForm.name.trim()}>+ Add team</button>
             </form>
@@ -551,6 +589,12 @@ export default function AuctionSetupPage() {
                   </select>
                 </div>
               </div>
+              <DateTimeField
+                label="Date and time"
+                value={detailsForm.scheduledAt}
+                onChange={(scheduledAt) => setDetailsForm((prev) => ({ ...prev, scheduledAt }))}
+                disabled={detailsLocked || ruleLocked}
+              />
               <div className="auction-field">
                 <label>Description</label>
                 <textarea value={detailsForm.description} onChange={(e) => setDetailsForm({ ...detailsForm, description: e.target.value })} rows={2} maxLength={2000} />

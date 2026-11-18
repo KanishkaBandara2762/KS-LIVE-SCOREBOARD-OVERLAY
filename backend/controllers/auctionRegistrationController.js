@@ -29,9 +29,41 @@ const playerPhotoUpload = multer({
   limits: { fileSize: 3 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
-    cb(null, allowed.includes(path.extname(file.originalname).toLowerCase()));
+    if (allowed.includes(path.extname(file.originalname).toLowerCase())) return cb(null, true);
+    return cb(new Error("Only PNG, JPG, WEBP or GIF images are allowed."));
   },
 }).single('photo');
+
+// Team logo upload (owner's Add team / Edit team forms). Same limits as player photos.
+const teamLogosDir = resolveUploadDir('auction-team-logos');
+const teamLogoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, teamLogosDir),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `team-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
+    },
+  }),
+  limits: { fileSize: 3 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+    if (allowed.includes(path.extname(file.originalname).toLowerCase())) return cb(null, true);
+    return cb(new Error("Only PNG, JPG, WEBP or GIF images are allowed."));
+  },
+}).single('logo');
+
+// Turns multer errors into a message the owner can act on.
+function uploadErrorMessage(err) {
+  if (err?.code === 'LIMIT_FILE_SIZE') return 'Image must be under 3 MB.';
+  return err?.message || 'Image upload failed.';
+}
+
+function handleTeamLogo(req, res, next) {
+  teamLogoUpload(req, res, (err) => {
+    if (err) return sendError(res, 400, uploadErrorMessage(err), 'LOGO_INVALID');
+    next();
+  });
+}
 
 const FINISHED = ['completed', 'cancelled'];
 
@@ -160,7 +192,7 @@ async function submitPlayerRequest(req, res, next) {
 // Multer runs before submitPlayerRequest so the form can carry a photo.
 function handlePlayerPhoto(req, res, next) {
   playerPhotoUpload(req, res, (err) => {
-    if (err) return sendError(res, 400, 'Photo upload failed. Use an image under 3 MB.', 'PHOTO_INVALID');
+    if (err) return sendError(res, 400, uploadErrorMessage(err), 'PHOTO_INVALID');
     next();
   });
 }
@@ -410,6 +442,7 @@ async function rejectCaptain(req, res, next) {
 
 module.exports = {
   handlePlayerPhoto,
+  handleTeamLogo,
   playerFieldsFromBody,
   getLinks,
   regenerateLink,
