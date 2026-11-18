@@ -178,6 +178,8 @@ const auctionSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    // When the auction is planned to start (chosen by the creator).
+    scheduledAt: { type: Date, default: null },
     startedAt: { type: Date, default: null },
     endedAt: { type: Date, default: null },
     pausedAt: { type: Date, default: null },

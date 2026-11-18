@@ -199,6 +199,14 @@ body.auction-overlay-mode #root {
   clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
 }
 
+/* Team logo used in place of the initials crest. */
+.auction-overlay .ov-crest-logo {
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 4px;
+  box-shadow: 0 0 0 2px var(--ov-glow);
+}
+
 /* ── Player on the block (lower third, left) ────────────────── */
 
 .auction-overlay .ov-lower {

@@ -6,6 +6,7 @@ import {
   formatMoney,
   useAuctionSocket,
 } from './auctionShared';
+import { logoUrl } from './TeamLogo';
 import './AuctionBroadcast.css';
 
 export const OVERLAY_THEMES = [
@@ -39,6 +40,10 @@ function teamHue(name = '') {
 
 function TeamCrest({ team, size = 'md' }) {
   const label = team?.shortName || initials(team?.name);
+  const logo = logoUrl(team?.logo);
+  if (logo) {
+    return <img className={`ov-crest ov-crest-${size} ov-crest-logo`} src={logo} alt="" />;
+  }
   return (
     <span
       className={`ov-crest ov-crest-${size}`}

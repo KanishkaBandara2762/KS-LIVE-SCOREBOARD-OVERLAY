@@ -110,6 +110,14 @@ function overlayFromBody(body = {}, existing = {}) {
   };
 }
 
+// Parses the creator's date and time. Empty means "not set". Invalid input returns null with `error`.
+function parseScheduledAt(value) {
+  if (value === undefined || value === null || value === '') return { date: null };
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return { error: 'Choose a valid date and time for the auction.' };
+  return { date };
+}
+
 // ── List / create ───────────────────────────────────────────────────────────
 
 async function listAuctions(req, res, next) {
@@ -167,6 +175,10 @@ async function createAuction(req, res, next) {
     if (!name || !String(name).trim()) {
       return res.status(400).json({ success: false, error: 'Auction name is required.' });
     }
+    const parsedSchedule = parseScheduledAt(req.body.scheduledAt);
+    if (parsedSchedule.error) {
+      return res.status(400).json({ success: false, error: parsedSchedule.error, code: 'SCHEDULE_INVALID' });
+    }
 
     if (tournamentId) {
       const tournament = await Tournament.findById(tournamentId);
@@ -189,6 +201,7 @@ async function createAuction(req, res, next) {
       publicSlug: publicSlug(),
       currency: ['LKR', 'USD', 'INR', 'GBP', 'AUD'].includes(currency) ? currency : 'LKR',
       config: auctionConfigFromBody(req.body.config || req.body),
+      scheduledAt: parsedSchedule.date,
       status: 'draft',
     });
 
@@ -256,7 +269,7 @@ async function updateAuction(req, res, next) {
     }
 
     // Details (name, currency, etc.) lock once the auction starts. Rules (config) stay editable live.
-    const detailsChanging = ['name', 'description', 'venue', 'currency', 'visibility', 'tournamentId']
+    const detailsChanging = ['name', 'description', 'venue', 'currency', 'visibility', 'tournamentId', 'scheduledAt']
       .some((field) => req.body[field] !== undefined);
     if (detailsChanging && !['draft', 'ready'].includes(auction.status)) {
       return res.status(409).json({
@@ -291,6 +304,11 @@ async function updateAuction(req, res, next) {
     }
     if (req.body.config !== undefined) {
       auction.config = auctionConfigFromBody(req.body.config, auction.config || {});
+    }
+    if (req.body.scheduledAt !== undefined) {
+      const parsed = parseScheduledAt(req.body.scheduledAt);
+      if (parsed.error) return res.status(400).json({ success: false, error: parsed.error, code: 'SCHEDULE_INVALID' });
+      auction.scheduledAt = parsed.date;
     }
     if (req.body.overlay !== undefined) {
       auction.overlay = overlayFromBody(req.body.overlay, auction.overlay || {});
@@ -412,7 +430,7 @@ async function addTeam(req, res, next) {
       auctionId: req.auction._id,
       name,
       shortName: bodyString(req.body.shortName, 12),
-      logo: bodyString(req.body.logo, 1000),
+      logo: req.file ? `/uploads/auction-team-logos/${req.file.filename}` : bodyString(req.body.logo, 1000),
       ownerName: bodyString(req.body.ownerName, 80),
       ownerEmail: bodyString(req.body.ownerEmail, 160).toLowerCase(),
       ownerPhone: bodyString(req.body.ownerPhone, 40),
@@ -433,7 +451,8 @@ async function updateTeam(req, res, next) {
 
     if (req.body.name !== undefined) team.name = bodyString(req.body.name, 80);
     if (req.body.shortName !== undefined) team.shortName = bodyString(req.body.shortName, 12);
-    if (req.body.logo !== undefined) team.logo = bodyString(req.body.logo, 1000);
+    if (req.file) team.logo = `/uploads/auction-team-logos/${req.file.filename}`;
+    else if (req.body.logo !== undefined) team.logo = bodyString(req.body.logo, 1000);
     if (req.body.ownerName !== undefined) team.ownerName = bodyString(req.body.ownerName, 80);
     if (req.body.ownerEmail !== undefined) team.ownerEmail = bodyString(req.body.ownerEmail, 160).toLowerCase();
     if (req.body.ownerPhone !== undefined) team.ownerPhone = bodyString(req.body.ownerPhone, 40);

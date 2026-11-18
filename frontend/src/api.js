@@ -228,8 +228,9 @@ export const auctionApi = {
   resume: (auctionId) => apiRequest(`/api/auctions/${auctionId}/resume`, { method: 'POST' }),
   complete: (auctionId) => apiRequest(`/api/auctions/${auctionId}/complete`, { method: 'POST' }),
 
-  addTeam: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/teams`, { method: 'POST', body: JSON.stringify(body) }),
-  updateTeam: (auctionId, teamId, body) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  // Team calls accept a plain object (JSON) or FormData (when a logo file is attached).
+  addTeam: (auctionId, body) => apiRequest(`/api/auctions/${auctionId}/teams`, { method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body) }),
+  updateTeam: (auctionId, teamId, body) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}`, { method: 'PATCH', body: body instanceof FormData ? body : JSON.stringify(body) }),
   deleteTeam: (auctionId, teamId) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}`, { method: 'DELETE' }),
   invite: (auctionId, teamId, body = {}) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}/invite`, { method: 'POST', body: JSON.stringify(body) }),
   join: (token) => apiRequest(`/api/auctions/join/${token}`, { method: 'POST' }),

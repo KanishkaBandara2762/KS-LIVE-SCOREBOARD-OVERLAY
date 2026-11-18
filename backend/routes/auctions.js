@@ -50,8 +50,8 @@ router.post('/:id/resume', loadAuction, requireAuctionOwner, controller.resumeAu
 router.post('/:id/complete', loadAuction, requireAuctionOwner, controller.completeAuction);
 
 // Teams
-router.post('/:id/teams', loadAuction, requireAuctionOwner, controller.addTeam);
-router.patch('/:id/teams/:teamId', loadAuction, requireAuctionOwner, controller.updateTeam);
+router.post('/:id/teams', loadAuction, requireAuctionOwner, registration.handleTeamLogo, controller.addTeam);
+router.patch('/:id/teams/:teamId', loadAuction, requireAuctionOwner, registration.handleTeamLogo, controller.updateTeam);
 router.delete('/:id/teams/:teamId', loadAuction, requireAuctionOwner, controller.deleteTeam);
 router.post('/:id/teams/:teamId/invite', loadAuction, requireAuctionOwner, controller.createInvite);
 router.get('/:id/team-owner-requests', loadAuction, requireAuctionOwner, registration.listTeamOwnerRequests);

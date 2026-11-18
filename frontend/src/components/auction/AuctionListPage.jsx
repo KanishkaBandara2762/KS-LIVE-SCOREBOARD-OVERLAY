@@ -11,6 +11,7 @@ import {
 } from './auctionShared';
 import './Auction.css';
 import './AuctionAccess.css';
+import DateTimeField, { defaultScheduleIso, formatSchedule } from './DateTimeField';
 
 // Only the basics are asked at creation. Timer, base price and bidding rules
 // are set inside the auction (Setup → Rules) and use the model defaults.
@@ -18,10 +19,11 @@ const DEFAULT_FORM = {
   name: '',
   currency: 'LKR',
   description: '',
+  scheduledAt: defaultScheduleIso(),
 };
 
 function CreateAuctionModal({ onClose, onCreate, credits, unlimited }) {
-  const [form, setForm] = useState(DEFAULT_FORM);
+  const [form, setForm] = useState(() => ({ ...DEFAULT_FORM, scheduledAt: defaultScheduleIso() }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   // Admins are not charged. Everyone else needs at least 1 credit.
@@ -73,6 +75,12 @@ function CreateAuctionModal({ onClose, onCreate, credits, unlimited }) {
             <input value={form.name} onChange={set('name')} placeholder="e.g. KS Super League 2026" required />
           </div>
 
+          <DateTimeField
+            label="Date and time of the auction *"
+            value={form.scheduledAt}
+            onChange={(scheduledAt) => setForm((prev) => ({ ...prev, scheduledAt }))}
+          />
+
           <div className="auction-field">
             <label>Currency</label>
             <select value={form.currency} onChange={set('currency')}>
@@ -93,9 +101,10 @@ function CreateAuctionModal({ onClose, onCreate, credits, unlimited }) {
 
           <div className="auction-modal-actions">
             <button type="button" className="auction-btn ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="auction-btn primary" disabled={saving || noCredits}>
+            <button type="submit" className="auction-btn primary" disabled={saving || noCredits || !form.scheduledAt}>
               {saving ? 'Creating…' : 'Create auction'}
             </button>
+            {!form.scheduledAt ? <small className="auction-access-note">Choose a valid date and time to create the auction.</small> : null}
           </div>
         </form>
       </div>
@@ -135,6 +144,7 @@ export default function AuctionListPage() {
       name: form.name,
       currency: form.currency,
       description: form.description,
+      scheduledAt: form.scheduledAt,
     });
     if (!isAdminRole(currentUser?.role)) {
       updateCurrentUser({ matchCredits: Math.max(0, (currentUser?.matchCredits ?? 0) - 1) });
@@ -208,6 +218,7 @@ export default function AuctionListPage() {
 
               <h2>{auction.name}</h2>
               <p className="auction-card-sub">{auction.venue || 'No venue set'}</p>
+              {auction.scheduledAt ? <p className="auction-card-sub">🗓 {formatSchedule(auction.scheduledAt)}</p> : null}
 
               <div className="auction-card-stats">
                 <span><strong>{auction.teamCount || 0}</strong> teams</span>
