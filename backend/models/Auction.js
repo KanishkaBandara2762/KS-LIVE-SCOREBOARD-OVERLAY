@@ -161,6 +161,18 @@ const auctionSchema = new mongoose.Schema(
       ref: 'AuctionPlayer',
       default: null,
     },
+    // Broadcast overlay settings (theme, panels, custom news lines).
+    overlay: {
+      theme: {
+        type: String,
+        enum: ['classic', 'broadcast', 'apex', 'neon'],
+        default: 'classic',
+      },
+      showPlayerCard: { type: Boolean, default: true },
+      showSummary: { type: Boolean, default: true },
+      showTicker: { type: Boolean, default: true },
+      news: { type: [String], default: [] },
+    },
     stateVersion: {
       type: Number,
       default: 0,

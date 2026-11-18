@@ -88,6 +88,28 @@ function auctionConfigFromBody(body = {}, existing = {}) {
   return config;
 }
 
+const OVERLAY_THEMES = ['classic', 'broadcast', 'apex', 'neon'];
+const OVERLAY_NEWS_MAX_ITEMS = 10;
+const OVERLAY_NEWS_MAX_LENGTH = 140;
+
+// Keeps only valid overlay fields; anything missing keeps its current value.
+function overlayFromBody(body = {}, existing = {}) {
+  const flag = (key, fallback) => (body[key] !== undefined ? Boolean(body[key]) : fallback);
+  const news = Array.isArray(body.news)
+    ? body.news
+        .map((line) => bodyString(line, OVERLAY_NEWS_MAX_LENGTH))
+        .filter(Boolean)
+        .slice(0, OVERLAY_NEWS_MAX_ITEMS)
+    : existing.news || [];
+  return {
+    theme: OVERLAY_THEMES.includes(body.theme) ? body.theme : existing.theme || 'classic',
+    showPlayerCard: flag('showPlayerCard', existing.showPlayerCard ?? true),
+    showSummary: flag('showSummary', existing.showSummary ?? true),
+    showTicker: flag('showTicker', existing.showTicker ?? true),
+    news,
+  };
+}
+
 // ── List / create ───────────────────────────────────────────────────────────
 
 async function listAuctions(req, res, next) {
@@ -270,6 +292,9 @@ async function updateAuction(req, res, next) {
     if (req.body.config !== undefined) {
       auction.config = auctionConfigFromBody(req.body.config, auction.config || {});
     }
+    if (req.body.overlay !== undefined) {
+      auction.overlay = overlayFromBody(req.body.overlay, auction.overlay || {});
+    }
     if (req.body.tournamentId !== undefined) {
       if (!req.body.tournamentId) auction.tournamentId = null;
       else {
@@ -284,8 +309,8 @@ async function updateAuction(req, res, next) {
 
     await auction.save();
 
-    // Live bidders should see new rules (e.g. a bigger increment) straight away.
-    if (['live', 'paused'].includes(auction.status) && req.body.config !== undefined) {
+    // Live bidders and open overlays should see new rules or overlay changes straight away.
+    if (req.body.config !== undefined || req.body.overlay !== undefined) {
       await engine.broadcastSnapshot(ioFor(req), auction._id);
     }
 

@@ -56,12 +56,22 @@ const auctionTeamSchema = new mongoose.Schema(
       trim: true,
       maxlength: [40, 'Owner phone cannot exceed 40 characters.'],
     },
-    // A logged-in user who asked to captain this team. Owner approves or rejects.
+    // A logged-in user who asked to be this team's owner. The creator approves or rejects.
     pendingCaptain: {
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
       name: { type: String, default: '', trim: true, maxlength: 80 },
       email: { type: String, default: '', trim: true, lowercase: true, maxlength: 160 },
+      phone: { type: String, default: '', trim: true, maxlength: 40 },
+      nic: { type: String, default: '', trim: true, maxlength: 20 },
       requestedAt: { type: Date, default: null },
+    },
+    // National ID of the approved owner. Never included in public snapshots.
+    ownerNic: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 20,
+      select: false,
     },
     purseTotal: {
       type: Number,

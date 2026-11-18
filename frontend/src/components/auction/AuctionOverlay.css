@@ -1,0 +1,98 @@
+/* Creator's overlay setup (Setup → Overlay tab). The broadcast styles live in AuctionBroadcast.css. */
+
+.auction-overlay-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Dark frame so the transparent overlay is visible in the preview. */
+.auction-overlay-preview {
+  position: relative;
+  height: 380px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background:
+    linear-gradient(45deg, #1e293b 25%, transparent 25%) 0 0 / 24px 24px,
+    linear-gradient(-45deg, #1e293b 25%, transparent 25%) 0 0 / 24px 24px,
+    #0b1220;
+}
+.auction-overlay-preview iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.auction-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.auction-theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(2, 6, 23, 0.4);
+  color: #e2e8f0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.auction-theme-card.selected {
+  border-color: rgba(34, 197, 94, 0.7);
+  background: rgba(34, 197, 94, 0.12);
+}
+.auction-theme-card small {
+  color: #94a3b8;
+}
+
+.auction-theme-swatch {
+  display: block;
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%);
+}
+
+.auction-toggle-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #e2e8f0;
+  font-size: 0.92rem;
+}
+.auction-toggle-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.auction-news-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.auction-news-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(2, 6, 23, 0.6);
+  color: #e2e8f0;
+}
+
+.auction-overlay-savebar {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  justify-content: flex-end;
+}

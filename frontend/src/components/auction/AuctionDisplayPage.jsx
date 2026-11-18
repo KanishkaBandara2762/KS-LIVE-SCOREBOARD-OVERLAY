@@ -1,18 +1,91 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { auctionApi } from '../../api';
+import { auctionApi, BASE_URL } from '../../api';
 import {
   Countdown,
   formatMoney,
   useAuctionSocket,
 } from './auctionShared';
-import './Auction.css';
+import './AuctionBroadcast.css';
 
+export const OVERLAY_THEMES = [
+  { key: 'classic', label: 'Classic', hint: 'Photo card with team crests' },
+  { key: 'broadcast', label: 'Broadcast', hint: 'Lower third with ticker' },
+  { key: 'apex', label: 'Apex', hint: 'Navy bar, red score block' },
+  { key: 'neon', label: 'Neon', hint: 'Cyan and magenta glow' },
+];
+const THEME_KEYS = OVERLAY_THEMES.map((theme) => theme.key);
+const DEFAULT_OVERLAY = { theme: 'classic', showPlayerCard: true, showSummary: true, showTicker: true, news: [] };
+const CELEBRATION_MS = 7000;
+const CONFETTI_COUNT = 42;
+const CONFETTI_COLORS = ['#facc15', '#f97316', '#22d3ee', '#e879f9', '#22c55e', '#ffffff'];
+
+// Uploaded photos are served by the API, which may be on another origin.
+function photoUrl(photo) {
+  if (!photo) return '';
+  return photo.startsWith('/uploads') ? `${BASE_URL}${photo}` : photo;
+}
+
+function initials(name = '') {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0].toUpperCase()).join('') || '?';
+}
+
+// Stable colour per team so each team keeps its colour across the overlay.
+function teamHue(name = '') {
+  let hash = 0;
+  for (let i = 0; i < name.length; i += 1) hash = (hash * 31 + name.charCodeAt(i)) % 360;
+  return hash;
+}
+
+function TeamCrest({ team, size = 'md' }) {
+  const label = team?.shortName || initials(team?.name);
+  return (
+    <span
+      className={`ov-crest ov-crest-${size}`}
+      style={{ '--ov-team-hue': teamHue(team?.name || label) }}
+      aria-hidden="true"
+    >
+      {label}
+    </span>
+  );
+}
+
+// Confetti pieces are generated once per celebration.
+function Confetti({ seed }) {
+  const pieces = useMemo(
+    () => Array.from({ length: CONFETTI_COUNT }, (_, i) => ({
+      left: (i * 97 + seed) % 100,
+      delay: ((i * 37 + seed) % 60) / 100,
+      drift: ((i * 53 + seed) % 120) - 60,
+      rotate: (i * 71 + seed) % 360,
+      color: CONFETTI_COLORS[(i + seed) % CONFETTI_COLORS.length],
+    })),
+    [seed]
+  );
+  return (
+    <div className="ov-confetti" aria-hidden="true">
+      {pieces.map((piece, i) => (
+        <span
+          key={i}
+          style={{
+            left: `${piece.left}%`,
+            animationDelay: `${piece.delay}s`,
+            '--ov-drift': `${piece.drift}px`,
+            '--ov-rotate': `${piece.rotate}deg`,
+            background: piece.color,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Broadcast overlay: transparent background so it can sit over a camera feed in OBS.
 export default function AuctionDisplayPage() {
   const { slug } = useParams();
   const [baseSnapshot, setBaseSnapshot] = useState(null);
   const [error, setError] = useState('');
-  const [lastResult, setLastResult] = useState(null);
+  const [celebration, setCelebration] = useState(null);
 
   const auctionId = baseSnapshot?.auction?.id;
   const socket = useAuctionSocket(auctionId, {
@@ -22,9 +95,18 @@ export default function AuctionDisplayPage() {
   });
   const snapshot = socket.snapshot || baseSnapshot;
 
+  // Transparent page background for OBS / browser sources.
+  useEffect(() => {
+    document.documentElement.classList.add('auction-overlay-mode');
+    document.body.classList.add('auction-overlay-mode');
+    return () => {
+      document.documentElement.classList.remove('auction-overlay-mode');
+      document.body.classList.remove('auction-overlay-mode');
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
-
     const load = async () => {
       try {
         const res = await auctionApi.publicGet(slug);
@@ -33,149 +115,156 @@ export default function AuctionDisplayPage() {
           setError('');
         }
       } catch (err) {
-        if (!cancelled) setError(err.message || 'This display is not available.');
+        if (!cancelled) setError(err.message || 'This overlay is not available.');
       }
     };
-
     load();
     const poll = setInterval(() => {
       if (!socket.connected) load();
     }, 5000);
-
     return () => {
       cancelled = true;
       clearInterval(poll);
     };
   }, [slug, socket.connected]);
 
+  // Celebrate a sale (or flash an unsold lot) when a lot closes.
   useEffect(() => {
-    if (!socket.lastEvent) return undefined;
-    if (socket.lastEvent.type === 'lot-closed') {
-      setLastResult(socket.lastEvent.payload);
-      const timer = setTimeout(() => setLastResult(null), 6000);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
+    if (!socket.lastEvent || socket.lastEvent.type !== 'lot-closed') return undefined;
+    const payload = socket.lastEvent.payload || {};
+    if (payload.result !== 'sold' && payload.result !== 'unsold') return undefined;
+    setCelebration({ id: Date.now(), ...payload });
+    const timer = setTimeout(() => setCelebration(null), CELEBRATION_MS);
+    return () => clearTimeout(timer);
   }, [socket.lastEvent]);
-
-  if (error && !snapshot) {
-    return (
-      <div className="auction-display">
-        <div className="auction-display-empty">
-          <h1>Display unavailable</h1>
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!snapshot) {
     return (
-      <div className="auction-display">
-        <div className="auction-display-empty"><span className="auction-spinner" /> Loading auction display…</div>
+      <div className="auction-overlay theme-classic">
+        <div className="ov-status">{error || 'Loading overlay…'}</div>
       </div>
     );
   }
 
-  const { auction, teams, currentLot, minNextBid } = snapshot;
-  const leadingTeam = currentLot?.currentBidderTeamId
-    ? teams.find((team) => team.id === String(currentLot.currentBidderTeamId))
-    : null;
-  const soldPlayers = (snapshot.players || []).filter((player) => player.status === 'sold');
-  const lastSold = lastResult?.result === 'sold' ? lastResult : soldPlayers[soldPlayers.length - 1];
+  const { auction, teams, currentLot, minNextBid, players = [] } = snapshot;
+  const overlay = { ...DEFAULT_OVERLAY, ...(auction.overlay || {}) };
+  const theme = THEME_KEYS.includes(overlay.theme) ? overlay.theme : 'classic';
+  const money = (value) => formatMoney(value, auction.currency);
+  const teamById = Object.fromEntries(teams.map((team) => [team.id, team]));
+  const leadingTeam = currentLot?.currentBidderTeamId ? teamById[String(currentLot.currentBidderTeamId)] : null;
+
+  // Ticker: recent sales first, then the creator's own news lines.
+  const sales = players
+    .filter((player) => player.status === 'sold')
+    .sort((a, b) => new Date(b.soldAt || 0) - new Date(a.soldAt || 0))
+    .slice(0, 10)
+    .map((player) => `${player.name} sold to ${teamById[String(player.soldToTeamId)]?.name || 'a team'} for ${money(player.soldPrice)}`);
+  const tickerItems = [...sales, ...(overlay.news || [])];
+  if (tickerItems.length === 0) tickerItems.push(`${auction.name} — live auction`);
+
+  const showLot = overlay.showPlayerCard && currentLot;
+  const lotPhoto = photoUrl(currentLot?.photo);
+  const celebrationPlayer = celebration ? players.find((p) => String(p.id) === String(celebration.playerId)) : null;
+  const celebrationTeam = celebration?.soldToTeamId ? teamById[String(celebration.soldToTeamId)] : null;
 
   return (
-    <div className="auction-display">
-      <header className="auction-display-header">
-        <div className="auction-display-brand">
-          <span className="auction-display-logo">KS</span>
-          <div>
-            <strong>KS LIVE AUCTION</strong>
-            <small>{auction.name}</small>
-          </div>
-        </div>
-        <div className="auction-display-meta">
-          <span className={`auction-badge ${auction.status}`}>{auction.status.toUpperCase()}</span>
-          <span>{auction.venue || 'Live Auction'}</span>
-        </div>
-      </header>
+    <div className={`auction-overlay theme-${theme} ${celebration ? 'is-celebrating' : ''}`}>
+      <div className="ov-status">
+        <span className={`ov-live-dot ${socket.connected ? 'on' : ''}`} />
+        <span className="ov-status-label">
+          {auction.status === 'live' ? 'LIVE' : auction.status === 'paused' ? 'PAUSED' : auction.status === 'completed' ? 'COMPLETED' : 'NOT STARTED'}
+        </span>
+        <span className="ov-status-name">{auction.name}</span>
+      </div>
 
-      {lastResult ? (
-        <div className={`auction-display-result ${lastResult.result}`}>
-          <span>{lastResult.result === 'sold' ? 'SOLD' : lastResult.result === 'unsold' ? 'UNSOLD' : 'WITHDRAWN'}</span>
-          <strong>{lastResult.playerName}</strong>
-          {lastResult.result === 'sold' ? (
-            <p>{lastResult.soldToTeamName} · {formatMoney(lastResult.price, auction.currency)}</p>
+      {overlay.showSummary ? (
+        <aside className="ov-summary" aria-label="Auction summary">
+          <h2><span>AUCTION</span> SUMMARY</h2>
+          {teams.length === 0 ? <p className="ov-muted">No teams yet</p> : null}
+          {teams.map((team) => (
+            <div className={`ov-team-row ${leadingTeam?.id === team.id ? 'leading' : ''}`} key={team.id}>
+              <TeamCrest team={team} />
+              <div className="ov-team-main">
+                <strong>{team.name}</strong>
+                <small>{team.playersBought || 0} players · spent {money(team.purseSpent || 0)}</small>
+              </div>
+              <span className="ov-team-left">
+                {money(team.purseRemaining)}
+                <small>purse left</small>
+              </span>
+            </div>
+          ))}
+        </aside>
+      ) : null}
+
+      {celebration ? (
+        <div key={celebration.id} className={`ov-celebration ${celebration.result}`}>
+          {celebration.result === 'sold' ? <Confetti seed={celebration.id % 97} /> : null}
+          <div className="ov-celebration-band">
+            <span className="ov-celebration-title">{celebration.result === 'sold' ? 'SOLD!' : 'UNSOLD'}</span>
+            <strong className="ov-celebration-name">{celebration.playerName}</strong>
+          </div>
+          {celebration.result === 'sold' ? (
+            <div className="ov-congrats">
+              <TeamCrest team={celebrationTeam || { name: celebration.soldToTeamName }} size="lg" />
+              <div>
+                <span className="ov-congrats-line">Congratulations {celebration.playerName}!</span>
+                <span className="ov-congrats-sub">
+                  Welcome to {celebration.soldToTeamName} · {money(celebration.price)}
+                </span>
+              </div>
+              {celebrationPlayer?.photo ? <img className="ov-congrats-photo" src={photoUrl(celebrationPlayer.photo)} alt="" /> : null}
+            </div>
           ) : null}
         </div>
       ) : null}
 
-      <main className="auction-display-main">
-        {currentLot ? (
-          <>
-            <section className="auction-display-lot">
-              <span className="auction-display-eyebrow">PLAYER ON THE BLOCK</span>
-              <h1>{currentLot.name}</h1>
-              <p>{currentLot.role} · {currentLot.category}</p>
-
-              <div className="auction-display-price">
-                <span>{currentLot.currentBid !== null ? 'CURRENT BID' : 'BASE PRICE'}</span>
-                <strong>{formatMoney(currentLot.currentBid ?? currentLot.basePrice, auction.currency)}</strong>
-                {leadingTeam ? (
-                  <div className="auction-display-leading">
-                    <span className="auction-team-avatar small">{leadingTeam.shortName || leadingTeam.name.slice(0, 2).toUpperCase()}</span>
-                    <strong>{leadingTeam.name}</strong>
-                  </div>
-                ) : (
-                  <small>Waiting for the first bid…</small>
-                )}
-              </div>
-
-              <div className="auction-display-timer">
+      {showLot ? (
+        <section className="ov-lower" key={currentLot.id} aria-label="Player on the block">
+          <div className="ov-player-card">
+            <div className="ov-photo-frame">
+              {lotPhoto ? (
+                <img className="ov-photo" src={lotPhoto} alt="" />
+              ) : (
+                <span className="ov-photo ov-photo-placeholder" aria-hidden="true">{initials(currentLot.name)}</span>
+              )}
+            </div>
+            <div className="ov-player-main">
+              <span className="ov-eyebrow">PLAYER ON THE BLOCK</span>
+              <strong className="ov-player-name">{currentLot.name}</strong>
+              <span className="ov-player-meta">
+                {[currentLot.role, currentLot.age ? `Age ${currentLot.age}` : '', currentLot.currentClub].filter(Boolean).join(' · ')}
+              </span>
+            </div>
+            <div className="ov-bid">
+              <span>{currentLot.currentBid !== null ? 'CURRENT BID' : 'BASE PRICE'}</span>
+              <strong key={currentLot.currentBid ?? 'base'} className="ov-bid-amount">
+                {money(currentLot.currentBid ?? currentLot.basePrice)}
+              </strong>
+              <small>{leadingTeam ? `Leading: ${leadingTeam.name}` : 'No bids yet'}</small>
+              {minNextBid ? <small className="ov-next">Next bid {money(minNextBid)}</small> : null}
+            </div>
+            {currentLot.timerEndsAt ? (
+              <div className="ov-timer">
                 <Countdown endsAt={currentLot.timerEndsAt} serverTime={snapshot.serverTime} className="display" />
-                <small>Next valid bid: {formatMoney(minNextBid, auction.currency)}</small>
-              </div>
-            </section>
-
-            <aside className="auction-display-teams">
-              <h2>TEAM PURSES</h2>
-              {teams.map((team) => {
-                const percent = team.purseTotal ? Math.max(0, Math.min(100, (team.purseRemaining / team.purseTotal) * 100)) : 0;
-                const leading = leadingTeam?.id === team.id;
-                return (
-                  <div className={`auction-display-team ${leading ? 'leading' : ''}`} key={team.id}>
-                    <div className="auction-display-team-head">
-                      <span className="auction-team-avatar small">{team.shortName || team.name.slice(0, 2).toUpperCase()}</span>
-                      <strong>{team.name}</strong>
-                      <span>{formatMoney(team.purseRemaining, auction.currency)}</span>
-                    </div>
-                    <div className="auction-purse-bar"><span style={{ width: `${percent}%` }} /></div>
-                  </div>
-                );
-              })}
-            </aside>
-          </>
-        ) : (
-          <div className="auction-display-empty">
-            <div className="auction-display-logo big">KS</div>
-            <h1>{auction.status === 'live' ? 'Next lot coming up' : auction.status === 'completed' ? 'Auction complete' : 'Auction not started'}</h1>
-            <p>{auction.name}</p>
-            {lastSold ? (
-              <div className="auction-display-last-sold">
-                <span>LAST SALE</span>
-                <strong>{lastSold.playerName || lastSold.name}</strong>
-                <small>{lastSold.soldToTeamName || teams.find((team) => team.id === String(lastSold.soldToTeamId))?.name} · {formatMoney(lastSold.price ?? lastSold.soldPrice, auction.currency)}</small>
               </div>
             ) : null}
           </div>
-        )}
-      </main>
+        </section>
+      ) : null}
 
-      <footer className="auction-display-footer">
-        <span>{teams.length} teams</span>
-        <span>{soldPlayers.length} players sold</span>
-        <span>{socket.connected ? 'LIVE' : 'RECONNECTING'}</span>
-      </footer>
+      {overlay.showTicker ? (
+        <div className="ov-ticker" aria-label="News ticker">
+          <span className="ov-ticker-label">NEWS</span>
+          <div className="ov-ticker-viewport">
+            <div className="ov-ticker-track">
+              {tickerItems.map((item, index) => (
+                <span key={`${index}-${item}`} className="ov-ticker-item">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

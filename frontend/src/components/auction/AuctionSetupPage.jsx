@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Crown, Download, Inbox, Link, Play, Settings, Smartphone, Users, X } from 'lucide-react';
+import { ArrowLeft, Crown, Download, Inbox, Link, Play, Settings, Smartphone, Tv, Users, X } from 'lucide-react';
 import { auctionApi, tournamentsApi } from '../../api';
 import {
   AUCTION_CURRENCIES,
@@ -10,6 +10,7 @@ import {
 } from './auctionShared';
 import AuctionAccessPanel from './AuctionAccessPanel';
 import AuctionRequestsPanel from './AuctionRequestsPanel';
+import AuctionOverlayPanel from './AuctionOverlayPanel';
 import './AuctionAccess.css';
 import PlayerDetailsFields, { EMPTY_PLAYER_FORM, playerFormToFormData } from './PlayerDetailsFields';
 import './Auction.css';
@@ -94,6 +95,7 @@ export default function AuctionSetupPage() {
   const tab = searchParams.get('tab') || 'teams';
   const setTab = (next) => setSearchParams(next === 'teams' ? {} : { tab: next }, { replace: true });
   const [requests, setRequests] = useState([]);
+  const [ownerRequests, setOwnerRequests] = useState([]);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
   const [invites, setInvites] = useState({});
@@ -150,8 +152,12 @@ export default function AuctionSetupPage() {
 
   const loadRequests = useCallback(async () => {
     try {
-      const res = await auctionApi.listPlayerRequests(id);
-      setRequests(res.requests || []);
+      const [playerRes, ownerRes] = await Promise.all([
+        auctionApi.listPlayerRequests(id),
+        auctionApi.listTeamOwnerRequests(id),
+      ]);
+      setRequests(playerRes.requests || []);
+      setOwnerRequests(ownerRes.requests || []);
     } catch (err) {
       setError(err.message || 'Could not load requests.');
     }
@@ -166,8 +172,8 @@ export default function AuctionSetupPage() {
   }, [tab, loadRequests]);
 
   const pendingPlayerCount = requests.filter((req) => req.status === 'pending').length;
-  const pendingCaptainCount = teams.filter((team) => team.pendingCaptain && !team.ownerUserId).length;
-  const pendingRequestCount = pendingPlayerCount + pendingCaptainCount;
+  const pendingOwnerCount = ownerRequests.length;
+  const pendingRequestCount = pendingPlayerCount + pendingOwnerCount;
 
   const run = async (action, successMessage = 'Saved.') => {
     setError('');
@@ -361,11 +367,19 @@ export default function AuctionSetupPage() {
           <Inbox size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Requests
           {pendingRequestCount > 0 ? <span className="auction-tab-badge">{pendingRequestCount}</span> : null}
         </button>
+        <button className={tab === 'overlay' ? 'active' : ''} onClick={() => setTab('overlay')}>
+          <Tv size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Overlay
+        </button>
       </div>
+
+      {tab === 'overlay' && auction.publicSlug ? (
+        <AuctionOverlayPanel auction={auction} onSaved={refresh} />
+      ) : null}
 
       {tab === 'access' ? (
         <AuctionAccessPanel
           auction={auction}
+          teams={teams}
           pendingRequestCount={pendingRequestCount}
           onOpenRequests={() => setTab('requests')}
         />
@@ -374,8 +388,8 @@ export default function AuctionSetupPage() {
       {tab === 'requests' ? (
         <AuctionRequestsPanel
           auction={auction}
-          teams={teams}
           requests={requests}
+          ownerRequests={ownerRequests}
           onChanged={() => {
             refresh();
             loadRequests();

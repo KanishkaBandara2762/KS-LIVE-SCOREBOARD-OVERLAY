@@ -54,6 +54,7 @@ router.post('/:id/teams', loadAuction, requireAuctionOwner, controller.addTeam);
 router.patch('/:id/teams/:teamId', loadAuction, requireAuctionOwner, controller.updateTeam);
 router.delete('/:id/teams/:teamId', loadAuction, requireAuctionOwner, controller.deleteTeam);
 router.post('/:id/teams/:teamId/invite', loadAuction, requireAuctionOwner, controller.createInvite);
+router.get('/:id/team-owner-requests', loadAuction, requireAuctionOwner, registration.listTeamOwnerRequests);
 router.post('/:id/teams/:teamId/captain/approve', loadAuction, requireAuctionOwner, registration.approveCaptain);
 router.post('/:id/teams/:teamId/captain/reject', loadAuction, requireAuctionOwner, registration.rejectCaptain);
 

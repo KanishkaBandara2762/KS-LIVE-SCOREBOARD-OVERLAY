@@ -269,13 +269,28 @@ async function getCaptainTeams(req, res, next) {
   }
 }
 
+// Owner details entered on the team owner link. Phone and NIC are checked by format.
+function ownerDetailsFromBody(body = {}) {
+  const name = bodyString(body.name, 80);
+  const phone = bodyString(body.phone, 20).replace(/[\s-]/g, '');
+  const nic = bodyString(body.nic, 20).replace(/\s/g, '').toUpperCase();
+  if (name.length < 2) return { error: 'Please enter your full name.' };
+  if (!/^\+?\d{9,15}$/.test(phone)) return { error: 'Enter a valid phone number (9 to 15 digits).' };
+  if (!/^(\d{9}[VX]|\d{12})$/.test(nic)) return { error: 'Enter a valid NIC number (9 digits and V/X, or 12 digits).' };
+  return { details: { name, phone, nic } };
+}
+
 async function requestCaptainTeam(req, res, next) {
   try {
     const auction = await findByToken('captainToken', req.params.token);
-    if (!auction) return sendError(res, 404, 'This captain link is invalid.', 'LINK_INVALID');
+    if (!auction) return sendError(res, 404, 'This team owner link is invalid.', 'LINK_INVALID');
     if (FINISHED.includes(auction.status)) {
       return sendError(res, 409, 'This auction is already finished.', 'AUCTION_FINISHED');
     }
+
+    const parsed = ownerDetailsFromBody(req.body);
+    if (parsed.error) return sendError(res, 400, parsed.error, 'OWNER_DETAILS_INVALID');
+    const details = parsed.details;
 
     const team = await AuctionTeam.findOne({ _id: req.body.teamId, auctionId: auction._id });
     if (!team) return sendError(res, 404, 'Team not found.', 'TEAM_NOT_FOUND');
@@ -300,8 +315,10 @@ async function requestCaptainTeam(req, res, next) {
 
     team.pendingCaptain = {
       userId: req.user.id,
-      name: req.user.displayName || '',
+      name: details.name,
       email: req.user.email || '',
+      phone: details.phone,
+      nic: details.nic,
       requestedAt: new Date(),
     };
     await team.save();
@@ -327,6 +344,8 @@ async function approveCaptain(req, res, next) {
           ownerUserId: pending.userId,
           ownerName: pending.name || team.ownerName || '',
           ownerEmail: pending.email || team.ownerEmail || '',
+          ownerPhone: pending.phone || team.ownerPhone || '',
+          ownerNic: pending.nic || '',
         },
         $unset: { pendingCaptain: 1 },
       },
@@ -344,6 +363,33 @@ async function approveCaptain(req, res, next) {
         'ALREADY_TEAM_OWNER_IN_AUCTION'
       );
     }
+    next(err);
+  }
+}
+
+// Owner-only: pending team owner requests with their contact details.
+async function listTeamOwnerRequests(req, res, next) {
+  try {
+    const teams = await AuctionTeam.find({
+      auctionId: req.auction._id,
+      ownerUserId: null,
+      'pendingCaptain.userId': { $ne: null },
+    })
+      .select('name pendingCaptain')
+      .lean();
+    res.json({
+      success: true,
+      requests: teams.map((team) => ({
+        teamId: String(team._id),
+        teamName: team.name,
+        name: team.pendingCaptain.name || '',
+        phone: team.pendingCaptain.phone || '',
+        nic: team.pendingCaptain.nic || '',
+        email: team.pendingCaptain.email || '',
+        requestedAt: team.pendingCaptain.requestedAt,
+      })),
+    });
+  } catch (err) {
     next(err);
   }
 }
@@ -376,4 +422,5 @@ module.exports = {
   requestCaptainTeam,
   approveCaptain,
   rejectCaptain,
+  listTeamOwnerRequests,
 };

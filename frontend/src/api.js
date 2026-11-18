@@ -244,7 +244,8 @@ export const auctionApi = {
   rejectCaptain: (auctionId, teamId) => apiRequest(`/api/auctions/${auctionId}/teams/${teamId}/captain/reject`, { method: 'POST' }),
   getPlayerRegistration: (token) => apiRequest(`/api/auctions/register/${token}`),
   captainTeams: (token) => apiRequest(`/api/auctions/captain/${token}`),
-  requestCaptainTeam: (token, teamId) => apiRequest(`/api/auctions/captain/${token}/request`, { method: 'POST', body: JSON.stringify({ teamId }) }),
+  requestCaptainTeam: (token, body) => apiRequest(`/api/auctions/captain/${token}/request`, { method: 'POST', body: JSON.stringify(body) }),
+  listTeamOwnerRequests: (auctionId) => apiRequest(`/api/auctions/${auctionId}/team-owner-requests`),
   // Multipart form (photo). No JSON Content-Type so the browser sets the boundary.
   submitPlayerRegistration: async (token, formData) => {
     const res = await fetch(`${BASE_URL}/api/auctions/register/${token}`, { method: 'POST', body: formData });

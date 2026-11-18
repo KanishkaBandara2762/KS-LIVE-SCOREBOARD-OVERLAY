@@ -7,7 +7,7 @@ import './Auction.css';
 const TYPE_FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'players', label: 'Players' },
-  { key: 'captains', label: 'Captains' },
+  { key: 'captains', label: 'Team owners' },
 ];
 
 const STATUS_FILTERS = [
@@ -77,27 +77,33 @@ function PlayerRequestCard({ request, auction, busy, basePrice, onBasePrice, onA
   );
 }
 
-function CaptainRequestCard({ team, busy, onApprove, onReject }) {
+// A team owner who asked for a team on the common link. Approving assigns them to that team.
+function TeamOwnerRequestCard({ request, busy, onApprove, onReject }) {
+  const requested = request.requestedAt ? new Date(request.requestedAt).toLocaleString() : '';
   return (
     <article className="auction-request-card pending">
       <div className="auction-request-person">
-        <span className="auction-request-avatar placeholder" aria-hidden="true">{initials(team.name)}</span>
+        <span className="auction-request-avatar placeholder" aria-hidden="true">{initials(request.name)}</span>
         <div>
-          <strong>{team.name}</strong>
+          <strong>{request.name || 'Unnamed owner'}</strong>
           <div className="auction-request-meta">
-            <span className="auction-chip">Captain: {team.pendingCaptain.name || 'Unnamed captain'}</span>
+            <span className="auction-chip">Team: {request.teamName}</span>
+            {request.phone ? <span className="auction-chip">📞 {request.phone}</span> : null}
+            {request.nic ? <span className="auction-chip">NIC {request.nic}</span> : null}
+            {request.email ? <span className="auction-chip muted">{request.email}</span> : null}
           </div>
+          {requested ? <small className="auction-access-note">Requested {requested}</small> : null}
         </div>
       </div>
       <div className="auction-request-actions">
-        <button className="auction-btn primary" disabled={busy} onClick={onApprove}>Approve captain</button>
+        <button className="auction-btn primary" disabled={busy} onClick={onApprove}>Approve and assign to {request.teamName}</button>
         <button className="auction-btn danger" disabled={busy} onClick={onReject}>Reject</button>
       </div>
     </article>
   );
 }
 
-export default function AuctionRequestsPanel({ auction, teams, requests, onChanged, onRefresh, onOpenAccess }) {
+export default function AuctionRequestsPanel({ auction, requests, ownerRequests, onChanged, onRefresh, onOpenAccess }) {
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('pending');
   const [basePrices, setBasePrices] = useState({});
@@ -105,14 +111,13 @@ export default function AuctionRequestsPanel({ auction, teams, requests, onChang
   const [error, setError] = useState('');
 
   const auctionId = auction.id;
-  const pendingCaptains = (teams || []).filter((team) => team.pendingCaptain && !team.ownerUserId);
   const playerRows = requests.filter((req) => statusFilter === 'all' || req.status === 'pending');
-  const captainRows = statusFilter === 'pending' ? pendingCaptains : [];
+  const ownerRows = statusFilter === 'pending' ? ownerRequests || [] : [];
 
   const showPlayers = typeFilter !== 'captains';
   const showCaptains = typeFilter !== 'players';
   const nothingToShow =
-    (!showPlayers || playerRows.length === 0) && (!showCaptains || captainRows.length === 0);
+    (!showPlayers || playerRows.length === 0) && (!showCaptains || ownerRows.length === 0);
 
   const act = async (action) => {
     setBusy(true);
@@ -132,7 +137,7 @@ export default function AuctionRequestsPanel({ auction, teams, requests, onChang
       <div className="auction-requests-head">
         <div>
           <h2><Inbox size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Requests</h2>
-          <p>Approve players who registered through the player link, and captains who asked to bid.</p>
+          <p>Approve players from the player link, and team owners from the common link. Approving a team owner assigns them to that team.</p>
         </div>
         <button className="auction-btn small" onClick={onRefresh}>
           <RefreshCw size="0.9em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Refresh
@@ -163,21 +168,21 @@ export default function AuctionRequestsPanel({ auction, teams, requests, onChang
           <p>
             {statusFilter === 'pending' ? 'No requests waiting right now.' : 'No requests yet.'}
           </p>
-          <p>Share the player or captain link from the Access tab to receive requests.</p>
+          <p>Share the player or team owner link from the Access tab to receive requests.</p>
           <button className="auction-btn" onClick={onOpenAccess}>Go to Access</button>
         </div>
       ) : null}
 
-      {showCaptains && captainRows.length > 0 ? (
+      {showCaptains && ownerRows.length > 0 ? (
         <div className="auction-request-group">
-          <h3>Captain requests</h3>
-          {captainRows.map((team) => (
-            <CaptainRequestCard
-              key={team.id}
-              team={team}
+          <h3>Team owner requests</h3>
+          {ownerRows.map((request) => (
+            <TeamOwnerRequestCard
+              key={request.teamId}
+              request={request}
               busy={busy}
-              onApprove={() => act(() => auctionApi.approveCaptain(auctionId, team.id))}
-              onReject={() => act(() => auctionApi.rejectCaptain(auctionId, team.id))}
+              onApprove={() => act(() => auctionApi.approveCaptain(auctionId, request.teamId))}
+              onReject={() => act(() => auctionApi.rejectCaptain(auctionId, request.teamId))}
             />
           ))}
         </div>
