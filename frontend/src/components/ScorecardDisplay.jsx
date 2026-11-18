@@ -10,6 +10,8 @@ import ModernOverlayThemes from "./ModernOverlayThemes";
 import VersusOverlay from "./VersusOverlay";
 import LightningBar from "./LightningBar";
 import Ipl2026Bar from "./Ipl2026Bar";
+import TournamentBoundaries from "./TournamentBoundaries";
+import AutoInfoStrip from "./AutoInfoStrip";
 import { getThemePack, ProBroadcastBar } from "./themePacks";
 import "./BroadcastScreens.css";
 import "./BroadcastLogo.css";
@@ -131,17 +133,20 @@ const ScorecardDisplay = () => {
 
   // --- Tournament leaderboard cards (computed on the server from ball-by-ball data) ---
   const [publicBoards, setPublicBoards] = useState(null);
+  // Tournament link: which match is currently on air, and whether nothing is (OFF AIR → blank overlay)
+  const liveMatchIdRef = useRef(null);
+  const [offAir, setOffAir] = useState(false);
   const boardsMatchId = match?.matchId || matchId;
-  const boardsVisible = !!(match?.showTournamentMostRuns || match?.showTournamentMostWickets);
+  const boardsVisible = !!(match?.showTournamentMostRuns || match?.showTournamentMostWickets || match?.showTournamentBoundaries);
   useEffect(() => {
     if (!boardsVisible || !boardsMatchId) return;
     let alive = true;
     const load = () => fetch(`${API_URL}/api/public/match/${boardsMatchId}/leaderboards`)
       .then((r) => r.json()).then((d) => { if (alive && d?.success) setPublicBoards(d); }).catch(() => {});
     load();
-    const t = setInterval(load, 30000);
+    const t = setInterval(load, match?.showTournamentBoundaries ? 12000 : 30000);
     return () => { alive = false; clearInterval(t); };
-  }, [boardsVisible, boardsMatchId]);
+  }, [boardsVisible, boardsMatchId, match?.showTournamentBoundaries]);
 
   // --- Group points table (live standings from the tournament's group stage) ---
   const [pointsTable, setPointsTable] = useState(null); // { groups, teams, qualifyPerGroup } | { error }
@@ -335,6 +340,7 @@ const ScorecardDisplay = () => {
             showMatchWon: !!os.showMatchWon,
             showNeedRun: !!os.showNeedRun,
             showNeedRunStrip: !!os.showNeedRunStrip,
+            autoInfoOff: !!os.autoInfoOff,
             showLastOut: !!os.showLastOut,
             showCustomText: !!os.showCustomText,
             customText: os.customText || '',
@@ -377,6 +383,7 @@ const ScorecardDisplay = () => {
         merged.showMatchWon = os.showMatchWon ?? prev.showMatchWon ?? false;
         merged.showNeedRun = os.showNeedRun ?? prev.showNeedRun ?? false;
         merged.showNeedRunStrip = os.showNeedRunStrip ?? prev.showNeedRunStrip ?? false;
+        merged.autoInfoOff = os.autoInfoOff ?? prev.autoInfoOff ?? false;
         merged.showLastOut = os.showLastOut ?? prev.showLastOut ?? false;
         merged.showCustomText = os.showCustomText ?? prev.showCustomText ?? false;
         if (os.customText !== undefined) merged.customText = os.customText;
@@ -454,6 +461,25 @@ const ScorecardDisplay = () => {
     if (tournamentId) {
       console.log('[ScorecardDisplay] Initializing Tournament mode for tournamentId:', tournamentId);
       
+      // A different match going on air starts from a clean slate, so nothing from the
+      // previous match (score, winner screen, squads, boards) can linger — no OBS refresh needed.
+      const resetForNewMatch = () => {
+        setMatch(null); setWinnerInfo(null); setShowWinner(false);
+        prevWinnerTrigger.current = false; firstLoadDoneRef.current = false;
+        eventQueueRef.current = []; setPointsTable(null); setPublicBoards(null);
+      };
+      const applyOnAir = (m) => {
+        if (!m) { liveMatchIdRef.current = null; resetForNewMatch(); setOffAir(true); return; }
+        setOffAir(false);
+        if (m.matchId && m.matchId !== liveMatchIdRef.current) { liveMatchIdRef.current = m.matchId; resetForNewMatch(); }
+        handleIncomingData(m);
+      };
+      // Live events for a match that is not the one on air are ignored.
+      const liveUpdate = (data) => {
+        if (data?.matchId && liveMatchIdRef.current && data.matchId !== liveMatchIdRef.current) return;
+        handleIncomingData(data);
+      };
+
       const fetchTournamentAndMatch = () => {
         tournamentsApi.publicGet(tournamentId)
           .then(res => {
@@ -462,9 +488,7 @@ const ScorecardDisplay = () => {
               setSubErrorMessage(res.error || 'Broadcasting subscription expired.');
               return;
             }
-            if (res.tournament && res.tournament.currentMatchId) {
-              handleIncomingData(res.tournament.currentMatchId);
-            }
+            if (res.tournament) applyOnAir(res.tournament.currentMatchId || null);
           })
           .catch(e => {
             if (e.status === 403 || e.message?.includes('subscription')) {
@@ -493,8 +517,8 @@ const ScorecardDisplay = () => {
           timeout: 10000,
         });
 
-        socket.on('connection:ack', ({ snapshot }) => {
-          if (snapshot) handleIncomingData(snapshot);
+        socket.on('connection:ack', ({ snapshot, matchId: ackMatchId }) => {
+          applyOnAir(snapshot ? { ...snapshot, matchId: snapshot.matchId || ackMatchId } : null);
         });
 
         socket.on('subscription:expired', (errData) => {
@@ -511,20 +535,16 @@ const ScorecardDisplay = () => {
         });
 
         socket.on('matchSwitched', ({ match }) => {
-          console.log('[ScorecardDisplay] Match switched to new match:', match?.matchId);
-          if (match) {
-            handleIncomingData(match);
-          } else {
-            fetchTournamentAndMatch();
-          }
+          console.log('[ScorecardDisplay] Match switched to:', match?.matchId || '(off air)');
+          applyOnAir(match || null);
         });
 
         // Live update events — all partial updates, merged into state
-        socket.on('score:update', (data) => handleIncomingData(data));
-        socket.on('score:correction', (data) => handleIncomingData(data));
-        socket.on('players:update', (data) => handleIncomingData(data));
-        socket.on('ticker:update', (data) => handleIncomingData(data));
-        socket.on('match:status', (data) => handleIncomingData(data));
+        socket.on('score:update', (data) => liveUpdate(data));
+        socket.on('score:correction', (data) => liveUpdate(data));
+        socket.on('players:update', (data) => liveUpdate(data));
+        socket.on('ticker:update', (data) => liveUpdate(data));
+        socket.on('match:status', (data) => liveUpdate(data));
 
         // OBS Overlay Refresh — re-fetch snapshot without hard reload
         socket.on('overlay:refresh', ({ type, ts } = {}) => {
@@ -927,6 +947,7 @@ const ScorecardDisplay = () => {
     );
   }
 
+  if (tournamentId && offAir) return <div className="fixed inset-0" />;
   if (!match) return (
     <div className="fixed inset-0 bg-[#071A2F] flex flex-col items-center justify-center text-white font-black italic uppercase tracking-widest gap-6">
       <img src="/ks_logo.png" className="h-24 w-24 object-contain animate-pulse" alt="KS Live logo" />
@@ -1461,15 +1482,18 @@ const ScorecardDisplay = () => {
         </div>
       )}
 
-      {/* 5j. TOURNAMENT — BOUNDARIES */}
+      {/* AUTO INFO — rates / partnership / need runs, every over and every minute (hidden under full-screen graphics) */}
+      {renderScorecard && !match.autoInfoOff && (
+        <AutoInfoStrip
+          match={match}
+          getOvers={getOvers}
+          suppressed={!!(match.showVersus || match.showSummary || match.showToss || match.showSquadList || match.showPartnership || match.showNeedRun || match.showMatchSituation || match.showPlayerOfMatch || match.showPointsTable || match.showTournamentMostRuns || match.showTournamentMostWickets || match.showUpcoming || match.showResults || winnerInfo || isMatchFinished)}
+        />
+      )}
+
+      {/* 5j. TOURNAMENT — BOUNDARIES (small card above the scorebar, same in every theme) */}
       {match.showTournamentBoundaries && (
-        <div className="tournament-screen">
-          <div className="tournament-screen-bg" />
-          <div className="tournament-screen-header"><Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> BOUNDARIES — {match.tournamentName || 'TOURNAMENT'}</div>
-          <div className="tournament-screen-body">
-            <div className="tournament-screen-empty">Connect tournament data to display boundary stats.</div>
-          </div>
-        </div>
+        <TournamentBoundaries boundaries={publicBoards?.boundaries} tournamentName={match.tournamentName} />
       )}
 
       {/* 5k. TOURNAMENT — UPCOMING */}

@@ -722,11 +722,11 @@ function MatchCard({ match, onOpen, onCopyUrl, onSetOnAir, isObsActive = true })
           {match.tournamentId && (
             <button
               type="button"
-              onClick={() => !match.isOnAir && onSetOnAir?.(match)}
-              title={match.isOnAir ? 'On air: the tournament OBS link shows this match' : 'Put this match on air (other matches in this tournament go off air)'}
+              onClick={() => onSetOnAir?.(match)}
+              title={match.isOnAir ? 'On air: the tournament OBS link shows this match. Click to take it off air.' : 'Put this match on air (other matches in this tournament go off air)'}
               style={{
                 padding: '3px 10px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800,
-                cursor: match.isOnAir ? 'default' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
                 background: match.isOnAir ? 'rgba(220,38,38,0.2)' : 'rgba(255,255,255,0.08)',
                 color: match.isOnAir ? 'var(--status-error)' : 'rgba(255,255,255,0.5)',
                 border: match.isOnAir ? '1px solid rgba(220,38,38,0.4)' : '1px solid rgba(255,255,255,0.1)',
@@ -983,7 +983,7 @@ const Dashboard = () => {
   const handleSetOnAir = async (match) => {
     try {
       const tId = typeof match.tournamentId === 'object' ? (match.tournamentId?.id || match.tournamentId?._id) : match.tournamentId;
-      await tournamentsApi.setOnAir(tId, match.matchId);
+      await tournamentsApi.setOnAir(tId, match.matchId, !match.isOnAir);
       fetchMatches();
     } catch (err) {
       alert(err.message || 'Failed to set match on air');

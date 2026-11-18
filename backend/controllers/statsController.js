@@ -10,6 +10,8 @@ const Tournament = require('../models/Tournament');
 const { buildMatchStats, computeImpact, recommendMotm, describePlayer, shortFigures, IMPACT_CONFIG, norm } = require('../services/matchStats');
 const { buildLeaderboards } = require('../services/leaderboards');
 
+const { countBoundaries } = require('../services/boundaries');
+
 const STATS_FIELDS = [
   'matchId', 'matchStatus', 'deliveryHistory', 'team1Name', 'team2Name', 'team1Squad', 'team2Squad',
   'battingTeam', 'bowlingTeam', 'isSecondInnings', 'score', 'wickets', 'targetScore', 'firstInningsScore',
@@ -163,6 +165,10 @@ const getPublicLeaderboards = async (req, res, next) => {
       success: true,
       scope: tournamentScope ? 'tournament' : 'match',
       mostRuns: pick(boards.mostRuns, ['rank', 'tied', 'name', 'team', 'matches', 'runs', 'balls', 'average', 'strikeRate', 'highest']),
+      boundaries: {
+        tournament: countBoundaries(tournamentScope ? matches : matches),
+        thisMatch: countBoundaries(matches.filter((m) => m.matchId === match.matchId)),
+      },
       mostWickets: pick(boards.mostWickets, ['rank', 'tied', 'name', 'team', 'matches', 'overs', 'runs', 'wickets', 'average', 'economy', 'best']),
     });
   } catch (err) { next(err); }

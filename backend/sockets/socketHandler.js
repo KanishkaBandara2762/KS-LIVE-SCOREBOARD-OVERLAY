@@ -213,6 +213,7 @@ module.exports = function initSockets(io) {
 // ── Helper: build a minimal overlay snapshot ─────────────────────────────────
 function buildOverlaySnapshot(match) {
   return {
+    matchId: match.matchId,
     // Teams
     battingTeam: match.battingTeam,
     bowlingTeam: match.bowlingTeam,

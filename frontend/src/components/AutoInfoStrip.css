@@ -1,0 +1,32 @@
+/* Auto info flash — left side, just above the scorebar (every theme). Sizes use vw so it scales with the overlay. */
+.ai-card {
+    position: fixed; left: 1.4vw; bottom: 17vh; z-index: 108; pointer-events: none;
+    min-width: 19vw; max-width: 34vw; box-sizing: border-box; overflow: hidden;
+    background: linear-gradient(180deg, rgba(10,18,48,0.95), rgba(5,9,29,0.97));
+    border: 1px solid rgba(255,255,255,0.2); border-left: 0.35vw solid #facc15; border-radius: 0.7vw;
+    box-shadow: 0 0.8vw 2vw rgba(0,0,0,0.5);
+    color: #fff; font-family: 'Barlow', 'Inter', sans-serif; text-transform: uppercase;
+    animation: aiIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ai-tag { padding: 0.35vw 0.9vw; background: #facc15; color: #0a1230; font-size: max(10px, 0.7vw); font-weight: 900; letter-spacing: 0.2em; }
+.ai-body { padding: 0.6vw 0.9vw 0.7vw; }
+.ai-need { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4vw; font-size: max(11px, 0.85vw); font-weight: 800; color: rgba(255,255,255,0.85); }
+.ai-need b { font-size: max(22px, 2.3vw); font-weight: 900; line-height: 1; color: #facc15; font-variant-numeric: tabular-nums; }
+.ai-rates { display: flex; gap: 1.2vw; }
+.ai-rates div { display: flex; flex-direction: column; }
+.ai-rates span { font-size: max(9px, 0.62vw); font-weight: 800; letter-spacing: 0.15em; color: rgba(255,255,255,0.65); }
+.ai-rates b { font-size: max(22px, 2.3vw); font-weight: 900; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.ai-rates .is-hot b { color: #facc15; }
+.ai-pship { display: flex; align-items: center; gap: 1vw; }
+.ai-pship-total { display: flex; align-items: baseline; gap: 0.3vw; padding-right: 1vw; border-right: 1px solid rgba(255,255,255,0.25); }
+.ai-pship-total b { font-size: max(24px, 2.6vw); font-weight: 900; line-height: 1; color: #facc15; }
+.ai-pship-total span { font-size: max(11px, 0.85vw); font-weight: 700; color: rgba(255,255,255,0.7); }
+.ai-pship-bats { display: flex; flex-direction: column; gap: 0.15vw; min-width: 0; }
+.ai-pship-bats div { display: flex; align-items: baseline; gap: 0.5vw; font-size: max(11px, 0.85vw); font-weight: 800; white-space: nowrap; }
+.ai-pship-bats span { overflow: hidden; text-overflow: ellipsis; max-width: 11vw; }
+.ai-pship-bats b { font-size: max(13px, 1.1vw); font-weight: 900; }
+.ai-pship-bats em { font-style: normal; font-size: max(9px, 0.7vw); color: rgba(255,255,255,0.6); }
+.ai-bar { height: 0.2vw; min-height: 2px; background: rgba(255,255,255,0.12); }
+.ai-bar i { display: block; height: 100%; background: #facc15; transform-origin: left; animation: aiBar linear both; }
+@keyframes aiIn { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes aiBar { from { scale: 0 1; } to { scale: 1 1; } }

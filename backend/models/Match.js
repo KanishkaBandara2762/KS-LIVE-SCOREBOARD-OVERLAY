@@ -156,6 +156,7 @@ const overlaySettingsSchema = new mongoose.Schema(
     showMatchWon: { type: Boolean, default: false },
     showNeedRun: { type: Boolean, default: false },
     showNeedRunStrip: { type: Boolean, default: false },
+    autoInfoOff: { type: Boolean, default: false },   // true = hide the automatic rates / partnership / need-runs flash
     showLastOut: { type: Boolean, default: false },
     showCustomText: { type: Boolean, default: false },
     customText: { type: String, default: '' },

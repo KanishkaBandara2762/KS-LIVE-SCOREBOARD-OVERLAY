@@ -145,12 +145,18 @@ const MiniAdmin = () => {
             .catch(() => {});
     }, [matchTournamentId]);
     const isTournamentOnAir = !!match?.matchId && tournamentOnAirId === match.matchId;
+    // Click toggles: ON AIR → takes this match off the tournament link; OFF AIR → puts it on
+    // (any other match of the tournament goes off air automatically).
     const goTournamentOnAir = async () => {
-        if (isTournamentOnAir) return;
         try {
-            await tournamentsApi.setOnAir(matchTournamentId, match.matchId);
-            setTournamentOnAirId(match.matchId);
-        } catch (err) { alert(err.message || 'Failed to set match on air'); }
+            if (isTournamentOnAir) {
+                await tournamentsApi.setOnAir(matchTournamentId, match.matchId, false);
+                setTournamentOnAirId(null);
+            } else {
+                await tournamentsApi.setOnAir(matchTournamentId, match.matchId);
+                setTournamentOnAirId(match.matchId);
+            }
+        } catch (err) { alert(err.message || 'Failed to change on-air status'); }
     };
     const [potmName, setPotmName] = useState('');
     const [potmTeam, setPotmTeam] = useState('');
@@ -200,6 +206,7 @@ const MiniAdmin = () => {
             showMatchWon: false,
             showNeedRun: false,
             showNeedRunStrip: false,
+            autoInfoOff: false,
             showLastOut: false,
             showCustomText: false,
             showTournamentMostRuns: false,
@@ -1338,6 +1345,16 @@ const MiniAdmin = () => {
                     >
                         DESKTOP CONTROL ROOM
                     </button>
+                    {matchTournamentId && (
+                        <button
+                            onClick={goTournamentOnAir}
+                            title={isTournamentOnAir ? 'This match is on the tournament OBS link. Click to take it OFF AIR.' : 'Click to put this match ON AIR on the tournament OBS link.'}
+                            style={{ background: isTournamentOnAir ? '#dc2626' : 'rgba(255,255,255,0.12)', color: '#fff', border: isTournamentOnAir ? '1px solid #fca5a5' : '1px solid rgba(255,255,255,0.3)', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: isTournamentOnAir ? '#fff' : '#9ca3af' }} />
+                            {isTournamentOnAir ? 'ON AIR' : 'OFF AIR'}
+                        </button>
+                    )}
                     <LanguageSwitcher compact />
                     <div className="ma-live-dot" />
                 </div>
@@ -1764,7 +1781,7 @@ const MiniAdmin = () => {
                         {/* ─ Header Bar ─ */}
                         <div className="ma-gfx-topbar">
                             {matchTournamentId ? (
-                                <div className={`ma-gfx-onair ${isTournamentOnAir ? 'on' : 'off'}`} onClick={goTournamentOnAir} title="Only one match per tournament can be on air">
+                                <div className={`ma-gfx-onair ${isTournamentOnAir ? 'on' : 'off'}`} onClick={goTournamentOnAir} title={isTournamentOnAir ? 'Click to take this match OFF AIR' : 'Click to put this match ON AIR (other matches go off air)'}>
                                     <span className="ma-gfx-onair-dot" />
                                     {isTournamentOnAir ? 'ON AIR' : 'OFF AIR'}
                                 </div>
@@ -1880,6 +1897,11 @@ const MiniAdmin = () => {
                                     className={`ma-gfx-btn ${match?.overlaySettings?.showTournamentBoundaries ? 'active' : ''}`}
                                     onClick={() => pushOverlay({ showTournamentBoundaries: !match?.overlaySettings?.showTournamentBoundaries }, ['showTournamentBoundaries'])}
                                 >Boundaries</button>
+                                <button
+                                    className={`ma-gfx-btn ${!match?.overlaySettings?.autoInfoOff ? 'active' : ''}`}
+                                    onClick={() => pushOverlay({ autoInfoOff: !match?.overlaySettings?.autoInfoOff }, ['autoInfoOff'])}
+                                    title="Automatic run rate / partnership / need-runs flash (every over and every minute)"
+                                >Auto Info: {!match?.overlaySettings?.autoInfoOff ? 'ON' : 'OFF'}</button>
                                 <button
                                     className={`ma-gfx-btn ${match?.overlaySettings?.showPointsTable ? 'active' : ''}`}
                                     onClick={() => pushOverlay({ showPointsTable: !match?.overlaySettings?.showPointsTable }, ['showPointsTable'])}

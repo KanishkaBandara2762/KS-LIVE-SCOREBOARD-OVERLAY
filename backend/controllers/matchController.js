@@ -47,8 +47,13 @@ const emitMatchUpdate = async (req, matchId, event, payload) => {
   io.of('/admin').to(room).emit(event, payload);
   // Also emit to tournament room if this match belongs to a tournament
   try {
-    const matchDoc = await Match.findOne({ matchId }, 'tournamentId').lean();
-    if (matchDoc?.tournamentId) {
+    const matchDoc = await Match.findOne({ matchId }, 'tournamentId _id').lean();
+    // Only the match that is ON AIR feeds the tournament OBS link; scoring a
+    // different match of the same tournament must not leak onto the overlay.
+    const onAir = matchDoc?.tournamentId
+      ? await Tournament.exists({ _id: matchDoc.tournamentId, currentMatchId: matchDoc._id })
+      : null;
+    if (matchDoc?.tournamentId && onAir) {
       const tournamentRoom = `tournament:${matchDoc.tournamentId}`;
       io.of('/overlay').to(tournamentRoom).emit(event, payload);
       io.of('/admin').to(tournamentRoom).emit(event, payload);
@@ -1097,7 +1102,7 @@ const updateMatch = async (req, res, next) => {
       'sponsorText', 'autoShowBanner', 'battingLogo', 'leagueLogo', 'overlayHidden',
       // Broadcast Graphics Panel v3.1
       'showPlayerOfMatch', 'showPartnership', 'showSquadList', 'squadListTeam',
-      'showMatchWon', 'showNeedRun', 'showNeedRunStrip', 'showLastOut',
+      'showMatchWon', 'showNeedRun', 'showNeedRunStrip', 'showLastOut', 'autoInfoOff',
       'showCustomText', 'customText', 'show4or6Animation', 'scoreboardOnly',
       'showTournamentMostRuns', 'showTournamentMostWickets', 'showTournamentBoundaries',
       'showPointsTable', 'showUpcoming', 'showResults',

@@ -1,0 +1,24 @@
+/* Small boundaries card — right side, above the scorebar (all themes). Sizes use vw so it scales with the overlay. */
+.tb-card {
+    position: fixed; right: 1.4vw; bottom: 17vh; z-index: 108; pointer-events: none;
+    width: 17vw; min-width: 190px; box-sizing: border-box; padding: 0.7vw 0.9vw 0.8vw;
+    background: linear-gradient(180deg, rgba(10,18,48,0.94), rgba(5,9,29,0.96));
+    border: 1px solid rgba(255,255,255,0.2); border-top: 0.3vw solid #facc15; border-radius: 0.7vw;
+    box-shadow: 0 0.8vw 2vw rgba(0,0,0,0.5);
+    color: #fff; font-family: 'Barlow', 'Inter', sans-serif; text-transform: uppercase;
+    animation: tbIn 0.45s ease both;
+}
+.tb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5vw; margin-bottom: 0.5vw; }
+.tb-head span { font-size: max(11px, 0.95vw); font-weight: 900; letter-spacing: 0.18em; color: #facc15; }
+.tb-head em { font-style: normal; font-size: max(9px, 0.6vw); font-weight: 700; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
+.tb-wait { font-size: max(11px, 0.8vw); color: rgba(255,255,255,0.6); }
+.tb-main { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4vw; text-align: center; }
+.tb-main div { display: flex; flex-direction: column; padding: 0.3vw 0; background: rgba(255,255,255,0.07); border-radius: 0.4vw; }
+.tb-main b { font-size: max(18px, 1.9vw); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.tb-main span { font-size: max(8px, 0.55vw); font-weight: 800; letter-spacing: 0.12em; color: rgba(255,255,255,0.65); margin-top: 0.15vw; }
+.tb-main .tb-total { background: #facc15; color: #0a1230; }
+.tb-main .tb-total span { color: rgba(10,18,48,0.75); }
+.tb-match { display: flex; align-items: center; justify-content: space-between; margin-top: 0.5vw; font-size: max(10px, 0.75vw); font-weight: 800; }
+.tb-match span { color: rgba(255,255,255,0.6); letter-spacing: 0.1em; font-size: max(8px, 0.58vw); }
+.tb-match b { color: #fff; }
+@keyframes tbIn { from { opacity: 0; translate: 40px 0; } to { opacity: 1; translate: 0 0; } }

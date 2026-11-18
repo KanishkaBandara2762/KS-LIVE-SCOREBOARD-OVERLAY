@@ -521,7 +521,7 @@ router.delete('/:tournamentId/teams/:teamId/players/:playerId', async (req, res,
 router.post('/:tournamentId/on-air', async (req, res, next) => {
   try {
     const { tournamentId } = req.params;
-    const { matchId } = req.body;
+    const { matchId, onAir = true } = req.body;
 
     if (!matchId) {
       return res.status(400).json({ success: false, error: 'matchId is required.' });
@@ -535,6 +535,21 @@ router.post('/:tournamentId/on-air', async (req, res, next) => {
     const match = await Match.findOne({ matchId, tournamentId: tournament._id, ownerUid: req.user.id });
     if (!match) {
       return res.status(404).json({ success: false, error: 'Match not found in this tournament.' });
+    }
+
+    // OFF AIR: only clears the link when this match is the one currently on air.
+    if (onAir === false) {
+      if (String(tournament.currentMatchId) === String(match._id)) {
+        tournament.currentMatchId = null;
+        await tournament.save();
+        const ioOff = req.app.get('io');
+        if (ioOff) {
+          const payloadOff = { tournamentId, currentMatchId: null, match: null, offAir: true };
+          ioOff.of('/overlay').to(`tournament:${tournamentId}`).emit('matchSwitched', payloadOff);
+          ioOff.of('/admin').to(`tournament:${tournamentId}`).emit('matchSwitched', payloadOff);
+        }
+      }
+      return res.json({ success: true, currentMatchId: null });
     }
 
     tournament.currentMatchId = match._id;
