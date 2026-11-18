@@ -1,0 +1,571 @@
+/* Auction broadcast overlay (the page OBS shows). Transparent background so it sits over a camera feed. */
+
+html.auction-overlay-mode,
+body.auction-overlay-mode,
+body.auction-overlay-mode #root {
+  background: transparent !important;
+}
+
+/* ── Shared base ────────────────────────────────────────────── */
+
+.auction-overlay {
+  --ov-accent: #facc15;
+  --ov-accent-2: #22c55e;
+  --ov-panel: linear-gradient(120deg, #0b1d12, #142a1c);
+  --ov-bar: #0b1d12;
+  --ov-text: #ffffff;
+  --ov-muted: #bbf7d0;
+  --ov-glow: rgba(250, 204, 21, 0.45);
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: var(--ov-text);
+  font-family: 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
+  text-transform: none;
+  pointer-events: none;
+}
+
+/* ── Themes ─────────────────────────────────────────────────── */
+
+/* Classic: gold on deep green, photo card with crests. */
+.auction-overlay.theme-classic {
+  --ov-accent: #facc15;
+  --ov-accent-2: #22c55e;
+  --ov-panel: linear-gradient(120deg, #0b1d12 0%, #163321 100%);
+  --ov-bar: #0a1a10;
+  --ov-muted: #bbf7d0;
+  --ov-glow: rgba(250, 204, 21, 0.5);
+}
+
+/* Broadcast: sky blue on navy, lower third with a bottom ticker. */
+.auction-overlay.theme-broadcast {
+  --ov-accent: #38bdf8;
+  --ov-accent-2: #1d4ed8;
+  --ov-panel: linear-gradient(100deg, #0c1a2e 0%, #13294b 100%);
+  --ov-bar: #0a2a4a;
+  --ov-muted: #bae6fd;
+  --ov-glow: rgba(56, 189, 248, 0.5);
+}
+
+/* Apex: navy bar with a red score block. */
+.auction-overlay.theme-apex {
+  --ov-accent: #ef4444;
+  --ov-accent-2: #1e3a8a;
+  --ov-panel: linear-gradient(100deg, #0b1730 0%, #112a55 100%);
+  --ov-bar: #0b1730;
+  --ov-muted: #cbd5e1;
+  --ov-glow: rgba(239, 68, 68, 0.5);
+}
+
+/* Neon: cyan and magenta glow on near-black. */
+.auction-overlay.theme-neon {
+  --ov-accent: #22d3ee;
+  --ov-accent-2: #e879f9;
+  --ov-panel: linear-gradient(100deg, #0a0a1f 0%, #1a0b2e 100%);
+  --ov-bar: #14072b;
+  --ov-muted: #a5f3fc;
+  --ov-glow: rgba(34, 211, 238, 0.55);
+}
+
+/* ── Status (top left): angled pill ─────────────────────────── */
+
+.auction-overlay .ov-status {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 22px 9px 16px;
+  background: var(--ov-panel);
+  clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.auction-overlay .ov-status-name {
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ov-muted);
+  text-transform: none;
+}
+.auction-overlay .ov-live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #64748b;
+}
+.auction-overlay .ov-live-dot.on {
+  background: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  animation: ov-pulse 1.4s infinite;
+}
+
+/* ── Summary (top right) ────────────────────────────────────── */
+
+.auction-overlay .ov-summary {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 340px;
+  max-height: calc(100vh - 170px);
+  overflow: hidden;
+  padding: 0 0 10px;
+  background: var(--ov-panel);
+  border: 1px solid var(--ov-glow);
+  border-radius: 6px 6px 18px 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 0 26px rgba(255, 255, 255, 0.03);
+}
+.auction-overlay .ov-summary h2 {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 7px 26px 7px 16px;
+  background: var(--ov-accent);
+  color: #0b1220;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%);
+}
+.auction-overlay .ov-summary h2 span {
+  opacity: 0.7;
+}
+.auction-overlay .ov-team-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 12px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.3s ease;
+}
+.auction-overlay .ov-team-row.leading {
+  background: linear-gradient(90deg, var(--ov-glow), transparent);
+  border-radius: 8px;
+  border-bottom-color: transparent;
+}
+.auction-overlay .ov-team-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.auction-overlay .ov-team-main strong {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.auction-overlay .ov-team-main small,
+.auction-overlay .ov-team-left small {
+  color: var(--ov-muted);
+  font-size: 0.72rem;
+}
+.auction-overlay .ov-team-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-weight: 800;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.auction-overlay .ov-muted {
+  margin: 8px 16px;
+  color: var(--ov-muted);
+}
+
+/* Team crest: a coloured angled badge built from the team name. */
+.auction-overlay .ov-crest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 8px;
+  background: linear-gradient(135deg, hsl(var(--ov-team-hue) 85% 55%), hsl(var(--ov-team-hue) 70% 30%));
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+  flex: 0 0 auto;
+}
+.auction-overlay .ov-crest-lg {
+  min-width: 78px;
+  height: 78px;
+  font-size: 1.3rem;
+  clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
+}
+
+/* ── Player on the block (lower third, left) ────────────────── */
+
+.auction-overlay .ov-lower {
+  position: absolute;
+  left: 24px;
+  bottom: 84px;
+  width: min(720px, 62vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: ov-slide-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.auction-overlay .ov-player-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 132px;
+  background: var(--ov-panel);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--ov-glow);
+  clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%);
+  overflow: hidden;
+}
+.auction-overlay .ov-player-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  animation: ov-sweep 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.auction-overlay .ov-photo-frame {
+  position: relative;
+  width: 132px;
+  flex: 0 0 auto;
+  background: linear-gradient(180deg, var(--ov-accent), var(--ov-accent-2));
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 0 100%);
+  animation: ov-photo-in 0.6s cubic-bezier(0.2, 0.9, 0.2, 1) 0.15s both;
+}
+.auction-overlay .ov-photo {
+  display: block;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  margin: 3px 0 3px 3px;
+  object-fit: cover;
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 0 100%);
+  background: rgba(0, 0, 0, 0.35);
+}
+.auction-overlay .ov-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--ov-accent);
+}
+
+.auction-overlay .ov-player-main {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 18px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.auction-overlay .ov-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: var(--ov-accent);
+}
+.auction-overlay .ov-player-name {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.05;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+}
+.auction-overlay .ov-player-meta {
+  color: var(--ov-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.auction-overlay .ov-bid {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 200px;
+  padding: 12px 22px 12px 26px;
+  background: linear-gradient(135deg, var(--ov-accent), var(--ov-accent-2));
+  clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+  color: #0b1220;
+}
+.auction-overlay .ov-bid > span {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+.auction-overlay .ov-bid-amount {
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1.1;
+  animation: ov-bid-pop 0.45s ease-out both;
+}
+.auction-overlay .ov-bid small {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-align: right;
+}
+.auction-overlay .ov-bid .ov-next {
+  opacity: 0.8;
+}
+
+.auction-overlay .ov-timer {
+  position: absolute;
+  top: -14px;
+  right: 14px;
+  padding: 4px 16px;
+  background: #0b1220;
+  border: 2px solid var(--ov-accent);
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 1rem;
+  box-shadow: 0 0 16px var(--ov-glow);
+}
+
+/* Broadcast theme: wider lower third with a rounded photo. */
+.auction-overlay.theme-broadcast .ov-photo-frame {
+  clip-path: circle(50% at 50% 50%);
+  width: 140px;
+  background: radial-gradient(circle, var(--ov-accent), var(--ov-accent-2));
+  border-radius: 50%;
+  padding: 4px;
+  margin: 8px 4px 8px 10px;
+  box-shadow: 0 0 22px var(--ov-glow);
+}
+.auction-overlay.theme-broadcast .ov-photo {
+  clip-path: circle(50% at 50% 50%);
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+.auction-overlay.theme-broadcast .ov-player-card {
+  clip-path: polygon(0 0, 100% 0, 98% 100%, 0 100%);
+}
+
+/* ── Celebration: SOLD / UNSOLD with congratulations ─────────── */
+
+.auction-overlay .ov-celebration {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  pointer-events: none;
+}
+
+.auction-overlay .ov-celebration-band {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 64px 16px;
+  background: linear-gradient(90deg, var(--ov-accent-2), var(--ov-accent), var(--ov-accent-2));
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.55), 0 0 40px var(--ov-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: ov-band-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.auction-overlay .ov-celebration-band::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: ov-sweep 1.6s linear 0.4s 2;
+}
+.auction-overlay .ov-celebration-title {
+  font-size: 4.2rem;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  color: #0b1220;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+.auction-overlay .ov-celebration-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #0b1220;
+}
+.auction-overlay .ov-celebration.unsold .ov-celebration-band {
+  background: linear-gradient(90deg, #334155, #64748b, #334155);
+}
+.auction-overlay .ov-celebration.unsold .ov-celebration-title {
+  color: #fff;
+  text-shadow: none;
+  font-size: 3rem;
+}
+
+.auction-overlay .ov-congrats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 26px 12px 16px;
+  background: var(--ov-panel);
+  border: 1px solid var(--ov-glow);
+  border-radius: 14px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+  animation: ov-rise 0.6s cubic-bezier(0.2, 0.9, 0.2, 1) 0.45s both;
+}
+.auction-overlay .ov-congrats-line {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--ov-accent);
+}
+.auction-overlay .ov-congrats-sub {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ov-text);
+}
+.auction-overlay .ov-congrats-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--ov-accent);
+}
+
+/* Confetti: pieces fall from the top of the screen. */
+.auction-overlay .ov-confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.auction-overlay .ov-confetti span {
+  position: absolute;
+  top: -5vh;
+  width: 9px;
+  height: 15px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: ov-confetti-fall 3.4s cubic-bezier(0.25, 0.6, 0.4, 1) forwards;
+}
+
+/* ── Ticker (bottom, right to left) ─────────────────────────── */
+
+.auction-overlay .ov-ticker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 56px;
+  display: flex;
+  align-items: stretch;
+  background: var(--ov-bar);
+  border-top: 2px solid var(--ov-accent);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+}
+.auction-overlay .ov-ticker-label {
+  display: flex;
+  align-items: center;
+  padding: 0 30px 0 18px;
+  background: var(--ov-accent);
+  color: #0b1220;
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
+  clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%);
+  flex: 0 0 auto;
+  z-index: 1;
+}
+.auction-overlay .ov-ticker-viewport {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.auction-overlay .ov-ticker-track {
+  display: inline-flex;
+  gap: 60px;
+  white-space: nowrap;
+  font-size: 1.1rem;
+  font-weight: 700;
+  animation: ov-ticker-scroll 42s linear infinite;
+  will-change: transform;
+}
+.auction-overlay .ov-ticker-item::before {
+  content: '◆';
+  color: var(--ov-accent);
+  margin-right: 14px;
+}
+
+/* ── Motion ─────────────────────────────────────────────────── */
+
+@keyframes ov-slide-in {
+  from { transform: translateX(-110%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes ov-photo-in {
+  from { transform: scale(0.55) rotate(-6deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes ov-bid-pop {
+  0% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes ov-sweep {
+  from { transform: translateX(0); }
+  to { transform: translateX(520%); }
+}
+@keyframes ov-band-in {
+  0% { transform: scaleX(0.1); opacity: 0; }
+  60% { transform: scaleX(1.04); opacity: 1; }
+  100% { transform: scaleX(1); }
+}
+@keyframes ov-rise {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes ov-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+@keyframes ov-confetti-fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+  100% { opacity: 0; transform: translate(var(--ov-drift), 110vh) rotate(var(--ov-rotate)); }
+}
+@keyframes ov-ticker-scroll {
+  from { transform: translateX(100vw); }
+  to { transform: translateX(-100%); }
+}
+
+@media (max-width: 900px) {
+  .auction-overlay .ov-summary { width: 250px; }
+  .auction-overlay .ov-lower { width: calc(100vw - 48px); }
+  .auction-overlay .ov-player-name { font-size: 1.4rem; }
+  .auction-overlay .ov-bid { min-width: 150px; }
+  .auction-overlay .ov-celebration-title { font-size: 2.8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auction-overlay *,
+  .auction-overlay *::before,
+  .auction-overlay *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .auction-overlay .ov-ticker-track { animation-duration: 120s !important; animation-iteration-count: infinite !important; }
+}

@@ -40,8 +40,9 @@ function LinkCard({ icon, title, audience, description, url, onCopy, copied, onO
   );
 }
 
-export default function AuctionAccessPanel({ auction, pendingRequestCount = 0, onOpenRequests }) {
+export default function AuctionAccessPanel({ auction, teams = [], pendingRequestCount = 0, onOpenRequests }) {
   const [links, setLinks] = useState(null);
+  const [teamLinks, setTeamLinks] = useState({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [copiedKey, setCopiedKey] = useState('');
@@ -74,7 +75,7 @@ export default function AuctionAccessPanel({ auction, pendingRequestCount = 0, o
   };
 
   const regenerate = async (which) => {
-    const label = which === 'player' ? 'player registration' : 'captain';
+    const label = which === 'player' ? 'player registration' : 'team owner';
     if (!window.confirm(`Create a new ${label} link? The old link will stop working.`)) return;
     setBusy(true);
     setError('');
@@ -99,6 +100,28 @@ export default function AuctionAccessPanel({ auction, pendingRequestCount = 0, o
 
   const openUrl = (url) => window.open(url, '_blank', 'noopener');
 
+  // One-time link for a single team. Opening it assigns the owner straight to that team.
+  const createTeamLink = async (team) => {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await auctionApi.invite(auctionId, team.id, { expiresInDays: 7 });
+      setTeamLinks((prev) => ({ ...prev, [team.id]: res.url }));
+    } catch (err) {
+      setError(err.message || 'Could not create the team link.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyTeamLink = async (url) => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      window.prompt('Copy this link:', url);
+    }
+  };
+
   return (
     <div className="auction-access">
       {error ? <div className="auction-alert error">{error}</div> : null}
@@ -111,7 +134,7 @@ export default function AuctionAccessPanel({ auction, pendingRequestCount = 0, o
       ) : null}
 
       <p className="auction-access-intro">
-        Share each link with the right group. Requests that come in through the player and captain links are approved in the <strong>Requests</strong> tab.
+        Share each link with the right group. Players and team owners who use these links appear in the <strong>Requests</strong> tab for approval.
       </p>
 
       <div className="auction-access-grid">
@@ -151,9 +174,9 @@ export default function AuctionAccessPanel({ auction, pendingRequestCount = 0, o
 
         <LinkCard
           icon={<Handshake size="1.1em" aria-hidden="true" />}
-          title="Team captain"
-          audience="Team captains who will bid"
-          description="Captains sign in, pick their team, and wait for your approval. Approved captains can bid during the auction."
+          title="Team owner (common link)"
+          audience="Owners who will bid for a team"
+          description="Share this one link with all team owners. They pick their team, enter their name, phone and NIC, and wait for your approval. Approving assigns them to that team."
           url={links?.captainUrl}
           copied={copiedKey === 'captain'}
           onCopy={() => copy('captain', links.captainUrl)}
@@ -163,12 +186,42 @@ export default function AuctionAccessPanel({ auction, pendingRequestCount = 0, o
         />
       </div>
 
+      <section className="auction-panel auction-access-individual">
+        <div className="auction-panel-header">
+          <div>
+            <h2>Individual team links</h2>
+            <p>Create a one-time link for one team. It expires in 7 days. The owner who opens it is assigned to that team straight away.</p>
+          </div>
+        </div>
+        {teams.length === 0 ? (
+          <div className="auction-empty small"><p>Add teams in the Teams tab first.</p></div>
+        ) : (
+          <ul className="auction-access-list">
+            {teams.map((team) => (
+              <li key={team.id}>
+                <span><strong>{team.name}</strong>{team.shortName ? ` (${team.shortName})` : ''}</span>
+                {team.ownerUserId ? (
+                  <span className="auction-badge joined">Owner assigned</span>
+                ) : teamLinks[team.id] ? (
+                  <span className="auction-access-url">
+                    <input readOnly value={teamLinks[team.id]} onFocus={(e) => e.target.select()} aria-label={`${team.name} link`} />
+                    <button className="auction-btn small" onClick={() => copyTeamLink(teamLinks[team.id])}>Copy</button>
+                  </span>
+                ) : (
+                  <button className="auction-btn small" disabled={busy} onClick={() => createTeamLink(team)}>Create link</button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className="auction-access-steps" aria-label="How it works">
         <h3>How it works</h3>
         <ol>
           <li><span>1</span> Share the player link or QR code.</li>
           <li><span>2</span> Approve players in <strong>Requests</strong>.</li>
-          <li><span>3</span> Share the captain link and approve captains.</li>
+          <li><span>3</span> Share the team owner link, or create a team link, and approve owners.</li>
           <li><span>4</span> Start the auction from the Setup page.</li>
         </ol>
         <p className="auction-access-note"><Eye size="0.9em" aria-hidden="true" /> Anyone with the broadcast link can watch but cannot bid.</p>
