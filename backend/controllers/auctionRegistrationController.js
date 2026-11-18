@@ -29,7 +29,9 @@ const playerPhotoUpload = multer({
   limits: { fileSize: 3 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
-    if (allowed.includes(path.extname(file.originalname).toLowerCase())) return cb(null, true);
+    // Check both the extension and the declared content type.
+    const isImage = String(file.mimetype || '').startsWith('image/');
+    if (isImage && allowed.includes(path.extname(file.originalname).toLowerCase())) return cb(null, true);
     return cb(new Error("Only PNG, JPG, WEBP or GIF images are allowed."));
   },
 }).single('photo');
@@ -47,7 +49,9 @@ const teamLogoUpload = multer({
   limits: { fileSize: 3 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
-    if (allowed.includes(path.extname(file.originalname).toLowerCase())) return cb(null, true);
+    // Check both the extension and the declared content type.
+    const isImage = String(file.mimetype || '').startsWith('image/');
+    if (isImage && allowed.includes(path.extname(file.originalname).toLowerCase())) return cb(null, true);
     return cb(new Error("Only PNG, JPG, WEBP or GIF images are allowed."));
   },
 }).single('logo');
