@@ -65,16 +65,29 @@ async function logEvent({ auctionId, playerId = null, teamId = null, type, actor
   }
 }
 
-async function serializedTeams(auctionId) {
+// Owner contact details are visible only to the creator, admins, and the team's own owner.
+function canSeeTeamContact(team, viewer = {}) {
+  if (viewer.role === 'auctioneer' || viewer.role === 'admin') return true;
+  return Boolean(viewer.teamId) && String(viewer.teamId) === String(team._id);
+}
+
+async function serializedTeams(auctionId, viewer = {}) {
   const teams = await AuctionTeam.find({ auctionId }).sort({ createdAt: 1 }).lean();
-  return teams.map((team) => ({
-    ...withId(team),
-    // Snapshots are public. Expose only the requester's name, never their id or email.
-    pendingCaptain: team.pendingCaptain?.userId
-      ? { name: team.pendingCaptain.name || '', requestedAt: team.pendingCaptain.requestedAt }
-      : null,
-    purseRemaining: Math.max(0, (team.purseTotal || 0) - (team.purseSpent || 0)),
-  }));
+  return teams.map((team) => {
+    const row = {
+      ...withId(team),
+      // Snapshots reach spectators too. Expose only the requester's name, never their id or contact details.
+      pendingCaptain: team.pendingCaptain?.userId
+        ? { name: team.pendingCaptain.name || '', requestedAt: team.pendingCaptain.requestedAt }
+        : null,
+      purseRemaining: Math.max(0, (team.purseTotal || 0) - (team.purseSpent || 0)),
+    };
+    if (!canSeeTeamContact(team, viewer)) {
+      delete row.ownerEmail;
+      delete row.ownerPhone;
+    }
+    return row;
+  });
 }
 
 async function buildSnapshot(auctionId, viewer = { role: 'guest' }) {
@@ -82,7 +95,7 @@ async function buildSnapshot(auctionId, viewer = { role: 'guest' }) {
   if (!auction) throw new AuctionError('AUCTION_NOT_FOUND', 'Auction not found.');
 
   const [teams, players] = await Promise.all([
-    serializedTeams(auctionId),
+    serializedTeams(auctionId, viewer),
     AuctionPlayer.find({ auctionId }).sort({ lotOrder: 1, createdAt: 1 }).lean(),
   ]);
 
@@ -113,11 +126,27 @@ async function buildSnapshot(auctionId, viewer = { role: 'guest' }) {
   };
 }
 
-async function broadcastSnapshot(io, auctionId, viewer = { role: 'participant' }) {
+// Sends each connected socket a snapshot built for its own role, so the creator keeps
+// control, team owners keep their team view, and spectators never get contact details.
+// Snapshots are cached per viewer, so sockets with the same role and team share one build.
+async function broadcastSnapshot(io, auctionId) {
   if (!io) return;
   try {
-    const snapshot = await buildSnapshot(auctionId, viewer);
-    emit(io, auctionId, 'auction:snapshot', snapshot);
+    const room = `auction:${String(auctionId)}`;
+    const namespace = io.of('/auction');
+    const cache = new Map();
+    for (const socket of namespace.sockets.values()) {
+      if (!socket.rooms.has(room)) continue;
+      const viewer = {
+        role: socket.data.auctionRole || 'spectator',
+        teamId: socket.data.teamId || null,
+        userId: socket.data.userId || null,
+        displayName: socket.data.userName || '',
+      };
+      const key = `${viewer.role}|${viewer.teamId}|${viewer.userId}`;
+      if (!cache.has(key)) cache.set(key, buildSnapshot(auctionId, viewer));
+      socket.emit('auction:snapshot', await cache.get(key));
+    }
   } catch (err) {
     console.error('[AUCTION SNAPSHOT] failed:', err.message);
   }
