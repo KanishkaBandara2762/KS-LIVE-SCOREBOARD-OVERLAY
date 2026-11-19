@@ -15,3 +15,8 @@
 
 /* Small panel overlays: rounded card with a soft border so the video stays visible around it */
 .tp-canvas.tp-panel { border-radius: 36px; box-shadow: 0 0 0 4px rgba(255,255,255,0.18), 0 40px 120px rgba(0,0,0,0.6); }
+
+/* Team-colour side bands: left = batting team, right = bowling team */
+.tp-tc { position: absolute; top: 0; bottom: 0; width: 22px; z-index: 4; pointer-events: none; box-shadow: 0 0 24px rgba(0,0,0,0.35); }
+.tp-tc-l { left: 0; }
+.tp-tc-r { right: 0; }

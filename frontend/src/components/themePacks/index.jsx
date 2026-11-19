@@ -12,7 +12,8 @@
    exporting a pack object, then register it below by theme ID.
    ================================================================ */
 import React from "react";
-import { PanelContext } from "./common";
+import { PanelContext, TeamColorContext } from "./common";
+import { explicitTeamColors } from "../../utils/teamColors";
 import iplGold from "./iplGold";
 import ksPremium from "./ksPremium";
 import ipl2026 from "./ipl2026";
@@ -59,8 +60,12 @@ const PANEL_SIZE = {
 const cache = {};
 const withPanels = (pack) => {
   const out = { ...pack };
+  // Give every screen the team colours of its match (side bands), whatever its size
+  for (const [name, Screen] of Object.entries(pack)) {
+    out[name] = (props) => <TeamColorContext.Provider value={explicitTeamColors(props.match)}><Screen {...props} /></TeamColorContext.Provider>;
+  }
   for (const [name, size] of Object.entries(PANEL_SIZE)) {
-    const Screen = pack[name];
+    const Screen = out[name];
     if (!Screen) continue;
     out[name] = (props) => <PanelContext.Provider value={size}><Screen {...props} /></PanelContext.Provider>;
   }

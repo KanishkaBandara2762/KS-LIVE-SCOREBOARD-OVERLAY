@@ -71,3 +71,6 @@ export const resolveTeamColors = (match) => {
   const bowling = pick(bowlKey, "bowl");
   return { batting, bowling, battingText: readableOn(batting), bowlingText: readableOn(bowling) };
 };
+
+/** Resolved colours, or null when neither team has chosen one (themes then keep their own look). */
+export const explicitTeamColors = (match) => (match?.team1Color || match?.team2Color ? resolveTeamColors(match) : null);

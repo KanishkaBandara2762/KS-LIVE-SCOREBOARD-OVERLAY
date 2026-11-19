@@ -13,6 +13,7 @@ import Ipl2026Bar from "./Ipl2026Bar";
 import IplGoldBar from "./IplGoldBar";
 import TournamentBoundaries from "./TournamentBoundaries";
 import AutoInfoStrip from "./AutoInfoStrip";
+import TeamColorFooter from "./TeamColorFooter";
 import { getThemePack, ProBroadcastBar } from "./themePacks";
 import "./BroadcastScreens.css";
 import "./BroadcastLogo.css";
@@ -1522,6 +1523,9 @@ const ScorecardDisplay = () => {
       {/* 6. MAIN BOTTOM SCOREBOARD */}
       {renderScorecard && (
         <div className={`absolute bottom-0 left-0 w-full flex flex-col pointer-events-none ${animThemeClass}`}>
+          {/* Team colours for every theme except IPL Gold, which colours its own panels */}
+          {match.themeID !== 'IPL_GOLD' && <TeamColorFooter match={match} />}
+
           {/* FREE HIT LIVE BADGE (v3.0) */}
           {match.freeHitActive && (
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 px-5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-600 to-red-600 border-2 border-yellow-300 text-white font-black text-xs tracking-[0.25em] shadow-[0_0_25px_rgba(249,115,22,0.8)] animate-pulse">

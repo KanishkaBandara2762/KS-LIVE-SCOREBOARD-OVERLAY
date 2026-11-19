@@ -12,6 +12,8 @@ import "./common.css";
 
 /** Size factor for small "panel" overlays (1 = full screen). Set by themePacks/index.js. */
 export const PanelContext = createContext(1);
+/** { batting, bowling } team colours for the screen being drawn, or null when no team chose one. */
+export const TeamColorContext = createContext(null);
 
 export const upper = (s, fallback = "") => String(s || fallback).toUpperCase();
 
@@ -52,12 +54,14 @@ export function Logo({ src, name, className = "" }) {
 /** Full-screen 1920×1080 canvas, scaled to fit and centred. */
 export function Stage({ canvasClass = "", hiding = false, background = null, children, z = 107 }) {
   const panel = useContext(PanelContext);
+  const tc = useContext(TeamColorContext);
   const scale = useFitScale(1920, 1080) * panel;
   return (
     <div className={`tp-screen ${hiding ? "tp-hide" : ""}`} style={{ zIndex: z }}>
       <div className={`tp-canvas ${panel < 1 ? "tp-panel" : ""} ${canvasClass}`} style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
         {background}
         {children}
+        {tc && <><div className="tp-tc tp-tc-l" style={{ background: tc.batting }} /><div className="tp-tc tp-tc-r" style={{ background: tc.bowling }} /></>}
       </div>
     </div>
   );
