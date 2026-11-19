@@ -68,6 +68,8 @@ const createMatch = async (req, res, next) => {
     const {
       team1Name = 'TEAM A',
       team2Name = 'TEAM B',
+      team1Color = '',
+      team2Color = '',
       matchNumber = 1,
       isTied = false,
       maxOvers = 20,
@@ -108,6 +110,8 @@ const createMatch = async (req, res, next) => {
       broadcastLocked: true,
       team1Name,
       team2Name,
+      team1Color,
+      team2Color,
       matchNumber,
       isTied,
       matchSummary,
@@ -1029,6 +1033,10 @@ const getOverlay = async (req, res, next) => {
         battingTeam: match.battingTeam,
         bowlingTeam: match.bowlingTeam,
         bowlingPrefix: match.bowlingPrefix,
+        team1Name: match.team1Name,
+        team2Name: match.team2Name,
+        team1Color: match.team1Color || '',
+        team2Color: match.team2Color || '',
         score: match.score,
         wickets: match.wickets,
         totalBalls: match.totalBalls,
@@ -1090,7 +1098,7 @@ const updateMatch = async (req, res, next) => {
 
     const allowedFields = [
       'battingTeam', 'bowlingTeam', 'matchType', 'matchTitle', 'tournamentName', 'venueName', 
-      'matchDate', 'maxOvers', 'ballsPerOver', 'isSecondInnings', 'targetScore', 'targetBalls',
+      'matchDate', 'team1Color', 'team2Color', 'maxOvers', 'ballsPerOver', 'isSecondInnings', 'targetScore', 'targetBalls',
       'isSuperOver', 'matchStatus', 'manualBallsOverride', 'manualBallsValue', 'autoDecreaseBalls', 'score', 'wickets', 'totalBalls', 'legalBallCount',
       'currentOver', 'overRuns', 'recentBalls', 'eventTrigger', 'firstInningsScore', 'firstInningsWickets', 'firstInningsOvers',
       'overLocked', 'fallOfWickets', 'extrasConfig', 'publicScorePreview', 'slug',

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { tournamentsApi } from '../api';
+import TeamColorPicker from './TeamColorPicker';
 import { Activity, Check, Shield, Trash2, TriangleAlert, Users, X, Zap } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : `http://${window.location.hostname}:3001`);
@@ -26,6 +27,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
   const [showAddTeam, setShowAddTeam] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamShortName, setTeamShortName] = useState('');
+  const [teamColor, setTeamColor] = useState('');
   const [teamLogoFile, setTeamLogoFile] = useState(null);
   const [teamLogoPreview, setTeamLogoPreview] = useState(null);
   const teamLogoInputRef = useRef(null);
@@ -108,6 +110,19 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
     }
   };
 
+  // Change an existing team's colour (copied onto every match started from this team)
+  const handleTeamColor = async (hex) => {
+    try {
+      const tid = currentTournament._id || currentTournament.id;
+      const res = await tournamentsApi.updateTeam(tid, selectedTeam._id || selectedTeam.id, { color: hex });
+      const updated = { ...currentTournament, teams: res.teams || [] };
+      setCurrentTournament(updated);
+      if (onUpdated) onUpdated(updated);
+    } catch (err) {
+      setError(err.message || 'Failed to save team colour.');
+    }
+  };
+
   // ── Team Handlers ──────────────────────────────────────────────────────────
   const handleAddTeam = async (e) => {
     e.preventDefault();
@@ -125,11 +140,13 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
         formData.append('name', teamName.trim());
         formData.append('shortName', teamShortName.trim().toUpperCase());
         formData.append('logo', teamLogoFile);
+        formData.append('color', teamColor);
         res = await tournamentsApi.addTeam(currentTournament._id || currentTournament.id, formData);
       } else {
         res = await tournamentsApi.addTeam(currentTournament._id || currentTournament.id, {
           name: teamName.trim(),
           shortName: teamShortName.trim().toUpperCase(),
+          color: teamColor,
         });
       }
 
@@ -141,6 +158,7 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
       }
       setTeamName('');
       setTeamShortName('');
+      setTeamColor('');
       handleClearLogo();
       setShowAddTeam(false);
       showNotification(`Team "${teamName.trim()}" created!`);
@@ -419,6 +437,11 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                   </div>
                 </div>
 
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '6px' }}>Team colour</div>
+                  <TeamColorPicker value={teamColor} onChange={setTeamColor} size={22} />
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -576,6 +599,10 @@ export default function TournamentTeamsModal({ tournament, onClose, onUpdated })
                       <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                         Roster: {selectedTeam.players?.length || 0} players registered
                       </span>
+                      <div style={{ marginTop: '8px' }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>Team colour</div>
+                        <TeamColorPicker value={selectedTeam.color} onChange={handleTeamColor} size={22} />
+                      </div>
                     </div>
                   </div>
 

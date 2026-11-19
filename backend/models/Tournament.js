@@ -40,6 +40,10 @@ const teamSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    color: {
+      type: String,
+      default: '',   // preset team colour (hex); copied onto matches started from this team
+    },
     players: {
       type: [playerSchema],
       default: [],

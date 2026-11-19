@@ -190,7 +190,7 @@ router.delete('/:tournamentId', async (req, res, next) => {
 // ── POST /:tournamentId/teams (Add a team) ────────────────────────────
 router.post('/:tournamentId/teams', teamLogoUpload.single('logo'), async (req, res, next) => {
   try {
-    const { name, shortName = '' } = req.body;
+    const { name, shortName = '', color = '' } = req.body;
     let logo = req.body.logo || '';
     if (req.file) {
       logo = `/uploads/logos/${req.file.filename}`;
@@ -232,6 +232,7 @@ router.post('/:tournamentId/teams', teamLogoUpload.single('logo'), async (req, r
       name: name.trim(),
       shortName: shortName.trim().toUpperCase() || name.trim().slice(0, 3).toUpperCase(),
       logo: logo.trim(),
+      color: /^#[0-9a-fA-F]{6}$/.test(String(color)) ? String(color).toLowerCase() : '',
       players: formattedPlayers,
     };
 
@@ -254,7 +255,7 @@ router.post('/:tournamentId/teams', teamLogoUpload.single('logo'), async (req, r
 // ── PUT /:tournamentId/teams/:teamId (Update a team) ──────────────────
 router.put('/:tournamentId/teams/:teamId', teamLogoUpload.single('logo'), async (req, res, next) => {
   try {
-    const { name, shortName, logo } = req.body;
+    const { name, shortName, logo, color } = req.body;
     const tournament = await Tournament.findOne({
       _id: req.params.tournamentId,
       clientId: req.user.id,
@@ -271,6 +272,7 @@ router.put('/:tournamentId/teams/:teamId', teamLogoUpload.single('logo'), async 
 
     if (name && name.trim()) team.name = name.trim();
     if (shortName !== undefined) team.shortName = shortName.trim().toUpperCase();
+    if (color !== undefined) team.color = /^#[0-9a-fA-F]{6}$/.test(String(color)) ? String(color).toLowerCase() : '';
     if (req.file) {
       team.logo = `/uploads/logos/${req.file.filename}`;
     } else if (logo !== undefined) {
@@ -741,6 +743,8 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       team2Name: actualTeam2Name,
       team1Logo,
       team2Logo,
+      team1Color: team1Obj?.color || '',
+      team2Color: team2Obj?.color || '',
       team1Squad: resolvedTeam1Squad,
       team2Squad: resolvedTeam2Squad,
       battingSquad: initialBattingSquad,

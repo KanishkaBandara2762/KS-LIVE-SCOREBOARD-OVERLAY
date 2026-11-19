@@ -10,6 +10,7 @@ import ModernOverlayThemes from "./ModernOverlayThemes";
 import VersusOverlay from "./VersusOverlay";
 import LightningBar from "./LightningBar";
 import Ipl2026Bar from "./Ipl2026Bar";
+import IplGoldBar from "./IplGoldBar";
 import TournamentBoundaries from "./TournamentBoundaries";
 import AutoInfoStrip from "./AutoInfoStrip";
 import { getThemePack, ProBroadcastBar } from "./themePacks";
@@ -1984,6 +1985,16 @@ const ScorecardDisplay = () => {
             );
           })() : active.isIpl2026 ? (
             <Ipl2026Bar match={match} getOvers={getOvers} />
+          ) : match?.themeID === 'IPL_GOLD' ? (
+            <IplGoldBar
+              match={match}
+              getOvers={getOvers}
+              getAbsoluteUrl={getAbsoluteUrl}
+              showEvent={showEvent}
+              eventType={eventType}
+              eventWicketName={eventWicketName}
+              howOutText={eventType === "WICKET" ? getHowOutText() : ""}
+            />
           ) : active.isProBroadcast ? (
             <ProBroadcastBar
               match={match}

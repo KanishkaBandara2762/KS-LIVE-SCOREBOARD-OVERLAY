@@ -1,6 +1,7 @@
 import React from "react";
 import { Crown, Trophy } from "lucide-react";
 import "./iplGold.css";
+import { resolveTeamColors, shade } from "../../utils/teamColors";
 import { upper, fit, Logo, Stage, tossInfo, chaseInfo, squadInfo, roleLabel, findPlayerPhoto, useRotate, pointsTableMessage } from "./common";
 
 /* ================================================================
@@ -213,34 +214,39 @@ function Partnership({ match }) {
   );
 }
 
-/* ── Squad ─────────────────────────────────────────────────────── */
+/* ── Squad: both teams side by side, each column in its team colour ─────── */
 function Squad({ match, getAbsoluteUrl }) {
-  const { teamName, teamLogo, players } = squadInfo(match, getAbsoluteUrl);
-  const half = Math.ceil(players.length / 2);
-  const col = (list, start) => (
-    <div className="ig-sq-col">
-      {list.map((p, i) => (
-        <div key={i} className="ig-sq-row" style={{ animationDelay: `${(start + i) * 60}ms` }}>
-          <span className="ig-sq-no">{start + i + 1}</span>
-          <Logo src={p.photo ? getAbsoluteUrl(p.photo) : ""} name={p.name} className="ig-sq-photo" />
-          <span className="ig-sq-name">{upper(p.name)}{roleLabel(p.role) === "WICKET KEEPER" && <em>WK</em>}</span>
-          <span className="ig-sq-role">{roleLabel(p.role)}</span>
-        </div>
-      ))}
-    </div>
-  );
+  const colors = resolveTeamColors(match);
+  const cols = [
+    { name: match.battingTeam, logo: match.battingLogo, players: match.battingSquad, color: colors.batting, text: colors.battingText },
+    { name: match.bowlingTeam, logo: match.leagueLogo, players: match.bowlingSquad, color: colors.bowling, text: colors.bowlingText },
+  ].map((c) => ({ ...c, players: (c.players || []).slice(0, 12).map((x) => (typeof x === "string" ? { name: x } : x)) }));
+  const empty = cols.every((c) => c.players.length === 0);
   return (
     <GoldStage>
-      <Logo src={teamLogo} name={teamName} className="ig-sq-watermark" />
-      <div className="ig-sq-head">
-        <Logo src={teamLogo} name={teamName} className="ig-sq-logo" />
-        <div>
-          <div className="ig-title ig-sq-team" style={fit(teamName, 110, 22)}>{upper(teamName, "TEAM")}</div>
-          <div className="ig-sq-sub">PLAYING SQUAD{match.tournamentName ? `  •  ${upper(match.tournamentName)}` : ""}</div>
-        </div>
+      <div className="ig-sq2-top">{upper(match.tournamentName, "TOURNAMENT")}</div>
+      <div className="ig-sq2-title">
+        <div className="ig-title">TEAM SQUAD</div>
       </div>
-      {players.length === 0 ? <div className="ig-empty">No squad added for this team yet.</div> : (
-        <div className="ig-sq-cols">{col(players.slice(0, half), 0)}{col(players.slice(half), half)}</div>
+      {empty ? <div className="ig-empty">No squad added for these teams yet.</div> : (
+        <div className="ig-sq2-cols">
+          {cols.map((c, ci) => (
+            <div key={ci} className="ig-sq2-col">
+              <div className="ig-sq2-head" style={{ background: `linear-gradient(90deg, ${shade(c.color, -0.3)}, ${c.color})`, color: c.text }}>
+                <Logo src={getAbsoluteUrl(c.logo)} name={c.name} className="ig-sq2-logo" />
+                <span style={fit(c.name, 52, 14)}>{upper(c.name, ci ? "BOWLING TEAM" : "BATTING TEAM")}</span>
+              </div>
+              <div className="ig-sq2-list" style={{ borderRight: `10px solid ${c.color}` }}>
+                {c.players.map((pl, i) => (
+                  <div key={i} className="ig-sq2-row" style={{ animationDelay: `${(ci * 12 + i) * 45}ms` }}>
+                    <span>{upper(pl.name)}</span>
+                    {roleLabel(pl.role) === "WICKET KEEPER" && <em>WK</em>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </GoldStage>
   );

@@ -13,6 +13,8 @@ import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcast
 import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 import TossModal from './TossModal';
 import LogoUpload from './LogoUpload';
+import TeamColorPicker from './TeamColorPicker';
+import { teamKey } from '../utils/teamColors';
 import NewBatterModal from './NewBatterModal';
 import NewBowlerModal from './NewBowlerModal';
 import InningsStartModal from './InningsStartModal';
@@ -1173,6 +1175,18 @@ const MiniAdmin = () => {
                             onUploaded={(url) => push({ overlaySettings: { ...match.overlaySettings, [logoField]: url } })}
                         />
                     </div>
+                </div>
+                <div className="ma-field-row">
+                    <span className="ma-field-label">Colour</span>
+                    {(() => {
+                        const colorKey = teamKey(match, teamName) || (isBatting ? "team1" : "team2");
+                        return (
+                            <TeamColorPicker
+                                value={match[colorKey + "Color"]}
+                                onChange={(hex) => push({ [colorKey + "Color"]: hex })}
+                            />
+                        );
+                    })()}
                 </div>
                 <div className="ma-field-row" style={{ flexDirection: "column", alignItems: "stretch" }}>
                     <span className="ma-field-label">Squad ({squad.length})</span>

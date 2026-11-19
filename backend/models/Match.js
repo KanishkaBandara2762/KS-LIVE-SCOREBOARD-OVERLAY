@@ -277,6 +277,8 @@ const matchSchema = new mongoose.Schema(
     team2Name: { type: String, default: 'TEAM B', trim: true },  // original team 2
     team1Logo: { type: String, default: '' },   // uploaded logo path
     team2Logo: { type: String, default: '' },
+    team1Color: { type: String, default: '' },  // team colour chosen from the preset palette (hex)
+    team2Color: { type: String, default: '' },
 
     // ── Match Info ─────────────────────────────────────────────────────────
     matchType: { type: String, enum: ['T20', 'ODI', 'T10', 'Custom', 'Test', 'T20I', 'DOMESTIC_OD', 'DOMESTIC_T20', 'MULTI_DAY'], default: 'T20' },

@@ -289,3 +289,18 @@
 @keyframes igGrow { from { scale: 0 1; } to { scale: 1 1; } }
 @keyframes igFlip { 0% { transform: rotateY(0) translateY(0); } 50% { transform: rotateY(900deg) translateY(-80px); } 100% { transform: rotateY(1800deg) translateY(0); } }
 @keyframes igFall { from { transform: translateY(0) rotate(0); } to { transform: translateY(1160px) rotate(540deg); } }
+
+/* Squad: both teams, team-coloured columns */
+.ig-sq2-top { left: 0; right: 0; top: 0; height: 84px; display: flex; align-items: center; padding: 0 56px; background: linear-gradient(90deg, #0b1647, #16297a); border-bottom: 4px solid #facc15; font-size: 44px; font-weight: 900; letter-spacing: 0.05em; color: #fff; z-index: 3; }
+.ig-sq2-title { left: 56px; right: 56px; top: 110px; height: 110px; display: flex; align-items: center; }
+.ig-sq2-title .ig-title { font-size: 104px; }
+.ig-sq2-cols { left: 56px; right: 56px; top: 240px; bottom: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.ig-sq2-col { display: flex; flex-direction: column; min-height: 0; animation: igRise 0.5s ease both; }
+.ig-sq2-head { display: flex; align-items: center; gap: 22px; height: 100px; padding: 0 26px; font-weight: 900; border-top: 4px solid #facc15; }
+.ig-sq2-head span { white-space: nowrap; }
+.ig-sq2-logo { width: 72px; height: 72px; border-radius: 50%; object-fit: contain; background: rgba(255,255,255,0.92); padding: 6px; box-sizing: border-box; }
+.ig-sq2-logo.tp-logo-ph { background: #0b1647; color: #facc15; font-size: 28px; padding: 0; }
+.ig-sq2-list { flex: 1; display: flex; flex-direction: column; background: linear-gradient(180deg, rgba(11,22,71,0.96), rgba(5,10,36,0.98)); overflow: hidden; }
+.ig-sq2-row { flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; border-bottom: 1px solid rgba(250,204,21,0.35); font-size: 42px; font-weight: 800; animation: igSlide 0.4s ease both; }
+.ig-sq2-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ig-sq2-row em { font-style: normal; font-size: 24px; font-weight: 900; padding: 0 10px; background: #facc15; color: #0b1647; }

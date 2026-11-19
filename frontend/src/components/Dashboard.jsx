@@ -12,6 +12,7 @@ import './DashboardModern.css';
 import { CreditPlansPanel, OwnerContactFooter } from './CreditPlansPanel';
 import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 import { ThemeOptions } from './themeOptions';
+import TeamColorPicker from './TeamColorPicker';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
 
@@ -38,6 +39,8 @@ function CreateMatchModal({ onClose, onCreate }) {
   const [form, setForm] = React.useState({
     team1Name: '',
     team2Name: '',
+    team1Color: '',
+    team2Color: '',
     maxOvers: 20,
     matchNumber: 1,
     tossWinner: 'team1',
@@ -75,6 +78,8 @@ function CreateMatchModal({ onClose, onCreate }) {
       const result = await onCreate({
         team1Name: form.team1Name.trim().toUpperCase(),
         team2Name: form.team2Name.trim().toUpperCase(),
+        team1Color: form.team1Color,
+        team2Color: form.team2Color,
         maxOvers: parseInt(form.maxOvers) || 20,
         matchNumber: parseInt(form.matchNumber) || 1,
         ballsPerOver: parseInt(form.ballsPerOver) || 6,
@@ -169,6 +174,15 @@ function CreateMatchModal({ onClose, onCreate }) {
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em', textAlign: 'right' }}>Team B Name</label>
               <input name="team2Name" value={form.team2Name} onChange={handleChange} placeholder="e.g. KANDY TUSKERS" className="form-input" style={{ fontSize: '1.1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'right' }} />
             </div>
+          </div>
+
+          <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {[['team1Color', form.team1Name || 'Team 1'], ['team2Color', form.team2Name || 'Team 2']].map(([key, label]) => (
+              <div key={key} style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.05em' }}>{String(label).toUpperCase()} colour</label>
+                <TeamColorPicker value={form[key]} onChange={(hex) => setForm((f) => ({ ...f, [key]: hex }))} />
+              </div>
+            ))}
           </div>
 
           <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

@@ -219,6 +219,8 @@ function buildOverlaySnapshot(match) {
     bowlingTeam: match.bowlingTeam,
     team1Name: match.team1Name,
     team2Name: match.team2Name,
+    team1Color: match.team1Color || '',
+    team2Color: match.team2Color || '',
     // Score
     score: match.score,
     wickets: match.wickets,

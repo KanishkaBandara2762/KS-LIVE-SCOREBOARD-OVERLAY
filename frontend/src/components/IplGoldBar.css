@@ -1,0 +1,76 @@
+/* ═══════════════════════════════════════════════════════════════
+   IPL GOLD scorebar — navy & gold with team-coloured side panels (1920 × 112 design)
+   ═══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&display=swap');
+
+.igb-scaler { position: relative; width: 100%; overflow: visible; }
+.igb {
+    position: absolute; left: 0; bottom: 0; width: 1920px; height: 112px;
+    transform-origin: bottom left;
+    display: flex; align-items: stretch;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif; text-transform: uppercase;
+    border-radius: 18px 18px 0 0; overflow: visible;
+    box-shadow: 0 -6px 30px rgba(0,0,0,0.45);
+    animation: igbIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Team panels */
+.igb-side { position: relative; width: 780px; flex: 0 0 780px; display: flex; align-items: center; gap: 22px; padding: 0 26px; box-sizing: border-box; overflow: hidden; }
+.igb-left { border-radius: 18px 0 0 0; border-top: 4px solid #facc15; }
+.igb-right { border-radius: 0 18px 0 0; border-top: 4px solid #facc15; justify-content: space-between; }
+.igb-side::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0 3px, transparent 3px 26px); pointer-events: none; }
+.igb-side > * { position: relative; z-index: 1; }
+.igb-logo { width: 86px; height: 86px; flex: 0 0 86px; border-radius: 50%; object-fit: contain; background: rgba(255,255,255,0.92); padding: 8px; box-sizing: border-box; box-shadow: 0 0 0 3px rgba(250,204,21,0.9); }
+.igb-logo.tp-logo-ph { background: #0b1647; color: #facc15; font-size: 32px; padding: 0; }
+
+.igb-score-block { display: flex; flex-direction: column; justify-content: center; line-height: 1; min-width: 250px; }
+.igb-score-row { display: flex; align-items: baseline; gap: 14px; }
+.igb-score { font-size: 58px; font-weight: 900; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
+.igb-score i { font-style: normal; opacity: 0.8; margin: 0 2px; }
+.igb-overs { font-size: 26px; font-weight: 800; }
+.igb-overs small { font-size: 20px; font-weight: 700; opacity: 0.85; }
+.igb-team { font-size: 24px; font-weight: 800; letter-spacing: 0.06em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 230px; }
+
+.igb-players, .igb-bowl { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.igb-prow { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; height: 36px; border-bottom: 1px solid rgba(255,255,255,0.25); }
+.igb-brow { grid-template-columns: minmax(0, 1fr) auto; }
+.igb-arrow { font-size: 18px; }
+.igb-pname { font-size: 30px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.igb-pfig { font-size: 32px; font-weight: 900; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.igb-pfig small { font-size: 21px; font-weight: 700; opacity: 0.85; margin-left: 5px; }
+
+/* Centre: navy with gold trim */
+.igb-mid {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 2px;
+    background: linear-gradient(180deg, #0f1f66 0%, #08123d 100%);
+    border-top: 4px solid #facc15; border-left: 3px solid #facc15; border-right: 3px solid #facc15; color: #fff;
+}
+.igb-mid-label { font-size: 20px; font-weight: 800; letter-spacing: 0.22em; color: #facc15; }
+.igb-mid-team { font-size: 38px; font-weight: 900; line-height: 1; max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.igb-mid-line { margin-top: 3px; padding: 1px 16px; background: #facc15; color: #0a1230; font-size: 22px; font-weight: 900; letter-spacing: 0.1em; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+.igb-mid-line b { font-weight: 900; font-size: 26px; }
+
+/* Right: toss message or bowler + this over */
+.igb-toss { flex: 1; text-align: right; line-height: 1.1; }
+.igb-toss div { font-size: 34px; font-weight: 900; }
+.igb-toss span { font-size: 24px; font-weight: 700; opacity: 0.9; letter-spacing: 0.06em; }
+.igb-balls { display: flex; gap: 7px; height: 30px; align-items: center; }
+.igb-ball { min-width: 40px; height: 28px; padding: 0 6px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; background: #fff; color: #0a1230; font-size: 19px; font-weight: 900; }
+.igb-ball.is-4 { background: #2563eb; color: #fff; }
+.igb-ball.is-6 { background: #16a34a; color: #fff; }
+.igb-ball.is-w { background: #dc2626; color: #fff; }
+
+/* FOUR / SIX / WICKET pop-up */
+.igb-event {
+    position: absolute; left: 50%; bottom: 128px; transform: translateX(-50%); z-index: 5;
+    min-width: 420px; padding: 8px 46px; text-align: center; display: flex; flex-direction: column; align-items: center;
+    background: linear-gradient(180deg, #0f1f66, #08123d); border: 3px solid #facc15; color: #fff;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.55); animation: igbPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.igb-event-title { font-size: 70px; font-weight: 900; font-style: italic; line-height: 1; letter-spacing: 0.06em; color: #facc15; }
+.igb-event-sub { font-size: 24px; font-weight: 700; }
+.igb-event-wicket { background: linear-gradient(180deg, #b91c1c, #7f1d1d); }
+.igb-event-wicket .igb-event-title { color: #fff; }
+
+@keyframes igbIn { from { opacity: 0; translate: 0 60px; } to { opacity: 1; translate: 0 0; } }
+@keyframes igbPop { from { opacity: 0; scale: 0.5; } to { opacity: 1; scale: 1; } }
