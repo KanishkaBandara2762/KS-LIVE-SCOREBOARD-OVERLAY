@@ -14,6 +14,7 @@ import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
 import TossModal from './TossModal';
 import LogoUpload from './LogoUpload';
 import TeamColorPicker from './TeamColorPicker';
+import EndMatchPrompt, { getMatchOverResult } from './EndMatchPrompt';
 import { teamKey } from '../utils/teamColors';
 import NewBatterModal from './NewBatterModal';
 import NewBowlerModal from './NewBowlerModal';
@@ -64,7 +65,7 @@ Section.displayName = "Section";
 // Flatten overlaySettings onto the match object (the shape this panel expects).
 const flattenServerMatch = (m) => ({
     ...m,
-    themeID: m.overlaySettings?.themeID || 'ICC_GLOBAL',
+    themeID: m.overlaySettings?.themeID || 'IPL_GOLD',
     battingLogo: m.overlaySettings?.battingLogo || '',
     leagueLogo: m.overlaySettings?.leagueLogo || '',
     showVersus: m.overlaySettings?.showVersus || false,
@@ -147,6 +148,11 @@ const MiniAdmin = () => {
             .catch(() => {});
     }, [matchTournamentId]);
     const isTournamentOnAir = !!match?.matchId && tournamentOnAirId === match.matchId;
+    // End-of-match popup: shows when the scoring says the match is over, until it is ended or put off for now
+    const [endPromptDismissed, setEndPromptDismissed] = useState('');
+    const [endingMatch, setEndingMatch] = useState(false);
+    const matchOver = getMatchOverResult(match);
+    const showEndPrompt = !!matchOver && endPromptDismissed !== matchOver.key;
     // Click toggles: ON AIR → takes this match off the tournament link; OFF AIR → puts it on
     // (any other match of the tournament goes off air automatically).
     const goTournamentOnAir = async () => {
@@ -1304,6 +1310,18 @@ const MiniAdmin = () => {
                     onClose={() => setShowInningsStartModal(false)}
                 />
             )}
+            {showEndPrompt && (
+                <EndMatchPrompt
+                    result={matchOver}
+                    inTournament={!!matchTournamentId}
+                    busy={endingMatch}
+                    onLater={() => setEndPromptDismissed(matchOver.key)}
+                    onEnd={async () => {
+                        setEndingMatch(true);
+                        try { await push({ matchStatus: 'completed' }); } finally { setEndingMatch(false); }
+                    }}
+                />
+            )}
             {showNewBatterModal && (
                 <NewBatterModal 
                     squad={match?.battingSquad || []}
@@ -1769,7 +1787,7 @@ const MiniAdmin = () => {
                                 <button className={`ma-status-btn ${match.matchStatus === 'Innings Break' ? 'active-inn' : ''}`} onClick={() => push({ matchStatus: 'Innings Break' })}><RefreshCw size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> INN BREAK</button>
                                 <button className={`ma-status-btn ${match.matchStatus === 'Rain Delay' ? 'active-rain' : ''}`} onClick={() => push({ matchStatus: 'Rain Delay' })}><Umbrella size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> RAIN</button>
                             </div>
-                            <button className={`ma-status-btn w-full mt-2 ${match.matchStatus === 'Match Ended' ? 'active-ended' : ''}`} style={{ width:'100%' }} onClick={() => push({ matchStatus: 'Match Ended' })}><Flag size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> MATCH ENDED</button>
+                            <button className={`ma-status-btn w-full mt-2 ${(match.matchStatus === 'completed' || match.matchStatus === 'Match Ended') ? 'active-ended' : ''}`} style={{ width:'100%' }} onClick={() => push({ matchStatus: 'completed' })}><Flag size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> MATCH ENDED</button>
                         </div>
 
                         {/* Actions */}
@@ -2000,9 +2018,10 @@ const MiniAdmin = () => {
                         {/* Theme & Overlay */}
                         <div className="ma-card">
                             <div className="ma-card-title">Overlay Theme</div>
-                            <select className="ma-sel" value={match.themeID || 'IPL_GOLD'} onChange={e => push({ themeID: e.target.value })}>
+                            <select className="ma-sel" value={match.themeID || 'IPL_GOLD'} disabled={!!matchTournamentId} title={matchTournamentId ? 'The overlay theme is set once for the whole tournament' : undefined} onChange={e => push({ themeID: e.target.value })}>
                                 <ThemeOptions current={match.themeID} />
                             </select>
+                            {matchTournamentId && <div style={{ fontSize: 11, opacity: 0.65, margin: '4px 0 6px' }}>Theme is set by the tournament: every match uses the same overlay.</div>}
                             <div className="ma-grid-2">
                                 <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>
                                 <button className={`ma-status-btn ${match.showSummary ? 'active-break' : ''}`} onClick={() => push({ showSummary: !match.showSummary })}>Summary</button>
@@ -2405,8 +2424,8 @@ const MiniAdmin = () => {
                             </div>
                             <div className="ma-modal-field"><label className="ma-modal-label">Stage / Title</label><input name="matchTitle" className="ma-modal-inp" placeholder="GRAND FINAL" /></div>
                             <div className="ma-modal-field"><label className="ma-modal-label">Theme</label>
-                                <select name="themeID" className="ma-modal-inp">
-                                    <ThemeOptions />
+                                <select name="themeID" className="ma-modal-inp" defaultValue={match.themeID || 'IPL_GOLD'} disabled title="The overlay theme is set once for the whole tournament">
+                                    <ThemeOptions current={match.themeID} />
                                 </select>
                             </div>
                             <div className="ma-modal-footer">

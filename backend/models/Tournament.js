@@ -164,6 +164,11 @@ const tournamentSchema = new mongoose.Schema(
         ref: 'Match',
       },
     ],
+    // One overlay theme for every match of the tournament, set once and never changed per match.
+    themeID: {
+      type: String,
+      default: '',
+    },
     currentMatchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Match',

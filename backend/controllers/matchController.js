@@ -1096,6 +1096,14 @@ const updateMatch = async (req, res, next) => {
       return res.status(403).json({ success: false, error: 'Access denied.' });
     }
 
+    // The overlay theme is set once for the whole tournament, so a tournament match cannot change it.
+    if (match.tournamentId) {
+      delete updates.themeID;
+      if (updates.overlaySettings && typeof updates.overlaySettings === 'object') delete updates.overlaySettings.themeID;
+    }
+    // The MATCH ENDED button used to save "Match Ended", which the points table and stats do not recognise.
+    if (String(updates.matchStatus || '').trim().toLowerCase() === 'match ended') updates.matchStatus = 'completed';
+
     const allowedFields = [
       'battingTeam', 'bowlingTeam', 'matchType', 'matchTitle', 'tournamentName', 'venueName', 
       'matchDate', 'team1Color', 'team2Color', 'maxOvers', 'ballsPerOver', 'isSecondInnings', 'targetScore', 'targetBalls',
@@ -1254,10 +1262,25 @@ const deleteMatch = async (req, res, next) => {
     if (!isAdmin && match.ownerUid.toString() !== req.user.id) {
       return res.status(403).json({ success: false, error: 'Access denied.' });
     }
-    // Finished matches can only be removed by an admin.
-    const isFinished = ['completed', 'abandoned'].includes(match.matchStatus);
-    if (isFinished && !isAdmin) {
-      return res.status(403).json({ success: false, error: 'Only admins can delete finished matches.' });
+    // Take the match out of its tournament; if it was on air, switch the tournament overlay off air.
+    if (match.tournamentId) {
+      // Unlink its fixture and rebuild the points table first (the lookup uses the tournament's match list).
+      await refreshForMatch(match._id, req.app.get('io'), { unlink: true });
+      try {
+        const t = await Tournament.findById(match.tournamentId);
+        if (t) {
+          const wasOnAir = String(t.currentMatchId) === String(match._id);
+          t.matches.pull(match._id);
+          if (wasOnAir) t.currentMatchId = null;
+          await t.save();
+          const io = req.app.get('io');
+          if (wasOnAir && io) {
+            const payload = { tournamentId: String(t._id), currentMatchId: null, match: null, offAir: true };
+            io.of('/overlay').to(`tournament:${t._id}`).emit('matchSwitched', payload);
+            io.of('/admin').to(`tournament:${t._id}`).emit('matchSwitched', payload);
+          }
+        }
+      } catch (e) { console.error('[deleteMatch] tournament cleanup failed:', e.message); }
     }
 
     await Promise.all([
@@ -1267,9 +1290,6 @@ const deleteMatch = async (req, res, next) => {
     ]);
 
     await User.findByIdAndUpdate(match.ownerUid, { $inc: { matchCount: -1 } });
-
-    // Unlink from any group fixture and rebuild that tournament's standings.
-    if (match.tournamentId) refreshForMatch(match._id, req.app.get('io'), { unlink: true });
 
     res.json({ success: true, message: 'Match deleted.' });
   } catch (err) {

@@ -139,10 +139,13 @@ router.get('/:tournamentId', async (req, res, next) => {
   }
 });
 
+// Themes offered to users (a tournament's theme is chosen from these when it is created)
+const OFFERED_THEMES = ['PRO_BROADCAST', 'IPL_GOLD', 'KS_PREMIUM', 'IPL_2026', 'LIGHTNING_BAR'];
+
 // ── POST /create ──────────────────────────────────────────────────────
 router.post('/create', async (req, res, next) => {
   try {
-    const { name, type, groupStage } = req.body;
+    const { name, type, groupStage, themeID } = req.body;
 
     if (!name || !type) {
       return res.status(400).json({ success: false, error: 'Name and Type are required.' });
@@ -153,6 +156,7 @@ router.post('/create', async (req, res, next) => {
       type,
       clientId: req.user.id,
       teams: [],
+      themeID: OFFERED_THEMES.includes(themeID) ? themeID : 'IPL_GOLD',
       broadcastLocked: true,
       ...(groupStage ? { groupStage: { enabled: true } } : {}),
     });
@@ -589,7 +593,7 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
       matchTitle = '',
       venueName = '',
       matchDate = '',
-      themeID = 'ICC_GLOBAL',
+      themeID: requestedThemeID = '',
       team1Squad: customTeam1Squad = null,
       team2Squad: customTeam2Squad = null,
       fixtureId = null,
@@ -598,6 +602,15 @@ router.post('/:tournamentId/next-match', async (req, res, next) => {
     const tournament = await Tournament.findOne({ _id: tournamentId, clientId: req.user.id });
     if (!tournament) {
       return res.status(404).json({ success: false, error: 'Tournament not found or access denied.' });
+    }
+
+    // Every match of a tournament uses the same overlay theme: the one chosen when the tournament
+    // was created, or (older tournaments) the theme of its first match. It cannot change per match.
+    let themeID = tournament.themeID;
+    if (!themeID) {
+      const firstMatch = tournament.matches.length ? await Match.findById(tournament.matches[0]).select('overlaySettings.themeID').lean() : null;
+      themeID = firstMatch?.overlaySettings?.themeID || (OFFERED_THEMES.includes(requestedThemeID) ? requestedThemeID : 'IPL_GOLD');
+      tournament.themeID = themeID;
     }
 
     // Optional: start the match from a group/knockout fixture (links its result to the points table)

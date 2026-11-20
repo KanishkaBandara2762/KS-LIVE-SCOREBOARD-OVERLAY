@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, LayoutGrid, Lightbulb, Pause, Pencil, Radio, Rocket, Settings, Target, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
+import { Activity, Building2, Calendar, Check, ChevronDown, ClipboardList, Circle, Eye, Flag, Gamepad2, Hammer, Hourglass, Image as ImageIcon, Infinity as InfinityIcon, LayoutGrid, Lightbulb, Pause, Pencil, Radio, Rocket, Settings, Target, Trash2, TriangleAlert, Trophy, User, Users, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { matchesApi, tournamentsApi, subscriptionsApi, getToken, ensureBroadcastLink } from '../api';
 import TournamentTeamsModal from './TournamentTeamsModal';
@@ -11,7 +11,7 @@ import './Dashboard.css';
 import './DashboardModern.css';
 import { CreditPlansPanel, OwnerContactFooter } from './CreditPlansPanel';
 import BroadcastStatus, { isBroadcastLocked } from './BroadcastStatus';
-import { ThemeOptions } from './themeOptions';
+import { ThemeOptions, THEMES } from './themeOptions';
 import TeamColorPicker from './TeamColorPicker';
 
 const MATCH_TYPES = ['T20', 'T10', 'ODI', 'Test', 'Custom'];
@@ -242,6 +242,7 @@ function CreateTournamentModal({ onClose, onCreate }) {
   const [form, setForm] = useState({
     name: '',
     type: 'League',
+    themeID: 'IPL_GOLD',
     groupStage: false,
   });
   const [loading, setLoading] = useState(false);
@@ -290,6 +291,13 @@ function CreateTournamentModal({ onClose, onCreate }) {
               <option value="One Day">One Day</option>
               <option value="Test">Test</option>
               <option value="Open">Open</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Overlay Theme * <span style={{ opacity: 0.6, fontWeight: 400, textTransform: 'none' }}>(same for every match; cannot be changed later)</span></label>
+            <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select">
+              <ThemeOptions />
             </select>
           </div>
 
@@ -343,7 +351,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
     tossDecision: 'bat',
     matchTitle: '',
     venueName: '',
-    themeID: 'IPL_GOLD',
+    themeID: tournament.themeID || 'IPL_GOLD',
   });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -682,9 +690,16 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
 
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Theme</label>
-            <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
+            {tournament.themeID ? (
+              <div className="form-input" style={{ fontSize: '1rem', fontWeight: 700, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
+                {THEMES.find((t) => t.id === tournament.themeID)?.label || tournament.themeID}
+                <div style={{ fontSize: '0.7rem', fontWeight: 500, opacity: 0.65, marginTop: 4 }}>Set by the tournament: every match uses the same overlay.</div>
+              </div>
+            ) : (
+              <select name="themeID" value={form.themeID} onChange={handleChange} className="form-select" style={{ fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.2)', padding: '12px 16px' }}>
               <ThemeOptions />
             </select>
+            )}
           </div>
 
           {error && <div className="form-error" style={{ margin: 0, padding: '12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' }}><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {error}</div>}
@@ -702,7 +717,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
 }
 
 // ── Match Card ────────────────────────────────────────────────────────────
-function MatchCard({ match, onOpen, onCopyUrl, onSetOnAir, isObsActive = true }) {
+function MatchCard({ match, onOpen, onCopyUrl, onSetOnAir, onDelete, isObsActive = true }) {
   const [copied, setCopied] = useState(false);
   const statusInfo = STATUS_COLORS[match.status] || STATUS_COLORS.live;
   const overlayUrl = `${window.location.origin}/overlay/${match.matchId}`;
@@ -788,6 +803,16 @@ function MatchCard({ match, onOpen, onCopyUrl, onSetOnAir, isObsActive = true })
         <button className="btn-mini" onClick={() => { window.location.href = `/mini-admin/${match.matchId}`; }}>
           <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Mini
         </button>
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => onDelete(match)}
+            title="Delete this match (use this if it was created by mistake)"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700, background: 'rgba(220,38,38,0.12)', color: '#f87171', border: '1px solid rgba(220,38,38,0.35)' }}
+          >
+            <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Delete
+          </button>
+        )}
       </div>
     </div>
   );
@@ -992,6 +1017,24 @@ const Dashboard = () => {
   const handleCreateTournament = async (formData) => {
     const res = await tournamentsApi.create(formData);
     await fetchTournaments();
+  };
+
+  // Delete a match (e.g. one created by mistake). Asks first; a tournament match is also taken out of the points table.
+  const handleDeleteMatch = async (match) => {
+    const finished = ['completed', 'abandoned'].includes(match.matchStatus);
+    const message = `Delete "${match.battingTeam || 'TEAM A'} vs ${match.bowlingTeam || 'TEAM B'}"?\n\n`
+      + 'This removes the match and all its scoring.'
+      + (match.tournamentId ? ' Its result is also removed from the points table.' : '')
+      + (finished ? ' This match is already finished.' : '')
+      + '\n\nThis cannot be undone.';
+    if (!window.confirm(message)) return;
+    try {
+      await matchesApi.delete(match.matchId);
+      await fetchMatches();
+      await fetchTournaments();
+    } catch (err) {
+      alert(err.message || 'Failed to delete match');
+    }
   };
 
   const handleSetOnAir = async (match) => {
@@ -1307,6 +1350,7 @@ const Dashboard = () => {
                         isObsActive={isObsActive}
                         onOpen={handleOpen}
                         onSetOnAir={handleSetOnAir}
+                        onDelete={handleDeleteMatch}
                         onCopyUrl={(id) => navigator.clipboard.writeText(`${window.location.origin}/overlay/${id}`)}
                       />
                     ))}
