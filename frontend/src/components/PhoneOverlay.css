@@ -1,0 +1,23 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   PHONE VIEW (all overlay themes)
+   Applies only when the overlay root has .ov-phone-canvas (screens < 768px).
+   1. Circles keep their round shape instead of squeezing into ovals.
+   2. Player / bowler / batter names are enlarged so they can be read.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Circles never shrink in a flex row, so they stay round */
+.ov-phone-canvas .rounded-full,
+.ov-phone-canvas [class*="circle"],
+.ov-phone-canvas [class*="avatar"] {
+  flex-shrink: 0;
+}
+
+/* Player and bowler names: larger on phones */
+.ov-phone-canvas [class*="name"],
+.ov-phone-canvas [class*="Name"],
+.ov-phone-canvas [class*="bowler"],
+.ov-phone-canvas [class*="batter"],
+.ov-phone-canvas [class*="striker"],
+.ov-phone-canvas [class*="player"] {
+  zoom: 1.35;
+}

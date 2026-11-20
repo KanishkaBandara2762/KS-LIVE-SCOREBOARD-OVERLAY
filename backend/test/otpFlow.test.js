@@ -81,12 +81,12 @@ const latestCode = (email, subjectFragment) => {
   return /Your code: (\d{6})/.exec(message.text)[1];
 };
 
-// One-time token from the copy link in the latest matching email.
+// One-time token from the verify link in the latest matching email.
 const latestCopyToken = (email, subjectFragment) => {
   const message = [...sent].reverse().find((m) => m.to === email && m.subject.includes(subjectFragment));
   assert.ok(message, `no "${subjectFragment}" email was sent to ${email}`);
-  const link = /Copy it in one click: (\S+)/.exec(message.text);
-  assert.ok(link, `no copy link in the "${subjectFragment}" email to ${email}`);
+  const link = /Verify \(fills the code for you\): (\S+)/.exec(message.text);
+  assert.ok(link, `no verify link in the "${subjectFragment}" email to ${email}`);
   return link[1].split('#')[1];
 };
 
@@ -239,7 +239,7 @@ test('the emailed copy link reveals the same code once without using it up', asy
   assert.equal(first.body.code, code);
   assert.equal(first.body.purpose, 'signup');
   assert.ok(first.body.expiresAt);
-  assert.equal(first.headers.get('cache-control'), 'no-store');
+  assert.match(first.headers.get('cache-control'), /no-store/);
 
   const second = await call('POST', '/otp/copy', { token });
   assert.equal(second.status, 410);
