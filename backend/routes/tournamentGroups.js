@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const Tournament = require('../models/Tournament');
 const Match = require('../models/Match');
 const E = require('../services/tournamentEngine');
-const { recalculate, emitStandings } = require('../services/tournamentStandings');
+const { recalculate, emitStandings, ensureLinked } = require('../services/tournamentStandings');
 
 const router = express.Router({ mergeParams: true });
 const sid = (v) => (v ? String(v) : null);
@@ -51,6 +51,8 @@ const serialize = (t) => {
 // ── Public: read-only points table (no login, no OBS credit) ──────────────────
 const publicStandings = async (req, res, next) => {
   try {
+    // Matches played without a fixture are linked here so they count (the table is rebuilt only if something changed).
+    await ensureLinked(req.params.tournamentId);
     const t = await Tournament.findById(req.params.tournamentId).select('name type teams groupStage');
     if (!t || !t.groupStage?.enabled) return fail(res, 404, 'Points table not available for this tournament.');
     const gs = t.groupStage;

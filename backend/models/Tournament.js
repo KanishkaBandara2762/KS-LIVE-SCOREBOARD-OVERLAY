@@ -77,6 +77,7 @@ const fixtureSchema = new mongoose.Schema(
     scheduledAt: { type: Date, default: null },
     venue: { type: String, default: '' },
     matchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Match', default: null },
+    autoCreated: { type: Boolean, default: false },   // made automatically for a match played without a fixture
     locked: { type: Boolean, default: false },
     bonus1: { type: Number, default: 0 },
     bonus2: { type: Number, default: 0 },

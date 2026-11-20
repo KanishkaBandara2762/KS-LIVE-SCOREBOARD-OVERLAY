@@ -27,7 +27,8 @@ export default function TournamentGroupsModal({ tournament, onClose, onStartFixt
   const teamsById = useMemo(() => Object.fromEntries(teams.map((t) => [idOf(t), t])), [teams]);
   const teamName = (id) => teamsById[idOf(id)]?.name || '';
 
-  const [tab, setTab] = useState('setup');
+  const [tab, setTab] = useState('');
+  const [moreTab, setMoreTab] = useState('fixtures');
   const [gs, setGs] = useState(null);
   const [standings, setStandings] = useState(null);
   const [matches, setMatches] = useState({});
@@ -55,6 +56,8 @@ export default function TournamentGroupsModal({ tournament, onClose, onStartFixt
   }, []);
 
   useEffect(() => { run(() => tournamentsApi.groupStage(tid), ' '); }, [tid, run]);
+  // Open on the points table once it is set up; on Setup the first time
+  useEffect(() => { if (gs && !tab) setTab(gs.enabled ? 'table' : 'setup'); }, [gs, tab]);
 
   if (!gs) {
     return (
@@ -75,7 +78,7 @@ export default function TournamentGroupsModal({ tournament, onClose, onStartFixt
         </div>
 
         <div className="tg-tabs" role="tablist">
-          {[['setup', 'Setup'], ['fixtures', 'Fixtures'], ['table', 'Points Table'], ['knockouts', 'Knockouts']].map(([k, l]) => (
+          {[['table', 'Points Table'], ['setup', 'Setup'], ['more', 'More options']].map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} className={`tg-tab ${tab === k ? 'is-active' : ''}`} onClick={() => setTab(k)}>{l}</button>
           ))}
         </div>
@@ -84,7 +87,14 @@ export default function TournamentGroupsModal({ tournament, onClose, onStartFixt
 
         <div className="tg-body">
           {tab === 'setup' && <SetupTab gs={gs} teams={teams} teamName={teamName} meta={meta} busy={busy} run={run} tid={tid} />}
-          {tab === 'fixtures' && (
+          {tab === 'more' && (
+            <div className="tg-subtabs">
+              {[['fixtures', 'Fixtures'], ['knockouts', 'Knockouts']].map(([k, l]) => (
+                <button key={k} type="button" className={`tg-tab ${moreTab === k ? 'is-active' : ''}`} onClick={() => setMoreTab(k)}>{l}</button>
+              ))}
+            </div>
+          )}
+          {tab === 'more' && moreTab === 'fixtures' && (
             <FixturesTab gs={gs} stageFilter={(f) => f.stage === 'group' || f.stage === 'custom'} teams={teams} teamName={teamName}
               outcomes={standings?.outcomes || {}} matches={matches} busy={busy} run={run} tid={tid}
               onStart={(f) => onStartFixture(f, gs)} onOpen={(code) => navigate(`/mini-admin/${code}`)} allowAdd />
@@ -92,13 +102,13 @@ export default function TournamentGroupsModal({ tournament, onClose, onStartFixt
           {tab === 'table' && (
             <div className="tg-section">
               <div className="tg-row">
-                <button className="btn-secondary" disabled={busy} onClick={() => run(() => tournamentsApi.recalculateStandings(tid))}><Icon as={RefreshCw} /> Recalculate from match records</button>
+                <button className="btn-secondary" disabled={busy} onClick={() => run(() => tournamentsApi.recalculateStandings(tid))}><Icon as={RefreshCw} /> Refresh points table</button>
                 <button className="btn-secondary" onClick={() => { navigator.clipboard?.writeText(publicUrl); setMsg({ type: 'ok', text: 'Public points table link copied.' }); }}><Icon as={Copy} /> Copy public link</button>
               </div>
               {gs.enabled ? <PointsTable groups={standings?.groups || []} teamsById={teamsById} qualifyPerGroup={gs.qualifyPerGroup} /> : <p className="tg-hint">Turn on the group stage in Setup first.</p>}
             </div>
           )}
-          {tab === 'knockouts' && (
+          {tab === 'more' && moreTab === 'knockouts' && (
             <KnockoutsTab gs={gs} teams={teams} teamName={teamName} outcomes={standings?.outcomes || {}} matches={matches} busy={busy} run={run} tid={tid}
               onStart={(f) => onStartFixture(f, gs)} onOpen={(code) => navigate(`/mini-admin/${code}`)} />
           )}
@@ -116,7 +126,7 @@ function SetupTab({ gs, teams, teamName, meta, busy, run, tid }) {
     points: { ...gs.points }, tieBreakers: gs.tieBreakers || [], tieBreakPreset: gs.tieBreakPreset,
   }));
   const [groups, setGroups] = useState(() => gs.groups.map((g) => ({ _id: g._id, name: g.name, teamIds: g.teamIds.map(String) })));
-  const [groupCount, setGroupCount] = useState(Math.max(1, gs.groups.length || 2));
+  const [groupCount, setGroupCount] = useState(Math.max(1, gs.groups.length || 1));
   const [shuffle, setShuffle] = useState(false);
   useEffect(() => { setGroups(gs.groups.map((g) => ({ _id: g._id, name: g.name, teamIds: g.teamIds.map(String) }))); }, [gs.groups]);
 
@@ -136,6 +146,55 @@ function SetupTab({ gs, teams, teamName, meta, busy, run, tid }) {
     <div className="tg-section">
       <label className="tg-check"><input type="checkbox" checked={s.enabled} onChange={(e) => set('enabled', e.target.checked)} /> Enable group stage for this tournament</label>
 
+      <div className="tg-simple">
+        <label>Points for a win<input className="form-input" type="number" step="0.5" min="0" value={s.points.win ?? 2} onChange={(e) => set('points', { ...s.points, win: e.target.value })} /></label>
+        <button className="btn-primary" disabled={busy} onClick={() => run(() => tournamentsApi.saveGroupSettings(tid, {
+          ...s, tieBreakers: s.tieBreakPreset === 'CUSTOM' ? s.tieBreakers : undefined, tieBreakPreset: s.tieBreakPreset === 'CUSTOM' ? undefined : s.tieBreakPreset,
+        }))}>Save settings</button>
+      </div>
+      <p className="tg-hint">That is all most tournaments need: matches between two teams of a group are added to the points table automatically when you end them.</p>
+
+      <h4 className="tg-h">Groups</h4>
+      <p className="tg-hint">A normal league uses 1 group: everyone plays everyone. Use more groups only if teams are split into pools.</p>
+      <div className="tg-row">
+        <label className="tg-inline">Groups<input className="form-input tg-num" type="number" min="1" max={teams.length || 1} value={groupCount} onChange={(e) => setGroupCount(e.target.value)} /></label>
+        <label className="tg-check"><input type="checkbox" checked={shuffle} onChange={(e) => setShuffle(e.target.checked)} /> Random draw</label>
+        <button className="btn-secondary" disabled={busy || teams.length < 2} onClick={() => {
+          if (gs.groups.length && !window.confirm('Replace the current groups and their unplayed fixtures?')) return;
+          run(() => tournamentsApi.autoDistribute(tid, parseInt(groupCount, 10), shuffle));
+        }}><Icon as={Shuffle} /> Auto split (balanced)</button>
+      </div>
+      {teams.length < 2 && <p className="tg-hint">Add teams in “Teams &amp; Squads” first.</p>}
+
+      <div className="tg-groups">
+        {groups.map((g, gi) => (
+          <div key={g._id || gi} className="tg-group">
+            <div className="tg-group-head">
+              <input className="form-input" value={g.name} onChange={(e) => setGroups((p) => p.map((x, i) => (i === gi ? { ...x, name: e.target.value } : x)))} aria-label="Group name" />
+              <button className="tg-ic" onClick={() => setGroups((p) => p.filter((_, i) => i !== gi))} aria-label="Remove group"><Icon as={Trash2} /></button>
+            </div>
+            <ul className="tg-chips">
+              {g.teamIds.map((id) => (
+                <li key={id}>{teamName(id)}<button className="tg-ic" aria-label="Remove team" onClick={() => setGroups((p) => p.map((x, i) => (i === gi ? { ...x, teamIds: x.teamIds.filter((t) => t !== id) } : x)))}><Icon as={X} /></button></li>
+              ))}
+            </ul>
+            {unassigned.length > 0 && (
+              <select className="form-select" value="" onChange={(e) => e.target.value && setGroups((p) => p.map((x, i) => (i === gi ? { ...x, teamIds: [...x.teamIds, e.target.value] } : x)))}>
+                <option value="">+ Add team…</option>
+                {unassigned.map((t) => <option key={idOf(t)} value={idOf(t)}>{t.name}</option>)}
+              </select>
+            )}
+          </div>
+        ))}
+      </div>
+      {unassigned.length > 0 && groups.length > 0 && <p className="tg-hint">Not in a group: {unassigned.map((t) => t.name).join(', ')}</p>}
+      <div className="tg-row">
+        <button className="btn-secondary" onClick={() => setGroups((p) => [...p, { name: `Group ${String.fromCharCode(65 + p.length)}`, teamIds: [] }])}><Icon as={Plus} /> Add group</button>
+        <button className="btn-primary" disabled={busy} onClick={() => run(() => tournamentsApi.saveGroups(tid, groups))}>Save groups</button>
+      </div>
+
+      <details className="tg-more">
+        <summary>More options (overs, qualifying places, full points rules, tie-breakers)</summary>
       <div className="tg-grid">
         <label>Format<select className="form-select" value={s.format} onChange={(e) => set('format', e.target.value)}><option value="single">Single round robin</option><option value="double">Double round robin</option></select></label>
         <label>Overs per match<input className="form-input" type="number" min="1" value={s.oversPerMatch} onChange={(e) => set('oversPerMatch', e.target.value)} /></label>
@@ -190,43 +249,8 @@ function SetupTab({ gs, teams, teamName, meta, busy, run, tid }) {
         }))}>Save settings</button>
       </div>
 
-      <h4 className="tg-h">Groups</h4>
-      <div className="tg-row">
-        <label className="tg-inline">Groups<input className="form-input tg-num" type="number" min="1" max={teams.length || 1} value={groupCount} onChange={(e) => setGroupCount(e.target.value)} /></label>
-        <label className="tg-check"><input type="checkbox" checked={shuffle} onChange={(e) => setShuffle(e.target.checked)} /> Random draw</label>
-        <button className="btn-secondary" disabled={busy || teams.length < 2} onClick={() => {
-          if (gs.groups.length && !window.confirm('Replace the current groups and their unplayed fixtures?')) return;
-          run(() => tournamentsApi.autoDistribute(tid, parseInt(groupCount, 10), shuffle));
-        }}><Icon as={Shuffle} /> Auto split (balanced)</button>
-      </div>
-      {teams.length < 2 && <p className="tg-hint">Add teams in “Teams &amp; Squads” first.</p>}
 
-      <div className="tg-groups">
-        {groups.map((g, gi) => (
-          <div key={g._id || gi} className="tg-group">
-            <div className="tg-group-head">
-              <input className="form-input" value={g.name} onChange={(e) => setGroups((p) => p.map((x, i) => (i === gi ? { ...x, name: e.target.value } : x)))} aria-label="Group name" />
-              <button className="tg-ic" onClick={() => setGroups((p) => p.filter((_, i) => i !== gi))} aria-label="Remove group"><Icon as={Trash2} /></button>
-            </div>
-            <ul className="tg-chips">
-              {g.teamIds.map((id) => (
-                <li key={id}>{teamName(id)}<button className="tg-ic" aria-label="Remove team" onClick={() => setGroups((p) => p.map((x, i) => (i === gi ? { ...x, teamIds: x.teamIds.filter((t) => t !== id) } : x)))}><Icon as={X} /></button></li>
-              ))}
-            </ul>
-            {unassigned.length > 0 && (
-              <select className="form-select" value="" onChange={(e) => e.target.value && setGroups((p) => p.map((x, i) => (i === gi ? { ...x, teamIds: [...x.teamIds, e.target.value] } : x)))}>
-                <option value="">+ Add team…</option>
-                {unassigned.map((t) => <option key={idOf(t)} value={idOf(t)}>{t.name}</option>)}
-              </select>
-            )}
-          </div>
-        ))}
-      </div>
-      {unassigned.length > 0 && groups.length > 0 && <p className="tg-hint">Not in a group: {unassigned.map((t) => t.name).join(', ')}</p>}
-      <div className="tg-row">
-        <button className="btn-secondary" onClick={() => setGroups((p) => [...p, { name: `Group ${String.fromCharCode(65 + p.length)}`, teamIds: [] }])}><Icon as={Plus} /> Add group</button>
-        <button className="btn-primary" disabled={busy} onClick={() => run(() => tournamentsApi.saveGroups(tid, groups))}>Save groups</button>
-      </div>
+      </details>
     </div>
   );
 }

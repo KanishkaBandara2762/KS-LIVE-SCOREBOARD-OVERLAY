@@ -62,3 +62,10 @@
   .tg-card { padding: 14px; width: 100%; max-height: 96vh; }
   .tg-fx-actions { width: 100%; justify-content: flex-end; }
 }
+
+/* Simple settings first; advanced ones live in a collapsed block */
+.tg-simple { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin: 12px 0 6px; }
+.tg-simple label { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
+.tg-more { margin-top: 22px; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 10px 14px; }
+.tg-more > summary { cursor: pointer; font-weight: 800; padding: 4px 0; }
+.tg-subtabs { display: flex; gap: 8px; margin-bottom: 12px; }
