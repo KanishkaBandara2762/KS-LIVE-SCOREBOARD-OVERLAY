@@ -3,7 +3,7 @@ import { getToken } from '../api';
 import AdminPlans from './AdminPlans';
 import { useNavigate } from 'react-router-dom';
 import './AdminCustomers.css';
-import { ArrowLeft, Settings, Download, Zap, Globe, Eye, Trash2, Trophy, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Settings, Download, Zap, Globe, Eye, Trash2, Trophy, MessageSquare, History } from 'lucide-react';
 
 const AdminCustomers = () => {
   const navigate = useNavigate();
@@ -224,6 +224,7 @@ const AdminCustomers = () => {
           <h1>Super Admin Dashboard</h1>
         </div>
         <div className="admin-header-actions">
+          <button onClick={() => navigate('/admin/credit-history')} className="btn-export"><History size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Credit History</button>
           <button onClick={openReviews} className="btn-export"><MessageSquare size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Reviews</button>
           <button onClick={() => navigate('/account')} className="btn-export"><Settings size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Account</button>
           <button onClick={exportToCSV} className="btn-export">
@@ -300,6 +301,10 @@ const AdminCustomers = () => {
 
                     <button onClick={() => handleSetCredits(u.id || u._id, u.matchCredits)} className="btn-small">
                       Set Credits
+                    </button>
+
+                    <button onClick={() => navigate(`/admin/credit-history?user=${u.id || u._id}`)} className="btn-small">
+                      History
                     </button>
 
                     <button onClick={() => handleToggleActive(u.id || u._id, u.isActive)} className={`btn-small ${u.isActive ? 'bg-red' : 'bg-green'}`}>

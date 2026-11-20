@@ -167,6 +167,7 @@ function buildApp({ io = null } = {}) {
   app.use('/api/auctions', apiLimiter, requireDB, require('./routes/auctions'));
   app.use('/api/admin', apiLimiter, requireDB, require('./routes/admin'));
   app.use('/api/reviews', apiLimiter, requireDB, require('./routes/reviews'));
+  app.use('/api/news', apiLimiter, requireDB, require('./routes/news'));
   app.use('/api', apiLimiter, requireDB, matchRoutes);
 
   // ── 404 handler ─────────────────────────────────────────────────────────

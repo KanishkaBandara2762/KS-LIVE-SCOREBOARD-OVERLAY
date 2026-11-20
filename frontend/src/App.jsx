@@ -12,6 +12,7 @@ import MiniAdmin from "./components/MiniAdmin";
 import OverlayPage from "./components/OverlayPage";
 import AdminCustomers from "./components/AdminCustomers";
 import AdminReviews from "./components/AdminReviews";
+import CreditHistory from "./components/CreditHistory";
 
 // ── Landing / Welcome page ───────────────────────────────────────────────
 import LandingPage from "./components/LandingPage";
@@ -110,6 +111,10 @@ function App() {
             {/* Super Admin: landing-page reviews (opens in its own window) */}
             <Route path="/admin/reviews" element={
               <PrivateRoute><AdminRoute><AdminReviews /></AdminRoute></PrivateRoute>
+            } />
+            {/* Super Admin: credit usage history per user (proof of spent credits) */}
+            <Route path="/admin/credit-history" element={
+              <PrivateRoute><AdminRoute><CreditHistory /></AdminRoute></PrivateRoute>
             } />
             {/* Legacy /admin without matchId — redirect to dashboard */}
             <Route path="/admin" element={
