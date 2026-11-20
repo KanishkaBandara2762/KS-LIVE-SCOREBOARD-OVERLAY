@@ -6,6 +6,7 @@ const OverlaySettings = require('../models/OverlaySettings');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
 const { unlockBroadcast, isBroadcastLockedDoc } = require('../services/broadcastCredits');
+const { deleteTournamentCascade } = require('../services/tournamentDelete');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const path = require('path');
@@ -174,16 +175,18 @@ router.post('/create', async (req, res, next) => {
 // ── DELETE /:tournamentId ─────────────────────────────────────────────
 router.delete('/:tournamentId', async (req, res, next) => {
   try {
-    const tournament = await Tournament.findOneAndDelete({
+    const tournament = await Tournament.findOne({
       _id: req.params.tournamentId,
       clientId: req.user.id,
-    });
+    }).select('_id').lean();
 
     if (!tournament) {
       return res.status(404).json({ success: false, error: 'Tournament not found.' });
     }
 
-    res.json({ success: true, message: 'Tournament deleted successfully.' });
+    // Also removes its matches, scores and overlay settings.
+    const deletedMatches = await deleteTournamentCascade(tournament, req.app.get('io'));
+    res.json({ success: true, deletedMatches, message: 'Tournament deleted successfully.' });
   } catch (err) {
     next(err);
   }

@@ -320,6 +320,89 @@ function CreateTournamentModal({ onClose, onCreate }) {
   );
 }
 
+// ── Delete Tournament Modal (warning + type the name to confirm) ───────────
+function DeleteTournamentModal({ tournament, onClose, onConfirm }) {
+  const [typed, setTyped] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const name = (tournament.name || '').trim();
+  const matchCount = tournament.matches?.length || 0;
+  const isLive = Boolean(tournament.currentMatchId);
+  const canDelete = typed.trim().toLowerCase() === name.toLowerCase() && !loading;
+
+  const handleDelete = async () => {
+    if (!canDelete) return;
+    setLoading(true);
+    setError('');
+    try {
+      await onConfirm(tournament);
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Failed to delete tournament.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && !loading && onClose()}>
+      <div className="modal-card" role="alertdialog" aria-labelledby="delete-tournament-title">
+        <div className="modal-header">
+          <h2 className="modal-title" id="delete-tournament-title" style={{ color: '#f87171' }}>
+            <TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Delete tournament?
+          </h2>
+          <button className="modal-close" onClick={() => !loading && onClose()}><X size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /></button>
+        </div>
+        <div className="modal-form">
+          <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.35)', borderRadius: 10, padding: '12px 14px', lineHeight: 1.55, fontSize: '0.9rem' }}>
+            <p style={{ margin: '0 0 8px' }}>
+              This permanently deletes <strong>{name}</strong> and everything in it:
+            </p>
+            <ul style={{ margin: '0 0 8px', paddingLeft: 20 }}>
+              <li><strong>{matchCount} {matchCount === 1 ? 'match' : 'matches'}</strong> with all their scores</li>
+              <li>Teams &amp; squads, groups, fixtures and the points table</li>
+              <li>The OBS overlay link will stop working</li>
+            </ul>
+            <p style={{ margin: 0 }}>The credit used is <strong>not refunded</strong>. This cannot be undone.</p>
+            {isLive && (
+              <p style={{ margin: '8px 0 0', color: '#f87171', fontWeight: 700 }}>
+                A match in this tournament is live right now. It will go off air.
+              </p>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>Type <strong style={{ textTransform: 'none' }}>{name}</strong> to confirm</label>
+            <input
+              className="form-input"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              placeholder={name}
+              autoFocus
+              autoComplete="off"
+            />
+          </div>
+
+          {error && <div className="form-error"><TriangleAlert size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> {error}</div>}
+
+          <div className="modal-actions">
+            <button type="button" className="btn-secondary" onClick={() => onClose()} disabled={loading}>Cancel</button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={!canDelete}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 18px', borderRadius: 10, fontWeight: 800, border: 'none', cursor: canDelete ? 'pointer' : 'not-allowed', background: canDelete ? '#dc2626' : '#2A3B52', color: canDelete ? '#fff' : 'var(--text-muted)' }}
+            >
+              {loading
+                ? <><Hourglass size="1em" aria-hidden="true" /> Deleting...</>
+                : <><Trash2 size="1em" aria-hidden="true" /> Delete Tournament</>}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Next Match Modal ───────────────────────────────────────────────────────
 export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }) {
   const file1Ref = React.useRef(null);
@@ -819,7 +902,7 @@ function MatchCard({ match, onOpen, onCopyUrl, onSetOnAir, onDelete, isObsActive
 }
 
 // ── Tournament Card ───────────────────────────────────────────────────────
-function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, onGroups, isObsActive = true }) {
+function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTeams, onGroups, onDelete, isObsActive = true }) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const overlayUrl = `${window.location.origin}/overlay/tournament/${tournament.id || tournament._id}`;
@@ -919,6 +1002,16 @@ function TournamentCard({ tournament, onOpenMatch, onStartNextMatch, onManageTea
         <button className="btn-mini" onClick={() => onStartNextMatch(tournament)}>
           <Zap size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Next Match
         </button>
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => onDelete(tournament)}
+            title="Delete this tournament and all its matches"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700, background: 'rgba(220,38,38,0.12)', color: '#f87171', border: '1px solid rgba(220,38,38,0.35)' }}
+          >
+            <Trash2 size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Delete
+          </button>
+        )}
       </div>
     </div>
   );
@@ -964,6 +1057,7 @@ const Dashboard = () => {
   const [showTournamentTeams, setShowTournamentTeams] = useState(false);
   const [teamsModalTournament, setTeamsModalTournament] = useState(null);
   const [groupsTournament, setGroupsTournament] = useState(null);
+  const [deleteTournamentTarget, setDeleteTournamentTarget] = useState(null);
   const [nextMatchFixture, setNextMatchFixture] = useState(null);
 
   useEffect(() => {
@@ -1026,7 +1120,7 @@ const Dashboard = () => {
       + 'This removes the match and all its scoring.'
       + (match.tournamentId ? ' Its result is also removed from the points table.' : '')
       + (finished ? ' This match is already finished.' : '')
-      + '\n\nThis cannot be undone.';
+      + '\n\nThe credit used is not refunded. This cannot be undone.';
     if (!window.confirm(message)) return;
     try {
       await matchesApi.delete(match.matchId);
@@ -1035,6 +1129,13 @@ const Dashboard = () => {
     } catch (err) {
       alert(err.message || 'Failed to delete match');
     }
+  };
+
+  // Deletes a tournament with all its matches. The modal shows the warning; errors are shown inside it.
+  const handleDeleteTournament = async (tournament) => {
+    await tournamentsApi.delete(tournament.id || tournament._id);
+    await fetchTournaments();
+    await fetchMatches();
   };
 
   const handleSetOnAir = async (match) => {
@@ -1289,6 +1390,7 @@ const Dashboard = () => {
                       setShowNextMatch(true);
                     }}
                     onGroups={(tourney) => setGroupsTournament(tourney)}
+                    onDelete={(tourney) => setDeleteTournamentTarget(tourney)}
                   />
                 ))}
               </div>
@@ -1390,6 +1492,15 @@ const Dashboard = () => {
               setSelectedTournament(updated);
             }
           }}
+        />
+      )}
+
+      {/* Delete tournament (warning + type name to confirm) */}
+      {deleteTournamentTarget && (
+        <DeleteTournamentModal
+          tournament={deleteTournamentTarget}
+          onClose={() => setDeleteTournamentTarget(null)}
+          onConfirm={handleDeleteTournament}
         />
       )}
 

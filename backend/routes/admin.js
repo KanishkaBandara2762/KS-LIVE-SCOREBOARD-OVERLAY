@@ -220,11 +220,16 @@ router.get('/tournaments', async (req, res, next) => {
 router.delete('/tournaments/:tournamentId', async (req, res, next) => {
   try {
     const Tournament = require('../models/Tournament');
-    const tournament = await Tournament.findByIdAndDelete(req.params.tournamentId);
+    if (!mongoose.isValidObjectId(req.params.tournamentId)) {
+      return res.status(404).json({ success: false, error: 'Tournament not found.' });
+    }
+    const tournament = await Tournament.findById(req.params.tournamentId).select('_id').lean();
     if (!tournament) {
       return res.status(404).json({ success: false, error: 'Tournament not found.' });
     }
-    res.json({ success: true, message: 'Tournament deleted successfully.' });
+    const { deleteTournamentCascade } = require('../services/tournamentDelete');
+    const deletedMatches = await deleteTournamentCascade(tournament, req.app.get('io'));
+    res.json({ success: true, deletedMatches, message: 'Tournament deleted successfully.' });
   } catch (err) {
     next(err);
   }
