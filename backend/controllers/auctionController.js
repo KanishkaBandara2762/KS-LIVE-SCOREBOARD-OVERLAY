@@ -212,6 +212,8 @@ async function createAuction(req, res, next) {
       payload: { name: auction.name },
     });
 
+    // Read by the credit gate to record what the credit was spent on.
+    res.locals.creditEvent = { kind: 'auction', refId: auction._id, name: auction.name };
     res.status(201).json({ success: true, auction: auction.toJSON() });
   } catch (err) {
     handleError(res, next, err);

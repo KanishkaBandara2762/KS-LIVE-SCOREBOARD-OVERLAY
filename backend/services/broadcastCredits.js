@@ -15,6 +15,7 @@ const Match = require('../models/Match');
 const Tournament = require('../models/Tournament');
 const { isAdminRole } = require('../utils/roles');
 const { consumeMatchCredit, refundMatchCredit } = require('./matchCredits');
+const { logCreditSpend } = require('./creditLog');
 
 const BROADCAST_WINDOW_MS = 24 * 60 * 60 * 1000;
 
@@ -53,7 +54,7 @@ async function isMatchBroadcastLocked(match) {
  */
 async function unlockBroadcast(Model, id, ownerField, userId, role) {
   const doc = await Model.findOne({ _id: id, [ownerField]: userId })
-    .select('broadcastLocked broadcastExpiresAt').lean();
+    .select('broadcastLocked broadcastExpiresAt name matchId matchTitle team1Name team2Name').lean();
   if (!doc) return { status: 404, error: 'Not found.' };
 
   const now = new Date();
@@ -89,6 +90,18 @@ async function unlockBroadcast(Model, id, ownerField, userId, role) {
   } catch (err) {
     if (!isAdmin) await refundMatchCredit(userId);
     throw err;
+  }
+
+  if (!isAdmin) {
+    const isMatch = Model.modelName === 'Match';
+    await logCreditSpend({
+      userId,
+      kind: isMatch ? 'match' : 'tournament',
+      refId: isMatch ? (doc.matchId || id) : id,
+      name: isMatch
+        ? (doc.matchTitle || `${doc.team1Name || 'Team A'} vs ${doc.team2Name || 'Team B'}`)
+        : doc.name,
+    });
   }
 
   return { status: 200, charged: !isAdmin, broadcastExpiresAt: expiresAt };

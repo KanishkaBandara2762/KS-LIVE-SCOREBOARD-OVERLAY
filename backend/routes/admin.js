@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../models/User');
 const Payment = require('../models/Payment');
@@ -295,6 +296,104 @@ router.put('/activate-session/:clientId', async (req, res, next) => {
       success: true,
       message,
       user: formatUserSessionFields(user),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Credit usage history (proof of spent credits, kept after event delete) ──
+const CreditLog = require('../models/CreditLog');
+const CREDIT_LOG_PAGE = 50;
+
+// Every user with their credit-spend totals per event type.
+router.get('/credit-log/summary', async (req, res, next) => {
+  try {
+    const [users, totals] = await Promise.all([
+      User.find().select('displayName email matchCredits role').lean(),
+      CreditLog.aggregate([
+        {
+          $group: {
+            _id: '$userId',
+            total: { $sum: 1 },
+            match: { $sum: { $cond: [{ $eq: ['$kind', 'match'] }, 1, 0] } },
+            tournament: { $sum: { $cond: [{ $eq: ['$kind', 'tournament'] }, 1, 0] } },
+            auction: { $sum: { $cond: [{ $eq: ['$kind', 'auction'] }, 1, 0] } },
+            lastId: { $max: '$_id' },
+          },
+        },
+      ]),
+    ]);
+
+    const byUser = new Map(totals.map((t) => [String(t._id), t]));
+    const summary = users.map((u) => {
+      const t = byUser.get(String(u._id));
+      return {
+        userId: String(u._id),
+        displayName: u.displayName || '',
+        email: u.email || '',
+        role: u.role,
+        balance: u.matchCredits || 0,
+        total: t?.total || 0,
+        match: t?.match || 0,
+        tournament: t?.tournament || 0,
+        auction: t?.auction || 0,
+        lastSpentAt: t ? t.lastId.getTimestamp() : null,
+      };
+    });
+    // Most recent spenders first, then users who never spent.
+    summary.sort((a, b) => (b.lastSpentAt || 0) - (a.lastSpentAt || 0));
+    res.json({ success: true, summary });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// One user's spends, newest first. Paged with ?before=<logId>.
+router.get('/credit-log/:userId', async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { before } = req.query;
+    if (!mongoose.isValidObjectId(userId) || (before && !mongoose.isValidObjectId(before))) {
+      return res.status(400).json({ success: false, error: 'Invalid id.' });
+    }
+
+    const filter = { userId };
+    if (before) filter._id = { $lt: before };
+    const logs = await CreditLog.find(filter)
+      .sort({ _id: -1 })
+      .limit(CREDIT_LOG_PAGE + 1)
+      .lean();
+    const hasMore = logs.length > CREDIT_LOG_PAGE;
+    const page = logs.slice(0, CREDIT_LOG_PAGE);
+
+    // Mark events that no longer exist (one small query per type).
+    const idsOf = (kind) => page.filter((l) => l.kind === kind).map((l) => l.refId);
+    const objectIds = (ids) => ids.filter((id) => mongoose.isValidObjectId(id));
+    const Match = require('../models/Match');
+    const Tournament = require('../models/Tournament');
+    const [matches, tournaments, auctions] = await Promise.all([
+      Match.find({ matchId: { $in: idsOf('match') } }).select('matchId').lean(),
+      Tournament.find({ _id: { $in: objectIds(idsOf('tournament')) } }).select('_id').lean(),
+      Auction.find({ _id: { $in: objectIds(idsOf('auction')) } }).select('_id').lean(),
+    ]);
+    const alive = new Set([
+      ...matches.map((m) => `match:${m.matchId}`),
+      ...tournaments.map((t) => `tournament:${t._id}`),
+      ...auctions.map((a) => `auction:${a._id}`),
+    ]);
+
+    res.json({
+      success: true,
+      hasMore,
+      entries: page.map((l) => ({
+        id: String(l._id),
+        time: l._id.getTimestamp(),
+        kind: l.kind,
+        name: l.name,
+        refId: l.refId,
+        deleted: !alive.has(`${l.kind}:${l.refId}`),
+      })),
     });
   } catch (err) {
     next(err);

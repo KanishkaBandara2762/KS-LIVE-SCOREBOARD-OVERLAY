@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { isAdminRole } = require('../utils/roles');
 const { consumeMatchCredit, refundMatchCredit } = require('../services/matchCredits');
+const { logCreditSpend } = require('../services/creditLog');
 
 /**
  * Requires one match credit to create a match, tournament or auction.
@@ -34,6 +35,9 @@ const makeCreditGate = (noCreditsMessage = DEFAULT_NO_CREDITS_MESSAGE) => async 
         refundMatchCredit(user._id).catch((err) =>
           console.error('[creditGate] refund failed:', err.message)
         );
+      } else if (res.locals.creditEvent) {
+        // The route tells us what was created, so the spend is kept as proof.
+        logCreditSpend({ userId: user._id, ...res.locals.creditEvent });
       }
     });
 

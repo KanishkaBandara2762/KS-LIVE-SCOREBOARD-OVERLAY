@@ -1264,7 +1264,7 @@ const Dashboard = () => {
                   : 'Try clearing your search term.'}
                 </p>
                 {tournaments.length === 0 && (
-                  <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
+                  <button className="btn-create-match dash-stacked-btn" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
                     <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create First Tournament
                   </button>
                 )}
@@ -1321,7 +1321,7 @@ const Dashboard = () => {
                   : 'Try clearing your search or filter.'}
                 </p>
                 {matches.length === 0 && (
-                  <button className="btn-create-match" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
+                  <button className="btn-create-match dash-stacked-btn" onClick={() => setShowCreateTournament(true)} style={{ background: 'var(--brand-gold)', color: '#000' }}>
                     <Trophy size="1em" style={{ verticalAlign: '-0.125em' }} aria-hidden="true" /> Create Tournament
                   </button>
                 )}

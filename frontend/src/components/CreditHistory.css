@@ -1,0 +1,121 @@
+/* Super Admin — Credit History (tokens from src/styles/theme.css) */
+.ch-page { min-height: 100vh; }
+
+.ch-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ch-grand { color: var(--brand-gold); font-weight: 700; }
+.ch-intro { color: var(--text-secondary); margin: 0 0 16px; font-size: 0.9rem; }
+
+.ch-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.ch-list { display: flex; flex-direction: column; gap: 12px; }
+
+.ch-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.ch-card-open { border-color: var(--brand-gold); }
+
+.ch-card-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ch-user { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ch-user strong, .ch-user span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ch-user span { color: var(--text-secondary); font-size: 0.85rem; }
+.ch-user .ch-last { color: var(--text-muted); font-size: 0.78rem; }
+
+.ch-stats { display: grid; grid-template-columns: repeat(5, 72px); gap: 6px; }
+.ch-stats div {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+}
+.ch-stats b { font-size: 1.1rem; }
+.ch-stats small { color: var(--text-muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.ch-stats .ch-stat-total b { color: var(--brand-gold); }
+.ch-chevron { flex-shrink: 0; color: var(--text-secondary); }
+
+.ch-entries { border-top: 1px solid var(--border-subtle); padding: 8px 16px 14px; }
+.ch-entry {
+  display: grid;
+  grid-template-columns: 100px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.88rem;
+}
+.ch-entry:last-of-type { border-bottom: none; }
+.ch-entry-name { min-width: 0; overflow-wrap: anywhere; color: var(--text-primary); }
+.ch-entry-time { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+
+.ch-kind {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.ch-kind-match { background: rgba(22, 119, 255, 0.18); color: #7DB5FF; }
+.ch-kind-tournament { background: rgba(255, 193, 7, 0.16); color: var(--brand-gold); }
+.ch-kind-auction { background: rgba(134, 239, 172, 0.14); color: #86EFAC; }
+
+.ch-deleted {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.16);
+  color: #FCA5A5;
+}
+
+.ch-note { color: var(--text-secondary); padding: 8px 0; margin: 0; }
+.ch-error { color: #FCA5A5; }
+.ch-more { margin-top: 10px; }
+
+/* Mobile: stack user info above the stats, entries become two-line rows */
+@media (max-width: 720px) {
+  .ch-card-head { flex-wrap: wrap; gap: 10px; padding: 12px; position: relative; }
+  .ch-user { flex-basis: 100%; padding-right: 28px; }
+  .ch-chevron { position: absolute; top: 14px; right: 12px; }
+  .ch-stats { width: 100%; grid-template-columns: repeat(5, 1fr); }
+  .ch-stats small { font-size: 0.6rem; }
+
+  .ch-entries { padding: 6px 12px 12px; }
+  .ch-entry {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "kind time"
+      "name name"
+      "del  del";
+    row-gap: 4px;
+  }
+  .ch-kind { grid-area: kind; }
+  .ch-entry-time { grid-area: time; justify-self: end; }
+  .ch-entry-name { grid-area: name; }
+  .ch-deleted { grid-area: del; justify-self: start; }
+}
