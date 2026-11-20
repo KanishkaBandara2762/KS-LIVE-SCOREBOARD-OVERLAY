@@ -138,7 +138,7 @@ const fowSchema = new mongoose.Schema(
 // ── Sub-schema: Overlay Settings ─────────────────────────────────────────────
 const overlaySettingsSchema = new mongoose.Schema(
   {
-    themeID: { type: String, default: 'ICC_GLOBAL' },
+    themeID: { type: String, default: 'IPL_GOLD' },
     overlayMode: { type: String, enum: ['full', 'mini', 'ticker', 'hidden'], default: 'full' },
     showVersus: { type: Boolean, default: false },
     showSummary: { type: Boolean, default: false },

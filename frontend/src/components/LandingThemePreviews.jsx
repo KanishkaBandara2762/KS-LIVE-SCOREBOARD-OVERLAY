@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import ModernOverlayThemes from "./ModernOverlayThemes";
 import LightningBar from "./LightningBar";
+import { ProBroadcastBar } from "./themePacks";
+import IplGoldBar from "./IplGoldBar";
+import Ipl2026Bar from "./Ipl2026Bar";
+import KsPremiumBar from "./KsPremiumBar";
+import { FitScaleContext } from "./themePacks/common";
 import "./LandingThemePreviews.css";
 
 /* ================================================================
@@ -104,6 +109,18 @@ export function ThemePreview({ previewId, className }) {
         </div>
       </FitStage>
     );
+  }
+  if (previewId === "PRO_BROADCAST") {
+    return (<FitStage className={className}><div className="ltp-bottom"><FitScaleContext.Provider value={1}><ProBroadcastBar match={SAMPLE_MATCH} getOvers={SAMPLE_PROPS.getOvers} getAbsoluteUrl={SAMPLE_PROPS.getAbsoluteUrl} showEvent={false} /></FitScaleContext.Provider></div></FitStage>);
+  }
+  if (previewId === "IPL_GOLD") {
+    return (<FitStage className={className}><div className="ltp-bottom"><FitScaleContext.Provider value={1}><IplGoldBar match={{ ...SAMPLE_MATCH, team1Name: SAMPLE_MATCH.battingTeam, team2Name: SAMPLE_MATCH.bowlingTeam, team1Color: "#dc2626", team2Color: "#2563eb" }} getOvers={SAMPLE_PROPS.getOvers} getAbsoluteUrl={SAMPLE_PROPS.getAbsoluteUrl} showEvent={false} /></FitScaleContext.Provider></div></FitStage>);
+  }
+  if (previewId === "IPL_2026") {
+    return (<FitStage className={className}><div className="ltp-bottom"><FitScaleContext.Provider value={1}><Ipl2026Bar match={SAMPLE_MATCH} getOvers={SAMPLE_PROPS.getOvers} /></FitScaleContext.Provider></div></FitStage>);
+  }
+  if (previewId === "KS_PREMIUM") {
+    return (<FitStage className={className}><div className="ltp-bottom"><KsPremiumBar match={SAMPLE_MATCH} getAbsoluteUrl={SAMPLE_PROPS.getAbsoluteUrl} TeamLogo={SAMPLE_PROPS.TeamLogo} getOvers={SAMPLE_PROPS.getOvers} scoreAnimClass="" showEvent={false} eventType={null} eventWicketName="" getHowOutText={SAMPLE_PROPS.getHowOutText} showOverBreakChase={false} /></div></FitStage>);
   }
   return (
     <FitStage className={className}>

@@ -2000,8 +2000,8 @@ const MiniAdmin = () => {
                         {/* Theme & Overlay */}
                         <div className="ma-card">
                             <div className="ma-card-title">Overlay Theme</div>
-                            <select className="ma-sel" value={match.themeID || 'ICC_GLOBAL'} onChange={e => push({ themeID: e.target.value })}>
-                                <ThemeOptions />
+                            <select className="ma-sel" value={match.themeID || 'IPL_GOLD'} onChange={e => push({ themeID: e.target.value })}>
+                                <ThemeOptions current={match.themeID} />
                             </select>
                             <div className="ma-grid-2">
                                 <button className={`ma-status-btn ${match.showVersus ? 'active-break' : ''}`} onClick={() => push({ showVersus: !match.showVersus })}>VS Tab</button>

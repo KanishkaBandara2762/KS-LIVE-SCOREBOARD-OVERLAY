@@ -175,15 +175,11 @@ const SCREENSHOTS = [
    ================================================================ */
 
 const THEMES = [
+    { id: "PRO_BROADCAST", previewId: "PRO_BROADCAST", name: "Pro Broadcast", desc: "Navy and blue scorebar with a green board look for versus, squads, points table and leaders.", tags: ["Broadcast", "Green board", "Premium"], ribbon: "premium", category: ["all", "t20", "tournament"] },
+    { id: "IPL_GOLD", previewId: "IPL_GOLD", name: "IPL Gold (Navy & Gold)", desc: "Navy and gold scorebar whose side panels take each team's own colour, with automatic readable text.", tags: ["IPL", "Gold", "Team colours"], ribbon: "premium", category: ["all", "t20", "tournament"] },
+    { id: "KS_PREMIUM", previewId: "KS_PREMIUM", name: "KS Premium", desc: "Dark HUD broadcast look with cyan glow lines, amber highlights and a circular chase gauge.", tags: ["HUD", "Premium", "Chase"], ribbon: "premium", category: ["all", "t20", "tournament"] },
+    { id: "IPL_2026", previewId: "IPL_2026", name: "IPL 2026 Stadium Capsule", desc: "Stadium green with red pill panels and an orange score capsule.", tags: ["IPL", "Stadium", "Capsule"], ribbon: "tournament", category: ["all", "t20", "tournament"] },
     { id: "LIGHTNING_BAR", previewId: "LIGHTNING_BAR", name: "Lightning Bar (T10 Two-Logo)", desc: "Two team logos framing a white lightning centre, with live score, target and bowler figures.", tags: ["T10", "Lightning", "Premium"], ribbon: "premium", category: ["all", "t20", "tournament"] },
-    { id: "APEX", previewId: "APEX", name: "Apex (TV Broadcast)", desc: "Professional TV broadcast design with a navy bar, red score block and angled tab.", tags: ["TV Broadcast", "Navy & Red", "Live"], ribbon: "new", category: ["all", "t20", "tournament"] },
-    { id: "DIAMOND", previewId: "DIAMOND", name: "Diamond (Metallic)", desc: "Metallic premium design with silver panels and a faceted gem score.", tags: ["Metallic", "Geometric", "Premium"], ribbon: "premium", category: ["all", "t20", "odi"] },
-    { id: "VOLT", previewId: "VOLT", name: "Volt (Sports-Tech)", desc: "Lime green on near-black with sharp sports-tech edges and modular stats.", tags: ["Lime", "Sports-Tech", "Dark"], ribbon: "new", category: ["all", "t20"] },
-    { id: "THUNDER", previewId: "THUNDER", name: "Thunder (Electric Red)", desc: "Electric red with diagonal stripes and a powerful, high-energy bar.", tags: ["Red", "Stripes", "Power"], ribbon: "new", category: ["all", "t20", "tournament"] },
-    { id: "BLITZ", previewId: "BLITZ", name: "Blitz (Lightning Blue)", desc: "Electric blue T20 design inspired by lightning and fast-paced graphics.", tags: ["Blue", "T20", "Lightning"], ribbon: "popular", category: ["all", "t20"] },
-    { id: "ELITE", previewId: "ELITE", name: "Elite (Minimal Gold)", desc: "Clean, minimal and elegant bar with gold accents and serif team names.", tags: ["Minimal", "Gold", "Elegant"], ribbon: "premium", category: ["all", "odi", "tournament"] },
-    { id: "FRANCHISE", previewId: "FRANCHISE", name: "Franchise (Gradient)", desc: "Vibrant gradients and franchise-style branding for league matches.", tags: ["Gradient", "League", "Vibrant"], ribbon: "popular", category: ["all", "t20", "tournament"] },
-    { id: "SHAKTI", previewId: "SHAKTI", name: "Shakti (Bold Contrast)", desc: "Bold colours, strong contrast and powerful visuals on a black bar.", tags: ["Bold", "Contrast", "Power"], ribbon: "new", category: ["all", "t20", "odi"] },
 ];
 
 

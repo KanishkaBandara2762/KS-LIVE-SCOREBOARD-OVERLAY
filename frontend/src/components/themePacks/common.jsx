@@ -14,6 +14,8 @@ import "./common.css";
 export const PanelContext = createContext(1);
 /** { batting, bowling } team colours for the screen being drawn, or null when no team chose one. */
 export const TeamColorContext = createContext(null);
+/** When set (e.g. 1 inside a gallery thumbnail), scorebars use this scale instead of the window width. */
+export const FitScaleContext = createContext(null);
 
 export const upper = (s, fallback = "") => String(s || fallback).toUpperCase();
 
@@ -25,6 +27,7 @@ export const fit = (text, basePx, maxChars) => {
 
 /** Scale factor so a fixed-size design fits the current window. */
 export function useFitScale(designW, designH) {
+  const override = useContext(FitScaleContext);
   const calc = () => {
     if (typeof window === "undefined") return 1;
     const w = window.innerWidth / designW;
@@ -37,7 +40,7 @@ export function useFitScale(designW, designH) {
     return () => window.removeEventListener("resize", onResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [designW, designH]);
-  return scale;
+  return override != null ? override : scale;
 }
 
 /** Logo / photo that falls back to initials when missing or broken. */

@@ -79,7 +79,7 @@ const createMatch = async (req, res, next) => {
       tournamentName = '',
       venueName = '',
       matchDate = '',
-      themeID = 'ICC_GLOBAL',
+      themeID = 'IPL_GOLD',
       toss = {},
     } = req.body;
 

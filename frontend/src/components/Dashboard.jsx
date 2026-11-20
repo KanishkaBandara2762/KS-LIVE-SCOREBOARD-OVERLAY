@@ -52,7 +52,7 @@ function CreateMatchModal({ onClose, onCreate }) {
     tournamentName: '',
     venueName: '',
     matchDate: new Date().toISOString().split('T')[0],
-    themeID: 'ICC_GLOBAL',
+    themeID: 'IPL_GOLD',
   });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -343,7 +343,7 @@ export function NextMatchModal({ tournament, onClose, onSubmit, fixture = null }
     tossDecision: 'bat',
     matchTitle: '',
     venueName: '',
-    themeID: 'ICC_GLOBAL',
+    themeID: 'IPL_GOLD',
   });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
